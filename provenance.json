@@ -130,7 +130,13 @@
     {
       "paths": [
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/**",
-        "patches/src/main/kotlin/app/morphe/patches/pinterest/ads/**"
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/ads/**",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/privacy/**",
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/**",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ui/**",
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/ui/**",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/actions/**",
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/actions/**"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/HushPinterest",

@@ -10,7 +10,7 @@
 
 # <img src="assets/icon.png" width="36" alt=""> HushPinterest
 
-HushPinterest is a Morphe patch bundle for Android that takes promoted pins out of Pinterest and can hide the pins Pinterest labels as AI. Every patch has its own switch, so you can turn one off without patching again.
+HushPinterest is a Morphe patch bundle for Android that takes promoted pins out of Pinterest and can hide the pins Pinterest labels as AI. It also adds pin downloads, browser and sharing choices, privacy controls and switches for the interface.
 
 It's early. There's no release yet, and the patches haven't been tried on a signed-in phone. For now you'd have to build the bundle yourself (see [Building from source](#building-from-source)). Once 0.0.2 is out, Morphe Manager will be able to add this repo as a patch source and keep it updated.
 
@@ -43,31 +43,65 @@ Morphe Manager signs the patched Pinterest with a key it makes on your phone. An
 
 ## Patches
 
-There are 3 patches so far.
+There are 17 patches so far.
 
 | Patch | What it does |
 |---|---|
-| `Hide ads` | Removes promoted pins from the home feed, search, related pins and boards, and hides Pinterest's ad-only panels. Turn it off in HushPinterest settings at any time. |
+| `Disable analytics` | Stops Pinterest's usage-event and performance uploads and AppsFlyer tracking. A switch and Pause restore those runtime paths. Firebase Analytics is disabled in the manifest and stays disabled until you patch again without this patch. Sign-in, pin requests and Firebase push components are preserved. |
+| `Disable update nag` | Stops Pinterest's in-app Play Store update prompts. You can still update Pinterest yourself. |
+| `Download pins` | Adds Download pin to the pin menu for original images and the highest-resolution MP4 Pinterest supplies. Saves in Downloads on Android 10 or newer, or asks for a save location on Android 9. Turn it off in HushPinterest settings at any time. |
+| `Filter pin menu` | Adds separate switches for collage, visual-search and Promote pin menu entries. Download, share and copy-link actions remain available. |
 | `Hide AI-labeled pins` | Removes pins that Pinterest labels as made or changed with AI from the home feed, search, related pins and boards. AI images without Pinterest's label still show. |
+| `Hide ads` | Removes promoted pins from the home feed, search, related pins and boards, and hides Pinterest's ad-only panels. Turn it off in HushPinterest settings at any time. |
+| `Hide comments` | Collapses comments panels and comment previews beneath pins. It doesn't change who can comment on your pins. |
+| `Hide header buttons` | Hides trailing header icon buttons. Back buttons, text actions and account controls remain available. |
+| `Hide navigation buttons` | Adds separate switches for the Create and Updates navigation buttons. Home, Search and Profile remain available. |
+| `Hide search history` | Hides recent-search rows and carousels on this device. It doesn't delete your account's search history. |
+| `Hide shopping and product pins` | Hides shoppable pins, shopping stories and featured board placements. Off by default. Turn it on in HushPinterest settings when you want a feed without shopping. |
 | `HushPinterest settings` | Adds HushPinterest settings to Pinterest. Long-press Pinterest's launcher icon, or open Additional settings in the app on Pinterest's App info page, to turn features on or off, pause HushPinterest, save your switches to a file or load them, and export diagnostics. The licenses are there too. |
+| `No screenshot share menu` | Stops Pinterest's screenshot observer from opening sharing suggestions. Screenshots still work normally. |
+| `Open links in your browser` | Opens a pin's Visit link in your web browser. Pinterest links and sign-in keep their usual behavior. Turn it off in HushPinterest settings at any time. |
+| `Quiet email reminders` | Dismisses the optional confirm-your-email reminder. Account verification and sign-in checks still apply. |
+| `Strip link tracking` | Removes known tracking parameters from URLs shared or copied from Pinterest. Keeps the destination, other parameters and opaque pin.it links. Turn it off or pause HushPinterest to share the original URLs. |
+| `System share sheet` | Uses Android's share sheet when sharing a pin link. Screenshot and download actions keep their usual behavior. Turn it off in HushPinterest settings at any time. |
 
-Morphe Manager picks Hide ads and the settings for you. Hide AI-labeled pins stays off unless you pick it, because it changes what you see and not just what's sold to you. The settings patch is needed by the other two.
+Morphe Manager selects Hide ads, Disable analytics, Strip link tracking and the settings by default. Pick the other patches when you want them. The optional shopping, pin-action and interface switches start off. The settings patch is required by the feature patches.
 
-Every switch takes effect without patching again. Pause turns them all off at once until Pinterest restarts, which helps tell whether a problem is HushPinterest's or Pinterest's own.
+Switches change the runtime hooks without patching again. Reopen a screen to refresh controls that are already drawn. Pause makes those hooks follow Pinterest's original path. Startup tasks skipped by Disable analytics run again after a restart with its switch off or Pause on. That patch also changes a Firebase Analytics manifest flag when you patch. The flag stays disabled until you patch again without Disable analytics.
+
+Disable update nag targets the Play Store prompt in 14.38.0. That prompt mechanism isn't present in 14.25.0, so the older build doesn't show its switch.
 
 ## Settings
 
 Long-press the Pinterest icon and tap HushPinterest. You can also open Pinterest's App info page and tap Additional settings in the app, which Samsung phones call Configure in Pinterest.
 
+<p>
+  <img src="assets/screenshots/settings-home.png" width="240" alt="HushPinterest settings categories">
+  <img src="assets/screenshots/settings-feed.png" width="240" alt="Feed controls for promoted, AI-labeled and shopping pins">
+  <img src="assets/screenshots/settings-privacy.png" width="240" alt="Analytics and link-tracking controls">
+</p>
+
+These settings were captured on Android 16 with every patch included. All 19 feature switches saved and restored their choices. Pause and Resume were checked across restarts, and Supported links opened Android's link settings. Signed-in feed and pin-action checks are still pending.
+
+Shopping filters and the new pin actions and interface controls start off. Create and Notifications have separate switches. The pin menu has separate choices for collage actions, Search image and Promote pin. Home, your profile and the ordinary Save, Share and Report actions stay available.
+
+Download pins adds a Download row only when Pinterest supplies an original image or a direct MP4. It uses the highest resolution MP4 supplied for a video. Android 10 and newer save through Downloads. On Android 9, choose where to save the file. Streaming playlists aren't saved as videos.
+
 ## Opening Pinterest links
 
 Android hands a pinterest.com or pin.it link to the official app only when that app proves it belongs to Pinterest's sites, and a re-signed app can't. To open those links in the patched app, go to its App info page, tap Open by default, then Add link, and select the Pinterest sites. HushPinterest's Links page has a button that goes straight there.
 
+Manual selections were checked on Android 16. Links for pinterest.com, www.pinterest.com and pin.it opened the patched app.
+
 ## Privacy
 
-HushPinterest doesn't collect anything and has no server. The only time the patched app goes online on HushPinterest's behalf is the release check, which stays off until you turn it on. Once it's on, HushPinterest asks `api.github.com` for its latest release at most once a day, when Pinterest starts, and again whenever you tap Check now.
+HushPinterest doesn't collect anything and has no server. The release check stays off until you turn it on. Once it's on, HushPinterest asks `api.github.com` for its latest release at most once a day, when Pinterest starts, and again whenever you tap Check now. Download pins contacts Pinterest's media server when you tap Download. Browser and share actions open the destination you chose.
+
+Disable analytics stops the targeted Pinterest usage uploads and AppsFlyer transport. It preserves Firebase messaging and the sign-in components, but that doesn't establish whether push notifications work on a re-signed build. That check still needs a signed-in device. Strip link tracking removes known tracking parameters from copied and shared links while keeping unknown parameters, signed links and opaque `pin.it` short links. Hide search history hides recent searches on this device. It doesn't delete Pinterest's server history.
 
 The About and Licenses screens link to `github.com`, `gitlab.com` and `www.gnu.org`. Those open in your browser, and only when you tap one.
+
+Shared pin links use `www.pinterest.com`. Downloads use media addresses Pinterest supplies under `pinimg.com`. Browser discovery checks installed handlers for `example.com` without opening or loading that address. When Disable analytics is off or paused, its AppsFlyer wrapper uses the SDK's original connection path.
 
 ## Reporting a problem
 

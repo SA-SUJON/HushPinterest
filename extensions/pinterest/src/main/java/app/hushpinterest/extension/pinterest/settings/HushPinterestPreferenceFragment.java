@@ -251,11 +251,56 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                         PatchFamily.HIDE_AI_PINS.coverageSummary(L10n.t("Pins that Pinterest labels as made or changed with AI leave the same lists. "
                                 + "AI images without Pinterest's label still show."))), SettingsIcons.BLOCK));
             }
+            patchToggle(feed, context, build, PatchFamily.HIDE_SHOPPING, Settings.HIDE_SHOPPING,
+                    L10n.t("Hide shopping and product pins"), L10n.t("Shoppable pins, shopping stories and featured boards"), SettingsIcons.BLOCK);
+        }
+
+        if (!Collections.disjoint(build, PatchFamily.PRIVACY_PAGE)) {
+            PreferenceCategory privacy = category(screen, L10n.t("Privacy"));
+            patchToggle(privacy, context, build, PatchFamily.DISABLE_ANALYTICS, Settings.DISABLE_ANALYTICS,
+                    L10n.t("Disable analytics"), L10n.t("Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch."), SettingsIcons.BLOCK);
+            patchToggle(privacy, context, build, PatchFamily.STRIP_LINK_TRACKING, Settings.STRIP_LINK_TRACKING,
+                    L10n.t("Strip link tracking"), L10n.t("Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them."), SettingsIcons.LINKS);
+        }
+
+        if (!Collections.disjoint(build, PatchFamily.ACTIONS_PAGE)) {
+            PreferenceCategory actions = category(screen, L10n.t("Pin actions"));
+            patchToggle(actions, context, build, PatchFamily.DOWNLOAD_PINS, Settings.DOWNLOAD_PINS,
+                    L10n.t("Download pins"), L10n.t("Adds Download to the pin menu. Saves original images and available videos."), SettingsIcons.DOWNLOADS);
+            patchToggle(actions, context, build, PatchFamily.SYSTEM_SHARE, Settings.SYSTEM_SHARE,
+                    L10n.t("System share sheet"), L10n.t("Share uses Android's share sheet."), SettingsIcons.EXPORT);
+        }
+
+        if (!Collections.disjoint(build, PatchFamily.INTERFACE_PAGE)) {
+            PreferenceCategory ui = category(screen, L10n.t("Interface"));
+            String refresh = L10n.t("Off by default. Restart Pinterest to refresh a screen that's already open.");
+            patchToggle(ui, context, build, PatchFamily.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SCREENSHOT_SHARE,
+                    L10n.t("No screenshot share menu"), refresh, SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_SEARCH_HISTORY, Settings.HIDE_SEARCH_HISTORY,
+                    L10n.t("Hide search history"), L10n.t("Hides recent searches on this device. Pinterest's server history isn't deleted."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_CREATE,
+                    L10n.t("Hide Create button"), refresh, SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_NOTIFICATIONS,
+                    L10n.t("Hide Notifications button"), refresh, SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_HEADER_BUTTONS, Settings.HIDE_HEADER_BUTTONS,
+                    L10n.t("Hide header buttons"), refresh, SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_COLLAGE,
+                    L10n.t("Hide collage menu items"), refresh, SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_VISUAL_SEARCH,
+                    L10n.t("Hide Search image menu item"), refresh, SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_PIN_BOOST,
+                    L10n.t("Hide Promote pin menu item"), refresh, SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_COMMENTS, Settings.HIDE_COMMENTS,
+                    L10n.t("Hide comments"), L10n.t("Hides the comments area under pins."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.QUIET_EMAIL_REMINDER, Settings.QUIET_EMAIL_REMINDER,
+                    L10n.t("Quiet email reminders"), refresh, SettingsIcons.BELL);
         }
 
         // In every build: a patched Pinterest isn't verified for its own links, so Android opens them
         // here only for the addresses selected on the app's Open by default page.
         PreferenceCategory links = category(screen, L10n.t("Links"));
+        patchToggle(links, context, build, PatchFamily.EXTERNAL_BROWSER, Settings.EXTERNAL_BROWSER,
+                L10n.t("Open links in your browser"), L10n.t("Visit opens a web link in your browser."), SettingsIcons.LINKS);
         links.addPreference(mark(supportedLinksRow(context), SettingsIcons.LINKS));
         // An explanation, not a control: the info mark says so, as it does for Version on About.
         links.addPreference(mark(info(context, L10n.t("Selecting links by hand"),
@@ -266,6 +311,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         // In every build: the release check is the settings entry's own, not a patch's. Its switch
         // is one Pause turns off, so it sits above the Pause row with the rest.
         PreferenceCategory updates = category(screen, L10n.t("Updates"));
+        patchToggle(updates, context, build, PatchFamily.DISABLE_UPDATE_NAG, Settings.DISABLE_UPDATE_NAG,
+                L10n.t("Disable update nag"), L10n.t("Hides Pinterest's Play Store update prompt."), SettingsIcons.BLOCK);
         updates.addPreference(mark(toggle(context, Settings.CHECK_FOR_RELEASES, L10n.t("Check for new HushPinterest releases"),
                 L10n.t("Ask GitHub once a day when Pinterest starts, and show a newer release at the top of these "
                         + "settings. Off by default. Nothing is downloaded.")), SettingsIcons.BELL));
@@ -639,6 +686,13 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         category.setTitle(title);
         screen.addPreference(category);
         return category;
+    }
+
+    private static void patchToggle(PreferenceCategory category, Context context, Set<PatchFamily> build,
+                                    PatchFamily family, BooleanSetting setting, String title, String summary, String icon) {
+        if (build.contains(family)) {
+            category.addPreference(mark(toggle(context, setting, title, family.coverageSummary(summary)), icon));
+        }
     }
 
     static SwitchPreference toggle(Context context, BooleanSetting setting, String title, String summary) {

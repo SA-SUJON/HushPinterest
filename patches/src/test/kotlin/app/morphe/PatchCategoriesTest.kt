@@ -34,7 +34,7 @@ class PatchCategoriesTest {
      * Downloads, Interface and Privacy come back when a Pinterest patch needs one.
      */
     private val taxonomy = setOf(
-        "Ads", "Feed", "Settings",
+        "Ads", "Feed", "Settings", "Privacy", "Interface", "Downloads",
     )
 
     private fun shippedPatches() = run {

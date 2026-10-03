@@ -47,7 +47,24 @@ public enum PatchFamily {
     HIDE_ADS(FamilyNames.HIDE_ADS, "hideAds", null,
             Settings.HIDE_ADS),
     HIDE_AI_PINS(FamilyNames.HIDE_AI_PINS, "hideAiPins", null,
-            Settings.HIDE_AI_PINS);
+            Settings.HIDE_AI_PINS),
+    HIDE_SHOPPING(FamilyNames.HIDE_SHOPPING, "hideShopping", null, Settings.HIDE_SHOPPING),
+    DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics",
+            "Firebase Analytics collection is disabled", Settings.DISABLE_ANALYTICS),
+    STRIP_LINK_TRACKING(FamilyNames.STRIP_LINK_TRACKING, "stripLinkTracking", null, Settings.STRIP_LINK_TRACKING),
+    DOWNLOAD_PINS(FamilyNames.DOWNLOAD_PINS, "downloadPins", null, Settings.DOWNLOAD_PINS),
+    EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "externalBrowser", null, Settings.EXTERNAL_BROWSER),
+    SYSTEM_SHARE(FamilyNames.SYSTEM_SHARE, "systemShare", null, Settings.SYSTEM_SHARE),
+    HIDE_SCREENSHOT_SHARE(FamilyNames.HIDE_SCREENSHOT_SHARE, "hideScreenshotShare", null, Settings.HIDE_SCREENSHOT_SHARE),
+    HIDE_SEARCH_HISTORY(FamilyNames.HIDE_SEARCH_HISTORY, "hideSearchHistory", null, Settings.HIDE_SEARCH_HISTORY),
+    HIDE_NAVIGATION_BUTTONS(FamilyNames.HIDE_NAVIGATION_BUTTONS, "hideNavigationButtons", null,
+            Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS),
+    HIDE_HEADER_BUTTONS(FamilyNames.HIDE_HEADER_BUTTONS, "hideHeaderButtons", null, Settings.HIDE_HEADER_BUTTONS),
+    HIDE_PIN_MENU_ITEMS(FamilyNames.HIDE_PIN_MENU_ITEMS, "hidePinMenuItems", null,
+            Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST),
+    HIDE_COMMENTS(FamilyNames.HIDE_COMMENTS, "hideComments", null, Settings.HIDE_COMMENTS),
+    QUIET_EMAIL_REMINDER(FamilyNames.QUIET_EMAIL_REMINDER, "quietEmailReminder", null, Settings.QUIET_EMAIL_REMINDER),
+    DISABLE_UPDATE_NAG(FamilyNames.DISABLE_UPDATE_NAG, "disableUpdateNag", null, Settings.DISABLE_UPDATE_NAG);
 
     /** The patch's name in Morphe Manager. */
     public final String patchName;
@@ -83,8 +100,7 @@ public enum PatchFamily {
     static volatile Set<PatchFamily> inBuildForTests;
 
     /**
-     * Lets a test say what a family's {@link #staysWhilePaused} reads as, for the families in this
-     * build, none of which has one of its own. Cleared by setting it back to null.
+     * Lets a test substitute patch-time facts for this build. Cleared by setting it back to null.
      */
     @Nullable
     static volatile Map<PatchFamily, String> staysWhilePausedForTests;
@@ -94,13 +110,33 @@ public enum PatchFamily {
     static volatile Set<Capability> capabilitiesForTests;
 
     /** The families whose switches the Feed page holds. The page and its home row both read this. */
-    static final Set<PatchFamily> FEED_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_AI_PINS));
+    static final Set<PatchFamily> FEED_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_AI_PINS, HIDE_SHOPPING));
+    static final Set<PatchFamily> PRIVACY_PAGE = Collections.unmodifiableSet(EnumSet.of(DISABLE_ANALYTICS, STRIP_LINK_TRACKING));
+    static final Set<PatchFamily> ACTIONS_PAGE = Collections.unmodifiableSet(EnumSet.of(DOWNLOAD_PINS, SYSTEM_SHARE));
+    static final Set<PatchFamily> INTERFACE_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SCREENSHOT_SHARE,
+            HIDE_SEARCH_HISTORY, HIDE_NAVIGATION_BUTTONS, HIDE_HEADER_BUTTONS, HIDE_PIN_MENU_ITEMS,
+            HIDE_COMMENTS, QUIET_EMAIL_REMINDER));
 
     /** Each independent hook, its owning family and the flag set only after it was inserted. */
     public enum Capability {
         FEED_ADS(HIDE_ADS, "feedAds", "promoted pins in lists"),
         AD_VIEWS(HIDE_ADS, "adViews", "ad-only views"),
-        FEED_AI_PINS(HIDE_AI_PINS, "feedAiPins", "AI-labeled pins in lists");
+        FEED_AI_PINS(HIDE_AI_PINS, "feedAiPins", "AI-labeled pins in lists"),
+        FEED_SHOPPING(HIDE_SHOPPING, "feedShopping", "Hide shopping and product pins"),
+        ANALYTICS_TASKS(DISABLE_ANALYTICS, "analyticsTasks", "Analytics launch tasks"),
+        ANALYTICS_UPLOADS(DISABLE_ANALYTICS, "analyticsUploads", "Analytics uploads"),
+        LINK_TRACKING(STRIP_LINK_TRACKING, "linkTracking", "Strip link tracking"),
+        PIN_DOWNLOADS(DOWNLOAD_PINS, "pinDownloads", "Download pins"),
+        VISIT_LINKS(EXTERNAL_BROWSER, "visitLinks", "Open links in your browser"),
+        PIN_SHARE(SYSTEM_SHARE, "pinShare", "System share sheet"),
+        SCREENSHOT_SHARE(HIDE_SCREENSHOT_SHARE, "screenshotShare", "No screenshot share menu"),
+        SEARCH_HISTORY(HIDE_SEARCH_HISTORY, "searchHistory", "Hide search history"),
+        NAVIGATION_BUTTONS(HIDE_NAVIGATION_BUTTONS, "navigationButtons", "Hide navigation buttons"),
+        HEADER_BUTTONS(HIDE_HEADER_BUTTONS, "headerButtons", "Hide header buttons"),
+        PIN_MENU_ITEMS(HIDE_PIN_MENU_ITEMS, "pinMenuItems", "Filter pin menu"),
+        COMMENTS(HIDE_COMMENTS, "comments", "Hide comments"),
+        EMAIL_REMINDER(QUIET_EMAIL_REMINDER, "emailReminder", "Quiet email reminders"),
+        UPDATE_NAG(DISABLE_UPDATE_NAG, "updateNag", "Disable update nag");
 
         public final PatchFamily family;
         final String statusMethod;

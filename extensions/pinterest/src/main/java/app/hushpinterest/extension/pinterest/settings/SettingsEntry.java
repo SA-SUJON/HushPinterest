@@ -304,6 +304,7 @@ public final class SettingsEntry {
         @Override
         public void onActivityResumed(Activity activity) {
             resumed = new WeakReference<>(activity);
+            Utils.setActivity(activity);
             if (openPending) openWhenSettled(activity);
             relabelIfStale(activity);
         }
@@ -319,6 +320,7 @@ public final class SettingsEntry {
         @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
         @Override
         public void onActivityDestroyed(Activity activity) {
+            if (Utils.getActivity() == activity) Utils.setActivity(null);
             // The screen can land on an activity just before it clears itself for the next one.
             // If its host goes away before the person closed it, ask again.
             WeakReference<Activity> shownOver = host;

@@ -15,6 +15,7 @@ package app.hushpinterest.extension.pinterest.settings;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -51,7 +52,29 @@ public class SettingsEntryTest {
 
     @After public void stopWatching() {
         RuntimeEnvironment.getApplication().unregisterActivityLifecycleCallbacks(watcher);
+        app.hushpinterest.extension.shared.Utils.setActivity(null);
         HushPinterestPreferenceFragment.failNextInitialization = null;
+    }
+
+    @Test public void registeredLifecycleProvidesTheLiveHostAndKeepsItDuringTheSavePicker() {
+        ActivityController<Activity> first = Robolectric.buildActivity(Activity.class).setup();
+        ActivityController<Activity> second = null;
+        try {
+            assertSame(first.get(), app.hushpinterest.extension.shared.Utils.getActivity());
+            first.pause().stop();
+            assertSame("the external save picker must keep its Pinterest host", first.get(),
+                    app.hushpinterest.extension.shared.Utils.getActivity());
+            second = Robolectric.buildActivity(Activity.class).setup();
+            assertSame(second.get(), app.hushpinterest.extension.shared.Utils.getActivity());
+            first.destroy();
+            assertSame("destroying an old screen must keep its replacement", second.get(),
+                    app.hushpinterest.extension.shared.Utils.getActivity());
+            second.pause().stop().destroy();
+            assertNull(app.hushpinterest.extension.shared.Utils.getActivity());
+        } finally {
+            if (!first.get().isDestroyed()) first.close();
+            if (second != null && !second.get().isDestroyed()) second.close();
+        }
     }
 
     /**

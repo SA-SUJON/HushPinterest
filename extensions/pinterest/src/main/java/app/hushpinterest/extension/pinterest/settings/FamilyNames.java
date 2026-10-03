@@ -27,6 +27,20 @@ package app.hushpinterest.extension.pinterest.settings;
 public final class FamilyNames {
     public static final String HIDE_ADS = "Hide ads";
     public static final String HIDE_AI_PINS = "Hide AI-labeled pins";
+    public static final String HIDE_SHOPPING = "Hide shopping and product pins";
+    public static final String DISABLE_ANALYTICS = "Disable analytics";
+    public static final String STRIP_LINK_TRACKING = "Strip link tracking";
+    public static final String DOWNLOAD_PINS = "Download pins";
+    public static final String EXTERNAL_BROWSER = "Open links in your browser";
+    public static final String SYSTEM_SHARE = "System share sheet";
+    public static final String HIDE_SCREENSHOT_SHARE = "No screenshot share menu";
+    public static final String HIDE_SEARCH_HISTORY = "Hide search history";
+    public static final String HIDE_NAVIGATION_BUTTONS = "Hide navigation buttons";
+    public static final String HIDE_HEADER_BUTTONS = "Hide header buttons";
+    public static final String HIDE_PIN_MENU_ITEMS = "Filter pin menu";
+    public static final String HIDE_COMMENTS = "Hide comments";
+    public static final String QUIET_EMAIL_REMINDER = "Quiet email reminders";
+    public static final String DISABLE_UPDATE_NAG = "Disable update nag";
 
     private FamilyNames() {
     }

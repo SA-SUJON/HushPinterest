@@ -264,10 +264,8 @@ public class SettingsL10nTest {
      * "and", and a sentence around them. In each language it has to start with a capital, carry
      * every item, and switch to the plural sentence past one item.
      *
-     * <p>Every family in this build has a switch, so none has a {@link PatchFamily#staysWhilePaused}
-     * of its own and a real build never shows this row. {@link PatchFamily#staysWhilePausedForTests}
-     * substitutes two already-translated strings (the Hide ads and Hide AI-labeled pins titles), so
-     * the sentence-building and pluralization logic stays covered in every shipped language.
+     * <p>The manifest's Firebase Analytics flag also appears here. Additional simulated facts use
+     * two already-translated strings to exercise sentence-building in every shipped language.
      */
     @Test
     public void theStaysRowReadsAsOneSentenceInEveryLanguage() {

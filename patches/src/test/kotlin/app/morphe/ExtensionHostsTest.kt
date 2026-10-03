@@ -48,12 +48,12 @@ class ExtensionHostsTest {
     }
 
     @Test
-    fun `only the release check opens a connection itself`() {
+    fun `only reviewed release download and tracker transports open connections`() {
         val openers = sources().filter { (_, source) -> NETWORK.containsMatchIn(split(source).second) }
             .map { it.first }.toSortedSet()
         assertEquals(
-            "The README says the extension goes online by itself only to ask GitHub for the newest " +
-                "release once that check is turned on. These files open connections",
+            "The README lists the release check, requested media downloads and guarded SDK transport. " +
+                "Review any additional connection opener before adding it",
             TRANSPORTS.toSortedSet(),
             openers,
         )
@@ -118,14 +118,16 @@ class ExtensionHostsTest {
 
     private companion object {
         /**
-         * The hosts the README's Privacy section names. 127.0.0.1 is where Disable analytics sends
-         * Pinterest's event logs: the phone itself, on a port nothing listens on.
+         * Literal hosts the README's Privacy section explains. The browser probe resolves an
+         * installed handler locally and never opens its example URL.
          */
-        val ALLOWED_HOSTS = setOf("github.com", "api.github.com", "gitlab.com", "www.gnu.org", "127.0.0.1")
+        val ALLOWED_HOSTS = setOf("github.com", "api.github.com", "gitlab.com", "www.gnu.org", "example.com", "www.pinterest.com")
         const val RELEASE_CHECK =
             "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/ReleaseCheck.java"
         val TRANSPORTS = listOf(
             "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/ReleaseTransport.java",
+            "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/actions/PinTransfer.java",
+            "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/privacy/Analytics.java",
         )
         val URL = Regex("""(?:https?|wss?)://([A-Za-z0-9.-]+)""")
         val NETWORK = Regex(

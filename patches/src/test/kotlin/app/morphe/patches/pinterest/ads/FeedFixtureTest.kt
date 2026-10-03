@@ -48,10 +48,11 @@ class FeedFixtureTest {
                 feedListHookPatch.execute(context)
                 hideAdsPatch.execute(context)
                 hideAiPinsPatch.execute(context)
+                hideShoppingPatch.execute(context)
             }
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             assertEquals(build.name, 3, feedListHoldersHooked)
-            for (flag in listOf("hideAds", "feedAds", "adViews", "hideAiPins", "feedAiPins")) assertFlag(context, flag)
+            for (flag in listOf("hideAds", "feedAds", "adViews", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping")) assertFlag(context, flag)
 
             val filter = "$EXTENSION_PACKAGE/ads/FeedFilter;->filter(Ljava/util/List;)Ljava/util/List;"
             for (holder in holders.values.flatten()) {

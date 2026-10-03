@@ -66,12 +66,26 @@ body:
     id: selected_patches
     attributes:
       label: Which patches were in your build?
-      description: Hide ads and the settings are selected by default. Hide AI-labeled pins is only in your build if you picked it.
+      description: Hide ads, Disable analytics, Strip link tracking and the settings are selected by default. Other patches are only in your build if you picked them.
       multiple: true
       options:
-        - Hide ads
+        - Disable analytics
+        - Disable update nag
+        - Download pins
+        - Filter pin menu
         - Hide AI-labeled pins
+        - Hide ads
+        - Hide comments
+        - Hide header buttons
+        - Hide navigation buttons
+        - Hide search history
+        - Hide shopping and product pins
         - HushPinterest settings
+        - No screenshot share menu
+        - Open links in your browser
+        - Quiet email reminders
+        - Strip link tracking
+        - System share sheet
     validations:
       required: true
   - type: dropdown

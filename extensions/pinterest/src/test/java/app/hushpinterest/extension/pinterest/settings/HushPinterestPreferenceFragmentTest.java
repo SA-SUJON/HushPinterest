@@ -87,6 +87,20 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.clear();
         ROW_TITLES.put(PatchFamily.HIDE_ADS, "Hide ads");
         ROW_TITLES.put(PatchFamily.HIDE_AI_PINS, "Hide AI-labeled pins");
+        ROW_TITLES.put(PatchFamily.HIDE_SHOPPING, "Hide shopping and product pins");
+        ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Disable analytics");
+        ROW_TITLES.put(PatchFamily.STRIP_LINK_TRACKING, "Strip link tracking");
+        ROW_TITLES.put(PatchFamily.DOWNLOAD_PINS, "Download pins");
+        ROW_TITLES.put(PatchFamily.EXTERNAL_BROWSER, "Open links in your browser");
+        ROW_TITLES.put(PatchFamily.SYSTEM_SHARE, "System share sheet");
+        ROW_TITLES.put(PatchFamily.HIDE_SCREENSHOT_SHARE, "No screenshot share menu");
+        ROW_TITLES.put(PatchFamily.HIDE_SEARCH_HISTORY, "Hide search history");
+        ROW_TITLES.put(PatchFamily.HIDE_NAVIGATION_BUTTONS, "Hide Create button");
+        ROW_TITLES.put(PatchFamily.HIDE_HEADER_BUTTONS, "Hide header buttons");
+        ROW_TITLES.put(PatchFamily.HIDE_PIN_MENU_ITEMS, "Hide collage menu items");
+        ROW_TITLES.put(PatchFamily.HIDE_COMMENTS, "Hide comments");
+        ROW_TITLES.put(PatchFamily.QUIET_EMAIL_REMINDER, "Quiet email reminders");
+        ROW_TITLES.put(PatchFamily.DISABLE_UPDATE_NAG, "Disable update nag");
     }
 
     /** The sections every build has, in the order they're drawn. */
@@ -116,9 +130,7 @@ public class HushPinterestPreferenceFragmentTest {
     @Test
     public void withEveryPatchInEveryRowIsReadableAndNoneCallsAPausedPinterestUnpatched() {
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
-        // Every family in this build has a switch, so none has a staysWhilePaused of its own and
-        // the row this test looks for would never be drawn for real. staysWhilePausedForTests
-        // substitutes one, so the row and its wiring to the summary stay covered.
+        // A simulated additional patch-time edit exercises the same row as Firebase's real flag.
         PatchFamily.staysWhilePausedForTests = Collections.singletonMap(PatchFamily.HIDE_ADS,
                 "the sponsored message cache cleared when you patched");
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
@@ -192,7 +204,10 @@ public class HushPinterestPreferenceFragmentTest {
 
                 List<String> sections = sections(page);
                 List<String> expected = new ArrayList<>();
-                if (build.contains(PatchFamily.HIDE_ADS) || build.contains(PatchFamily.HIDE_AI_PINS)) expected.add("Feed");
+                if (!Collections.disjoint(build, PatchFamily.FEED_PAGE)) expected.add("Feed");
+                if (!Collections.disjoint(build, PatchFamily.PRIVACY_PAGE)) expected.add("Privacy");
+                if (!Collections.disjoint(build, PatchFamily.ACTIONS_PAGE)) expected.add("Pin actions");
+                if (!Collections.disjoint(build, PatchFamily.INTERFACE_PAGE)) expected.add("Interface");
                 expected.addAll(EVERY_BUILD);
                 if (!expected.equals(sections)) wrong.add(build + ": sections " + sections);
             }

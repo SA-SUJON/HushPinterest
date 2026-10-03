@@ -1,0 +1,163 @@
+/*
+ * Original HushPinterest implementation, 2026.
+ * Copyright 2026 HushPinterest contributors
+ * https://github.com/SysAdminDoc/HushPinterest
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+package app.hushpinterest.extension.pinterest.actions;
+
+import static org.junit.Assert.*;
+
+import android.app.Activity;
+import android.app.DownloadManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
+import android.os.Environment;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Shadows;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowDownloadManager;
+
+import java.lang.reflect.Method;
+import java.util.EnumSet;
+import java.util.Map;
+
+import app.hushpinterest.extension.pinterest.settings.PatchFamily;
+import app.hushpinterest.extension.pinterest.settings.PatchFamilyForTests;
+import app.hushpinterest.extension.pinterest.settings.Settings;
+import app.hushpinterest.extension.shared.SettingsContextRule;
+import app.hushpinterest.extension.shared.Utils;
+import app.hushpinterest.extension.shared.settings.HushPinterestPause;
+import app.hushpinterest.extension.shared.settings.PauseForTests;
+
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 30)
+public class PinActionsTest {
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+    private Activity activity;
+    private final Map<String, Object> pin = Map.of("id", "123456", "images", Map.of(
+            "orig", Map.of("url", "https://i.pinimg.com/originals/pin.jpg")));
+    private enum Source { PIN, SCREENSHOT, DOWNLOAD }
+
+    @Before public void prepare() {
+        activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Utils.setActivity(activity);
+        PauseForTests.resume();
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS,
+                PatchFamily.Capability.PIN_SHARE, PatchFamily.Capability.VISIT_LINKS));
+        Settings.SYSTEM_SHARE.save(true);
+        Settings.EXTERNAL_BROWSER.save(true);
+        Settings.DOWNLOAD_PINS.save(true);
+    }
+
+    @After public void reset() {
+        Settings.SYSTEM_SHARE.save(false);
+        Settings.EXTERNAL_BROWSER.save(false);
+        Settings.DOWNLOAD_PINS.save(false);
+        PatchFamilyForTests.capabilities(null);
+        PauseForTests.resume();
+        Utils.setActivity(null);
+    }
+
+    @Test public void systemShareUsesCanonicalPinLinkAndAndroidChooser() {
+        assertTrue(SystemShare.open(pin, Source.PIN));
+        Intent chooser = Shadows.shadowOf(activity).getNextStartedActivity();
+        assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
+        Intent send = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertEquals(Intent.ACTION_SEND, send.getAction());
+        assertEquals("text/plain", send.getType());
+        assertEquals("https://www.pinterest.com/pin/123456/", send.getStringExtra(Intent.EXTRA_TEXT));
+        assertNull(send.getPackage());
+    }
+
+    @Test public void screenshotDownloadBoardsAndDisabledShareKeepNativePath() {
+        assertFalse(SystemShare.open(pin, Source.SCREENSHOT));
+        assertFalse(SystemShare.open(pin, Source.DOWNLOAD));
+        assertFalse(SystemShare.open(Map.of("id", "123456"), Source.PIN));
+        assertFalse(SystemShare.open(new PinMediaTest.BoardCover(), Source.PIN));
+        Settings.SYSTEM_SHARE.save(false);
+        assertFalse(SystemShare.open(pin, Source.PIN));
+        assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
+    }
+
+    @Test public void browserUsesRealBrowserPackageRatherThanDestinationApp() {
+        ResolveInfo browser = new ResolveInfo();
+        browser.activityInfo = new ActivityInfo();
+        browser.activityInfo.packageName = "com.example.browser";
+        browser.activityInfo.name = "com.example.browser.BrowserActivity";
+        browser.activityInfo.exported = true;
+        Intent probe = new Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com/"))
+                .addCategory(Intent.CATEGORY_BROWSABLE);
+        Shadows.shadowOf(activity.getPackageManager()).addResolveInfoForIntent(probe, browser);
+        assertTrue(ExternalBrowser.open("https://example.org/recipe?ref=kept", pin));
+        Intent visit = Shadows.shadowOf(activity).getNextStartedActivity();
+        assertEquals(Intent.ACTION_VIEW, visit.getAction());
+        assertEquals("com.example.browser", visit.getPackage());
+        assertEquals("https://example.org/recipe?ref=kept", visit.getDataString());
+    }
+
+    @Test public void browserPreservesInternalAuthInvalidUrlsAndNoBrowserFallback() {
+        for (String url : new String[] {"https://accounts.pinterest.com/login/", "https://pin.it/pin",
+                "intent://example.org/#Intent;scheme=https;end", "file:///private", "https://user:password@example.org/"}) {
+            assertFalse(url, ExternalBrowser.open(url, pin));
+        }
+        assertFalse(ExternalBrowser.open("https://example.org/", Map.of("id", "123")));
+        assertFalse(ExternalBrowser.open("https://example.org/", pin));
+        assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
+    }
+
+    @Test public void pauseAndColdStartPreserveEveryNativeAction() {
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse(SystemShare.open(pin, Source.PIN));
+        assertFalse(ExternalBrowser.open("https://example.org/", pin));
+        assertFalse(PinDownloads.start(pin, activity));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> {
+            assertFalse(SystemShare.open(pin, Source.PIN));
+            assertFalse(ExternalBrowser.open("https://example.org/", pin));
+            assertFalse(PinDownloads.start(pin, activity));
+        });
+        assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
+    }
+
+    @Test public void absentCapabilitiesPreserveEveryNativeAction() {
+        PatchFamilyForTests.capabilities(EnumSet.noneOf(PatchFamily.Capability.class));
+        assertFalse(SystemShare.open(pin, Source.PIN));
+        assertFalse(ExternalBrowser.open("https://example.org/", pin));
+        assertFalse(PinDownloads.start(pin, activity));
+        assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
+    }
+
+    @Test public void AndroidTenAndNewerQueueOriginalMediaInDownloadsWithCompletionNotification() throws Exception {
+        assertTrue(PinDownloads.start(pin, activity));
+        Method await = Utils.class.getDeclaredMethod("awaitBackgroundTasksForTests");
+        await.setAccessible(true);
+        await.invoke(null);
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        ShadowDownloadManager downloads = Shadows.shadowOf(manager);
+        assertEquals(1, downloads.getRequestCount());
+        ShadowDownloadManager.ShadowRequest request = Shadow.extract(downloads.getRequest(0));
+        assertEquals("https://i.pinimg.com/originals/pin.jpg", request.getUri().toString());
+        assertEquals("image/jpeg", request.getMimeType());
+        assertEquals("file", request.getDestination().getScheme());
+        String fileName = request.getDestination().getLastPathSegment();
+        assertTrue("Destination " + request.getDestination() + ", last segment " + fileName,
+                fileName != null && fileName.matches("Pinterest_123456_[0-9]+\\.jpg"));
+        Uri expected = Uri.withAppendedPath(Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)), fileName);
+        assertEquals("Downloads destination", expected, request.getDestination());
+        assertEquals(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED, request.getNotificationVisibility());
+        assertTrue(request.getRequestHeaders().isEmpty());
+        assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
+    }
+}

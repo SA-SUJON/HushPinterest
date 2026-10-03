@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.SettingsContextRule;
@@ -69,8 +70,7 @@ public class PatchFamilyTest {
         PatchFamily.staysWhilePausedForTests = null;
         PatchFamily.capabilitiesForTests = null;
         PauseForTests.resume();
-        Settings.HIDE_ADS.resetToDefault();
-        Settings.HIDE_AI_PINS.resetToDefault();
+        for (BooleanSetting setting : PausedHooksTest.settingsSwitches()) setting.resetToDefault();
         HookStatus.clear();
     }
 
@@ -162,16 +162,44 @@ public class PatchFamilyTest {
         }
     }
 
-    /**
-     * Every family in this build has a switch, so none has a {@link PatchFamily#staysWhilePaused}
-     * of its own, and a real build's summary is always null (asserted first, below). The rest of
-     * this test substitutes one through {@link PatchFamily#staysWhilePausedForTests} to keep the
-     * sentence-building logic, including its pluralization, covered.
-     */
+    /** Firebase's manifest flag stays set even when its runtime upload switch answers off. */
+    @Test
+    public void firebaseManifestDeactivationIsDisclosedWithAnalyticsOnOffAndPaused() {
+        Set<PatchFamily> build = EnumSet.of(PatchFamily.DISABLE_ANALYTICS);
+        String permanent = "Firebase Analytics collection is disabled";
+        String summary = permanent + " (" + L10n.isolate("Disable analytics")
+                + "). It was set when you patched, so Pause can't turn it off. To rule it out, patch again "
+                + "and leave out that patch.";
+        assertEquals(permanent, PatchFamily.DISABLE_ANALYTICS.staysWhilePaused);
+        assertTrue(PatchFamily.DISABLE_ANALYTICS.switches.contains(Settings.DISABLE_ANALYTICS));
+        assertEquals(summary, PatchFamily.staysWhilePausedSummary(build));
+        assertEquals(summary, PatchFamily.staysWhilePausedSummary(EnumSet.allOf(PatchFamily.class)));
+        Set<PatchFamily> withoutAnalytics = EnumSet.allOf(PatchFamily.class);
+        withoutAnalytics.remove(PatchFamily.DISABLE_ANALYTICS);
+        assertNull(PatchFamily.staysWhilePausedSummary(withoutAnalytics));
+
+        Settings.DISABLE_ANALYTICS.save(true);
+        assertEquals("Disable analytics: on (hushpinterest_disable_analytics=on); stays in while paused: "
+                + permanent, PatchFamily.reportLines(build, false).get(0));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse(Settings.DISABLE_ANALYTICS.get());
+        assertTrue(Settings.DISABLE_ANALYTICS.savedValue());
+        assertEquals("Disable analytics: disabled while paused (saved hushpinterest_disable_analytics=on); "
+                + "stays in while paused: " + permanent, PatchFamily.reportLines(build, true).get(0));
+        assertEquals(summary, PatchFamily.staysWhilePausedSummary(build));
+
+        PauseForTests.resume();
+        Settings.DISABLE_ANALYTICS.save(false);
+        assertEquals("Disable analytics: disabled by its switch (hushpinterest_disable_analytics=off); "
+                + "stays in while paused: " + permanent, PatchFamily.reportLines(build, false).get(0));
+        assertEquals(summary, PatchFamily.staysWhilePausedSummary(build));
+    }
+
+    /** Synthetic exceptions keep singular and plural disclosure wording covered. */
     @Test
     public void theStaysRowNamesWhatPauseCantReach() {
-        assertNull("a build of switches alone has nothing that stays in",
-                PatchFamily.staysWhilePausedSummary(EnumSet.allOf(PatchFamily.class)));
+        assertNull("ads and AI filtering have no permanent patch-time behavior",
+                PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.HIDE_ADS, PatchFamily.HIDE_AI_PINS)));
 
         // Each item names the patch Morphe Manager lists it under, so the reader knows which one
         // to leave out.
@@ -194,6 +222,8 @@ public class PatchFamilyTest {
                 PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.HIDE_ADS, PatchFamily.HIDE_AI_PINS)));
 
         String everything = PatchFamily.staysWhilePausedSummary(EnumSet.allOf(PatchFamily.class));
+        assertTrue(everything, everything.contains("Firebase Analytics collection is disabled ("
+                + L10n.isolate("Disable analytics") + ")"));
         for (Map.Entry<PatchFamily, String> entry : two.entrySet()) {
             assertTrue(entry.getKey().patchName + " is missing from: " + everything,
                     everything.toLowerCase().contains(entry.getValue().toLowerCase()));
@@ -211,16 +241,16 @@ public class PatchFamilyTest {
         List<String> running = PatchFamily.reportLines(build, false);
         assertEquals(Arrays.asList(
                 "Hide ads: on (hushpinterest_hide_ads=on)",
-                "Hide AI-labeled pins: disabled by its switch (hushpinterest_hide_ai_pins=off)",
+                "Hide AI-labeled pins: disabled by its switch (hushpinterest_hide_ai_pins=off)"),
+                running.subList(0, 2));
+        assertEquals(Arrays.asList(
                 "Hide ads coverage: promoted pins in lists, ad-only views",
                 "Hide AI-labeled pins coverage: AI-labeled pins in lists"),
-                running);
+                coverageLines(running));
         assertTrue(PatchFamily.reportLines(EnumSet.of(PatchFamily.HIDE_ADS), false)
-                .contains("not in this build: Hide AI-labeled pins"));
+                .stream().anyMatch(line -> line.startsWith("not in this build: Hide AI-labeled pins")));
 
-        // Every family in this build has a switch, but the line still has room, after the switch's
-        // own state, for something a patch set that Pause can't reach. staysWhilePausedForTests
-        // substitutes one, since no family here needs it for real.
+        // A simulated permanent ads change remains disclosed alongside its runtime switch.
         PatchFamily.staysWhilePausedForTests = Collections.singletonMap(PatchFamily.HIDE_ADS,
                 "the sponsored panel override set when you patched");
         assertEquals("Hide ads: on (hushpinterest_hide_ads=on); stays in while paused: "
@@ -232,7 +262,7 @@ public class PatchFamilyTest {
                 + "the sponsored panel override set when you patched", paused.get(0));
         assertEquals("Hide AI-labeled pins: disabled while paused (saved hushpinterest_hide_ai_pins=off)",
                 paused.get(1));
-        assertEquals("Pause must keep patch-time coverage facts", running.subList(2, 4), paused.subList(2, 4));
+        assertEquals("Pause must keep patch-time coverage facts", coverageLines(running), coverageLines(paused));
     }
 
     @Test
@@ -246,8 +276,8 @@ public class PatchFamilyTest {
         Settings.HIDE_ADS.save(false);
         Settings.HIDE_AI_PINS.save(false);
         List<String> disabled = PatchFamily.reportLines(build, false);
-        assertEquals(running.subList(2, 4), disabled.subList(2, 4));
-        assertEquals(running.subList(2, 4), PatchFamily.reportLines(build, true).subList(2, 4));
+        assertEquals(coverageLines(running), coverageLines(disabled));
+        assertEquals(coverageLines(running), coverageLines(PatchFamily.reportLines(build, true)));
 
         PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
         List<String> none = PatchFamily.reportLines(build, false);
@@ -265,14 +295,13 @@ public class PatchFamilyTest {
     public void aPausedExportMarksEveryFamilyASwitchRuns() {
         HookStatus.clear();
         PatchFamily.registerDiagnostics();
-        HookStatus.invoked(FamilyNames.HIDE_ADS);
-        HookStatus.invoked(FamilyNames.HIDE_AI_PINS);
+        for (PatchFamily family : PatchFamily.values()) HookStatus.invoked(family.patchName);
 
         List<String> lines = HookStatus.report(" (paused)");
-        assertTrue(String.join("\n", lines),
-                lines.contains("Hide ads: invoked 1, 0 found, 0 missing (paused)"));
-        assertTrue(String.join("\n", lines),
-                lines.contains("Hide AI-labeled pins: invoked 1, 0 found, 0 missing (paused)"));
+        for (PatchFamily family : PatchFamily.values()) {
+            assertTrue(String.join("\n", lines),
+                    lines.contains(family.patchName + ": invoked 1, 0 found, 0 missing (paused)"));
+        }
     }
 
     /** The section goes through the redactor like every other one, and has to come out whole. */
@@ -289,6 +318,10 @@ public class PatchFamilyTest {
         for (String line : PatchFamily.reportLines(EnumSet.allOf(PatchFamily.class), true)) {
             assertTrue("the export changed or lost \"" + line + "\":\n" + report, report.contains("\n" + line + "\n"));
         }
+    }
+
+    private static List<String> coverageLines(List<String> lines) {
+        return lines.stream().filter(line -> line.contains(" coverage: ")).collect(Collectors.toList());
     }
 
     /** patches-list.json at the repository root, found from wherever Gradle runs the test. */

@@ -16,13 +16,24 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import android.app.Activity;
+import android.app.DownloadManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
+import android.net.Uri;
 import android.view.View;
 
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 
 import java.lang.annotation.ElementType;
@@ -30,21 +41,34 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
+import app.hushpinterest.extension.pinterest.actions.ExternalBrowser;
+import app.hushpinterest.extension.pinterest.actions.PinDownloads;
+import app.hushpinterest.extension.pinterest.actions.SystemShare;
 import app.hushpinterest.extension.pinterest.ads.Ads;
 import app.hushpinterest.extension.pinterest.ads.FeedFilter;
+import app.hushpinterest.extension.pinterest.privacy.Analytics;
+import app.hushpinterest.extension.pinterest.privacy.LinkTracking;
+import app.hushpinterest.extension.pinterest.ui.InterfaceControls;
+import app.hushpinterest.extension.pinterest.ui.UiHooks;
 import app.hushpinterest.extension.shared.SettingsContextRule;
+import app.hushpinterest.extension.shared.Utils;
+import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 import app.hushpinterest.extension.shared.settings.BaseSettings;
 import app.hushpinterest.extension.shared.settings.BooleanSetting;
 import app.hushpinterest.extension.shared.settings.HushPinterestPause;
@@ -64,6 +88,12 @@ public class PausedHooksTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     private static final int MEASURE_SPEC = View.MeasureSpec.makeMeasureSpec(300, View.MeasureSpec.AT_MOST);
+    private static final String TRACKED_LINK = "https://www.pinterest.com/pin/123456/?utm_source=share&keep=1";
+    private static final Map<String, Object> PIN = Map.of("id", "123456", "images", Map.of(
+            "orig", Map.of("url", "https://i.pinimg.com/originals/pin.jpg")));
+    private enum Tab { CREATE, NOTIFICATIONS }
+    private enum Source { PIN }
+    private enum Task { TAG_APPSFLYER_INIT }
 
     /** Stands in for Pinterest's obfuscated Gson annotation: any annotation with a String value(). */
     @Retention(RetentionPolicy.RUNTIME)
@@ -76,6 +106,7 @@ public class PausedHooksTest {
     static final class ProbePin {
         @Json("is_promoted") Boolean promoted;
         @Json("ai_disclosures") List<Integer> aiDisclosures;
+        @Json("is_shoppable") Boolean shoppable;
     }
 
     /** One hook with its switch on: true when it changed what Pinterest would have done. */
@@ -89,6 +120,8 @@ public class PausedHooksTest {
         for (BooleanSetting setting : settingsSwitches()) setting.resetToDefault();
         PatchFamily.capabilitiesForTests = null;
         ReleaseCheckForTests.forget();
+        Utils.setActivity(null);
+        HookStatus.clear();
     }
 
     /**
@@ -111,12 +144,12 @@ public class PausedHooksTest {
         return FeedFilter.filter(page).size() != page.size();
     }
 
-    private static Map<PatchFamily, List<Probe>> probes() {
+    private static Map<BooleanSetting, List<Probe>> probes() {
         // Every hook is in this build, so the filter reads each family's switch.
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
-        Map<PatchFamily, List<Probe>> probes = new EnumMap<>(PatchFamily.class);
+        Map<BooleanSetting, List<Probe>> probes = new LinkedHashMap<>();
         // A promoted pin leaves the page, and an ad-only view stays hidden and sizeless.
-        probes.put(PatchFamily.HIDE_ADS, Arrays.asList(
+        probes.put(Settings.HIDE_ADS, Arrays.asList(
                 () -> {
                     ProbePin ad = new ProbePin();
                     ad.promoted = true;
@@ -125,12 +158,155 @@ public class PausedHooksTest {
                 () -> Ads.adViewVisibility(View.VISIBLE) != View.VISIBLE,
                 () -> Ads.adViewMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC));
         // A pin Pinterest labels as AI-modified leaves the page.
-        probes.put(PatchFamily.HIDE_AI_PINS, Collections.singletonList(() -> {
+        probes.put(Settings.HIDE_AI_PINS, Collections.singletonList(() -> {
             ProbePin labeled = new ProbePin();
             labeled.aiDisclosures = Collections.singletonList(1);
             return filtersOut(labeled);
         }));
+        probes.put(Settings.HIDE_SHOPPING, Collections.singletonList(() -> {
+            ProbePin product = new ProbePin();
+            product.shoppable = true;
+            return filtersOut(product);
+        }));
+        probes.put(Settings.DISABLE_ANALYTICS, Arrays.asList(Analytics::blockUpload,
+                () -> Analytics.blockTask(Task.TAG_APPSFLYER_INIT), PausedHooksTest::quietsSdkConnection));
+        probes.put(Settings.STRIP_LINK_TRACKING, Arrays.asList(
+                () -> !TRACKED_LINK.equals(LinkTracking.cleanText(TRACKED_LINK).toString()),
+                () -> !TRACKED_LINK.equals(LinkTracking.putStringExtra(new Intent(), Intent.EXTRA_TEXT,
+                        TRACKED_LINK).getStringExtra(Intent.EXTRA_TEXT)),
+                () -> !TRACKED_LINK.contentEquals(LinkTracking.putTextExtra(new Intent(), Intent.EXTRA_TEXT,
+                        TRACKED_LINK).getCharSequenceExtra(Intent.EXTRA_TEXT)),
+                () -> !TRACKED_LINK.contentEquals(LinkTracking.newPlainText("Pin link", TRACKED_LINK)
+                        .getItemAt(0).getText())));
+        probes.put(Settings.DOWNLOAD_PINS, Collections.singletonList(PausedHooksTest::queuesPinDownload));
+        probes.put(Settings.EXTERNAL_BROWSER, Collections.singletonList(() -> withActivity(activity -> {
+            ResolveInfo browser = new ResolveInfo();
+            browser.activityInfo = new ActivityInfo();
+            browser.activityInfo.packageName = "com.example.browser";
+            browser.activityInfo.name = "com.example.browser.BrowserActivity";
+            browser.activityInfo.exported = true;
+            Intent query = new Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com/"))
+                    .addCategory(Intent.CATEGORY_BROWSABLE);
+            Shadows.shadowOf(activity.getPackageManager()).addResolveInfoForIntent(query, browser);
+            boolean opened = ExternalBrowser.open("https://example.org/recipe?keep=1", PIN);
+            Intent launched = Shadows.shadowOf(activity).getNextStartedActivity();
+            assertEquals("browser result must match an actual launch", opened, launched != null);
+            if (launched != null) {
+                assertEquals("com.example.browser", launched.getPackage());
+                assertEquals("https://example.org/recipe?keep=1", launched.getDataString());
+            }
+            return launched != null;
+        })));
+        probes.put(Settings.SYSTEM_SHARE, Collections.singletonList(() -> withActivity(activity -> {
+            boolean opened = SystemShare.open(PIN, Source.PIN);
+            Intent launched = Shadows.shadowOf(activity).getNextStartedActivity();
+            assertEquals("share result must match an actual chooser", opened, launched != null);
+            if (launched != null) {
+                assertEquals(Intent.ACTION_CHOOSER, launched.getAction());
+                Intent send = launched.getParcelableExtra(Intent.EXTRA_INTENT);
+                assertEquals("https://www.pinterest.com/pin/123456/", send.getStringExtra(Intent.EXTRA_TEXT));
+            }
+            return launched != null;
+        })));
+        probes.put(Settings.HIDE_SCREENSHOT_SHARE, Collections.singletonList(UiHooks::hideScreenshotShare));
+        probes.put(Settings.HIDE_SEARCH_HISTORY, Arrays.asList(
+                () -> UiHooks.searchHistoryVisibility(View.INVISIBLE) != View.INVISIBLE,
+                () -> UiHooks.searchHistoryMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC));
+        probes.put(Settings.HIDE_NAV_CREATE, Collections.singletonList(() -> hidesNavigation(Tab.CREATE)));
+        probes.put(Settings.HIDE_NAV_NOTIFICATIONS, Collections.singletonList(() -> hidesNavigation(Tab.NOTIFICATIONS)));
+        probes.put(Settings.HIDE_HEADER_BUTTONS, Collections.singletonList(() -> {
+            View header = namedView("end_container_icon_bt");
+            InterfaceControls.headerButtons(header);
+            return header.getVisibility() != View.INVISIBLE;
+        }));
+        probes.put(Settings.HIDE_PIN_MENU_COLLAGE, Collections.singletonList(() -> hidesMenuItem("overflow_menu_add_to_collage")));
+        probes.put(Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Collections.singletonList(() -> hidesMenuItem("contextmenu_visual_search_image")));
+        probes.put(Settings.HIDE_PIN_MENU_PIN_BOOST, Collections.singletonList(() -> hidesMenuItem("overflow_menu_pin_boost")));
+        probes.put(Settings.HIDE_COMMENTS, Arrays.asList(
+                () -> UiHooks.commentsVisibility(View.INVISIBLE) != View.INVISIBLE,
+                () -> UiHooks.commentsMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC,
+                () -> !UiHooks.commentsVisible(true)));
+        probes.put(Settings.QUIET_EMAIL_REMINDER, Collections.singletonList(UiHooks::quietEmailReminder));
+        probes.put(Settings.DISABLE_UPDATE_NAG, Collections.singletonList(UiHooks::disableUpdateNag));
         return probes;
+    }
+
+    private static boolean withActivity(Function<Activity, Boolean> action) {
+        org.robolectric.android.controller.ActivityController<Activity> controller =
+                Robolectric.buildActivity(Activity.class).setup();
+        Utils.setActivity(controller.get());
+        try { return action.apply(controller.get()); }
+        finally {
+            Utils.setActivity(null);
+            controller.pause().stop().destroy();
+        }
+    }
+
+    /** Robolectric records the queued request without transferring data or opening a socket. */
+    private static boolean queuesPinDownload() {
+        return withActivity(activity -> {
+            DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+            int before = Shadows.shadowOf(manager).getRequestCount();
+            try {
+                Method start = PinDownloads.class.getDeclaredMethod("start", Object.class, Context.class);
+                start.setAccessible(true);
+                boolean queued = (Boolean) start.invoke(null, PIN, activity);
+                Method await = Utils.class.getDeclaredMethod("awaitBackgroundTasksForTests");
+                await.setAccessible(true);
+                await.invoke(null);
+                boolean changed = Shadows.shadowOf(manager).getRequestCount() != before;
+                assertEquals("download result must match a queued media request", queued, changed);
+                return changed;
+            } catch (ReflectiveOperationException failure) {
+                throw new AssertionError(failure);
+            }
+        });
+    }
+
+    private static boolean quietsSdkConnection() {
+        try {
+            URLConnection[] original = new URLConnection[1];
+            URL url = new URL(null, "https://example.com/sdk-events", new URLStreamHandler() {
+                @Override protected URLConnection openConnection(URL address) {
+                    return original[0] = new URLConnection(address) {
+                        @Override public void connect() {}
+                    };
+                }
+            });
+            URLConnection connection = Analytics.openConnection(url);
+            return original[0] == null && connection != null;
+        } catch (java.io.IOException failure) {
+            throw new AssertionError(failure);
+        }
+    }
+
+    private static boolean hidesNavigation(Tab tab) {
+        View view = new View(RuntimeEnvironment.getApplication());
+        view.setVisibility(View.INVISIBLE);
+        InterfaceControls.bindNavigation(view, tab);
+        return view.getVisibility() != View.INVISIBLE;
+    }
+
+    private static boolean hidesMenuItem(String resource) {
+        View row = new View(RuntimeEnvironment.getApplication());
+        row.setVisibility(View.INVISIBLE);
+        InterfaceControls.pinMenuItem(row, resource);
+        return row.getVisibility() != View.INVISIBLE;
+    }
+
+    /** Supplies a real header resource name without borrowing an ID from another application. */
+    private static View namedView(String name) {
+        Context context = RuntimeEnvironment.getApplication();
+        Resources original = context.getResources();
+        Resources resources = new Resources(context.getAssets(), original.getDisplayMetrics(), original.getConfiguration()) {
+            @Override public String getResourceEntryName(int id) { return name; }
+        };
+        View view = new View(context) {
+            @Override public Resources getResources() { return resources; }
+        };
+        view.setId(1);
+        view.setVisibility(View.INVISIBLE);
+        return view;
     }
 
     /** Every switch the settings screen can show, read off the class so a new one can't hide. */
@@ -147,21 +323,21 @@ public class PausedHooksTest {
         return switches;
     }
 
-    private static Set<PatchFamily> switched() {
-        Set<PatchFamily> switched = EnumSet.noneOf(PatchFamily.class);
+    private static Set<BooleanSetting> familySwitches() {
+        Set<BooleanSetting> switched = new HashSet<>();
         for (PatchFamily family : PatchFamily.values()) {
-            if (!family.switches.isEmpty()) switched.add(family);
+            switched.addAll(family.switches);
         }
         return switched;
     }
 
     /** Adds a line to [wrong] for every probe that didn't answer [changes]. */
-    private static void everyProbe(Map<PatchFamily, List<Probe>> probes, boolean changes, String when,
+    private static void everyProbe(Map<BooleanSetting, List<Probe>> probes, boolean changes, String when,
                                    List<String> wrong) {
-        for (Map.Entry<PatchFamily, List<Probe>> entry : probes.entrySet()) {
+        for (Map.Entry<BooleanSetting, List<Probe>> entry : probes.entrySet()) {
             for (int i = 0; i < entry.getValue().size(); i++) {
                 if (entry.getValue().get(i).changedPinterest() != changes) {
-                    wrong.add(entry.getKey().patchName + ", probe " + i + ", " + when
+                    wrong.add(entry.getKey().key + ", probe " + i + ", " + when
                             + (changes ? ": left Pinterest alone" : ": still changed Pinterest"));
                 }
             }
@@ -181,8 +357,8 @@ public class PausedHooksTest {
     @Test
     public void everyHookASwitchRunsTakesPinterestsOwnPathWhilePaused() {
         for (BooleanSetting setting : settingsSwitches()) setting.save(true);
-        Map<PatchFamily, List<Probe>> probes = probes();
-        assertEquals("every family with a switch needs a probe here", switched(), probes.keySet());
+        Map<BooleanSetting, List<Probe>> probes = probes();
+        assertEquals("every family's switch needs a probe here", familySwitches(), probes.keySet());
         Map<BooleanSetting, Probe> entry = entryProbes();
         assertEquals("every switch of the settings entry needs a probe here",
                 new HashSet<>(PatchFamily.ENTRY_SWITCHES), entry.keySet());
@@ -216,6 +392,20 @@ public class PausedHooksTest {
         assertEquals(Collections.emptyList(), wrong);
     }
 
+    @Test
+    public void eachHookReadsItsOwnSwitchWhenEveryOtherSwitchIsOff() {
+        for (BooleanSetting setting : settingsSwitches()) setting.save(false);
+        Map<BooleanSetting, List<Probe>> probes = probes();
+        assertEquals("every family's switch needs a probe here", familySwitches(), probes.keySet());
+        List<String> wrong = new ArrayList<>();
+        for (Map.Entry<BooleanSetting, List<Probe>> entry : probes.entrySet()) {
+            entry.getKey().save(true);
+            everyProbe(Collections.singletonMap(entry.getKey(), entry.getValue()), true, "its switch alone is on", wrong);
+            entry.getKey().save(false);
+        }
+        assertEquals(Collections.emptyList(), wrong);
+    }
+
     /**
      * Pinterest can call a hook before its application's onCreate hands HushPinterest the context,
      * from a thread it starts early, and again while setContext is still deciding whether this
@@ -226,8 +416,8 @@ public class PausedHooksTest {
     @Test
     public void untilTheSettingsAreReadyEveryHookTakesPinterestsOwnPath() {
         for (BooleanSetting setting : settingsSwitches()) setting.save(true);
-        Map<PatchFamily, List<Probe>> probes = probes();
-        assertEquals("every family with a switch needs a probe here", switched(), probes.keySet());
+        Map<BooleanSetting, List<Probe>> probes = probes();
+        assertEquals("every family's switch needs a probe here", familySwitches(), probes.keySet());
         Map<BooleanSetting, Probe> entry = entryProbes();
 
         List<String> wrong = new ArrayList<>();

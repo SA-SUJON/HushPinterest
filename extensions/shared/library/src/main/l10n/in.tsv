@@ -159,3 +159,45 @@ Promoted pins	Pin promosi
 Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Pin promosi hilang dari beranda, pencarian, pin terkait, dan papan sebelum ditampilkan, dan panel yang hanya berisi iklan tetap terlipat.
 ad-only views	tampilan khusus iklan
 promoted pins in lists	pin promosi di daftar
+Privacy	Privasi
+Pin actions	Tindakan Pin
+Interface	Antarmuka
+Hide shopping and product pins	Sembunyikan belanja dan Pin produk
+Shoppable pins, shopping stories and featured boards	Pin belanja, cerita belanja, dan papan unggulan
+Disable analytics	Nonaktifkan analitik
+Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch.	Menghentikan pengiriman data penggunaan dan tugas awal analitik. Firebase Analytics tetap nonaktif sampai Anda menambal ulang tanpa tambalan ini.
+Firebase Analytics collection is disabled	Pengumpulan data Firebase Analytics dinonaktifkan
+Analytics launch tasks	Tugas awal analitik
+Analytics uploads	Pengiriman data analitik
+Strip link tracking	Hapus pelacakan tautan
+Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Menghapus parameter pelacakan yang dikenal dari tautan yang disalin dan dibagikan. Tautan pendek tetap seperti yang dibuat Pinterest.
+Download pins	Unduh Pin
+Adds Download to the pin menu. Saves original images and available videos.	Menambahkan Unduh ke menu Pin. Menyimpan gambar asli dan video yang tersedia.
+Open links in your browser	Buka tautan di browser Anda
+Visit opens a web link in your browser.	Kunjungi membuka tautan web di browser Anda.
+System share sheet	Menu berbagi sistem
+Share uses Android's share sheet.	Bagikan menggunakan menu berbagi Android.
+No screenshot share menu	Matikan menu berbagi tangkapan layar
+Off by default. Restart Pinterest to refresh a screen that's already open.	Nonaktif secara bawaan. Mulai ulang Pinterest untuk memperbarui layar yang sudah terbuka.
+Hide search history	Sembunyikan riwayat pencarian
+Hides recent searches on this device. Pinterest's server history isn't deleted.	Menyembunyikan pencarian terbaru di perangkat ini. Riwayat di server Pinterest tidak dihapus.
+Hide navigation buttons	Sembunyikan tombol navigasi
+Hide Create button	Sembunyikan tombol Buat
+Hide Notifications button	Sembunyikan tombol Notifikasi
+Hide header buttons	Sembunyikan tombol header
+Filter pin menu	Filter menu Pin
+Hide collage menu items	Sembunyikan opsi kolase
+Hide Search image menu item	Sembunyikan opsi Cari gambar
+Hide Promote pin menu item	Sembunyikan opsi Promosikan Pin
+Hide comments	Sembunyikan komentar
+Hides the comments area under pins.	Menyembunyikan area komentar di bawah Pin.
+Quiet email reminders	Sembunyikan pengingat email
+Disable update nag	Sembunyikan pemberitahuan pembaruan
+Hides Pinterest's Play Store update prompt.	Menyembunyikan permintaan pembaruan Play Store dari Pinterest.
+Download pin	Unduh Pin
+Share pin	Bagikan Pin
+Open pin link	Buka tautan Pin
+Download started. Check Downloads.	Unduhan dimulai. Periksa Unduhan.
+Pin saved.	Pin disimpan.
+Couldn't save this pin.	Pin ini tidak dapat disimpan.
+Another pin is being saved. Try again when it's finished.	Pin lain sedang disimpan. Coba lagi setelah selesai.

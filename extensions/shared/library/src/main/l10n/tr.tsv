@@ -159,3 +159,45 @@ Promoted pins	Reklamlı pinler
 Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Reklamlı pinler gösterilmeden önce ana akıştan, aramadan, ilgili pinlerden ve panolardan çıkar; yalnızca reklam içeren paneller kapalı kalır.
 ad-only views	yalnızca reklam görünümleri
 promoted pins in lists	listelerdeki reklamlı pinler
+Privacy	Gizlilik
+Pin actions	Pin işlemleri
+Interface	Arayüz
+Hide shopping and product pins	Alışveriş ve ürün Pinlerini gizle
+Shoppable pins, shopping stories and featured boards	Satın alınabilir Pinler, alışveriş hikâyeleri ve öne çıkan panolar
+Disable analytics	Analizleri devre dışı bırak
+Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch.	Kullanım verisi gönderimini ve analiz başlatma görevlerini durdurur. Firebase Analytics, bu yama olmadan yeniden yamalayana kadar kapalı kalır.
+Firebase Analytics collection is disabled	Firebase Analytics veri toplama kapalı
+Analytics launch tasks	Analiz başlatma görevleri
+Analytics uploads	Analiz veri gönderimi
+Strip link tracking	Bağlantı takibini kaldır
+Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Kopyalanan ve paylaşılan bağlantılardan bilinen takip parametrelerini kaldırır. Kısa bağlantılar Pinterest tarafından oluşturulduğu gibi kalır.
+Download pins	Pinleri indir
+Adds Download to the pin menu. Saves original images and available videos.	Pin menüsüne İndir seçeneğini ekler. Orijinal görüntüleri ve mevcut videoları kaydeder.
+Open links in your browser	Bağlantıları tarayıcında aç
+Visit opens a web link in your browser.	Ziyaret et, web bağlantısını tarayıcında açar.
+System share sheet	Sistem paylaşım menüsü
+Share uses Android's share sheet.	Paylaş, Android paylaşım menüsünü kullanır.
+No screenshot share menu	Ekran görüntüsü paylaşım menüsünü kapat
+Off by default. Restart Pinterest to refresh a screen that's already open.	Varsayılan olarak kapalı. Açık bir ekranı yenilemek için Pinterest’i yeniden başlat.
+Hide search history	Arama geçmişini gizle
+Hides recent searches on this device. Pinterest's server history isn't deleted.	Bu cihazdaki son aramaları gizler. Pinterest sunucusundaki geçmiş silinmez.
+Hide navigation buttons	Gezinme düğmelerini gizle
+Hide Create button	Oluştur düğmesini gizle
+Hide Notifications button	Bildirimler düğmesini gizle
+Hide header buttons	Başlık düğmelerini gizle
+Filter pin menu	Pin menüsünü filtrele
+Hide collage menu items	Kolaj menü öğelerini gizle
+Hide Search image menu item	Görsel ara menü öğesini gizle
+Hide Promote pin menu item	Pin tanıt menü öğesini gizle
+Hide comments	Yorumları gizle
+Hides the comments area under pins.	Pinlerin altındaki yorum alanını gizler.
+Quiet email reminders	E-posta hatırlatmalarını sustur
+Disable update nag	Güncelleme uyarısını kapat
+Hides Pinterest's Play Store update prompt.	Pinterest’in Play Store güncelleme istemini gizler.
+Download pin	Pini indir
+Share pin	Pini paylaş
+Open pin link	Pin bağlantısını aç
+Download started. Check Downloads.	İndirme başladı. İndirilenler’i kontrol et.
+Pin saved.	Pin kaydedildi.
+Couldn't save this pin.	Bu Pin kaydedilemedi.
+Another pin is being saved. Try again when it's finished.	Başka bir Pin kaydediliyor. Bitince tekrar dene.

@@ -26,13 +26,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * renamed too, so it's recognized by its shape: one {@code String value()}. Each model class is read
  * once and kept, so a feed page costs one map lookup per item.
  */
-final class ModelFields {
+public final class ModelFields {
     private ModelFields() {}
 
     private static final Map<Class<?>, Map<String, Field>> CACHE = new ConcurrentHashMap<>();
 
     /** Every field of [type] and its superclasses that has a JSON name, by that name; empty when none has one. */
-    static Map<String, Field> of(Class<?> type) {
+    public static Map<String, Field> of(Class<?> type) {
         Map<String, Field> known = CACHE.get(type);
         if (known != null) return known;
         Map<String, Field> found = new HashMap<>();
@@ -56,7 +56,7 @@ final class ModelFields {
 
     /** The JSON name on [field]'s Gson annotation, or null when it has none. */
     @Nullable
-    static String jsonName(Field field) {
+    public static String jsonName(Field field) {
         for (Annotation annotation : field.getDeclaredAnnotations()) {
             Class<? extends Annotation> kind = annotation.annotationType();
             try {
@@ -72,29 +72,29 @@ final class ModelFields {
     }
 
     /** True when [model]'s field named [json] holds Boolean true. */
-    static boolean isTrue(Map<String, Field> fields, Object model, String json) {
+    public static boolean isTrue(Map<String, Field> fields, Object model, String json) {
         return Boolean.TRUE.equals(read(fields, model, json));
     }
 
     /** True when [model]'s field named [json] holds a string with any text in it. */
-    static boolean hasText(Map<String, Field> fields, Object model, String json) {
+    public static boolean hasText(Map<String, Field> fields, Object model, String json) {
         Object value = read(fields, model, json);
         return value instanceof String && !((String) value).trim().isEmpty();
     }
 
     /** True when [model]'s field named [json] holds anything at all. */
-    static boolean isSet(Map<String, Field> fields, Object model, String json) {
+    public static boolean isSet(Map<String, Field> fields, Object model, String json) {
         return read(fields, model, json) != null;
     }
 
     /** True when [model]'s field named [json] holds a list with at least one entry. */
-    static boolean hasEntries(Map<String, Field> fields, Object model, String json) {
+    public static boolean hasEntries(Map<String, Field> fields, Object model, String json) {
         Object value = read(fields, model, json);
         return value instanceof List && !((List<?>) value).isEmpty();
     }
 
     @Nullable
-    static Object read(Map<String, Field> fields, Object model, String json) {
+    public static Object read(Map<String, Field> fields, Object model, String json) {
         Field field = fields.get(json);
         if (field == null) return null;
         try {

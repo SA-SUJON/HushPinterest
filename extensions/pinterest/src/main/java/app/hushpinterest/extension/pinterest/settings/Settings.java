@@ -48,6 +48,41 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_AI_PINS =
             new BooleanSetting("hushpinterest_hide_ai_pins", TRUE);
 
+    public static final BooleanSetting HIDE_SHOPPING =
+            new BooleanSetting("hushpinterest_hide_shopping", FALSE);
+    public static final BooleanSetting DISABLE_ANALYTICS =
+            new BooleanSetting("hushpinterest_disable_analytics", TRUE);
+    public static final BooleanSetting STRIP_LINK_TRACKING =
+            new BooleanSetting("hushpinterest_strip_link_tracking", TRUE);
+    public static final BooleanSetting DOWNLOAD_PINS =
+            new BooleanSetting("hushpinterest_download_pins", FALSE);
+    public static final BooleanSetting EXTERNAL_BROWSER =
+            new BooleanSetting("hushpinterest_external_browser", FALSE);
+    public static final BooleanSetting SYSTEM_SHARE =
+            new BooleanSetting("hushpinterest_system_share", FALSE);
+    public static final BooleanSetting HIDE_SCREENSHOT_SHARE =
+            new BooleanSetting("hushpinterest_hide_screenshot_share", FALSE);
+    public static final BooleanSetting HIDE_SEARCH_HISTORY =
+            new BooleanSetting("hushpinterest_hide_search_history", FALSE);
+    public static final BooleanSetting HIDE_NAV_CREATE =
+            new BooleanSetting("hushpinterest_hide_nav_create", FALSE);
+    public static final BooleanSetting HIDE_NAV_NOTIFICATIONS =
+            new BooleanSetting("hushpinterest_hide_nav_notifications", FALSE);
+    public static final BooleanSetting HIDE_HEADER_BUTTONS =
+            new BooleanSetting("hushpinterest_hide_header_buttons", FALSE);
+    public static final BooleanSetting HIDE_PIN_MENU_COLLAGE =
+            new BooleanSetting("hushpinterest_hide_pin_menu_collage", FALSE);
+    public static final BooleanSetting HIDE_PIN_MENU_VISUAL_SEARCH =
+            new BooleanSetting("hushpinterest_hide_pin_menu_visual_search", FALSE);
+    public static final BooleanSetting HIDE_PIN_MENU_PIN_BOOST =
+            new BooleanSetting("hushpinterest_hide_pin_menu_pin_boost", FALSE);
+    public static final BooleanSetting HIDE_COMMENTS =
+            new BooleanSetting("hushpinterest_hide_comments", FALSE);
+    public static final BooleanSetting QUIET_EMAIL_REMINDER =
+            new BooleanSetting("hushpinterest_quiet_email_reminder", FALSE);
+    public static final BooleanSetting DISABLE_UPDATE_NAG =
+            new BooleanSetting("hushpinterest_disable_update_nag", FALSE);
+
     /**
      * Once a day, when Pinterest starts, ask api.github.com whether a newer HushPinterest release is
      * out, and say so on the settings screen ({@link ReleaseCheck}). It's the settings entry's own

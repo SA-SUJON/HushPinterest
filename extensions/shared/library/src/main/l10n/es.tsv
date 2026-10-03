@@ -159,3 +159,45 @@ Promoted pins	Pines promocionados
 Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Los pines promocionados desaparecen del feed de inicio, la búsqueda, los pines relacionados y los tableros antes de mostrarse, y los paneles que solo contienen anuncios se quedan plegados.
 ad-only views	vistas solo de anuncios
 promoted pins in lists	pines promocionados en las listas
+Privacy	Privacidad
+Pin actions	Acciones del pin
+Interface	Interfaz
+Hide shopping and product pins	Ocultar compras y pines de productos
+Shoppable pins, shopping stories and featured boards	Pines de compras, historias de compras y tableros destacados
+Disable analytics	Desactivar estadísticas
+Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch.	Detiene los envíos de uso y el inicio de las estadísticas. Firebase Analytics sigue desactivado hasta que vuelvas a parchear sin este parche.
+Firebase Analytics collection is disabled	La recopilación de Firebase Analytics está desactivada
+Analytics launch tasks	Inicio de estadísticas
+Analytics uploads	Envíos de estadísticas
+Strip link tracking	Quitar rastreo de enlaces
+Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Quita parámetros de rastreo conocidos de los enlaces copiados y compartidos. Los enlaces cortos quedan como los creó Pinterest.
+Download pins	Descargar pines
+Adds Download to the pin menu. Saves original images and available videos.	Añade Descargar al menú del pin. Guarda imágenes originales y vídeos disponibles.
+Open links in your browser	Abrir enlaces en tu navegador
+Visit opens a web link in your browser.	Visitar abre el enlace web en tu navegador.
+System share sheet	Menú de compartir del sistema
+Share uses Android's share sheet.	Compartir usa el menú de Android.
+No screenshot share menu	Sin menú al hacer capturas
+Off by default. Restart Pinterest to refresh a screen that's already open.	Desactivado por defecto. Reinicia Pinterest para actualizar una pantalla que ya esté abierta.
+Hide search history	Ocultar historial de búsquedas
+Hides recent searches on this device. Pinterest's server history isn't deleted.	Oculta las búsquedas recientes en este dispositivo. No borra el historial de los servidores de Pinterest.
+Hide navigation buttons	Ocultar botones de navegación
+Hide Create button	Ocultar botón Crear
+Hide Notifications button	Ocultar botón Notificaciones
+Hide header buttons	Ocultar botones del encabezado
+Filter pin menu	Filtrar menú del pin
+Hide collage menu items	Ocultar opciones de collage
+Hide Search image menu item	Ocultar opción Buscar imagen
+Hide Promote pin menu item	Ocultar opción Promocionar pin
+Hide comments	Ocultar comentarios
+Hides the comments area under pins.	Oculta la zona de comentarios bajo los pines.
+Quiet email reminders	Ocultar recordatorios de correo
+Disable update nag	Ocultar aviso de actualización
+Hides Pinterest's Play Store update prompt.	Oculta el aviso de actualización de Pinterest en Play Store.
+Download pin	Descargar pin
+Share pin	Compartir pin
+Open pin link	Abrir enlace del pin
+Download started. Check Downloads.	Descarga iniciada. Revisa Descargas.
+Pin saved.	Pin guardado.
+Couldn't save this pin.	No se pudo guardar este pin.
+Another pin is being saved. Try again when it's finished.	Se está guardando otro pin. Inténtalo de nuevo cuando termine.

@@ -92,9 +92,9 @@ public class SettingsNavigationTest {
     @Test @Config(sdk = {28, 30, 33, 36})
     public void homeAndEveryCategoryAreReachableWithoutRemovingTheModel() {
         assertNotNull(page.navigation);
-        // The status card, Browse settings, Feed and More settings.
-        assertEquals(4, list().getCount());
-        assertEquals(5, page.sections().size());
+        // Status, Browse settings, four feature categories and More settings.
+        assertEquals(7, list().getCount());
+        assertEquals(8, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
             assertTrue(page.navigation.open(section));
@@ -104,7 +104,7 @@ public class SettingsNavigationTest {
             assertTrue(page.navigation.back());
             while (page.navigation.back()) { }
         }
-        assertEquals(4, list().getCount());
+        assertEquals(7, list().getCount());
     }
 
     @Test public void categoryClickChangesOnlyTheSettingWhoseRowWasTapped() {
@@ -316,8 +316,10 @@ public class SettingsNavigationTest {
         assertTrue(contains(Settings.HIDE_ADS.key));
         page.navigation.back();
         page.navigation.navigate("Links");
-        // Links holds only rows that explain and open Android's settings, so Pause reaches nothing there.
-        assertEquals("Links has no Pause-controlled switch", categoryCount("Links"), list().getCount());
+        // The optional Visit browser switch follows Pause, alongside Android's link settings.
+        assertEquals("Links has a Pause-controlled browser switch", categoryCount("Links") + 1, list().getCount());
+        assertTrue(contains(Settings.EXTERNAL_BROWSER.key));
+        assertEquals(PAUSED_LINE, String.valueOf(((Preference) list().getItemAtPosition(0)).getSummary()));
         assertFalse(contains(Settings.HIDE_ADS.key));
         while (page.navigation.back()) { }
         page.navigation.navigate("About");
@@ -514,7 +516,7 @@ public class SettingsNavigationTest {
         assertEquals("No matching settings", ((Preference) list().getItemAtPosition(0)).getTitle());
         assertTrue(page.navigation.back());
         assertEquals("", search.getText().toString());
-        assertEquals(4, list().getCount());
+        assertEquals(7, list().getCount());
     }
 
     /**
@@ -607,8 +609,8 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.CHECK_FOR_RELEASES.key));
         recreate();
         assertTrue(contains(Settings.CHECK_FOR_RELEASES.key));
-        // Updates: Check for new HushPinterest releases and Check now.
-        assertEquals(2, list().getCount());
+        assertEquals(categoryCount("Updates"), list().getCount());
+        assertTrue(contains(Settings.DISABLE_UPDATE_NAG.key));
         page.navigation.back();
         findSearch(dialog.getView()).setText("new releases");
         recreate();
@@ -620,13 +622,13 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.HIDE_ADS.key));
         SettingsL10nTest.backOf(dialog).performClick();
         assertTrue(dialog.getDialog().isShowing());
-        assertEquals(4, list().getCount());
+        assertEquals(7, list().getCount());
         page.navigation.navigate("About");
         dialog.getDialog().onBackPressed();
         // More settings: Links, Updates, Pause, backup and diagnostics, and About.
         assertEquals(4, list().getCount());
         dialog.getDialog().onBackPressed();
-        assertEquals(4, list().getCount());
+        assertEquals(7, list().getCount());
         dialog.getDialog().onBackPressed();
         ShadowLooper.idleMainLooper();
         assertFalse(controller.get().isFinishing());
@@ -788,7 +790,8 @@ public class SettingsNavigationTest {
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Config(qualifiers = "pt-rBR-w390dp-h844dp-night-xhdpi")
     public void brazilianPortuguesePagesKeepTheirCompleteText() throws Exception {
-        assertEquals("Atualizações", String.valueOf(page.sections().get(2).getTitle()));
+        assertEquals("Atualizações", String.valueOf(page.findPreference(Settings.CHECK_FOR_RELEASES.key)
+                .getParent().getTitle()));
         capture("pt-br-overview");
         page.navigation.navigate("Feed");
         capture("pt-br-feed");

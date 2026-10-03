@@ -100,6 +100,9 @@ final class SettingsNavigation extends BaseAdapter {
         // Stable English route IDs survive a locale change; the displayed names are localized.
         Set<PatchFamily> build = PatchFamily.inThisBuild();
         section("Feed", L10n.t("Feed"), feedSummary(build), SettingsIcons.FEED, true);
+        section("Privacy", L10n.t("Privacy"), null, SettingsIcons.BLOCK, true);
+        section("Pin actions", L10n.t("Pin actions"), null, SettingsIcons.DOWNLOADS, true);
+        section("Interface", L10n.t("Interface"), null, SettingsIcons.SETTINGS, true);
         section("Links", L10n.t("Links"), null, SettingsIcons.LINKS, false);
         section("Updates", L10n.t("Updates"), null, SettingsIcons.UPDATES, false);
         section("Set when you patched", L10n.t("Set when you patched"), null, SettingsIcons.PATCHED, false);

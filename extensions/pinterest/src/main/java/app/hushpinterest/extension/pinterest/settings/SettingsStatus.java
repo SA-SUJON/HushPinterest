@@ -35,4 +35,34 @@ public final class SettingsStatus {
 
     public static boolean hideAiPins() { return false; }
     public static boolean feedAiPins() { return false; }
+
+    public static boolean hideShopping() { return false; }
+    public static boolean feedShopping() { return false; }
+    public static boolean disableAnalytics() { return false; }
+    public static boolean analyticsTasks() { return false; }
+    public static boolean analyticsUploads() { return false; }
+    public static boolean stripLinkTracking() { return false; }
+    public static boolean linkTracking() { return false; }
+    public static boolean downloadPins() { return false; }
+    public static boolean pinDownloads() { return false; }
+    public static boolean externalBrowser() { return false; }
+    public static boolean visitLinks() { return false; }
+    public static boolean systemShare() { return false; }
+    public static boolean pinShare() { return false; }
+    public static boolean hideScreenshotShare() { return false; }
+    public static boolean screenshotShare() { return false; }
+    public static boolean hideSearchHistory() { return false; }
+    public static boolean searchHistory() { return false; }
+    public static boolean hideNavigationButtons() { return false; }
+    public static boolean navigationButtons() { return false; }
+    public static boolean hideHeaderButtons() { return false; }
+    public static boolean headerButtons() { return false; }
+    public static boolean hidePinMenuItems() { return false; }
+    public static boolean pinMenuItems() { return false; }
+    public static boolean hideComments() { return false; }
+    public static boolean comments() { return false; }
+    public static boolean quietEmailReminder() { return false; }
+    public static boolean emailReminder() { return false; }
+    public static boolean disableUpdateNag() { return false; }
+    public static boolean updateNag() { return false; }
 }

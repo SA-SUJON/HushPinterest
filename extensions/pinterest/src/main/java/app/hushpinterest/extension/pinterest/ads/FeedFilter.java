@@ -32,29 +32,34 @@ public final class FeedFilter {
         // Each family's patch marks its list capability once the hook is in.
         boolean ads = PatchFamily.Capability.FEED_ADS.installed();
         boolean ai = PatchFamily.Capability.FEED_AI_PINS.installed();
+        boolean shopping = PatchFamily.Capability.FEED_SHOPPING.installed();
         if (ads) HookStatus.invoked(FamilyNames.HIDE_ADS);
         if (ai) HookStatus.invoked(FamilyNames.HIDE_AI_PINS);
+        if (shopping) HookStatus.invoked(FamilyNames.HIDE_SHOPPING);
         if (items == null || items.isEmpty()) return items;
         ads = ads && Ads.active();
         ai = ai && AiPins.active();
-        if (!ads && !ai) return items;
+        shopping = shopping && Shopping.active();
+        if (!ads && !ai && !shopping) return items;
         try {
             List<Object> kept = null;
             int size = items.size();
             for (int i = 0; i < size; i++) {
                 Object item = items.get(i);
                 String family = ads && Ads.isAd(item) ? FamilyNames.HIDE_ADS
-                        : ai && AiPins.isLabeled(item) ? FamilyNames.HIDE_AI_PINS : null;
+                        : ai && AiPins.isLabeled(item) ? FamilyNames.HIDE_AI_PINS
+                        : shopping && Shopping.isShopping(item) ? FamilyNames.HIDE_SHOPPING : null;
                 if (family != null) {
                     if (kept == null) kept = new ArrayList<>(items.subList(0, i));
-                    HookStatus.counted(family, family == FamilyNames.HIDE_ADS ? "promoted pin removed" : "AI-labeled pin removed");
+                    HookStatus.counted(family, family.equals(FamilyNames.HIDE_ADS) ? "promoted pin removed"
+                            : family.equals(FamilyNames.HIDE_AI_PINS) ? "AI-labeled pin removed" : "shopping placement removed");
                 } else if (kept != null) {
                     kept.add(item);
                 }
             }
             return kept == null ? items : kept;
         } catch (Throwable t) {
-            HookStatus.threw(ads ? FamilyNames.HIDE_ADS : FamilyNames.HIDE_AI_PINS, "list filter", t);
+            HookStatus.threw(ads ? FamilyNames.HIDE_ADS : ai ? FamilyNames.HIDE_AI_PINS : FamilyNames.HIDE_SHOPPING, "list filter", t);
             return items;
         }
     }
