@@ -4,7 +4,7 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
-Nothing has been released yet. This is the work toward 0.0.2.
+Nothing has been released yet. This is the work toward 0.0.3.
 
 * **Signed-in Privacy checks:** Android 16 PCAPdroid captures compared Disable analytics on, off and paused across signed-in feed and pin loads. Disable analytics on kept sign-in, feed and pin fetching working while `trk.pinterest.com` and AppsFlyer SNI appeared only when the switch was off or HushPinterest was paused. The installed manifest has `firebase_analytics_collection_deactivated=true`, so Pause cannot restore Firebase Analytics. Push plumbing is present and notifications are allowed; no live Pinterest push arrived during the check window. HTTPS captures are endpoint and SNI evidence only because paths and payloads are encrypted.
 
