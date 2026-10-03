@@ -1,34 +1,4 @@
-function Invoke-HushPinterestAdbCommand {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)][string]$Adb,
-        [Parameter(Mandatory = $true)][string[]]$Arguments,
-        [scriptblock]$Invoker
-    )
-
-    if ($Invoker) {
-        $result = & $Invoker $Adb $Arguments
-        if ($null -eq $result -or $null -eq $result.ExitCode) {
-            throw 'The ADB invoker returned no exit code.'
-        }
-        return [pscustomobject]@{
-            ExitCode = [int]$result.ExitCode
-            Output = @($result.Output | ForEach-Object { "$_" })
-        }
-    }
-
-    $PSNativeCommandUseErrorActionPreference = $false
-    $output = @(& $Adb @Arguments 2>&1 | ForEach-Object { "$_" })
-    [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
-}
-
-function Format-HushPinterestAdbFailure {
-    param([string]$Message, $Result)
-
-    $detail = @($Result.Output | Select-Object -First 3) -join '; '
-    $suffix = if ([string]::IsNullOrWhiteSpace($detail)) { '' } else { " Output: $detail" }
-    "$Message (ADB exit $($Result.ExitCode)).$suffix"
-}
+. (Join-Path $PSScriptRoot 'device-lease.ps1')
 
 function Invoke-AndroidVerifierTally {
     [CmdletBinding()]
@@ -37,7 +7,11 @@ function Invoke-AndroidVerifierTally {
         [Parameter(Mandatory = $true)][string]$Serial,
         [Parameter(Mandatory = $true)][string]$Local,
         [Parameter(Mandatory = $true)][string]$Label,
-        [scriptblock]$AdbInvoker
+        [scriptblock]$AdbInvoker,
+        [string]$LeaseToken = $env:HUSHPINTEREST_DEVICE_LEASE_TOKEN,
+        [string]$LeaseDirectory = $env:HUSHPINTEREST_DEVICE_LEASE_DIR,
+        [string]$Project = 'HushPinterest',
+        [string]$ChatIdentity = $env:HUSHPINTEREST_CHAT_ID
     )
 
     if ($Label -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$') {
@@ -53,15 +27,17 @@ function Invoke-AndroidVerifierTally {
     # the pushed size, and it didn't log that the file was missing. dex2oat exits 0 on a missing
     # dex file.
     $localSize = (Get-Item -LiteralPath $Local).Length
+    $lease = Enter-HushDeviceLease -Adb $Adb -Serial $Serial -LeaseToken $LeaseToken `
+        -LeaseDirectory $LeaseDirectory -Project $Project -ChatIdentity $ChatIdentity -AdbInvoker $AdbInvoker
     try {
-        $push = Invoke-HushPinterestAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'push', $Local, $remote)
+        $push = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker `
+            -Arguments @('push', $Local, $remote)
         if ($push.ExitCode -ne 0) {
             throw (Format-HushPinterestAdbFailure -Message "Could not push $Label to $Serial" -Result $push)
         }
 
-        $setup = Invoke-HushPinterestAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'shell', "rm -rf $directory && mkdir -p $directory")
+        $setup = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker `
+            -Arguments @('shell', "rm -rf $directory && mkdir -p $directory")
         if ($setup.ExitCode -ne 0) {
             throw (Format-HushPinterestAdbFailure `
                 -Message "Could not prepare the verifier output directory for $Label on $Serial" `
@@ -71,8 +47,8 @@ function Invoke-AndroidVerifierTally {
         # The phones are shared, so the log buffer is never cleared. A unique marker line starts
         # this run's part of it, and only the lines after it are read. It goes out as a warning so a phone that keeps only warnings still logs it.
         $marker = "hushpinterest-verify-$Label-$([guid]::NewGuid().ToString('N'))"
-        $mark = Invoke-HushPinterestAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'shell', "log -p w -t HushPinterestVerify $marker")
+        $mark = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker `
+            -Arguments @('shell', "log -p w -t HushPinterestVerify $marker")
         if ($mark.ExitCode -ne 0) {
             throw (Format-HushPinterestAdbFailure `
                 -Message "Could not mark logcat on $Serial before verifying $Label" `
@@ -83,8 +59,8 @@ function Invoke-AndroidVerifierTally {
             "--output-vdex=$directory/out.vdex --instruction-set=arm64 " +
             '--compiler-filter=verify --runtime-arg -Xmx1024m -j4; echo exit=$?; ' +
             'echo size=$(stat -c %s ' + $remote + ' 2>/dev/null || echo 0)'
-        $dex = Invoke-HushPinterestAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'shell', $dexCommand)
+        $dex = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker `
+            -Arguments @('shell', $dexCommand)
         if ($dex.ExitCode -ne 0) {
             throw (Format-HushPinterestAdbFailure `
                 -Message "Could not run dex2oat on $Label on $Serial" -Result $dex)
@@ -103,8 +79,8 @@ function Invoke-AndroidVerifierTally {
             throw "dex2oat on $Label read a file of $readSize bytes on $Serial, not the $localSize bytes pushed."
         }
 
-        $logResult = Invoke-HushPinterestAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'logcat', '-d')
+        $logResult = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker `
+            -Arguments @('logcat', '-d')
         if ($logResult.ExitCode -ne 0) {
             throw (Format-HushPinterestAdbFailure `
                 -Message "Could not read logcat on $Serial after verifying $Label" `
@@ -143,11 +119,12 @@ function Invoke-AndroidVerifierTally {
         $primaryFailure = $_
         throw
     } finally {
+        try {
         $cleanupFailures = [System.Collections.Generic.List[string]]::new()
         foreach ($remotePath in @($directory, $remote)) {
             try {
-                $cleanup = Invoke-HushPinterestAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-                    -Arguments @('-s', $Serial, 'shell', "rm -rf $remotePath")
+                $cleanup = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker `
+                    -Arguments @('shell', "rm -rf $remotePath")
                 if ($cleanup.ExitCode -ne 0) {
                     $cleanupFailures.Add((Format-HushPinterestAdbFailure `
                         -Message "Could not remove $remotePath" -Result $cleanup))
@@ -165,5 +142,6 @@ function Invoke-AndroidVerifierTally {
                 throw "Verifier cleanup failed. $message"
             }
         }
+        } finally { Exit-HushDeviceLease $lease }
     }
 }

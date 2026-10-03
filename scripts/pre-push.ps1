@@ -572,6 +572,9 @@ try {
     }).Count -gt 0
     $injectedRegisterDevicePaths = @(
         'scripts/injected-register-device.ps1',
+        'scripts/device-lease.ps1',
+        'scripts/device-install.ps1',
+        'scripts/test-device-safety.ps1',
         'scripts/script-wiring.ps1',
         'scripts/test-injected-register-device.ps1',
         'scripts/verify-injected-registers.ps1'

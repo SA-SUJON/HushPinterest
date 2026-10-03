@@ -27,6 +27,8 @@ function Assert-True {
 $fixture = Join-Path ([System.IO.Path]::GetTempPath()) ("hushpinterest-device-fixture-" + [guid]::NewGuid().ToString('N') + '.apk')
 [System.IO.File]::WriteAllBytes($fixture, [byte[]](1..200 | ForEach-Object { $_ % 256 }))
 $fixtureSize = (Get-Item -LiteralPath $fixture).Length
+$savedLeaseDirectory = $env:HUSHPINTEREST_DEVICE_LEASE_DIR
+$env:HUSHPINTEREST_DEVICE_LEASE_DIR = $fixture + '-leases'
 try {
     function New-FakeAdb {
         param(
@@ -53,7 +55,17 @@ try {
             $output = @()
             $operation = $Arguments[2]
 
-            if ($operation -eq 'push') {
+            if ($operation -eq 'get-state') { $output = @('device') }
+            elseif ($operation -eq 'get-serialno') { $output = @($Arguments[1]) }
+            elseif ($operation -eq 'shell' -and $Arguments[3] -eq 'getprop') {
+                $output = switch ($Arguments[4]) {
+                    'ro.product.model' { @('fixture-phone') }
+                    'ro.build.fingerprint' { @('fixture/build') }
+                    'ro.build.version.sdk' { @('28') }
+                    'ro.product.cpu.abi' { @('arm64-v8a') }
+                    default { throw 'Unexpected identity property.' }
+                }
+            } elseif ($operation -eq 'push') {
                 [void]$state.RemotePaths.Add($Arguments[4])
                 if ($FailureStage -eq 'push') { $exitCode = 11 }
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like '*&& mkdir -p*') {
@@ -478,6 +490,10 @@ try {
 
 } finally {
     [System.IO.File]::Delete($fixture)
+    $leaseRoot = [IO.Path]::GetFullPath($env:HUSHPINTEREST_DEVICE_LEASE_DIR)
+    if (-not $leaseRoot.StartsWith([IO.Path]::GetTempPath(), [StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe lease fixture cleanup.' }
+    Remove-Item -LiteralPath $leaseRoot -Recurse -Force -ErrorAction SilentlyContinue
+    $env:HUSHPINTEREST_DEVICE_LEASE_DIR = $savedLeaseDirectory
 }
 
 $global:LASTEXITCODE = 0

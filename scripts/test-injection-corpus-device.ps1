@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Run the seeded injection corpus on a named physical Android device.
+    Run the seeded injection corpus on a named leased Android device.
 
 .DESCRIPTION
     :patches:test writes patches/build/injection-corpus: corpus.dex, holding each generated and
@@ -10,7 +10,7 @@
     class, so a hook that leaves a method unverifiable comes back as a VerifyError line, and the
     runtime has the last word on what each method does under each guard answer.
 
-    An explicit physical-device serial is required. No app is installed and no UI, app data or
+    An explicit device serial is required. No app is installed and no UI, app data or
     account is touched. The device folder is removed in finally, including on failures.
 
 .EXAMPLE
@@ -20,14 +20,16 @@
 param(
     [string]$Serial,
     [string]$Root,
-    [string]$Adb
+    [string]$Adb,
+    [string]$LeaseToken = $env:HUSHPINTEREST_DEVICE_LEASE_TOKEN,
+    [string]$LeaseDirectory = $env:HUSHPINTEREST_DEVICE_LEASE_DIR,
+    [string]$ChatIdentity = $env:HUSHPINTEREST_CHAT_ID
 )
 
 $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($Serial) -or $Serial -notmatch '^[A-Za-z0-9][A-Za-z0-9._:-]*$') {
-    throw 'Pass an explicit physical-device serial with -Serial.'
+    throw 'Pass an explicit device serial with -Serial.'
 }
-if ($Serial -like 'emulator-*') { throw 'Emulators cannot run this check. Pass a physical-device serial.' }
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 $Root = (Resolve-Path -LiteralPath $Root).Path
 . (Join-Path $PSScriptRoot 'injected-register-device.ps1')
@@ -59,33 +61,17 @@ $Adb = (Resolve-Path -LiteralPath $Adb).Path
 
 function Invoke-CorpusDevice {
     param([string[]]$Arguments, [string]$Description)
-    $result = Invoke-HushPinterestAdbCommand -Adb $Adb -Arguments (@('-s', $Serial) + $Arguments)
+    $result = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Arguments $Arguments
     if ($result.ExitCode -ne 0) {
         throw (Format-HushPinterestAdbFailure -Message $Description -Result $result)
     }
     return $result.Output
 }
 
-$state = @(Invoke-CorpusDevice -Arguments @('get-state') -Description 'Could not read the selected device state')
-if (@($state | Where-Object { $_.Trim() -eq 'device' }).Count -ne 1) {
-    throw "The selected device is not ready: $($state -join ' ')"
-}
-foreach ($property in @('ro.kernel.qemu', 'ro.boot.qemu')) {
-    $value = (@(Invoke-CorpusDevice -Arguments @('shell', 'getprop', $property) `
-        -Description "Could not read $property") -join '').Trim()
-    if ($value -notin @('', '0')) { throw "The selected device reports $property=$value. Emulators cannot run this check." }
-}
-$hardware = (@(Invoke-CorpusDevice -Arguments @('shell', 'getprop', 'ro.hardware') `
-    -Description 'Could not read device hardware') -join '').Trim()
-$model = (@(Invoke-CorpusDevice -Arguments @('shell', 'getprop', 'ro.product.model') `
-    -Description 'Could not read device model') -join '').Trim()
-if (-not $hardware -or -not $model -or $hardware -match 'goldfish|ranchu|cuttlefish|vbox' `
-        -or $model -match 'emulator|android sdk|^sdk[_ -]|genymotion') {
-    throw "The selected device has no physical hardware identity ($hardware, $model)."
-}
-$api = (@(Invoke-CorpusDevice -Arguments @('shell', 'getprop', 'ro.build.version.sdk') `
-    -Description 'Could not read device API level') -join '').Trim()
-if ($api -notmatch '^\d+$' -or [int]$api -lt 28) { throw "This check needs a physical Android API 28+ device, found $api." }
+$lease = Enter-HushDeviceLease -Adb $Adb -Serial $Serial -LeaseToken $LeaseToken `
+    -LeaseDirectory $LeaseDirectory -ChatIdentity $ChatIdentity
+$model = $lease.Identity.Model
+$api = $lease.Identity.Api
 
 $runId = [guid]::NewGuid().ToString('N')
 $remote = "/data/local/tmp/hushpinterest-injection-$runId"
@@ -117,6 +103,7 @@ try {
     $primaryFailure = $_
     throw
 } finally {
+    try {
     if ($remoteCreated) {
         try {
             [void](Invoke-CorpusDevice -Arguments @('shell', "rm -rf $remote") -Description 'Could not remove the injection corpus device directory')
@@ -125,4 +112,5 @@ try {
             else { throw }
         }
     }
+    } finally { Exit-HushDeviceLease $lease }
 }

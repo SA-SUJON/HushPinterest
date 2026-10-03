@@ -26,7 +26,7 @@ Other versions may patch, but each patch looks for code by what it does in those
 2. Build the bundle (below) and add the `.mpp` to Morphe Manager as a local patch source.
 3. Pick the Pinterest 14.38.0 APK (14.25.0 on Android 9), keep the default patch selection or change it, and patch.
 
-A patched Pinterest can't install over the stock one, because Android only accepts an update signed with the same key. Uninstall the stock Pinterest first. Your boards and pins live on Pinterest's servers, so signing in again brings them back.
+A patched Pinterest can't install over the stock one, because Android only accepts an update signed with the same key. Moving from stock requires removing it yourself after saving anything local you need. Boards and pins stored in your account return when you sign in, but that doesn't restore local settings or drafts. The development installer refuses stock or differently signed installs and downgrades. It never removes an app or grants all permissions.
 
 ## Signing in
 
@@ -130,6 +130,8 @@ export GITHUB_TOKEN=<a token with read:packages>
 The bundle lands in `patches/build/release/patches-<version>.mpp`, beside its SHA-256 and a CycloneDX SBOM of every library that goes into it. Run `generatePatchesList` before `buildAndroid`, or the bundle loses its Android payload.
 
 Tests: `./gradlew :patches:test :extensions:pinterest:test`. Set `HUSHPINTEREST_FIXTURE_DIR` to the directory containing every APK named in `AppCompatibilities.kt` before pushing a patch change. The push check rejects missing fixtures.
+
+Device helpers acquire an exclusive serial lease before writing to a phone or emulator. Set `HUSHPINTEREST_DEVICE_LEASE_DIR` to the shared pool's lease directory, or pass it explicitly. A caller can pass its lease token. Child checks retain that caller's lease. Expired leases remain untouched until the previous test has been confirmed stopped. Installs verify the device identity and both APK signers, then use an in-place update that preserves existing permissions and app data.
 
 Build dependencies have a separate advisory check. Run `./gradlew :patches:buildDependencyReport`, then `pwsh -NoProfile -File scripts/build-advisories.ps1`. High, critical or unrated findings and failed queries stop a push. Lower-severity findings are reported.
 

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Run the diagnostic redactor's real synthetic corpus on a named physical Android device.
+    Run the diagnostic redactor's real synthetic corpus on a named leased Android device.
 
 .DESCRIPTION
     Compiles the production redactor and its JVM test corpus with the selected JDK. A host-only
@@ -8,7 +8,7 @@
     Every row, their joined report and the exact Pinterest probe run first on the JVM and then
     on Android's ART/ICU regex engine. The device run uses dalvikvm in its own temporary folder.
 
-    An explicit physical-device serial is required. No app is installed and no UI, app data or
+    An explicit device serial is required. No app is installed and no UI, app data or
     account is accessed. Both temporary folders are removed in finally, including on failures.
 
 .EXAMPLE
@@ -22,14 +22,16 @@ param(
     [string]$D8,
     [string]$Adb,
     [string]$AndroidJar,
-    [string]$JUnitJar
+    [string]$JUnitJar,
+    [string]$LeaseToken = $env:HUSHPINTEREST_DEVICE_LEASE_TOKEN,
+    [string]$LeaseDirectory = $env:HUSHPINTEREST_DEVICE_LEASE_DIR,
+    [string]$ChatIdentity = $env:HUSHPINTEREST_CHAT_ID
 )
 
 $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($Serial) -or $Serial -notmatch '^[A-Za-z0-9][A-Za-z0-9._:-]*$') {
-    throw 'Pass an explicit physical-device serial with -Serial.'
+    throw 'Pass an explicit device serial with -Serial.'
 }
-if ($Serial -like 'emulator-*') { throw 'Emulators cannot run this check. Pass a physical-device serial.' }
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 $Root = (Resolve-Path -LiteralPath $Root).Path
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
@@ -80,33 +82,16 @@ function Invoke-RedactorHost {
 
 function Invoke-RedactorDevice {
     param([string[]]$Arguments, [string]$Description)
-    $result = Invoke-HushPinterestAdbCommand -Adb $Adb -Arguments (@('-s', $Serial) + $Arguments)
+    $result = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Arguments $Arguments
     if ($result.ExitCode -ne 0) {
         throw (Format-HushPinterestAdbFailure -Message $Description -Result $result)
     }
     return $result.Output
 }
 
-$state = @(Invoke-RedactorDevice -Arguments @('get-state') -Description 'Could not read the selected device state')
-if (@($state | Where-Object { $_.Trim() -eq 'device' }).Count -ne 1) {
-    throw "The selected device is not ready: $($state -join ' ')"
-}
-foreach ($property in @('ro.kernel.qemu', 'ro.boot.qemu')) {
-    $value = (@(Invoke-RedactorDevice -Arguments @('shell', 'getprop', $property) `
-        -Description "Could not read $property") -join '').Trim()
-    if ($value -notin @('', '0')) { throw "The selected device reports $property=$value. Emulators cannot run this check." }
-}
-$hardware = (@(Invoke-RedactorDevice -Arguments @('shell', 'getprop', 'ro.hardware') `
-    -Description 'Could not read device hardware') -join '').Trim()
-$model = (@(Invoke-RedactorDevice -Arguments @('shell', 'getprop', 'ro.product.model') `
-    -Description 'Could not read device model') -join '').Trim()
-if (-not $hardware -or -not $model -or $hardware -match 'goldfish|ranchu|cuttlefish|vbox' `
-        -or $model -match 'emulator|android sdk|^sdk[_ -]|genymotion') {
-    throw "The selected device has no physical hardware identity ($hardware, $model)."
-}
-$api = (@(Invoke-RedactorDevice -Arguments @('shell', 'getprop', 'ro.build.version.sdk') `
-    -Description 'Could not read device API level') -join '').Trim()
-if ($api -notmatch '^\d+$' -or [int]$api -lt 28) { throw "This check needs a physical Android API 28+ device, found $api." }
+$identity = Get-HushDeviceIdentity -Adb $Adb -Serial $Serial
+$model = $identity.Model
+$api = $identity.Api
 
 # Use the test dependency already pinned and hash-verified by this repository, with no download.
 $verification = [xml](Get-Content -LiteralPath (Join-Path $Root 'gradle/verification-metadata.xml') -Raw)
@@ -140,6 +125,8 @@ if ($remote -notmatch '^/data/local/tmp/hushpinterest-redactor-[a-f0-9]{32}$') {
 $remoteCreated = $false
 $workCreated = $false
 $primaryFailure = $null
+$lease = Enter-HushDeviceLease -Adb $Adb -Serial $Serial -LeaseToken $LeaseToken `
+    -LeaseDirectory $LeaseDirectory -ChatIdentity $ChatIdentity
 try {
     New-Item -ItemType Directory -Path $work | Out-Null
     $workCreated = $true
@@ -188,6 +175,7 @@ try {
     $primaryFailure = $_
     throw
 } finally {
+    try {
     $cleanupFailures = [System.Collections.Generic.List[string]]::new()
     if ($remoteCreated) {
         try {
@@ -205,4 +193,5 @@ try {
         if ($null -ne $primaryFailure) { Write-Warning -WarningAction Continue $message }
         else { throw $message }
     }
+    } finally { Exit-HushDeviceLease $lease }
 }

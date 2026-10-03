@@ -5,9 +5,8 @@
 .DESCRIPTION
     verify-all-patches.ps1 answers whether the patches apply and throws its APK away. This
     keeps one, signed with the sideload keystore so it installs on a phone, and installs it
-    over adb when a serial is given. The stock Pinterest on the phone has a different signer, so
-    it has to be uninstalled first; that is what -Replace does, and it wipes Pinterest's data on
-    that phone.
+    over adb when a serial is given. Installs require an exclusive whole-device lease and matching
+    signers. Existing accounts, permissions and keys are preserved. Stock installs are refused.
 
     The signing password comes from HUSHPINTEREST_SIDELOAD_KEYSTORE_PASSWORD. When it is unset, the
     local test keystore's documented password, sideload, is used. The Morphe arguments travel
@@ -22,12 +21,15 @@
     -Aapt2, HUSHPINTEREST_AAPT2 or the SDK. None of them has a machine-specific default.
 
 .EXAMPLE
-    scripts/patch-for-device.ps1 -Serial $env:HUSHPINTEREST_DEVICE_SERIAL -Replace
+    scripts/patch-for-device.ps1 -Serial $env:HUSHPINTEREST_DEVICE_SERIAL
 #>
 [CmdletBinding()]
 param(
     [string]$Serial,
     [switch]$Replace,
+    [string]$LeaseToken = $env:HUSHPINTEREST_DEVICE_LEASE_TOKEN,
+    [string]$LeaseDirectory = $env:HUSHPINTEREST_DEVICE_LEASE_DIR,
+    [string]$ChatIdentity = $env:HUSHPINTEREST_CHAT_ID,
     # Print every line the desktop CLI writes, not only errors.
     [switch]$ShowPatchLog,
     # Patch names to leave out of this build. The catalog applies everything, including any patch
@@ -50,6 +52,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+if ($Replace) { throw '-Replace is refused. Development installs never uninstall apps or erase accounts.' }
 # Not a parameter default: Windows PowerShell leaves $PSScriptRoot empty while it evaluates the
 # defaults of an advanced script started with -File. $root below is this same variable.
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
@@ -188,13 +191,11 @@ if (-not $Serial) { return }
 $adb = (Get-Command adb -ErrorAction SilentlyContinue).Source
 if (-not $adb) { $adb = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Recurse -Filter adb.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName }
 if (-not $adb) { throw 'No adb found. Put it on the PATH or install the platform tools.' }
-if ($Replace) {
-    . (Join-Path $PSScriptRoot 'device-install.ps1')
-    [void](Remove-AndroidPackageIfInstalled -Adb $adb -Serial $Serial -PackageName $target.PackageName)
-}
-Write-Host "[device] installing on $Serial"
-# adb prints Failure [...] and exits non-zero on a refused install; without this the script
-# went on to print the version of whatever was already on the phone, as if it were this build.
-& $adb -s $Serial install -r -g $out | Out-Host
-if ($LASTEXITCODE -ne 0) { throw "adb install failed on $Serial. The output above says why." }
-& $adb -s $Serial shell dumpsys package $target.PackageName | Select-String 'versionName' | Out-Host
+. (Join-Path $PSScriptRoot 'device-install.ps1')
+$lease = Enter-HushDeviceLease -Adb $adb -Serial $Serial -LeaseToken $LeaseToken `
+    -LeaseDirectory $LeaseDirectory -ChatIdentity $ChatIdentity
+try {
+    Install-HushAndroidApk -Adb $adb -Serial $Serial -Apk $out -PackageName $target.PackageName `
+        -Aapt2 $Aapt2 -Lease $lease
+    & $adb -s $Serial shell dumpsys package $target.PackageName | Select-String 'versionName' | Out-Host
+} finally { Exit-HushDeviceLease $lease }

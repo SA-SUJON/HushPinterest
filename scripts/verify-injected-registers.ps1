@@ -66,6 +66,9 @@ param(
     [string]$PatchedApk,
     [switch]$FromDevice,
     [string]$Serial,
+    [string]$LeaseToken = $env:HUSHPINTEREST_DEVICE_LEASE_TOKEN,
+    [string]$LeaseDirectory = $env:HUSHPINTEREST_DEVICE_LEASE_DIR,
+    [string]$ChatIdentity = $env:HUSHPINTEREST_CHAT_ID,
     [string]$Adb,
     [string]$ReportPath,
     [string]$Java,
@@ -141,6 +144,7 @@ $reportInWork = -not $ReportPath
 if ($reportInWork) { $ReportPath = Join-Path $work 'injected-registers.txt' }
 $failed = $false
 $completed = $false
+$deviceLease = $null
 try {
 
 $adbPath = $null
@@ -229,11 +233,13 @@ if ($diff.ExitCode -ne 0) {
 }
 
 if ($Serial) {
+    $deviceLease = Enter-HushDeviceLease -Adb $adbPath -Serial $Serial -LeaseToken $LeaseToken `
+        -LeaseDirectory $LeaseDirectory -ChatIdentity $ChatIdentity
     Write-Host "[registers] running the device verifier on $Serial"
     $cleanTally = Invoke-AndroidVerifierTally -Adb $adbPath -Serial $Serial `
-        -Local $cleanBase -Label 'clean'
+        -Local $cleanBase -Label 'clean' -LeaseToken $deviceLease.Token -LeaseDirectory (Split-Path -Parent $deviceLease.Path)
     $patchedTally = Invoke-AndroidVerifierTally -Adb $adbPath -Serial $Serial `
-        -Local $PatchedApk -Label 'patched'
+        -Local $PatchedApk -Label 'patched' -LeaseToken $deviceLease.Token -LeaseDirectory (Split-Path -Parent $deviceLease.Path)
     $comparison = Compare-VerifierTallies -Clean $cleanTally -Patched $patchedTally
     Write-Host "[registers] verifier messages: clean $($comparison.CleanTotal), patched $($comparison.PatchedTotal)"
 
@@ -263,6 +269,7 @@ if ($Serial) {
 
 $completed = $true
 } finally {
+    try {
     $keepReport = $reportInWork -and ($failed -or -not $completed) -and
         (Test-Path -LiteralPath $ReportPath -PathType Leaf)
     if ($keepReport) {
@@ -272,6 +279,7 @@ $completed = $true
     } else {
         Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
     }
+    } finally { Exit-HushDeviceLease $deviceLease }
 }
 
 # Success needs the try above to have run to its end. A launch error once left it early under a
