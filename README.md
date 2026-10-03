@@ -121,6 +121,8 @@ Interface summaries now say which controls change and when. Bottom-bar and heade
   <img src="assets/screenshots/settings-interface.png" width="240" alt="Interface controls describing their effects and refresh boundaries">
 </p>
 
+On Android 10 and newer, HushPinterest checks the supplied HTTPS media address before passing it to Android's Downloads service. [Android handles later redirects](https://github.com/aosp-mirror/platform_packages_providers_downloadprovider/blob/master/src/com/android/providers/downloads/DownloadThread.java), and HushPinterest doesn't check each redirected address on that path. Android 9 file picker saves check the initial address and every redirect. Each must be a supported public HTTPS Pinterest media address.
+
 The release check compares your Pinterest version with every version a release explicitly supports. Updates also has links to the release notes and installation steps. Those links don't download anything automatically.
 
 ## Opening Pinterest links

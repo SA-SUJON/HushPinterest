@@ -179,6 +179,22 @@ public class PinActionsTest {
         assertTrue(request.getRequestHeaders().isEmpty());
     }
 
+    @Test public void nativeDownloadRequestRejectsUnsafeInitialAddressesAndPreservesTheSuppliedUrl() {
+        for (String initial : new String[]{"http://i.pinimg.com/pin.jpg", "https://i.pinimg.com.evil.test/pin.jpg",
+                "https://user:password@i.pinimg.com/pin.jpg", "file:///private", "https://127.0.0.1/pin.jpg",
+                "https://i.pinimg.com:8443/pin.jpg"}) {
+            try {
+                PinDownloads.request(new PinMedia.Source(initial, "image/jpeg", ".jpg"), "pin.jpg");
+                fail("unsafe initial address was accepted: " + initial);
+            } catch (IllegalArgumentException rejected) { /* No request reaches the native service. */ }
+        }
+        String supplied = "https://i.pinimg.com/originals/pin.jpg?opaque=value";
+        ShadowDownloadManager.ShadowRequest request = Shadow.extract(
+                PinDownloads.request(new PinMedia.Source(supplied, "image/jpeg", ".jpg"), "pin.jpg"));
+        assertEquals(supplied, request.getUri().toString());
+        assertTrue(request.getRequestHeaders().isEmpty());
+    }
+
     @Test public void knownUnsupportedPinsExplainTheRefusalWithoutQueuingAndUnknownModelsStayNative() {
         assertFalse(PinDownloads.start(Map.of("id", "123", "images", Map.of()), activity));
         Shadows.shadowOf(Looper.getMainLooper()).idle();
