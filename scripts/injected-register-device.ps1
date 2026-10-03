@@ -55,8 +55,16 @@ function Invoke-AndroidVerifierTally {
                 -Result $mark)
         }
 
-        $dexCommand = "dex2oat64 --dex-file=$remote --oat-file=$directory/out.oat " +
-            "--output-vdex=$directory/out.vdex --instruction-set=arm64 " +
+        $instructionSet = switch ($lease.Identity.Abi) {
+            'arm64-v8a' { 'arm64' }
+            'armeabi-v7a' { 'arm' }
+            'x86_64' { 'x86_64' }
+            'x86' { 'x86' }
+            default { throw "Unsupported verifier ABI: $($lease.Identity.Abi)" }
+        }
+        $compiler = if ($instructionSet -in @('arm', 'x86')) { 'dex2oat' } else { 'dex2oat64' }
+        $dexCommand = "$compiler --dex-file=$remote --oat-file=$directory/out.oat " +
+            "--output-vdex=$directory/out.vdex --instruction-set=$instructionSet " +
             '--compiler-filter=verify --runtime-arg -Xmx1024m -j4; echo exit=$?; ' +
             'echo size=$(stat -c %s ' + $remote + ' 2>/dev/null || echo 0)'
         $dex = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker `

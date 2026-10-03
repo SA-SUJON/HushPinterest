@@ -163,11 +163,14 @@ $result = Join-Path $OutDir 'result.json'
 if (Test-Path -LiteralPath $out) { throw 'The new run already has an APK output.' }
 
 Write-Host "[device] $($names.Count) patches from $(Split-Path -Leaf $bundle) onto $(Split-Path -Leaf $Apk)"
+$patchInput = Get-MergedApk -Apk $Apk -Destination (Join-Path $OutDir 'stock-merged.apk') `
+    -Java $Java -DesktopJar $DesktopJar
+$stockManifest = Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2
 $enable = @()
 foreach ($name in $names) { $enable += '-e'; $enable += $name }
 $arguments = @('patch', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result,
     '--keystore', $Keystore, '--keystore-password', $keystorePassword,
-    '--keystore-entry-alias', $KeyAlias, '--keystore-entry-password', $keystorePassword) + $enable + @($Apk)
+    '--keystore-entry-alias', $KeyAlias, '--keystore-entry-password', $keystorePassword) + $enable + @($patchInput)
 $argumentFile = Join-Path $OutDir 'morphe-patch.args'
 $argumentFileLines = @($arguments | ForEach-Object {
     $value = [string]$_
@@ -210,6 +213,13 @@ $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
     -AllowedDependencyNames $dependencyNames -OutputPath $out `
     -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $stock.versionName
 if (-not $validation.Valid) { throw "Patching did not produce a complete APK: $($validation.Reason)" }
+$manifestSelection = @($names) + @($dependencyNames)
+$approvedChanges = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') `
+    -SelectedPatchNames $manifestSelection)
+$patchedManifest = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
+$manifestCheck = Test-ManifestDelta -Stock $stockManifest -Patched $patchedManifest `
+    -SelectedPatchNames $manifestSelection -ApprovedManifestDelta $approvedChanges
+if (-not $manifestCheck.Valid) { throw "Patching changed an unapproved compiled manifest fact: $($manifestCheck.Reason)" }
 Write-Host "[device] applied $(@($report.appliedPatches).Count), failed $(@($report.failedPatches).Count), target $($report.packageName) $($report.packageVersion)"
 if ($outputReservation) {
     $input = [IO.File]::OpenRead($out)
@@ -243,7 +253,9 @@ try {
     if (-not (Test-Path -LiteralPath $ownerFile -PathType Leaf) -or [IO.File]::ReadAllText($ownerFile) -cne $runToken) {
         throw 'Patch workspace ownership changed. Cleanup refused.'
     }
-    foreach ($path in @((Join-Path $safeRun 'tmp'), (Join-Path $safeRun 'morphe-patch.args'))) {
+    foreach ($path in @((Join-Path $safeRun 'tmp'), (Join-Path $safeRun 'morphe-patch.args'),
+            (Join-Path $safeRun 'stock-merged.apk'), (Join-Path $safeRun 'stock-merged.apk.source'),
+            (Join-Path $safeRun 'stock-merged.apk.xmltree'))) {
         $safePath = Resolve-WithinRoot -Path $path -Root $safeRun
         if (Test-Path -LiteralPath $safePath) { Remove-Item -LiteralPath $safePath -Recurse -Force }
     }

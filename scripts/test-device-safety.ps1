@@ -17,7 +17,8 @@ $work = Join-Path ([IO.Path]::GetTempPath()) ('hushpinterest-safety-' + [guid]::
 $apk = Join-Path $work 'new.apk'
 [IO.File]::WriteAllBytes($apk, [byte[]](1, 2, 3))
 function New-SafetyAdb([bool]$Installed = $true, [string]$IdentitySerial = 'emulator-5998') {
-    $state = [pscustomobject]@{ Calls = [Collections.Generic.List[string]]::new(); Marker = ''; Size = 3 }
+    $state = [pscustomobject]@{ Calls = [Collections.Generic.List[string]]::new(); Marker = ''; Size = 3;
+        Avd = 'Fixture_API36'; Build = 'google/sdk/test' }
     $invoke = {
         param($Executable, [string[]]$Arguments)
         $line = $Arguments -join ' '
@@ -25,9 +26,9 @@ function New-SafetyAdb([bool]$Installed = $true, [string]$IdentitySerial = 'emul
         $output = switch -Wildcard ($line) {
             '* get-state' { 'device' }
             '* get-serialno' { $IdentitySerial }
-            '* emu avd name' { 'Fixture_API36'; 'OK' }
+            '* emu avd name' { $state.Avd; 'OK' }
             '* shell getprop ro.product.model' { 'sdk_gphone64_x86_64' }
-            '* shell getprop ro.build.fingerprint' { 'google/sdk/test' }
+            '* shell getprop ro.build.fingerprint' { $state.Build }
             '* shell getprop ro.build.version.sdk' { '36' }
             '* shell getprop ro.product.cpu.abi' { 'x86_64' }
             '* shell pm path com.pinterest' { if ($Installed) { 'package:/data/app/base.apk' } }
@@ -62,6 +63,21 @@ try {
     Assert-Safety (-not $borrowed.Owned) 'A caller lease became helper-owned.'
     Exit-HushDeviceLease $borrowed
     Assert-Safety (Test-Path -LiteralPath $lease.Path) 'A borrowed lease was released.'
+    Assert-Safety ($saved.deviceIdentity.Avd -ceq 'Fixture_API36' -and
+        $saved.deviceIdentity.Build -ceq 'google/sdk/test') 'The original full identity was not persisted.'
+    foreach ($field in @('Build', 'Avd')) {
+        $previous = $fake.State.$field
+        $fake.State.$field = 'changed-at-same-serial'
+        try {
+            Assert-Refusal { Enter-HushDeviceLease -Adb fake -Serial emulator-5998 -Project HushPinterest `
+                -ChatIdentity safety-test -LeaseDirectory $work -LeaseToken $lease.Token -AdbInvoker $fake.Invoker } '*identity*'
+            Assert-Refusal { Invoke-HushLeasedAdb -Adb fake -Lease $lease -Invoker $fake.Invoker `
+                -Arguments @('shell', 'touch unsafe-write') } '*identity*'
+            Assert-Safety (-not ($fake.State.Calls -match 'touch unsafe-write')) 'An identity change permitted a device write.'
+            $unchanged = Get-Content -LiteralPath $lease.Path -Raw | ConvertFrom-Json
+            Assert-Safety ($unchanged.deviceIdentity.$field -ceq $saved.deviceIdentity.$field) 'A new identity replaced the original lease binding.'
+        } finally { $fake.State.$field = $previous }
+    }
     $saved | Add-Member -NotePropertyName expectedIdentity -NotePropertyValue other-avd -Force
     $saved.expiresUtc = [DateTimeOffset]::UtcNow.AddMinutes(30).ToString('o')
     $saved | ConvertTo-Json | Set-Content -LiteralPath $lease.Path
@@ -127,6 +143,8 @@ try {
         -LeaseDirectory $work -Project HushPinterest -ChatIdentity safety-test -LeaseToken $lease.Token `
         -AdbInvoker $fake.Invoker)
     Assert-Safety (Test-Path -LiteralPath $lease.Path) 'Verifier released caller-owned lease.'
+    Assert-Safety (@($fake.State.Calls | Where-Object { $_ -like '*shell dex2oat64*--instruction-set=x86_64*' }).Count -eq 1) `
+        'The emulator verifier selected the wrong instruction set.'
     Exit-HushDeviceLease $lease
     $global:LASTEXITCODE = 0
     Write-Host '[device] lease, signer, downgrade and mutation refusal contracts passed'

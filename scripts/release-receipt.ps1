@@ -15,9 +15,8 @@
 
     The manifest delta is the part that needs a human. A patch that adds a permission or exports
     a component changes what the patched app can do and what other apps can reach, so every entry
-    has to be written down in scripts/manifest-delta-allowlist.txt and stays until somebody takes
-    it out. An entry nothing produces any more fails the run too: an allowlist that outlives its
-    reason stops being a review.
+    has to be reviewed in scripts/manifest-delta-allowlist.txt. From schema 4 the selected templates
+    describe exact transformations, including an existing browser query that needs no duplicate.
 
     The SBOM :patches:releaseSbom writes beside the bundle says what the bundle carries: every
     library and the version it resolved to. The receipt records its hash, and the SBOM records the
@@ -37,8 +36,9 @@ function Get-ReleaseReceiptSchemaVersion {
 
         2 added sbom: the file name, SHA-256 and component count of the release SBOM.
         3 added each target's stock and patched binary minSdk, held to max(stock, 28).
+        4 added canonical stock/patched manifest facts and full declaration deltas, checked per target.
     #>
-    return 3
+    return 4
 }
 
 function Resolve-ReceiptSchema {
@@ -47,7 +47,8 @@ function Resolve-ReceiptSchema {
         The schema a receipt should be held to: the one its own commit's builder wrote.
     .DESCRIPTION
         A receipt describes a release that has shipped. One cut before schema 2 has no SBOM,
-        and one cut before schema 3 has no binary SDK facts. Holding it to today's schema would
+        one cut before schema 3 has no binary SDK facts, and one before 4 has no compiled
+        declaration attestation. Holding it to today's schema would
         refuse every later push from the checkout that cut it, which is the trap
         Resolve-ReceiptToolchain describes for the patcher pin. So the
         number is read out of scripts/release-receipt.ps1 at the receipt's commit. On a release
@@ -77,8 +78,9 @@ function Resolve-ReceiptSchema {
     return [pscustomobject]@{
         Version = $version
         Note = ("the receipt is held to schema $version, which its own commit $short wrote, so " +
-            $(if ($version -lt 2) { 'it names no SBOM or binary SDK facts and neither is checked for its release' }
-              else { 'it names no binary SDK facts and those are not checked for its release' }))
+            $(if ($version -lt 2) { 'it names no SBOM, binary SDK or compiled declaration facts and those are not checked for its release' }
+              elseif ($version -lt 3) { 'it names no binary SDK or compiled declaration facts and those are not checked for its release' }
+              else { 'it names no compiled declaration facts and those are not checked for its release' }))
     }
 }
 
@@ -395,7 +397,7 @@ function ConvertFrom-XmlTreeValue {
 function Get-ApkManifestFacts {
     <#
     .SYNOPSIS
-        Package identity, minimum SDK, requested permissions and exported components, read off an APK.
+        Identity, SDK, permissions and canonical compiled declarations, read off an APK.
     .DESCRIPTION
         Components count as exported only when the manifest says so. Every target this project
         patches is above API 31, where an intent filter without an explicit android:exported is
@@ -415,6 +417,25 @@ function Get-ApkManifestFacts {
     return ConvertFrom-ManifestXmlTree -Lines $dump -Source (Split-Path -Leaf $Apk)
 }
 
+function ConvertTo-ManifestDeclaration {
+    <# Canonical JSON retains attributes, child declarations and duplicate children, but not XML order. #>
+    param([Parameter(Mandatory = $true)]$Node, [string]$Owner, [string[]]$SkipChildTags = @())
+
+    $attributes = [ordered]@{}
+    $keys = [string[]]@(if ($Node.attributes -is [System.Collections.IDictionary]) { $Node.attributes.Keys }
+        else { foreach ($property in $Node.attributes.PSObject.Properties) { $property.Name } })
+    [Array]::Sort($keys, [StringComparer]::Ordinal)
+    foreach ($key in $keys) { $attributes[$key] = [string]$Node.attributes.$key }
+    $children = [string[]]@(@($Node.children) | Where-Object { $null -ne $_ -and $SkipChildTags -cnotcontains $_.tag } |
+        ForEach-Object { ConvertTo-ManifestDeclaration -Node $_ })
+    [Array]::Sort($children, [StringComparer]::Ordinal)
+    $json = '{"tag":' + (ConvertTo-Json -InputObject ([string]$Node.tag) -Compress) +
+        ',"attributes":' + (ConvertTo-Json -InputObject $attributes -Compress) +
+        ',"children":[' + ($children -join ',') + ']}'
+    if ($Owner) { return '{"owner":' + (ConvertTo-Json -InputObject $Owner -Compress) + ',"declaration":' + $json + '}' }
+    return $json
+}
+
 function ConvertFrom-ManifestXmlTree {
     <#
     .SYNOPSIS
@@ -422,95 +443,97 @@ function ConvertFrom-ManifestXmlTree {
     #>
     param([string[]]$Lines, [string]$Source)
 
-    $componentElements = @('activity', 'activity-alias', 'service', 'receiver', 'provider')
-    $packageName = $null
-    $versionName = $null
-    $versionCode = $null
-    $minSdk = 1
-    $sdkElements = 0
-    $permissions = New-Object System.Collections.Generic.List[string]
-    $exported = New-Object System.Collections.Generic.List[string]
-
-    $element = $null
-    $componentName = $null
-    $componentExported = $false
-
-    function Complete-Component {
-        param($Name, $Kind, $IsExported, $List)
-        if ($Kind -and $IsExported -and $Name) { $List.Add("${Kind}:${Name}") }
-    }
-
+    $roots = [System.Collections.Generic.List[object]]::new()
+    $stack = [System.Collections.Generic.List[object]]::new()
     foreach ($raw in $Lines) {
         $line = [string]$raw
-        $elementMatch = [regex]::Match($line, '^\s*E:\s*([A-Za-z0-9_\-]+)\s*\(line=')
+        $elementMatch = [regex]::Match($line, '^(\s*)E:\s*([A-Za-z0-9_\-]+)\s*\(line=')
         if ($elementMatch.Success) {
-            Complete-Component -Name $componentName -Kind $element -IsExported $componentExported -List $exported
-            $element = $elementMatch.Groups[1].Value
-            if ($element -eq 'uses-sdk') {
-                $sdkElements++
-                if ($sdkElements -gt 1) { throw "More than one uses-sdk element in the manifest of $Source." }
-            }
-            $componentName = $null
-            $componentExported = $false
+            $indent = $elementMatch.Groups[1].Length
+            while ($stack.Count -gt 0 -and $stack[$stack.Count - 1].indent -ge $indent) { $stack.RemoveAt($stack.Count - 1) }
+            $node = [pscustomobject]@{ tag = $elementMatch.Groups[2].Value; indent = $indent
+                attributes = [System.Collections.Generic.SortedDictionary[string,string]]::new([StringComparer]::Ordinal)
+                children = [System.Collections.Generic.List[object]]::new() }
+            if ($stack.Count -gt 0) { $stack[$stack.Count - 1].children.Add($node) } else { $roots.Add($node) }
+            $stack.Add($node)
             continue
         }
-
         $attributeMatch = [regex]::Match($line,
-            '^\s*A:\s*(?:http://schemas\.android\.com/apk/res/android:)?([A-Za-z0-9_\-]+)(?:\(0x[0-9a-fA-F]+\))?=(.*)$')
+            '^(\s*)A:\s*([^\s(=]+)(?:\(0x[0-9a-fA-F]+\))?=(.*)$')
         if (-not $attributeMatch.Success) { continue }
-        $name = $attributeMatch.Groups[1].Value
-        $value = ConvertFrom-XmlTreeValue -Text $attributeMatch.Groups[2].Value
-
-        switch ($element) {
-            'manifest' {
-                if ($name -eq 'package') { $packageName = $value }
-                elseif ($name -eq 'versionName') { $versionName = $value }
-                elseif ($name -eq 'versionCode') { $versionCode = $value }
-            }
-            'uses-sdk' {
-                if ($name -eq 'minSdkVersion') {
-                    $parsed = 0
-                    if ($value -notmatch '^\d+$' -or -not [int]::TryParse($value, [ref]$parsed) -or $parsed -lt 1) {
-                        throw "Invalid minSdkVersion in the manifest of ${Source}: $value"
-                    }
-                    $minSdk = $parsed
-                }
-            }
-            'uses-permission' {
-                if ($name -eq 'name' -and $value) { $permissions.Add($value) }
-            }
-            'uses-permission-sdk-23' {
-                if ($name -eq 'name' -and $value) { $permissions.Add($value) }
-            }
-            default {
-                if ($componentElements -contains $element) {
-                    if ($name -eq 'name') { $componentName = $value }
-                    elseif ($name -eq 'exported') { $componentExported = ($value -eq 'true') }
-                }
-            }
-        }
+        # Attributes can return to an ancestor after a child in synthetic dumps too.
+        $indent = $attributeMatch.Groups[1].Length
+        while ($stack.Count -gt 0 -and $stack[$stack.Count - 1].indent -ge $indent) { $stack.RemoveAt($stack.Count - 1) }
+        if ($stack.Count -eq 0) { throw "An attribute has no element in the manifest of $Source." }
+        $name = $attributeMatch.Groups[2].Value -creplace '^http://schemas\.android\.com/apk/res/android:', 'android:'
+        $attributes = $stack[$stack.Count - 1].attributes
+        if ($attributes.ContainsKey($name)) { throw "Repeated attribute $name in the manifest of $Source." }
+        $attributes.Add($name, (ConvertFrom-XmlTreeValue -Text $attributeMatch.Groups[3].Value))
     }
-    Complete-Component -Name $componentName -Kind $element -IsExported $componentExported -List $exported
-
+    $manifest = @($roots | Where-Object { $_.tag -ceq 'manifest' })
+    if ($manifest.Count -ne 1) { throw "No unique manifest element in $Source." }
+    $manifest = $manifest[0]
+    $packageName = $manifest.attributes['package']
     if (-not $packageName) { throw "No package name in the manifest of $Source." }
-
-    # A component written as .Name is inside the package, and the two APKs have to spell the
-    # same component the same way or every one of them reads as both added and removed.
-    $qualified = New-Object System.Collections.Generic.List[string]
-    foreach ($entry in $exported) {
-        $kind, $name = $entry -split ':', 2
+    $sdk = @($manifest.children | Where-Object { $_.tag -ceq 'uses-sdk' })
+    if ($sdk.Count -gt 1) { throw "More than one uses-sdk element in the manifest of $Source." }
+    $minSdk = 1
+    if ($sdk.Count -eq 1 -and $sdk[0].attributes.ContainsKey('android:minSdkVersion')) {
+        $value = $sdk[0].attributes['android:minSdkVersion']
+        $parsed = 0
+        if ($value -notmatch '^\d+$' -or -not [int]::TryParse($value, [ref]$parsed) -or $parsed -lt 1) {
+            throw "Invalid minSdkVersion in the manifest of ${Source}: $value"
+        }
+        $minSdk = $parsed
+    }
+    function Get-QualifiedName([string]$name) {
         if ($name.StartsWith('.')) { $name = $packageName + $name }
         elseif ($name -notmatch '\.') { $name = $packageName + '.' + $name }
-        $qualified.Add("${kind}:${name}")
+        return $name
     }
-
+    $componentElements = @('activity', 'activity-alias', 'service', 'receiver', 'provider')
+    $components = [System.Collections.Generic.List[string]]::new()
+    $metadata = [System.Collections.Generic.List[string]]::new()
+    $queries = [System.Collections.Generic.List[string]]::new()
+    $filters = [System.Collections.Generic.List[string]]::new()
+    $exported = [System.Collections.Generic.List[string]]::new()
+    foreach ($application in @($manifest.children | Where-Object { $_.tag -ceq 'application' })) {
+        foreach ($component in @($application) + @($application.children | Where-Object { $componentElements -ccontains $_.tag })) {
+            foreach ($key in @('android:name', 'android:targetActivity')) {
+                if ($component.attributes.ContainsKey($key)) { $component.attributes[$key] = Get-QualifiedName $component.attributes[$key] }
+            }
+            $owner = if ($component.tag -ceq 'application') { 'application' }
+                else { "$($component.tag):$($component.attributes['android:name'])" }
+            $skip = @('meta-data', 'intent-filter')
+            if ($component.tag -ceq 'application') { $skip += $componentElements }
+            $components.Add((ConvertTo-ManifestDeclaration -Node $component -SkipChildTags $skip))
+            foreach ($child in $component.children) {
+                if ($child.tag -ceq 'meta-data') { $metadata.Add((ConvertTo-ManifestDeclaration -Node $child -Owner $owner)) }
+                elseif ($child.tag -ceq 'intent-filter') { $filters.Add((ConvertTo-ManifestDeclaration -Node $child -Owner $owner)) }
+            }
+            if ($component.tag -cne 'application' -and $component.attributes['android:exported'] -ceq 'true') { $exported.Add($owner) }
+        }
+    }
+    $block = 0
+    foreach ($query in @($manifest.children | Where-Object { $_.tag -ceq 'queries' })) {
+        $owner = "queries#$block"
+        # A separate container entry preserves empty blocks and their attributes as well.
+        $queries.Add((ConvertTo-ManifestDeclaration -Node $query -Owner $owner -SkipChildTags @($query.children.tag)))
+        foreach ($child in $query.children) { $queries.Add((ConvertTo-ManifestDeclaration -Node $child -Owner $owner)) }
+        $block++
+    }
     return [pscustomobject]@{
         package     = $packageName
-        versionName = $versionName
-        versionCode = $versionCode
+        versionName = $manifest.attributes['android:versionName']
+        versionCode = $manifest.attributes['android:versionCode']
         minSdk      = $minSdk
-        permissions = @($permissions | Sort-Object -Unique -CaseSensitive)
-        exported    = @($qualified | Sort-Object -Unique -CaseSensitive)
+        permissions = @($manifest.children | Where-Object { $_.tag -cin @('uses-permission', 'uses-permission-sdk-23') } |
+            ForEach-Object { $_.attributes['android:name'] } | Where-Object { $_ } | Sort-Object -Unique -CaseSensitive)
+        exported    = @($exported | Sort-Object -Unique -CaseSensitive)
+        components  = @($components | Sort-Object -CaseSensitive)
+        metadata    = @($metadata | Sort-Object -CaseSensitive)
+        queries     = @($queries | Sort-Object -CaseSensitive)
+        intentFilters = @($filters | Sort-Object -CaseSensitive)
     }
 }
 
@@ -537,7 +560,7 @@ function Test-PatchedMinSdk {
 function Get-ManifestDelta {
     <#
     .SYNOPSIS
-        What patching did to the manifest, as four sorted lists.
+        What patching did to the compiled manifest. Canonical declarations retain multiplicity.
     #>
     param([Parameter(Mandatory = $true)]$Stock, [Parameter(Mandatory = $true)]$Patched)
 
@@ -546,6 +569,14 @@ function Get-ManifestDelta {
         permissionsRemoved        = @(Compare-Sets -Left $Stock.permissions -Right $Patched.permissions)
         exportedComponentsAdded   = @(Compare-Sets -Left $Patched.exported -Right $Stock.exported)
         exportedComponentsRemoved = @(Compare-Sets -Left $Stock.exported -Right $Patched.exported)
+        componentsAdded           = @(Compare-Sets -Left $Patched.components -Right $Stock.components -PreserveDuplicates)
+        componentsRemoved         = @(Compare-Sets -Left $Stock.components -Right $Patched.components -PreserveDuplicates)
+        metadataAdded             = @(Compare-Sets -Left $Patched.metadata -Right $Stock.metadata -PreserveDuplicates)
+        metadataRemoved           = @(Compare-Sets -Left $Stock.metadata -Right $Patched.metadata -PreserveDuplicates)
+        queriesAdded              = @(Compare-Sets -Left $Patched.queries -Right $Stock.queries -PreserveDuplicates)
+        queriesRemoved            = @(Compare-Sets -Left $Stock.queries -Right $Patched.queries -PreserveDuplicates)
+        intentFiltersAdded        = @(Compare-Sets -Left $Patched.intentFilters -Right $Stock.intentFilters -PreserveDuplicates)
+        intentFiltersRemoved      = @(Compare-Sets -Left $Stock.intentFilters -Right $Patched.intentFilters -PreserveDuplicates)
     }
 }
 
@@ -554,8 +585,19 @@ function Compare-Sets {
     .SYNOPSIS
         Everything in Left that Right does not have, sorted.
     #>
-    param([string[]]$Left, [string[]]$Right)
-
+    param([string[]]$Left, [string[]]$Right, [switch]$PreserveDuplicates)
+    if ($PreserveDuplicates) {
+        $counts = [System.Collections.Generic.Dictionary[string,int]]::new([StringComparer]::Ordinal)
+        foreach ($value in @($Right)) { if ($null -ne $value) { $counts[$value] = $counts[$value] + 1 } }
+        $difference = [System.Collections.Generic.List[string]]::new()
+        foreach ($value in @($Left)) {
+            if ($null -eq $value) { continue }
+            if ($counts[$value] -gt 0) { $counts[$value]-- } else { $difference.Add($value) }
+        }
+        $sorted = $difference.ToArray()
+        [Array]::Sort($sorted, [StringComparer]::Ordinal)
+        return $sorted
+    }
     $other = [System.Collections.Generic.HashSet[string]]::new(
         [string[]]@($Right), [System.StringComparer]::Ordinal)
     return @(@($Left) | Where-Object { -not $other.Contains($_) } | Sort-Object -Unique -CaseSensitive)
@@ -566,13 +608,20 @@ function ConvertTo-ManifestDeltaEntries {
     .SYNOPSIS
         One delta as the flat `kind value` lines the allowlist is written in.
     #>
-    param([Parameter(Mandatory = $true)]$Delta)
+    param([Parameter(Mandatory = $true)]$Delta, [int]$SchemaVersion = (Get-ReleaseReceiptSchemaVersion))
 
     $entries = New-Object System.Collections.Generic.List[string]
     foreach ($value in @($Delta.permissionsAdded)) { $entries.Add("permission-added $value") }
     foreach ($value in @($Delta.permissionsRemoved)) { $entries.Add("permission-removed $value") }
     foreach ($value in @($Delta.exportedComponentsAdded)) { $entries.Add("exported-added $value") }
     foreach ($value in @($Delta.exportedComponentsRemoved)) { $entries.Add("exported-removed $value") }
+    if ($SchemaVersion -ge 4) {
+        foreach ($pair in @(@('component', 'components'), @('metadata', 'metadata'), @('query', 'queries'), @('filter', 'intentFilters'))) {
+            foreach ($value in @($Delta.($pair[1] + 'Added'))) { if ($null -ne $value) { $entries.Add("$($pair[0])-added $value") } }
+            foreach ($value in @($Delta.($pair[1] + 'Removed'))) { if ($null -ne $value) { $entries.Add("$($pair[0])-removed $value") } }
+        }
+        return @($entries | Sort-Object -CaseSensitive)
+    }
     return @($entries | Sort-Object -Unique -CaseSensitive)
 }
 
@@ -581,12 +630,14 @@ function Read-ManifestDeltaAllowlist {
     .SYNOPSIS
         The reviewed manifest changes. Blank lines and # comments are ignored.
     #>
-    param([Parameter(Mandatory = $true)][string]$Path)
+    param([Parameter(Mandatory = $true)][string]$Path, [AllowEmptyCollection()][string[]]$SelectedPatchNames)
 
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
         throw "The manifest delta allowlist is missing: $Path"
     }
-    return ConvertFrom-ManifestDeltaAllowlist -Lines @(Get-Content -LiteralPath $Path)
+    $selection = @{}
+    if ($PSBoundParameters.ContainsKey('SelectedPatchNames')) { $selection.SelectedPatchNames = $SelectedPatchNames }
+    return ConvertFrom-ManifestDeltaAllowlist -Lines @(Get-Content -LiteralPath $Path) @selection
 }
 
 function ConvertFrom-ManifestDeltaAllowlist {
@@ -596,16 +647,23 @@ function ConvertFrom-ManifestDeltaAllowlist {
     .DESCRIPTION
         -Source says where, for a failure: " at <commit>" for one read out of git.
     #>
-    param([AllowEmptyCollection()][string[]]$Lines = @(), [string]$Source = '')
+    param([AllowEmptyCollection()][string[]]$Lines = @(), [string]$Source = '', [AllowEmptyCollection()][string[]]$SelectedPatchNames)
 
     $entries = New-Object System.Collections.Generic.List[string]
+    $section = $null
     foreach ($line in @($Lines)) {
         # A byte order mark is read as text when the lines come out of git rather than Get-Content.
         $text = ([string]$line).TrimStart([char]0xFEFF).Trim()
         if (-not $text -or $text.StartsWith('#')) { continue }
-        if ($text -notmatch '^(permission-added|permission-removed|exported-added|exported-removed) \S+$') {
+        if ($text -match '^\[([^\[\]]+)\]$') { $section = $Matches[1]; continue }
+        if ($text -notmatch '^(permission-added|permission-removed|exported-added|exported-removed) \S+$' -and
+            $text -notmatch '^(component|metadata|query|filter)-(added|removed) \{.*\}$') {
             throw "The manifest delta allowlist$Source has a line that is not `"<kind> <value>`": $text"
         }
+        if ($text -match '^(component|metadata|query|filter)-(added|removed) (.*)$') {
+            try { $null = $Matches[3] | ConvertFrom-Json -ErrorAction Stop } catch { throw "Invalid manifest JSON$Source`: $text" }
+        }
+        if ($section -and $PSBoundParameters.ContainsKey('SelectedPatchNames') -and $SelectedPatchNames -cnotcontains $section) { continue }
         $entries.Add($text)
     }
     # An allowlist with no entries comes back as $null, not an empty array: a PowerShell function
@@ -613,6 +671,143 @@ function ConvertFrom-ManifestDeltaAllowlist {
     # `@(Read-ManifestDeltaAllowlist ...)` call site instead, which would then see one array
     # inside an array. Test-ReleaseReceipt drops the null on the way in.
     return @($entries | Sort-Object -Unique -CaseSensitive)
+}
+
+function Test-ManifestDelta {
+    <#
+    .SYNOPSIS
+        Compare compiled facts with the exact resource edits the selected named families make.
+    .DESCRIPTION
+        Pass requested names plus named dependencies. The templates in the selected allowlist
+        authorize only these transformations. Existing matching browser queries are retained,
+        and Analytics may change only its application metadata value and remove its resource.
+        All other declarations, including duplicates and separate vendor query blocks, survive.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]$Stock,
+        [Parameter(Mandatory = $true)]$Patched,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$SelectedPatchNames,
+        [AllowEmptyCollection()][string[]]$ApprovedManifestDelta = @()
+    )
+    function Fail([string]$reason) { return [pscustomobject]@{ Valid = $false; Reason = $reason; Delta = $null; Entries = @() } }
+    function Node([string]$tag, $attributes, [object[]]$children = @()) {
+        return [pscustomobject]@{ tag = $tag; attributes = $attributes; children = $children }
+    }
+    $fields = @('permissions', 'exported', 'components', 'metadata', 'queries', 'intentFilters')
+    foreach ($facts in @($Stock, $Patched)) {
+        foreach ($field in $fields) {
+            $property = $facts.PSObject.Properties[$field]
+            if ($null -eq $property -or $property.Value -isnot [array]) { return Fail "Missing compiled manifest facts: $field." }
+            foreach ($entry in $property.Value) {
+                if ($entry -isnot [string] -or [string]::IsNullOrWhiteSpace($entry)) { return Fail "Invalid compiled manifest fact: $field." }
+                if ($field -cin @('permissions', 'exported')) { continue }
+                try {
+                    $parsed = $entry | ConvertFrom-Json -ErrorAction Stop
+                    $declaration = if ($field -ceq 'components') { $parsed } else { $parsed.declaration }
+                    if ($null -eq $declaration -or $declaration.tag -isnot [string] -or
+                        $null -eq $declaration.attributes -or $declaration.children -isnot [array]) { throw 'Incomplete declaration.' }
+                    $owner = if ($field -ceq 'components') { $null } else { [string]$parsed.owner }
+                    if ($field -cne 'components' -and [string]::IsNullOrWhiteSpace($owner)) { throw 'Missing declaration owner.' }
+                    if ((ConvertTo-ManifestDeclaration -Node $declaration -Owner $owner) -cne $entry) { throw 'Noncanonical declaration.' }
+                } catch { return Fail "Invalid canonical compiled manifest fact in $field`: $($_.Exception.Message)" }
+            }
+        }
+    }
+    foreach ($field in @('package', 'versionName', 'versionCode')) {
+        if ([string]$Stock.$field -cne [string]$Patched.$field) { return Fail "The patched manifest changed $field." }
+    }
+    $selected = [System.Collections.Generic.HashSet[string]]::new([string[]]$SelectedPatchNames, [StringComparer]::Ordinal)
+    $settings = $selected.Contains('HushPinterest settings')
+    $analytics = $selected.Contains('Disable analytics')
+    $browser = $selected.Contains('Open links in your browser')
+    if (($analytics -or $browser) -and -not $settings) { return Fail 'The selection omits the HushPinterest settings dependency.' }
+    if ($settings) {
+        $floor = Test-PatchedMinSdk -StockMinSdk $Stock.minSdk -PatchedMinSdk $Patched.minSdk
+        if (-not $floor.Valid) { return Fail $floor.Reason }
+    } elseif ($Stock.minSdk -ne $Patched.minSdk) { return Fail 'A selection without settings changed the binary minimum SDK.' }
+
+    $expected = @{}
+    foreach ($field in $fields) {
+        $expected[$field] = [System.Collections.Generic.List[string]]::new()
+        foreach ($entry in $Stock.$field) { $expected[$field].Add($entry) }
+    }
+    $reviewed = [System.Collections.Generic.HashSet[string]]::new(
+        [string[]]@($ApprovedManifestDelta | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }), [StringComparer]::Ordinal)
+    $policies = [System.Collections.Generic.List[string]]::new()
+    if ($settings) {
+        $alias = 'activity-alias:app.hushpinterest.extension.pinterest.settings.OpenSettings'
+        $component = ConvertTo-ManifestDeclaration -Node (Node 'activity-alias' @{
+            'android:name' = 'app.hushpinterest.extension.pinterest.settings.OpenSettings'
+            'android:targetActivity' = 'com.pinterest.activity.PinterestActivity'; 'android:exported' = 'true' })
+        $filter = ConvertTo-ManifestDeclaration -Owner $alias -Node (Node 'intent-filter' @{} @(
+            (Node 'action' @{ 'android:name' = 'android.intent.action.APPLICATION_PREFERENCES' }),
+            (Node 'category' @{ 'android:name' = 'android.intent.category.DEFAULT' })))
+        if (@($Stock.components | Where-Object { ($_ | ConvertFrom-Json).attributes.'android:name' -ceq
+                    'app.hushpinterest.extension.pinterest.settings.OpenSettings' }).Count -gt 0) {
+            return Fail 'The stock manifest already declares the settings alias.'
+        }
+        $policies.Add("exported-added $alias"); $policies.Add("component-added $component"); $policies.Add("filter-added $filter")
+        $expected.exported.Add($alias); $expected.components.Add($component); $expected.intentFilters.Add($filter)
+    }
+    if ($analytics) {
+        $name = 'firebase_analytics_collection_deactivated'
+        $template = ConvertTo-ManifestDeclaration -Owner 'application' -Node (Node 'meta-data' @{
+            'android:name' = $name; 'android:value' = 'true' })
+        $policies.Add("metadata-added $template")
+        $original = @($Stock.metadata | Where-Object {
+            $entry = $_ | ConvertFrom-Json
+            $entry.owner -ceq 'application' -and $entry.declaration.attributes.'android:name' -ceq $name })
+        if ($original.Count -gt 1) { return Fail "The stock manifest has repeated $name metadata." }
+        $replacement = $template
+        if ($original.Count -eq 1) {
+            $node = ($original[0] | ConvertFrom-Json).declaration
+            $node.attributes.PSObject.Properties.Remove('android:resource')
+            $node.attributes | Add-Member -MemberType NoteProperty -Name 'android:value' -Value 'true' -Force
+            $replacement = ConvertTo-ManifestDeclaration -Node $node -Owner 'application'
+            [void]$expected.metadata.Remove($original[0])
+        }
+        $expected.metadata.Add($replacement)
+    }
+    if ($browser) {
+        $container = ConvertTo-ManifestDeclaration -Owner 'queries#0' -Node (Node 'queries' @{})
+        $policies.Add("query-added $container")
+        if (@($Stock.queries | Where-Object { ($_ | ConvertFrom-Json).declaration.tag -ceq 'queries' }).Count -eq 0) {
+            $expected.queries.Add($container)
+        }
+        foreach ($scheme in @('http', 'https')) {
+            $intent = ConvertTo-ManifestDeclaration -Owner 'queries#0' -Node (Node 'intent' @{} @(
+                (Node 'action' @{ 'android:name' = 'android.intent.action.VIEW' }),
+                (Node 'category' @{ 'android:name' = 'android.intent.category.BROWSABLE' }),
+                (Node 'data' @{ 'android:scheme' = $scheme })))
+            $policies.Add("query-added $intent")
+            $existing = @($Stock.queries | Where-Object {
+                $query = ($_ | ConvertFrom-Json).declaration
+                $actions = @($query.children | Where-Object { $_.tag -ceq 'action' -and
+                    $_.attributes.'android:name' -ceq 'android.intent.action.VIEW' })
+                $categories = @($query.children | Where-Object { $_.tag -ceq 'category' -and
+                    $_.attributes.'android:name' -ceq 'android.intent.category.BROWSABLE' })
+                $data = @($query.children | Where-Object { $_.tag -ceq 'data' })
+                $query.tag -ceq 'intent' -and $actions.Count -gt 0 -and $categories.Count -gt 0 -and
+                    $data.Count -eq 1 -and @($data[0].attributes.PSObject.Properties).Count -eq 1 -and
+                    $data[0].attributes.'android:scheme' -ceq $scheme })
+            if ($existing.Count -eq 0) { $expected.queries.Add($intent) }
+        }
+    }
+    foreach ($policy in $policies) {
+        if (-not $reviewed.Contains($policy)) { return Fail "The selected manifest edit has no exact reviewed template: $policy" }
+    }
+    $extraPolicies = @($reviewed | Where-Object { $policies -cnotcontains $_ })
+    if ($extraPolicies.Count -gt 0) { return Fail ('The allowlist approves changes outside this selection: ' + ($extraPolicies -join ', ')) }
+    foreach ($field in $fields) {
+        $extra = @(Compare-Sets -Left $Patched.$field -Right $expected[$field].ToArray() -PreserveDuplicates)
+        $missing = @(Compare-Sets -Left $expected[$field].ToArray() -Right $Patched.$field -PreserveDuplicates)
+        if ($extra.Count -gt 0 -or $missing.Count -gt 0) {
+            return Fail ("Unexpected compiled manifest $field changes. Added: $($extra -join '; '). Missing: $($missing -join '; ').")
+        }
+    }
+    $delta = Get-ManifestDelta -Stock $Stock -Patched $Patched
+    return [pscustomobject]@{ Valid = $true; Reason = $null; Delta = $delta
+        Entries = @(ConvertTo-ManifestDeltaEntries -Delta $delta -SchemaVersion 4) }
 }
 
 function Resolve-ReceiptManifestAllowlist {
@@ -632,24 +827,27 @@ function Resolve-ReceiptManifestAllowlist {
     param(
         [Parameter(Mandatory = $true)][string]$Root,
         [string]$Commit,
-        [Parameter(Mandatory = $true)][string]$WorkingPath
+        [Parameter(Mandatory = $true)][string]$WorkingPath,
+        [AllowEmptyCollection()][string[]]$SelectedPatchNames
     )
 
+    $selection = @{}
+    if ($PSBoundParameters.ContainsKey('SelectedPatchNames')) { $selection.SelectedPatchNames = $SelectedPatchNames }
     if ($Commit -notmatch '^[0-9a-f]{40}$') {
-        return [pscustomobject]@{ Entries = @(Read-ManifestDeltaAllowlist -Path $WorkingPath); Note = $null }
+        return [pscustomobject]@{ Entries = @(Read-ManifestDeltaAllowlist -Path $WorkingPath @selection); Note = $null }
     }
     $short = $Commit.Substring(0, 8)
     $path = 'scripts/manifest-delta-allowlist.txt'
     $kind = "$(Invoke-RepoGit -Root $Root -Arguments @('cat-file', '-t', "${Commit}:$path") | Select-Object -First 1)".Trim()
     if ($kind -ne 'blob') {
         return [pscustomobject]@{
-            Entries = @(Read-ManifestDeltaAllowlist -Path $WorkingPath)
+            Entries = @(Read-ManifestDeltaAllowlist -Path $WorkingPath @selection)
             Note = "commit $short has no manifest delta allowlist, so the receipt is held to the working one"
         }
     }
     $atCommit = @(ConvertFrom-ManifestDeltaAllowlist -Lines @(Invoke-RepoGit -Root $Root -Arguments @('show', "${Commit}:$path")) `
-        -Source " at $short")
-    $working = @(if (Test-Path -LiteralPath $WorkingPath -PathType Leaf) { Read-ManifestDeltaAllowlist -Path $WorkingPath })
+        -Source " at $short" @selection)
+    $working = @(if (Test-Path -LiteralPath $WorkingPath -PathType Leaf) { Read-ManifestDeltaAllowlist -Path $WorkingPath @selection })
     $note = if ((@($atCommit) -join "`n") -ceq (@($working) -join "`n")) { $null } else {
         "the receipt is held to the $($atCommit.Count) manifest change(s) the allowlist at its own commit $short " +
             "reviews; the working allowlist has $($working.Count)"
@@ -1100,7 +1298,7 @@ function Test-ReleaseReceipt {
         # receipt legitimately describes the commit it was generated at, not HEAD.
         [string]$ExpectedCommit,
         # The schema the receipt's own commit writes (Resolve-ReceiptSchema). From 2 a receipt
-        # names the release SBOM; from 3 it also proves the binary SDK floor.
+        # names the release SBOM; 3 proves the SDK floor; 4 attests compiled declarations.
         [int]$ExpectedSchemaVersion = (Get-ReleaseReceiptSchemaVersion),
         # The SBOM itself, when the caller has it: its hash and component count have to be what
         # the receipt records, and with -BundlePath it has to describe that bundle.
@@ -1315,8 +1513,38 @@ function Test-ReleaseReceipt {
                 return Fail "The receipt reports $label patch $name as not applied."
             }
         }
-        foreach ($entry in ConvertTo-ManifestDeltaEntries -Delta $target.manifestDelta) {
-            $produced.Add($entry)
+        if ($ExpectedSchemaVersion -ge 4) {
+            if ($null -eq $target.manifest -or $null -eq $target.manifest.stock -or $null -eq $target.manifest.patched) {
+                return Fail "The receipt records no compiled manifest facts for $label."
+            }
+            $manifestCheck = Test-ManifestDelta -Stock $target.manifest.stock -Patched $target.manifest.patched `
+                -SelectedPatchNames $ExpectedPatchNames -ApprovedManifestDelta $ApprovedManifestDelta
+            if (-not $manifestCheck.Valid) { return Fail "${label}: $($manifestCheck.Reason)" }
+            if ($target.manifest.stock.minSdk -ne $target.sdk.stockMinSdk -or
+                $target.manifest.patched.minSdk -ne $target.sdk.patchedMinSdk) {
+                return Fail "The compiled manifest and recorded SDK facts disagree for $label."
+            }
+            foreach ($field in @('package', 'versionName', 'versionCode')) {
+                if ([string]$target.manifest.stock.$field -cne [string]$target.source.$field) {
+                    return Fail "The compiled stock manifest and source $field disagree for $label."
+                }
+            }
+            if ($null -eq $target.manifestDelta) { return Fail "The receipt records no manifest delta for $label." }
+            foreach ($property in $manifestCheck.Delta.PSObject.Properties) {
+                $recorded = $target.manifestDelta.PSObject.Properties[$property.Name]
+                if ($null -eq $recorded -or $recorded.Value -isnot [array] -or
+                    @($recorded.Value | Where-Object { $_ -isnot [string] -or [string]::IsNullOrWhiteSpace($_) }).Count -gt 0) {
+                    return Fail "The receipt records no valid $($property.Name) manifest delta array for $label."
+                }
+                if (@(Compare-Sets -Left $recorded.Value -Right $property.Value -PreserveDuplicates).Count -gt 0 -or
+                    @(Compare-Sets -Left $property.Value -Right $recorded.Value -PreserveDuplicates).Count -gt 0) {
+                    return Fail "The recorded $($property.Name) manifest delta disagrees with compiled facts for $label."
+                }
+            }
+        } else {
+            foreach ($entry in ConvertTo-ManifestDeltaEntries -Delta $target.manifestDelta -SchemaVersion $ExpectedSchemaVersion) {
+                $produced.Add($entry)
+            }
         }
     }
     # Every declared version, not just one of them. With two declared, a receipt that ran only
@@ -1328,6 +1556,7 @@ function Test-ReleaseReceipt {
         return Fail ("No target in the receipt is the declared $ExpectedPackageName " +
             "$($unproved -join ', ') patched without -f; it only records $ran.")
     }
+    if ($ExpectedSchemaVersion -ge 4) { return [pscustomobject]@{ Valid = $true; Reason = $null } }
 
     # A PowerShell function that returns an empty array hands back nothing, so an allowlist with
     # no entries arrives here as $null, and @($null) is an array holding one null. Left alone,

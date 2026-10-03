@@ -422,7 +422,7 @@ Assert-True (($delta.exportedComponentsAdded -join ',') -eq 'receiver:com.exampl
     'A newly exported component was not reported.'
 Assert-True (@($delta.exportedComponentsRemoved).Count -eq 0) `
     'A component that stayed exported was reported as removed.'
-$entries = ConvertTo-ManifestDeltaEntries -Delta $delta
+$entries = ConvertTo-ManifestDeltaEntries -Delta $delta -SchemaVersion 3
 Assert-True (($entries -join '; ') -eq (@(
     'exported-added receiver:com.example.host.Probe',
     'permission-added android.permission.VIBRATE',
@@ -435,7 +435,11 @@ Assert-True (@(ConvertTo-ManifestDeltaEntries -Delta $unchanged).Count -eq 0) `
 
 # The checked-in allowlist approves one change and nothing else: HushPinterest settings exports an
 # alias of Pinterest's launcher activity for Android's App info page.
-$checkedInAllowlist = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') |
+$settingsTemplates = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') `
+    -SelectedPatchNames @('HushPinterest settings') | Where-Object { $_ })
+$checkedInAllowlist = @($settingsTemplates | Where-Object { $_ -like 'exported-added *' })
+$unselectedTemplates = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') `
+    -SelectedPatchNames @() |
     Where-Object { $_ })
 $settingsAlias = 'activity-alias:app.hushpinterest.extension.pinterest.settings.OpenSettings'
 $approvedEntries = @("exported-added $settingsAlias")
@@ -443,6 +447,10 @@ Assert-True ((@($checkedInAllowlist | Sort-Object -CaseSensitive) -join "`n") -c
         (@($approvedEntries | Sort-Object -CaseSensitive) -join "`n")) `
     ('The checked-in manifest delta allowlist approves something besides the settings alias, or leaves it ' +
      "out: $($checkedInAllowlist -join ', ')")
+Assert-True ($settingsTemplates.Count -eq 3 -and $unselectedTemplates.Count -eq 0 -and
+    @($settingsTemplates | Where-Object { $_ -like 'component-added *' }).Count -eq 1 -and
+    @($settingsTemplates | Where-Object { $_ -like 'filter-added *' }).Count -eq 1) `
+    'Settings must select only the reviewed alias, component and preferences intent filter templates.'
 
 $allowlistRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("receipt-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $allowlistRoot | Out-Null
@@ -545,7 +553,8 @@ try {
     $declaredBuilds = @('46.7.3', '46.6.1')
     $declaredCodes = @{ '46.7.3' = [string[]]@('2024607030'); '46.6.1' = [string[]]@('2024606010') }
     $template = [ordered]@{
-        schemaVersion = Get-ReleaseReceiptSchemaVersion
+        # These Alpha/Beta receipts exercise the historical four-list schema.
+        schemaVersion = 3
         release   = [ordered]@{ version = '9.9.9'; tag = 'v9.9.9'
             commit = '0123456789abcdef0123456789abcdef01234567'
             commitTimestamp = $commitSeconds; patchCount = 2 }
@@ -585,7 +594,7 @@ try {
     }
 
     function Test-TestReceipt {
-        param($Receipt, [string[]]$Approved = @(), [int]$Schema = (Get-ReleaseReceiptSchemaVersion))
+        param($Receipt, [string[]]$Approved = @(), [int]$Schema = 3)
         return Test-ReleaseReceipt -Receipt $Receipt -ExpectedVersion '9.9.9' `
             -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
             -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersions $declaredBuilds `
@@ -684,7 +693,7 @@ try {
     # The bundle the receipt is about, gone. Every fact above is checked against a file, and a
     # missing file is the one case where there is nothing to disagree with, so an unguarded
     # check would read it as agreement and pass the release.
-    $absent = Test-ReleaseReceipt -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
+    $absent = Test-ReleaseReceipt -ExpectedSchemaVersion 3 -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
         -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
         -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersions $declaredBuilds -BundlePath (Join-Path $allowlistRoot 'not-built.mpp')
     Assert-True (-not $absent.Valid) 'A receipt was accepted against a bundle that is not there.'
@@ -702,7 +711,7 @@ try {
         $r.bundle.sha256 = Get-Sha256Hex -Path $strayBundle
         $r.bundle.timestamp = 1699999999000L
     }
-    $strayResult = Test-ReleaseReceipt -Receipt $strayReceipt -ExpectedVersion '9.9.9' `
+    $strayResult = Test-ReleaseReceipt -ExpectedSchemaVersion 3 -Receipt $strayReceipt -ExpectedVersion '9.9.9' `
         -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
         -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersions $declaredBuilds -BundlePath $strayBundle
     Assert-True (-not $strayResult.Valid) 'A bundle built from another commit was accepted.'
@@ -721,7 +730,7 @@ try {
             $r.bundle.sizeBytes = (Get-Item -LiteralPath $odd).Length
             $r.bundle.sha256 = Get-Sha256Hex -Path $odd
         }
-        $oddResult = Test-ReleaseReceipt -Receipt $oddReceipt -ExpectedVersion '9.9.9' `
+        $oddResult = Test-ReleaseReceipt -ExpectedSchemaVersion 3 -Receipt $oddReceipt -ExpectedVersion '9.9.9' `
             -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
             -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersions $declaredBuilds -BundlePath $odd
         Assert-True (-not $oddResult.Valid) "Receipt validation accepted $($wrong.Name)."
@@ -732,13 +741,13 @@ try {
     # The commit the receipt names, checked against something outside the receipt. Its own
     # timestamp field and the bundle stamp both come from the same document, so a receipt kept
     # from an earlier release agrees with itself and passes on that pair alone.
-    $sameCommit = Test-ReleaseReceipt -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
+    $sameCommit = Test-ReleaseReceipt -ExpectedSchemaVersion 3 -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
         -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
         -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersions $declaredBuilds -BundlePath $bundle `
         -ActualCommitTimestamp $commitSeconds
     Assert-True $sameCommit.Valid "A receipt matching git was refused: $($sameCommit.Reason)"
 
-    $movedCommit = Test-ReleaseReceipt -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
+    $movedCommit = Test-ReleaseReceipt -ExpectedSchemaVersion 3 -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
         -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
         -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersions $declaredBuilds -BundlePath $bundle `
         -ActualCommitTimestamp ($commitSeconds + 60)
@@ -747,7 +756,7 @@ try {
     Assert-True ($movedCommit.Reason -like '*git says*') `
         "The stale receipt was refused for the wrong reason: $($movedCommit.Reason)"
 
-    $otherCommit = Test-ReleaseReceipt -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
+    $otherCommit = Test-ReleaseReceipt -ExpectedSchemaVersion 3 -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
         -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
         -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersions $declaredBuilds -BundlePath $bundle `
         -ExpectedCommit ('f' * 40)
@@ -863,7 +872,7 @@ try {
     Assert-True $bound.Valid "An SBOM of the bundle was refused: $($bound.Reason)"
 
     # The receipt against the SBOM file itself: its hash and its count, and through it the bundle.
-    function Test-ReceiptWithSbom($Receipt, [string]$Sbom = $sbomFile, [int]$Schema = (Get-ReleaseReceiptSchemaVersion)) {
+    function Test-ReceiptWithSbom($Receipt, [string]$Sbom = $sbomFile, [int]$Schema = 3) {
         return Test-ReleaseReceipt -Receipt $Receipt -ExpectedVersion '9.9.9' -ExpectedPatchNames @('Alpha', 'Beta') `
             -ExpectedPatcherVersion '1.12.0' -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
             -ExpectedPackageVersions $declaredBuilds -BundlePath $bundle -SbomPath $Sbom -ExpectedSchemaVersion $Schema
@@ -1250,7 +1259,7 @@ try {
     Assert-True ($atOne.Version -eq 1 -and $atOne.Note -like "*schema 1, which its own commit $($schemaCommits[1].Substring(0, 8)) wrote*") `
         "A receipt cut at schema 1 was not held to it: $($atOne.Version), $($atOne.Note)"
     $atTwo = Resolve-ReceiptSchema -Root $toolchainRoot -Commit $schemaCommits[2]
-    Assert-True ($atTwo.Version -eq 2 -and $atTwo.Note -like '*names no binary SDK facts*' -and $atTwo.Note -notlike '*no SBOM*') `
+    Assert-True ($atTwo.Version -eq 2 -and $atTwo.Note -like '*names no binary SDK or compiled declaration facts*' -and $atTwo.Note -notlike '*no SBOM*') `
         "A shipped schema 2 receipt was not held to its schema without dropping SBOM checks: $($atTwo.Version), $($atTwo.Note)"
     $atCurrent = Resolve-ReceiptSchema -Root $toolchainRoot -Commit $schemaCommits[$currentSchema]
     Assert-True ($atCurrent.Version -eq $currentSchema -and $null -eq $atCurrent.Note) `
@@ -3931,6 +3940,61 @@ try {
     $indexVersionHere = [string]($releaseIndexText | ConvertFrom-Json).version
     Invoke-FixtureGit -Root $releaseRepo -Arguments @('tag', "v$indexVersionHere", $releaseCommit) | Out-Null
 
+    $androidName = 'http://schemas.android.com/apk/res/android:name(0x01010003)='
+    $androidExported = '          A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true'
+    function Get-FixtureManifest([string]$Build, [string]$Code, [switch]$WithSplit, [switch]$Patched,
+            [string]$Package = $releaseTarget.PackageName, [int]$MinSdk = 21) {
+        $binaryMinSdk = if ($Patched) { [Math]::Max($MinSdk, 28) } else { $MinSdk }
+        $lines = @(
+            'N: android=http://schemas.android.com/apk/res/android (line=1)',
+            '  E: manifest (line=1)',
+            "    A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=$Code",
+            "    A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)=`"$Build`" (Raw: `"$Build`")",
+            "    A: package=`"$Package`" (Raw: `"$Package`")",
+            '      E: uses-sdk (line=8)',
+            "        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=$binaryMinSdk",
+            '      E: uses-permission (line=10)',
+            "        A: $androidName`"android.permission.INTERNET`" (Raw: `"android.permission.INTERNET`")")
+        if ($Patched -and $releaseNames -ccontains 'Open links in your browser') {
+            $lines += '      E: queries (line=12)'
+            foreach ($scheme in @('http', 'https')) {
+                $lines += @('        E: intent (line=13)', '          E: action (line=14)',
+                    "            A: $androidName`"android.intent.action.VIEW`" (Raw: `"android.intent.action.VIEW`")",
+                    '          E: category (line=15)',
+                    "            A: $androidName`"android.intent.category.BROWSABLE`" (Raw: `"android.intent.category.BROWSABLE`")",
+                    '          E: data (line=16)',
+                    "            A: http://schemas.android.com/apk/res/android:scheme(0x01010027)=`"$scheme`" (Raw: `"$scheme`")")
+            }
+        }
+        $lines += @('      E: application (line=20)',
+            '        E: activity (line=21)',
+            "          A: $androidName`"com.pinterest.activity.PinterestActivity`" (Raw: `"com.pinterest.activity.PinterestActivity`")",
+            $androidExported)
+        if ($WithSplit) {
+            $lines += @('        E: activity (line=40)',
+                "          A: $androidName`"com.pinterest.split.FeatureActivity`" (Raw: `"com.pinterest.split.FeatureActivity`")",
+                $androidExported)
+        }
+        if ($Patched -and $releaseNames -ccontains 'Disable analytics') {
+            $lines += @('        E: meta-data (line=45)',
+                "          A: $androidName`"firebase_analytics_collection_deactivated`" (Raw: `"firebase_analytics_collection_deactivated`")",
+                '          A: http://schemas.android.com/apk/res/android:value(0x01010024)=true')
+        }
+        if ($Patched -and $releaseNames -ccontains 'HushPinterest settings') {
+            $lines += @('        E: activity-alias (line=60)',
+                "          A: $androidName`"app.hushpinterest.extension.pinterest.settings.OpenSettings`" (Raw: `"app.hushpinterest.extension.pinterest.settings.OpenSettings`")",
+                $androidExported,
+                '          A: http://schemas.android.com/apk/res/android:targetActivity(0x01010202)="com.pinterest.activity.PinterestActivity" (Raw: "com.pinterest.activity.PinterestActivity")',
+                '          E: intent-filter (line=61)', '            E: action (line=62)',
+                "              A: $androidName`"android.intent.action.APPLICATION_PREFERENCES`" (Raw: `"android.intent.action.APPLICATION_PREFERENCES`")",
+                '            E: category (line=63)',
+                "              A: $androidName`"android.intent.category.DEFAULT`" (Raw: `"android.intent.category.DEFAULT`")")
+        }
+        return ($lines -join "`n") + "`n"
+    }
+    $releaseSelectedAllowlist = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') `
+        -SelectedPatchNames $releaseNames)
+
     # A receipt for this commit with a run of each build given, every patch applied and the
     # manifest change the checked-in allowlist approves, the settings alias, written where the
     # release check looks for it. A schema 1 receipt names no SBOM, as the ones cut before it
@@ -3951,7 +4015,11 @@ try {
         $targets = @(for ($i = 0; $i -lt $Builds.Count; $i++) {
             # Each build at the version code the catalog pins it to, as a run of the declared build.
             $code = @(@($releaseTarget.PackageVersionCodes[$Builds[$i]]) + @("51200000$i") | Where-Object { $_ })[0]
-            [ordered]@{
+            $stockFacts = ConvertFrom-ManifestXmlTree -Source 'receipt stock fixture' -Lines (
+                (Get-FixtureManifest -Build $Builds[$i] -Code $code) -split '\r?\n')
+            $patchedFacts = ConvertFrom-ManifestXmlTree -Source 'receipt patched fixture' -Lines (
+                (Get-FixtureManifest -Build $Builds[$i] -Code $code -Patched) -split '\r?\n')
+            $targetHere = [ordered]@{
                 source        = [ordered]@{ file = "pinterest-$($Builds[$i])-arm64-v8a.apk"
                     package = $releaseTarget.PackageName; versionName = $Builds[$i]; versionCode = $code
                     sha256 = ([string]'ABCDEF'[$i % 6] * 64); forced = $false }
@@ -3959,6 +4027,11 @@ try {
                 sdk           = [ordered]@{ stockMinSdk = 21; patchedMinSdk = 28 }
                 manifestDelta = $approvedDelta
             }
+            if ($Schema -ge 4) {
+                $targetHere.manifest = [ordered]@{ stock = $stockFacts; patched = $patchedFacts }
+                $targetHere.manifestDelta = Get-ManifestDelta -Stock $stockFacts -Patched $patchedFacts
+            }
+            $targetHere
         })
         $document = [ordered]@{
             schemaVersion = $Schema
@@ -4135,40 +4208,6 @@ try {
     New-TestBundleArchive -Path (Join-Path $tools 'patched.apk') -Entries ([ordered]@{
         'AndroidManifest.xml' = 'binary manifest'; 'classes.dex' = "dex`n035" })
 
-    $androidName = 'http://schemas.android.com/apk/res/android:name(0x01010003)='
-    $androidExported = '          A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true'
-    # Pinterest asks for internet access and exports its launcher activity, on every build. The patched
-    # build exports the settings alias beside the launcher: the change the checked-in allowlist
-    # approves, and the only one the patches make here.
-    function Get-FixtureManifest([string]$Build, [string]$Code, [switch]$WithSplit, [switch]$Patched,
-            [string]$Package = $releaseTarget.PackageName, [int]$MinSdk = 21) {
-        $binaryMinSdk = if ($Patched) { [Math]::Max($MinSdk, 28) } else { $MinSdk }
-        $lines = @(
-            'N: android=http://schemas.android.com/apk/res/android (line=1)',
-            '  E: manifest (line=1)',
-            "    A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=$Code",
-            "    A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)=`"$Build`" (Raw: `"$Build`")",
-            "    A: package=`"$Package`" (Raw: `"$Package`")",
-            '      E: uses-sdk (line=8)',
-            "        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=$binaryMinSdk",
-            '      E: uses-permission (line=10)',
-            "        A: $androidName`"android.permission.INTERNET`" (Raw: `"android.permission.INTERNET`")")
-        $lines += @('      E: application (line=20)',
-            '        E: activity (line=21)',
-            "          A: $androidName`"com.pinterest.activity.PinterestActivity`" (Raw: `"com.pinterest.activity.PinterestActivity`")",
-            $androidExported)
-        if ($WithSplit) {
-            $lines += @('        E: activity (line=40)',
-                "          A: $androidName`"com.pinterest.split.FeatureActivity`" (Raw: `"com.pinterest.split.FeatureActivity`")",
-                $androidExported)
-        }
-        if ($Patched) {
-            $lines += @('        E: activity-alias (line=60)',
-                "          A: $androidName`"app.hushpinterest.extension.pinterest.settings.OpenSettings`" (Raw: `"app.hushpinterest.extension.pinterest.settings.OpenSettings`")",
-                $androidExported)
-        }
-        return ($lines -join "`n") + "`n"
-    }
     $dependencyNamesHere = @(Get-PatchDependencyNames -PatchList $releaseCatalog -RequestedNames $releaseNames)
     $fixturePaths = @{}
     # Beside the declared builds, a newer one the catalog doesn't declare, the kind a release run
@@ -4278,7 +4317,7 @@ try {
         # The alias and the removal are the patches' changes. The split's activity the merge brings
         # in is the merge's.
         $changes = @(ConvertTo-ManifestDeltaEntries -Delta $builtTarget.manifestDelta)
-        Assert-True (($changes -join "`n") -ceq (@($checkedInAllowlist | Sort-Object -Unique -CaseSensitive) -join "`n")) `
+        Assert-True (($changes -join "`n") -ceq (@($releaseSelectedAllowlist | Sort-Object -Unique -CaseSensitive) -join "`n")) `
             "The receipt records other manifest changes for $label than the patches' two: $($changes -join ', ')"
     }
     # Each fixture merged once, and the CLI handed that merge rather than the bundle: the CLI deletes
@@ -4573,7 +4612,7 @@ try {
     $deviceOut = Join-Path $releaseRoot 'device'
     function Invoke-DeviceBuild([string]$Apk, [string]$OutDir = $deviceOut, [string]$DesktopJar = $stubJar,
             [string]$OutputApk) {
-        Remove-Item -LiteralPath $javaLog -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $javaLog, $mergeLog -Force -ErrorAction SilentlyContinue
         $arguments = @{ Root = $releaseRepo; DesktopJar = $DesktopJar; Java = $stubJava; Aapt2 = $stubAapt2; OutDir = $OutDir }
         if ($Apk) { $arguments['Apk'] = $Apk }
         if ($OutputApk) { $arguments['OutputApk'] = $OutputApk }
@@ -4588,7 +4627,8 @@ try {
             throw "patch-for-device.ps1 refused the declared build ${build}: $($_.Exception.Message)"
         }
         $deviceRuns = @(Get-Content -LiteralPath $javaLog)
-        Assert-True ($deviceRuns.Count -eq 1 -and $deviceRuns[0] -eq "patch $($fixturePaths[$build]) forced=0" -and
+        Assert-True ($deviceRuns.Count -eq 1 -and $deviceRuns[0] -eq "patch $($fixturePaths[$build]) merged forced=0" -and
+            (@(Get-Content -LiteralPath $mergeLog) -join '; ') -eq "merge $($fixturePaths[$build])" -and
             (Test-Path -LiteralPath $deviceApk -PathType Leaf)) `
             "patch-for-device.ps1 did not build $build once, without -f: $($deviceRuns -join '; ')"
         Assert-True (-not (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $deviceApk) 'stock-base.apk'))) `
@@ -4599,7 +4639,7 @@ try {
         $env:HUSHPINTEREST_FIXTURE_DIR = $fixtures
         Invoke-DeviceBuild
         Assert-True ((@(Get-Content -LiteralPath $javaLog) -join '; ') -eq
-            "patch $($fixturePaths[$releaseTarget.PackageVersion]) forced=0") `
+            "patch $($fixturePaths[$releaseTarget.PackageVersion]) merged forced=0") `
             "With no -Apk, patch-for-device.ps1 did not take the newest declared build from the fixture folder."
     } finally {
         $env:HUSHPINTEREST_FIXTURE_DIR = $savedFixtureDir
@@ -4661,6 +4701,24 @@ try {
             'The device runner accepted a malformed result beside a compiled APK.'
         Assert-True (@(Get-ChildItem -LiteralPath $malformedOut -Directory).Count -eq 0) `
             'A malformed result left a deliverable APK behind.'
+        Assert-Throws { Invoke-VerifyAll -Apk $failureFixture } '*verify-all-patches.ps1 exited 1*' `
+            'The throwaway verifier accepted a malformed report beside a compiled APK.'
+        Assert-True (@(Get-ChildItem -LiteralPath (Join-Path $releaseRoot 'verify-work') -Directory -Filter 'verify-*').Count -eq 0) `
+            'The throwaway verifier retained a malformed-report APK.'
+        $forbiddenDeviceLog = Join-Path $tools 'forbidden-device.log'
+        [IO.File]::WriteAllText((Join-Path $tools 'adb.cmd'), "@echo off`r`necho called >`"$forbiddenDeviceLog`"`r`nexit /b 7`r`n")
+        $savedPath = $env:PATH
+        try {
+            $env:PATH = $tools + [IO.Path]::PathSeparator + $savedPath
+            Assert-Throws {
+                & $patchScript -Root $releaseRepo -Apk $failureFixture -DesktopJar $stubJar -Java $stubJava `
+                    -Aapt2 $stubAapt2 -OutDir $malformedOut -Serial emulator-5999 `
+                    -LeaseDirectory (Join-Path $releaseRoot 'forbidden-leases') 6> $null
+            } '*JSON*' 'The device runner reached installation after a malformed report.'
+            Assert-True (-not (Test-Path -LiteralPath $forbiddenDeviceLog) -and
+                -not (Test-Path -LiteralPath (Join-Path $releaseRoot 'forbidden-leases'))) `
+                'A malformed report reached ADB or device lease acquisition.'
+        } finally { $env:PATH = $savedPath }
     } finally { [IO.File]::WriteAllBytes($failureReportPath, $savedReport) }
     # Explicit destinations use atomic creation. A collision must fail before invoking tools.
     $explicitApk = Join-Path $releaseRoot 'explicit.apk'
@@ -5135,8 +5193,15 @@ try {
     Set-Content -LiteralPath $schemaOneScript -Encoding ASCII -Value @('function Get-ReleaseReceiptSchemaVersion {', '    <#',
         '    .SYNOPSIS', '        Bumped when the shape changes.', '    #>', '    return 1', '}')
     $schemaOneBlob = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('hash-object', '-w', $schemaOneScript) | Select-Object -First 1)".Trim()
+    # Historical schemas used only the legacy exported-alias declaration. Their synthetic
+    # commits must retain that allowlist instead of inheriting schema 4's structured templates.
+    $legacyAllowlistPath = Join-Path $releaseRoot 'legacy-manifest-allowlist.txt'
+    [System.IO.File]::WriteAllLines($legacyAllowlistPath, $checkedInAllowlist, [System.Text.Encoding]::ASCII)
+    $legacyAllowlistBlob = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('hash-object', '-w', $legacyAllowlistPath) | Select-Object -First 1)".Trim()
     Invoke-FixtureGit -Root $releaseRepo -Arguments @('update-index', '--add', '--cacheinfo',
         "100644,$schemaOneBlob,scripts/release-receipt.ps1") | Out-Null
+    Invoke-FixtureGit -Root $releaseRepo -Arguments @('update-index', '--add', '--cacheinfo',
+        "100644,$legacyAllowlistBlob,scripts/manifest-delta-allowlist.txt") | Out-Null
     $schemaOneTree = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('write-tree') | Select-Object -First 1)".Trim()
     Invoke-FixtureGit -Root $releaseRepo -Arguments @('reset', '--quiet') | Out-Null
     $schemaOneCommit = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('commit-tree', $schemaOneTree, '-p', $releaseCommit,
@@ -5165,6 +5230,8 @@ try {
     $schemaTwoBlob = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('hash-object', '-w', $schemaTwoScript) | Select-Object -First 1)".Trim()
     Invoke-FixtureGit -Root $releaseRepo -Arguments @('update-index', '--add', '--cacheinfo',
         "100644,$schemaTwoBlob,scripts/release-receipt.ps1") | Out-Null
+    Invoke-FixtureGit -Root $releaseRepo -Arguments @('update-index', '--add', '--cacheinfo',
+        "100644,$legacyAllowlistBlob,scripts/manifest-delta-allowlist.txt") | Out-Null
     $schemaTwoTree = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('write-tree') | Select-Object -First 1)".Trim()
     Invoke-FixtureGit -Root $releaseRepo -Arguments @('reset', '--quiet') | Out-Null
     $schemaTwoCommit = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('commit-tree', $schemaTwoTree, '-p', $releaseCommit,
@@ -5175,10 +5242,10 @@ try {
         Save-ReleaseReceipt -Builds $releaseTarget.PackageVersions -Commit $schemaTwoCommit -Seconds $schemaTwoSeconds -Schema 2
         $said = Invoke-ReleaseCheck
         Assert-True ($said -like "*the receipt is held to schema 2, which its own commit $($schemaTwoCommit.Substring(0, 8)) wrote*" -and
-                $said -like '*it names no binary SDK facts*' -and
+                $said -like '*it names no binary SDK or compiled declaration facts*' -and
                 $said -like "*the receipt proves $($releaseNames.Count) patches on*from commit $($schemaTwoCommit.Substring(0, 8))*") `
             "A shipped receipt with no binary SDK facts was not read at its own schema: $said"
-        Save-ReleaseReceipt -Builds $releaseTarget.PackageVersions -Commit $schemaTwoCommit -Seconds $schemaTwoSeconds
+        Save-ReleaseReceipt -Builds $releaseTarget.PackageVersions -Commit $schemaTwoCommit -Seconds $schemaTwoSeconds -Schema 3
         Assert-Throws { Invoke-ReleaseCheck } '*schema version 3; its release is read at version 2*' `
             'A schema 3 receipt was accepted for a commit whose builder wrote schema 2.'
     } finally {
@@ -5355,3 +5422,6 @@ Write-Host '[scripts] README artwork contracts passed'
 
 $global:LASTEXITCODE = 0
 Write-Host '[scripts] report, target, Java and guarded replacement contracts passed'
+
+& (Join-Path $PSScriptRoot 'test-manifest-contracts.ps1') -Root $Root
+if ($LASTEXITCODE -ne 0) { throw 'The compiled manifest contracts did not pass.' }

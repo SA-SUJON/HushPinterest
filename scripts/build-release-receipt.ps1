@@ -95,6 +95,9 @@ $catalog = Get-Content -LiteralPath $PatchList -Raw | ConvertFrom-Json
 $patchNames = @($catalog.patches | ForEach-Object { $_.name })
 if ($patchNames.Count -eq 0) { throw "No patches listed in $PatchList." }
 $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $patchNames)
+$manifestSelection = @($patchNames) + @($dependencyNames)
+$approved = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') `
+    -SelectedPatchNames $manifestSelection)
 $expectedTarget = Get-PatchTarget -PatchList $catalog
 
 $catalogText = Get-Content -LiteralPath (Join-Path $Root 'gradle/libs.versions.toml') -Raw
@@ -353,7 +356,10 @@ foreach ($apk in $Fixture) {
         $baseline = Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2
         $floor = Test-PatchedMinSdk -StockMinSdk $baseline.minSdk -PatchedMinSdk $patched.minSdk
         if (-not $floor.Valid) { throw "${label}: $($floor.Reason)" }
-        $delta = Get-ManifestDelta -Stock $baseline -Patched $patched
+        $manifestCheck = Test-ManifestDelta -Stock $baseline -Patched $patched -SelectedPatchNames $manifestSelection `
+            -ApprovedManifestDelta $approved
+        if (-not $manifestCheck.Valid) { throw "${label}: $($manifestCheck.Reason)" }
+        $delta = $manifestCheck.Delta
         $verdicts = Get-PatchVerdicts -Report $report -Names $patchNames
         $changes = @(ConvertTo-ManifestDeltaEntries -Delta $delta)
         Write-Host ("[receipt] $label" + ": $(@($verdicts | Where-Object { $_.applied }).Count)/" +
@@ -371,12 +377,8 @@ foreach ($apk in $Fixture) {
             }
             patches       = $verdicts
             sdk           = [ordered]@{ stockMinSdk = $baseline.minSdk; patchedMinSdk = $patched.minSdk }
-            manifestDelta = [ordered]@{
-                permissionsAdded          = @($delta.permissionsAdded)
-                permissionsRemoved        = @($delta.permissionsRemoved)
-                exportedComponentsAdded   = @($delta.exportedComponentsAdded)
-                exportedComponentsRemoved = @($delta.exportedComponentsRemoved)
-            }
+            manifest      = [ordered]@{ stock = $baseline; patched = $patched }
+            manifestDelta = $delta
         })
     } finally {
         if ($runDir.StartsWith($workRoot, [System.StringComparison]::OrdinalIgnoreCase) -and
@@ -417,7 +419,6 @@ $receipt = [ordered]@{
 
 # The receipt is checked before it is written. A file that fails the gate it exists to pass is
 # worse than no file, because the next reader has to work out which half to believe.
-$approved = Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt')
 $check = Test-ReleaseReceipt -Receipt ($receipt | ConvertTo-Json -Depth 12 | ConvertFrom-Json) `
     -ExpectedVersion $releaseVersion -ExpectedPatchNames $patchNames `
     -ExpectedPatcherVersion $patcherMatch.Groups[1].Value `

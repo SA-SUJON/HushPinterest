@@ -24,8 +24,8 @@
     On a device. The Android runtime's own verifier is the authority, so with -Serial the
     clean APK and the patched APK are both put through dex2oat with the verify filter and the
     verifier's messages are compared. The patched build has to raise exactly the same message
-    multiset as the clean build, which for the Facebook sibling's builds was none. The emulator
-    works: its x86_64 dex2oat verifies for arm64.
+    multiset as the clean build, which for the Facebook sibling's builds was none. The verifier
+    uses the instruction set reported by the leased device, including x86_64 emulators.
 
     Removed host methods and DEX entries fail the static check. The allowlist beside this script
     accepts only exact reviewed removals, and a stale entry fails so an old exception cannot mask

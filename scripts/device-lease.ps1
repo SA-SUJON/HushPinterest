@@ -104,6 +104,40 @@ function Get-HushDeviceIdentity {
     return [pscustomobject]$values
 }
 
+function Confirm-HushLeasedDevice {
+    param([string]$Adb, $Lease, [scriptblock]$Invoker, $Identity)
+    Renew-HushDeviceLease $Lease
+    if (-not $Identity) { $Identity = Get-HushDeviceIdentity -Adb $Adb -Serial $Lease.Serial -AdbInvoker $Invoker }
+    $stream = [IO.File]::Open($Lease.Path, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+    try {
+        $record = Read-HushLeaseRecord $stream
+        if ($record.serial -cne $Lease.Serial -or $record.project -cne $Lease.Project -or
+            $record.chatIdentity -cne $Lease.ChatIdentity -or $record.ownershipToken -cne $Lease.Token) {
+            throw 'Device lease ownership changed. Identity binding refused.'
+        }
+        if ($record.expectedIdentity -and $record.expectedIdentity -cne $Identity.Avd -and
+            $record.expectedIdentity -cne $Identity.Model) { throw 'Device identity differs from its caller lease.' }
+        $fields = @('Serial', 'Model', 'Build', 'Api', 'Abi', 'Avd')
+        if ($record.deviceIdentity) {
+            foreach ($field in $fields) {
+                if (-not $record.deviceIdentity.PSObject.Properties[$field] -or
+                    [string]$record.deviceIdentity.$field -cne [string]$Identity.$field) {
+                    throw 'Device identity changed at the leased serial. Mutation refused.'
+                }
+            }
+        } else {
+            if (-not $Lease.Owned -and -not $record.expectedIdentity) {
+                throw 'The caller lease has no original device identity or expected profile. Mutation refused.'
+            }
+            $snapshot = [ordered]@{}
+            foreach ($field in $fields) { $snapshot[$field] = [string]$Identity.$field }
+            $record | Add-Member -NotePropertyName deviceIdentity -NotePropertyValue ([pscustomobject]$snapshot) -Force
+            Write-HushLeaseRecord $stream $record
+        }
+        return $Identity
+    } finally { $stream.Dispose() }
+}
+
 function Enter-HushDeviceLease {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Adb, [Parameter(Mandatory)][string]$Serial,
@@ -153,8 +187,7 @@ function Enter-HushDeviceLease {
     try {
         Renew-HushDeviceLease $lease
         $lease.Identity = Get-HushDeviceIdentity -Adb $Adb -Serial $Serial -AdbInvoker $AdbInvoker
-        if (-not $owned -and $record.expectedIdentity -and $record.expectedIdentity -cne $lease.Identity.Avd -and
-            $record.expectedIdentity -cne $lease.Identity.Model) { throw 'Device identity differs from its caller lease.' }
+        $lease.Identity = Confirm-HushLeasedDevice -Adb $Adb -Lease $lease -Invoker $AdbInvoker -Identity $lease.Identity
         Write-Host "[device] $Serial $($lease.Identity.Model), API $($lease.Identity.Api), $($lease.Identity.Build) $($lease.Identity.Avd)"
         return $lease
     } catch { Exit-HushDeviceLease $lease; throw }
@@ -162,6 +195,6 @@ function Enter-HushDeviceLease {
 
 function Invoke-HushLeasedAdb {
     param([string]$Adb, [Parameter(Mandatory)]$Lease, [string[]]$Arguments, [scriptblock]$Invoker)
-    Renew-HushDeviceLease $Lease
+    [void](Confirm-HushLeasedDevice -Adb $Adb -Lease $Lease -Invoker $Invoker)
     Invoke-HushPinterestAdbCommand -Adb $Adb -Invoker $Invoker -Arguments (@('-s', $Lease.Serial) + $Arguments)
 }

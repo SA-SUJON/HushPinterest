@@ -989,7 +989,8 @@ function Test-ReleaseReceiptHere {
     # And the manifest changes its own commit reviewed. Read from the working tree, an allowlist
     # entry nobody committed approved a change into the release.
     $resolvedAllowlist = Resolve-ReceiptManifestAllowlist -Root $rootPath -Commit $receiptCommit `
-        -WorkingPath (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt')
+        -WorkingPath (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') `
+        -SelectedPatchNames @($resolvedList.PatchList.patches | ForEach-Object { [string]$_.name })
     if ($resolvedAllowlist.Note) { Write-Host "[release] $($resolvedAllowlist.Note)" }
     $approvedDelta = @($resolvedAllowlist.Entries)
     $receiptTarget = Get-PatchTarget -PatchList $resolvedList.PatchList

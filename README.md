@@ -106,6 +106,8 @@ Disable analytics stops the targeted Pinterest usage uploads and AppsFlyer trans
 
 Analytics hooks are checked before any Firebase manifest change. Local patch helpers refuse failed results even if the patching tool produced an APK. Runtime analytics controls stay inactive when that patch isn't installed.
 
+Local verification compares the compiled manifest against the full input APK, including merged splits. It checks account and push components, metadata, filters and query declarations. Only the changes for the selected patches are allowed. Leaving out Disable analytics keeps Pinterest's Firebase Analytics flag as supplied.
+
 The About and Licenses screens link to `github.com`, `gitlab.com` and `www.gnu.org`. Those open in your browser, and only when you tap one.
 
 Shared pin links use `www.pinterest.com`. Downloads use media addresses Pinterest supplies under `pinimg.com`. Browser discovery checks installed handlers for `example.com` without opening or loading that address. When Disable analytics is off or paused, its AppsFlyer wrapper uses the SDK's original connection path.

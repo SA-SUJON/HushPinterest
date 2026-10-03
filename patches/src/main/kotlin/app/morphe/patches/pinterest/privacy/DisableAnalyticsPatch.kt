@@ -23,9 +23,19 @@ import app.morphe.patches.pinterest.misc.extension.requireLocals
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.DualReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.CallSiteReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodProtoReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.value.ArrayEncodedValue
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
@@ -117,14 +127,24 @@ private fun BytecodePatchContext.analyticsPlan(): AnalyticsPlan {
         Triple("blockTask", listOf("Ljava/lang/Object;"), "Z"),
         Triple("openConnection", listOf("Ljava/net/URL;"), "Ljava/net/URLConnection;"),
     )) {
-        if (!AccessFlags.PUBLIC.isSet(extension.accessFlags) || extension.methods.count {
-                it.name == name && it.parameterTypes.map { p -> p.toString() } == parameters && it.returnType == response &&
-                    AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) && it.implementation != null
-            } != 1) throw PatchException("$PATCH: no callable Analytics.$name runtime hook")
+        val hook = extension.methods.singleOrNull {
+            it.name == name && it.parameterTypes.map { p -> p.toString() } == parameters && it.returnType == response }
+        if (!AccessFlags.PUBLIC.isSet(extension.accessFlags) || AccessFlags.INTERFACE.isSet(extension.accessFlags) || hook == null ||
+            !AccessFlags.PUBLIC.isSet(hook.accessFlags) || !AccessFlags.STATIC.isSet(hook.accessFlags) ||
+            AccessFlags.ABSTRACT.isSet(hook.accessFlags) || AccessFlags.NATIVE.isSet(hook.accessFlags) ||
+            (hook.implementation?.registerCount ?: 0) < maxOf(1, parameters.sumOf { p -> if (p == "J" || p == "D") 2 else 1 }) ||
+            hook.implementation?.instructions?.any() != true) throw PatchException("$PATCH: no callable Analytics.$name runtime hook")
+        hook.requireAnalyticsHookBody()
     }
     val services = mutableListOf<Method>()
     classDefForEach { owner ->
-        if (AccessFlags.INTERFACE.isSet(owner.accessFlags)) services += owner.methods.filter { it.telemetryPath() != null }
+        if (AccessFlags.INTERFACE.isSet(owner.accessFlags)) {
+            val endpoints = owner.methods.filter { it.telemetryPath() != null }
+            if (endpoints.isNotEmpty() && !AccessFlags.PUBLIC.isSet(owner.accessFlags)) {
+                throw PatchException("$PATCH: telemetry interface ${owner.type} is not public")
+            }
+            services += endpoints
+        }
     }
     if (services.isEmpty()) throw PatchException("$PATCH: no annotated Pinterest telemetry service was found")
     if (services.any { AccessFlags.STATIC.isSet(it.accessFlags) || !AccessFlags.PUBLIC.isSet(it.accessFlags) }) {
@@ -155,6 +175,73 @@ private fun BytecodePatchContext.analyticsPlan(): AnalyticsPlan {
     return AnalyticsPlan(wrappers.toList(), edits.toList())
 }
 
+/** Check the three runtime hooks before any wrapper or class-pool mutation is retained. */
+private fun Method.requireAnalyticsHookBody() {
+    val body = implementation!!
+    val frame = body.registerCount
+    val expectedReturn = if (returnType.startsWith('L') || returnType.startsWith('[')) Opcode.RETURN_OBJECT else Opcode.RETURN
+    var returns = false
+    fun reject(index: Int, reason: String): Nothing = throw PatchException("$PATCH: Analytics.$name at $index $reason")
+    for ((index, instruction) in body.instructions.withIndex()) {
+        val opcode = instruction.opcode
+        if (opcode.odexOnly()) reject(index, "contains an optimized-only instruction")
+        if (opcode in setOf(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_WIDE)) {
+            if (opcode != expectedReturn) reject(index, "has an incompatible return opcode")
+            returns = true
+        }
+        val registers = when (instruction) {
+            is RegisterRangeInstruction -> {
+                val count = instruction.registerCount
+                val start = instruction.startRegister
+                if (count !in 0..255 || start < 0 || (count > 0 && start.toLong() + count > frame)) {
+                    reject(index, "has an out-of-frame register range")
+                }
+                (start until start + count).toMutableList()
+            }
+            is FiveRegisterInstruction -> {
+                if (instruction.registerCount !in 0..5) reject(index, "has an invalid register word count")
+                listOf(instruction.registerC, instruction.registerD, instruction.registerE,
+                    instruction.registerF, instruction.registerG).take(instruction.registerCount).toMutableList()
+            }
+            is ThreeRegisterInstruction -> mutableListOf(instruction.registerA, instruction.registerB, instruction.registerC)
+            is TwoRegisterInstruction -> mutableListOf(instruction.registerA, instruction.registerB)
+            is OneRegisterInstruction -> mutableListOf(instruction.registerA)
+            else -> mutableListOf()
+        }
+        val operation = opcode.name.lowercase().replace('_', '-').replace("-2addr", "/2addr")
+        if (operation.startsWith("invoke-")) {
+            val reference = (instruction as? ReferenceInstruction)?.reference
+            val parameters = when (opcode) {
+                Opcode.INVOKE_CUSTOM, Opcode.INVOKE_CUSTOM_RANGE -> (reference as? CallSiteReference)?.methodProto?.parameterTypes
+                Opcode.INVOKE_POLYMORPHIC, Opcode.INVOKE_POLYMORPHIC_RANGE ->
+                    ((instruction as? DualReferenceInstruction)?.reference2 as? MethodProtoReference)?.parameterTypes
+                else -> (reference as? MethodReference)?.parameterTypes
+            } ?: reject(index, "has no callable invocation signature")
+            val static = opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE, Opcode.INVOKE_CUSTOM, Opcode.INVOKE_CUSTOM_RANGE)
+            val widths = (if (static) emptyList() else listOf(1)) + parameters.map { if (it.toString() in setOf("J", "D")) 2 else 1 }
+            if (registers.size != widths.sum()) reject(index, "has an invocation argument word-count mismatch")
+            var word = 0
+            for (width in widths) {
+                if (width == 2 && registers[word + 1] != registers[word] + 1) reject(index, "has a broken wide invocation pair")
+                word += width
+            }
+        }
+        if (opcode.setsWideRegister() && instruction is OneRegisterInstruction) registers += instruction.registerA + 1
+        if (opcode in setOf(Opcode.RETURN_WIDE, Opcode.SPUT_WIDE, Opcode.IPUT_WIDE, Opcode.APUT_WIDE) && instruction is OneRegisterInstruction) {
+            registers += instruction.registerA + 1
+        }
+        if (instruction is TwoRegisterInstruction && (opcode in setOf(Opcode.MOVE_WIDE, Opcode.MOVE_WIDE_FROM16, Opcode.MOVE_WIDE_16) ||
+                Regex("(neg|not)-(long|double)|(long|double)-to-.*").matches(operation))) registers += instruction.registerB + 1
+        if (Regex("(add|sub|mul|div|rem|and|or|xor)-(long|double)(/2addr)?|cmp(l|g)?-(long|double)").matches(operation)) {
+            if (instruction is TwoRegisterInstruction) registers += instruction.registerB + 1
+            if (instruction is ThreeRegisterInstruction) registers += instruction.registerC + 1
+        }
+        if (Regex("(shl|shr|ushr)-long").matches(operation) && instruction is ThreeRegisterInstruction) registers += instruction.registerB + 1
+        if (registers.any { it !in 0 until frame }) reject(index, "uses an out-of-frame register operand")
+    }
+    if (!returns) reject(0, "has no matching return instruction")
+}
+
 /** Creates completed values with the vendor's own response types, so subscribers can clean up. */
 internal fun BytecodePatchContext.completedResponseFactories(services: List<Method>): Map<String, String> {
     val factories = mutableMapOf<String, String>()
@@ -164,18 +251,32 @@ internal fun BytecodePatchContext.completedResponseFactories(services: List<Meth
         if (!response.startsWith('L') || !response.endsWith(';')) {
             throw PatchException("$PATCH: ${service.identity()} has no object response type")
         }
-        val signature = service.genericSignature()
-        val json = if (response != "Ljava/lang/Object;" && service.telemetryPath() == "log/") {
-            signature.substringAfter("${response.removeSuffix(";")}<", "").substringBefore('>').also {
-                if (!it.startsWith("L") || !it.endsWith(';') || it.contains('<')) {
-                    throw PatchException("$PATCH: ${service.identity()} has no concrete JSON response type")
+        val signature = if (response == "Ljava/lang/Object;" || service.telemetryPath() == "log/") {
+            try {
+                TelemetrySignatureParser(service.genericSignature()).method().also {
+                    require(it.parameters.map { p -> p.type } == service.parameterTypes.map { p -> p.toString() })
+                    require(it.result.type == response)
                 }
-                requireConstructor(it, emptyList())
+            } catch (_: IllegalArgumentException) {
+                throw PatchException("$PATCH: ${service.identity()} has an invalid generic method signature")
             }
         } else null
+        val json = if (response != "Ljava/lang/Object;" && service.telemetryPath() == "log/") {
+            val payload = signature!!.result.arguments.singleOrNull()
+            if (payload == null || payload.variance != null || !payload.type.startsWith('L') || payload.arguments.isNotEmpty()) {
+                throw PatchException("$PATCH: ${service.identity()} has no concrete JSON response type")
+            }
+            payload.type.also { requireConstructor(it, emptyList()) }
+        } else null
         // Validate each erased signature before reusing a body, including a cached Object result.
-        if (response == "Ljava/lang/Object;" && !signature.contains("${NETWORK_RESPONSE.removeSuffix(";")}<Lkotlin/Unit;>")) {
-            throw PatchException("$PATCH: ${service.identity()} isn't a coroutine returning NetworkResponse<Unit>")
+        if (response == "Ljava/lang/Object;") {
+            val continuation = signature!!.parameters.lastOrNull()
+            val payload = continuation?.arguments?.singleOrNull()
+            val unit = payload?.arguments?.singleOrNull()
+            if (signature.result.arguments.isNotEmpty() || payload == null || payload.type != NETWORK_RESPONSE || payload.variance == '+' ||
+                unit == null || unit.type != "Lkotlin/Unit;" || unit.variance != null || unit.arguments.isNotEmpty()) {
+                throw PatchException("$PATCH: ${service.identity()} isn't a coroutine returning NetworkResponse<Unit>")
+            }
         }
         val key = response + (json ?: "")
         val reused = bodies[key]
@@ -241,6 +342,79 @@ private fun Method.genericSignature(): String = annotations.firstOrNull { it.typ
     ?.elements?.firstOrNull { it.name == "value" }?.value.let { value ->
         (value as? ArrayEncodedValue)?.value?.joinToString("") { (it as? StringEncodedValue)?.value.orEmpty() }.orEmpty()
     }
+
+private data class SignatureType(val type: String, val arguments: List<SignatureType> = emptyList(), val variance: Char? = null)
+private data class TelemetrySignature(val parameters: List<SignatureType>, val result: SignatureType)
+
+/** JVMS 4.7.9.1: bounds are parsed separately from the method's actual parameters and result. */
+private class TelemetrySignatureParser(private val text: String) {
+    private var at = 0
+    private fun peek() = text.getOrNull(at) ?: '\u0000'
+    private fun take(value: Char) { require(peek() == value); at++ }
+    private fun name(stops: String): String {
+        val start = at
+        while (at < text.length && peek() !in stops) {
+            require(peek() !in "()[]^:+-*>"); at++
+        }
+        return text.substring(start, at).also { require(it.isNotEmpty() && it.split('/').none(String::isEmpty)) }
+    }
+
+    fun method(): TelemetrySignature {
+        if (peek() == '<') {
+            take('<')
+            do {
+                name(":"); take(':')
+                if (peek() != ':') type(referenceOnly = true)
+                while (peek() == ':') { take(':'); type(referenceOnly = true) }
+            } while (peek() != '>')
+            take('>')
+        }
+        take('(')
+        val parameters = mutableListOf<SignatureType>()
+        while (peek() != ')') parameters += type()
+        take(')')
+        val result = type(allowVoid = true)
+        while (peek() == '^') {
+            take('^')
+            require(type(referenceOnly = true).type.first() in "LT")
+        }
+        require(at == text.length)
+        return TelemetrySignature(parameters, result)
+    }
+
+    private fun type(referenceOnly: Boolean = false, allowVoid: Boolean = false, depth: Int = 0): SignatureType {
+        require(depth < 64)
+        return when (val kind = peek()) {
+            'L' -> {
+                take('L')
+                var owner = name("<;.")
+                val arguments = mutableListOf<SignatureType>()
+                fun readArguments() {
+                    if (peek() != '<') return
+                    take('<')
+                    do {
+                        val variance = peek().takeIf { it == '+' || it == '-' || it == '*' }
+                        if (variance != null) at++
+                        arguments += if (variance == '*') SignatureType("*", variance = '*')
+                            else type(referenceOnly = true, depth = depth + 1).copy(variance = variance)
+                    } while (peek() != '>')
+                    take('>')
+                }
+                readArguments()
+                while (peek() == '.') { take('.'); owner += "$" + name("<;."); readArguments() }
+                take(';')
+                SignatureType("L$owner;", arguments)
+            }
+            'T' -> { take('T'); val variable = name(";"); take(';'); SignatureType("T$variable;") }
+            '[' -> { take('['); SignatureType("[" + type(depth = depth + 1).type) }
+            else -> {
+                require(!referenceOnly && (kind in "BCDFIJSZ" || allowVoid && kind == 'V'))
+                at++
+                SignatureType(kind.toString())
+            }
+        }
+    }
+}
 
 private fun Method.strings(): List<String> = implementation?.instructions?.mapNotNull {
     ((it as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as?

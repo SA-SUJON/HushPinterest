@@ -47,7 +47,8 @@ param(
     [string]$PatchList,
     [string]$Java,
     [switch]$Force,
-    [string]$Aapt2
+    [string]$Aapt2,
+    [string[]]$PatchNames
 )
 
 $ErrorActionPreference = 'Stop'
@@ -81,6 +82,17 @@ try {
 $expectedTarget = Get-PatchTarget -PatchList $catalog
 if ($names.Count -eq 0 -or @($names | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -ne 0) {
     throw "No valid patches listed in $PatchList."
+}
+if ($PSBoundParameters.ContainsKey('PatchNames')) {
+    if ($PatchNames.Count -eq 1) { $PatchNames = $PatchNames[0].Split(',') }
+    $requested = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    foreach ($name in $PatchNames) {
+        if ($names -cnotcontains $name -or -not $requested.Add($name)) {
+            throw "Requested patch is unknown or repeated: $name"
+        }
+    }
+    if ($requested.Count -eq 0) { throw 'Select at least one patch for verification.' }
+    $names = @($names | Where-Object { $requested.Contains($_) })
 }
 $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $names)
 Write-Host "[verify] $($names.Count) patches from $(Split-Path -Leaf $Bundle)"
@@ -186,25 +198,23 @@ $result = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-result-$runI
     if ($cliExitCode -eq 0 -and $validation.Valid) {
         # What patching did to the manifest, read the way the release receipt reads it, against the
         # APK the CLI patched, and held to the same allowlist, so a change nobody approved stops this
-        # run and not only the release. An approved change this run didn't make is reported and left
-        # to the receipt, which needs every declared build to decide it.
+        # run and not only the release. Expected transforms depend on the selected patch families.
         $stockManifest = Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2
         $patchedManifest = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
         $floor = Test-PatchedMinSdk -StockMinSdk $stockManifest.minSdk -PatchedMinSdk $patchedManifest.minSdk
         if (-not $floor.Valid) { throw "[verify] $($floor.Reason)" }
         Write-Host "[verify] binary minSdk: $($stockManifest.minSdk) -> $($patchedManifest.minSdk) (max(stock, 28))"
-        $manifestChanges = @(ConvertTo-ManifestDeltaEntries -Delta (Get-ManifestDelta `
-            -Stock $stockManifest -Patched $patchedManifest))
-        $approvedChanges = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') |
-            Where-Object { $_ })
-        $unapprovedChanges = @($manifestChanges | Where-Object { $approvedChanges -cnotcontains $_ })
-        Write-Host "[verify] manifest delta: $($manifestChanges.Count) change(s), $($unapprovedChanges.Count) not approved"
+        $manifestSelection = @($names) + @($dependencyNames)
+        $approvedChanges = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') `
+            -SelectedPatchNames $manifestSelection)
+        $manifestCheck = Test-ManifestDelta -Stock $stockManifest -Patched $patchedManifest `
+            -SelectedPatchNames $manifestSelection -ApprovedManifestDelta $approvedChanges
+        $manifestChanges = @($manifestCheck.Entries)
+        if (-not $manifestCheck.Valid) { throw "[verify] $($manifestCheck.Reason)" }
+        Write-Host "[verify] manifest delta: $($manifestChanges.Count) change(s), all match selected transforms"
         foreach ($change in $manifestChanges) {
-            $mark = if ($approvedChanges -ccontains $change) { 'approved' } else { 'NOT APPROVED' }
-            Write-Host "[verify]   $change ($mark)"
+            Write-Host "[verify]   $change (approved)"
         }
-        $unmade = @($approvedChanges | Where-Object { $manifestChanges -cnotcontains $_ })
-        if ($unmade.Count -gt 0) { Write-Host "[verify] approved but not made here: $($unmade -join ', ')" }
     }
     if ($cliExitCode -eq 0 -and $validation.Valid -and $unapprovedChanges.Count -gt 0) {
         Write-Warning ('[verify] the patched manifest changed in ways scripts/manifest-delta-allowlist.txt ' +
