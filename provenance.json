@@ -136,6 +136,8 @@
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ui/**",
         "patches/src/main/kotlin/app/morphe/patches/pinterest/ui/**",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/actions/**",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/DownloadHistoryPreference.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/PendingSavesPreference.java",
         "patches/src/main/kotlin/app/morphe/patches/pinterest/actions/**"
       ],
       "origin": "original",

@@ -12,8 +12,10 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import org.json.JSONArray;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
@@ -68,6 +70,8 @@ public class DownloadPickerTest {
         PauseForTests.resume();
         PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS));
         Settings.DOWNLOAD_PINS.save(true);
+        assertTrue(activity.getApplicationContext().getSharedPreferences(PendingSaveJournal.STORE, 0)
+                .edit().putString(PendingSaveJournal.RECORDS, "[]").commit());
     }
 
     @After public void reset() {
@@ -197,6 +201,46 @@ public class DownloadPickerTest {
 
         PinDownloads.failedDocument(activity, destination, new IOException("unknown completion"));
         assertTrue(provider.deleted.isEmpty());
+    }
+
+    @Test public void corruptJournalRefusesTheChosenSaveBeforeWritingOrDeletingItsFile() throws Exception {
+        DeleteProvider provider = provider(false);
+        assertTrue(activity.getApplicationContext().getSharedPreferences(PendingSaveJournal.STORE, 0)
+                .edit().putString(PendingSaveJournal.RECORDS, "malformed").commit());
+        assertTrue(PinDownloads.start(pin, activity));
+        // If the journal guard is skipped, this source fails immediately and cleanup deletes the file.
+        fragment().getArguments().putString("url", "https://untrusted.test/pin.jpg");
+        fragment().onActivityResult(48122, Activity.RESULT_OK,
+                new Intent().setData(Uri.parse("content://test.documents/document/new")));
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        awaitReleased();
+        assertTrue(provider.deleted.isEmpty());
+        assertEquals("Couldn't record the save location. No file data was written.", ShadowToast.getTextOfLatestToast());
+        assertEquals("malformed", activity.getApplicationContext().getSharedPreferences(PendingSaveJournal.STORE, 0)
+                .getString(PendingSaveJournal.RECORDS, null));
+    }
+
+    @Test public void fullJournalPreservesAllPendingDestinationsAndRefusesAnotherWrite() throws Exception {
+        DeleteProvider provider = provider(false);
+        Context app = activity.getApplicationContext();
+        for (int i = 0; i < PendingSaveJournal.LIMIT; i++) {
+            PendingSaveJournal.Ticket ticket = PendingSaveJournal.begin(app,
+                    Uri.parse("content://test.documents/document/old-" + i), 0);
+            PendingSaveJournal.interrupted(app, ticket);
+        }
+        String original = app.getSharedPreferences(PendingSaveJournal.STORE, 0).getString(PendingSaveJournal.RECORDS, null);
+        assertEquals(PendingSaveJournal.LIMIT, new JSONArray(original).length());
+        assertTrue(PinDownloads.start(pin, activity));
+        fragment().getArguments().putString("url", "https://untrusted.test/pin.jpg");
+        fragment().onActivityResult(48122, Activity.RESULT_OK,
+                new Intent().setData(Uri.parse("content://test.documents/document/new")));
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        awaitReleased();
+        assertTrue(provider.deleted.isEmpty());
+        assertEquals(original, app.getSharedPreferences(PendingSaveJournal.STORE, 0).getString(PendingSaveJournal.RECORDS, null));
+        assertEquals("Save history is full. Remove an old entry before saving another pin.", ShadowToast.getTextOfLatestToast());
     }
 
     private void awaitReleased() throws Exception {

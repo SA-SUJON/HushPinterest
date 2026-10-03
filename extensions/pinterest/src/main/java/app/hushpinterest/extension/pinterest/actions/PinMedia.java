@@ -13,7 +13,7 @@ import java.util.TreeMap;
 
 import app.hushpinterest.extension.pinterest.ads.ModelFields;
 
-/** Reads the public media URLs Pinterest already supplied with a pin. */
+/** Resolves public media and metadata Pinterest already supplied with a pin, without inspecting a file. */
 final class PinMedia {
     private PinMedia() {}
 
@@ -70,6 +70,12 @@ final class PinMedia {
     }
 
     static Source source(Object pin) {
+        Resolution media = resolve(pin);
+        return media == null ? null : media.source;
+    }
+
+    /** Null means the model isn't a verified pin; a known pin can carry a specific refusal. */
+    static Resolution resolve(Object pin) {
         String id = id(pin);
         if (id == null) return null;
         Object videoList = field(field(pin, "videos"), "video_list");
@@ -80,24 +86,43 @@ final class PinMedia {
                 if (entry.getKey() instanceof String) videos.put((String) entry.getKey(), entry.getValue());
             }
             Source best = null;
+            Object selected = null, unsupported = null;
             double largest = -1;
+            double largestUnsupported = -1;
+            boolean adaptive = false;
             for (Object video : videos.values()) {
+                double area = dimension(field(video, "width")) * dimension(field(video, "height"));
+                URI supplied = field(video, "url") instanceof String ? mediaUri((String) field(video, "url")) : null;
+                if (supplied != null && supplied.getPath() != null) {
+                    String path = supplied.getPath().toLowerCase(java.util.Locale.ROOT);
+                    adaptive |= path.endsWith(".m3u8") || path.endsWith(".mpd");
+                }
+                if (unsupported == null || area > largestUnsupported) {
+                    unsupported = video;
+                    largestUnsupported = area;
+                }
                 Source candidate = sourceUrl(field(video, "url"), true);
                 if (candidate == null) continue;
-                double area = dimension(field(video, "width")) * dimension(field(video, "height"));
                 if (best == null || area > largest) {
                     best = candidate;
+                    selected = video;
                     largest = area;
                 }
             }
-            if (best != null) return best;
+            if (best != null) return new Resolution(id, best, null, selected);
             // A supplied playlist still identifies a video when is_video was omitted.
-            if (!((Map<?, ?>) videoList).isEmpty()) return null;
+            if (!((Map<?, ?>) videoList).isEmpty()) {
+                return new Resolution(id, null, adaptive ? Refusal.ADAPTIVE_VIDEO : Refusal.MP4_MISSING, unsupported);
+            }
         }
         // A video thumbnail is not the video the user asked to save.
-        if (Boolean.TRUE.equals(field(pin, "is_video"))) return null;
+        if (Boolean.TRUE.equals(field(pin, "is_video"))) return new Resolution(id, null, Refusal.MP4_MISSING, null);
         Object original = field(field(pin, "images"), "orig");
-        return sourceUrl(field(original, "url"), false);
+        Object url = field(original, "url");
+        Source source = sourceUrl(url, false);
+        Refusal refusal = source != null ? null : !(url instanceof String) ? Refusal.ORIGINAL_MISSING
+                : mediaUri((String) url) == null ? Refusal.PUBLIC_LINK : Refusal.ORIGINAL_TYPE;
+        return new Resolution(id, source, refusal, original);
     }
 
     private static double dimension(Object value) {
@@ -106,7 +131,32 @@ final class PinMedia {
         return Double.isFinite(number) && number > 0 && number <= 100000 ? number : 0;
     }
 
-    private static Source sourceUrl(Object value, boolean video) {
+    private static Integer suppliedDimension(Object value) {
+        double number = dimension(value);
+        return number > 0 && number == Math.rint(number) ? (int) number : null;
+    }
+
+    enum Refusal { ORIGINAL_MISSING, ORIGINAL_TYPE, PUBLIC_LINK, MP4_MISSING, ADAPTIVE_VIDEO }
+
+    static final class Resolution {
+        final String id;
+        final Source source;
+        final Refusal refusal;
+        final Integer width, height;
+        final String urlType;
+
+        private Resolution(String id, Source source, Refusal refusal, Object supplied) {
+            this.id = id;
+            this.source = source;
+            this.refusal = refusal;
+            width = suppliedDimension(field(supplied, "width"));
+            height = suppliedDimension(field(supplied, "height"));
+            // Type comes only from a supported supplied URL, never a probe or a thumbnail.
+            urlType = source == null ? null : source.mime;
+        }
+    }
+
+    static Source sourceUrl(Object value, boolean video) {
         if (!(value instanceof String)) return null;
         URI uri = mediaUri((String) value);
         if (uri == null || uri.getPath() == null) return null;

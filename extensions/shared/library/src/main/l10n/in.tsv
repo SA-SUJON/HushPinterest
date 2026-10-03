@@ -207,3 +207,84 @@ Couldn't save this pin.	Pin ini tidak dapat disimpan.
 Another pin is being saved. Try again when it's finished.	Pin lain sedang disimpan. Coba lagi setelah selesai.
 The file may have saved. Check your chosen save location.	File mungkin sudah tersimpan. Periksa lokasi penyimpanan yang dipilih.
 Couldn't remove the incomplete file. Check your chosen save location.	File yang belum selesai tidak dapat dihapus. Periksa lokasi penyimpanan yang dipilih.
+Queued	Dalam antrean
+Downloading	Mengunduh
+Paused	Dijeda
+Failed	Gagal
+Completed	Selesai
+Missing	Tidak ditemukan
+Unavailable	Tidak tersedia
+Android will retry the download.	Android akan mencoba mengunduh lagi.
+Waiting for a network connection.	Menunggu koneksi jaringan.
+Waiting for Wi-Fi.	Menunggu Wi-Fi.
+Paused by Android.	Dijeda oleh Android.
+Not enough storage.	Ruang penyimpanan tidak cukup.
+Download storage is unavailable.	Penyimpanan unduhan tidak tersedia.
+The file already exists.	File sudah ada.
+Android couldn't resume the download.	Android tidak dapat melanjutkan unduhan.
+The download server couldn't complete the request.	Server unduhan tidak dapat menyelesaikan permintaan.
+Android couldn't save the file.	Android tidak dapat menyimpan file.
+Download failed.	Unduhan gagal.
+Check Downloads for the saved file.	Periksa file yang disimpan di Unduhan.
+Android no longer has this request. Check Downloads before saving again.	Android tidak lagi memiliki permintaan ini. Periksa Unduhan sebelum menyimpan lagi.
+Couldn't check Downloads. Try again.	Tidak dapat memeriksa Unduhan. Coba lagi.
+Resume HushPinterest and turn on Download pins to retry.	Lanjutkan HushPinterest dan aktifkan Unduh pin untuk mencoba lagi.
+Open the pin again to get a fresh download link.	Buka pin lagi untuk mendapatkan tautan unduhan baru.
+This request can't be retried. Check Downloads or open the pin again.	Permintaan ini tidak dapat dicoba lagi. Periksa Unduhan atau buka pin lagi.
+Download started, but its history couldn't be saved. Check Downloads.	Unduhan dimulai, tetapi riwayatnya tidak dapat disimpan. Periksa Unduhan.
+History removed. Files and active downloads were kept.	Riwayat dihapus. File dan unduhan aktif tetap disimpan.
+Couldn't remove this history entry. Try again.	Tidak dapat menghapus entri riwayat ini. Coba lagi.
+Couldn't open Downloads.	Tidak dapat membuka Unduhan.
+Couldn't open this pin.	Tidak dapat membuka pin ini.
+Download history	Riwayat unduhan
+Check recent downloads started by HushPinterest.	Periksa unduhan terbaru yang dimulai oleh HushPinterest.
+Checking download history...	Memeriksa riwayat unduhan...
+Only the 32 most recent HushPinterest requests are listed. Manage active downloads in Downloads.	Hanya 32 permintaan HushPinterest terbaru yang ditampilkan. Kelola unduhan aktif di Unduhan.
+No HushPinterest downloads in this history.	Tidak ada unduhan HushPinterest dalam riwayat ini.
+Android 9 uses the file picker. Its saved files aren't tracked here.	Android 9 menggunakan pemilih file. File yang disimpan tidak dilacak di sini.
+Pin %s	Pin %s
+Retry download	Coba unduh lagi
+Starts a new download. Android manages it.	Memulai unduhan baru. Android mengelolanya.
+Open pin	Buka pin
+Remove from history	Hapus dari riwayat
+Removes this history entry. Files and active downloads are kept.	Menghapus entri riwayat ini. File dan unduhan aktif tetap disimpan.
+Open Downloads	Buka Unduhan
+Refresh	Muat ulang
+Saving	Menyimpan
+Interrupted	Terhenti
+Access unavailable	Akses tidak tersedia
+Save cleanup pending	Pembersihan penyimpanan tertunda
+This save is still running. Try again when it's finished.	Penyimpanan ini masih berjalan. Coba lagi setelah selesai.
+Couldn't check your chosen save location. Open your Files app to inspect it.	Lokasi penyimpanan yang dipilih tidak dapat diperiksa. Buka aplikasi File untuk memeriksanya.
+Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.	Pembersihan penyimpanan tidak dapat dipastikan. File tetap disimpan. Coba hapus entri riwayat ini lagi.
+Check your chosen save location before saving again. HushPinterest won't resume or delete this file.	Periksa lokasi penyimpanan yang dipilih sebelum menyimpan lagi. HushPinterest tidak akan melanjutkan atau menghapus file ini.
+Save history removed. The file was kept.	Riwayat penyimpanan dihapus. File tetap disimpan.
+Couldn't record the save location. No file data was written.	Lokasi penyimpanan tidak dapat dicatat. Tidak ada data file yang ditulis.
+Save history is full. Remove an old entry before saving another pin.	Riwayat penyimpanan penuh. Hapus entri lama sebelum menyimpan Pin lain.
+Pending saves	Penyimpanan tertunda
+Check unfinished file picker saves. Files are kept.	Periksa penyimpanan yang belum selesai dari pemilih file. File tetap disimpan.
+Checking pending saves...	Memeriksa penyimpanan tertunda...
+No pending HushPinterest saves.	Tidak ada penyimpanan HushPinterest yang tertunda.
+Only unfinished saves are listed. Check your chosen location before saving again.	Hanya penyimpanan yang belum selesai ditampilkan. Periksa lokasi yang dipilih sebelum menyimpan lagi.
+Pin saved. Check Pending saves if its history remains.	Pin disimpan. Periksa Penyimpanan tertunda jika riwayatnya masih ada.
+Download unavailable	Unduhan tidak tersedia
+Supplied media details	Detail media yang diberikan
+These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Detail ini berasal dari URL media dan metadata yang diberikan Pinterest. File belum diperiksa.
+Supplied width: %s	Lebar yang diberikan: %s
+Supplied height: %s	Tinggi yang diberikan: %s
+Supplied URL type: %s	Jenis dari URL yang diberikan: %s
+%d pixels	%d piksel
+Unknown	Tidak diketahui
+Close	Tutup
+Couldn't show the supplied media details. Open the pin again and try again.	Detail media yang diberikan tidak dapat ditampilkan. Buka Pin lagi dan coba kembali.
+Pinterest supplied an adaptive video stream, but no downloadable MP4.	Pinterest memberikan aliran video adaptif, tetapi tidak ada MP4 yang dapat diunduh.
+Pinterest hasn't supplied a downloadable MP4 for this pin.	Pinterest belum memberikan MP4 yang dapat diunduh untuk Pin ini.
+Pinterest hasn't supplied an original image to download.	Pinterest belum memberikan gambar asli untuk diunduh.
+The supplied original image type isn't supported for download.	Jenis gambar asli yang diberikan tidak didukung untuk diunduh.
+The supplied media link isn't a supported public Pinterest link.	Tautan media yang diberikan bukan tautan publik Pinterest yang didukung.
+Couldn't start the download. Check system Downloads and try again.	Unduhan tidak dapat dimulai. Periksa Unduhan sistem dan coba lagi.
+Couldn't open a save location. Try again from the pin.	Lokasi penyimpanan tidak dapat dibuka. Coba lagi dari Pin.
+Couldn't complete the save. Check your connection and chosen save location.	Penyimpanan tidak dapat diselesaikan. Periksa koneksi dan lokasi penyimpanan yang dipilih.
+Couldn't write to the chosen save location. Check its access and available space.	Tidak dapat menulis ke lokasi penyimpanan yang dipilih. Periksa akses dan ruang yang tersedia.
+Couldn't download this pin. Check your connection and try again.	Pin ini tidak dapat diunduh. Periksa koneksi dan coba lagi.
+Couldn't prepare this pin for download. Open the pin again and try again.	Pin ini tidak dapat disiapkan untuk diunduh. Buka Pin lagi dan coba kembali.

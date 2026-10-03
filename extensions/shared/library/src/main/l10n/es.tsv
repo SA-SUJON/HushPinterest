@@ -207,3 +207,84 @@ Couldn't save this pin.	No se pudo guardar este pin.
 Another pin is being saved. Try again when it's finished.	Se está guardando otro pin. Inténtalo de nuevo cuando termine.
 The file may have saved. Check your chosen save location.	Puede que el archivo se haya guardado. Revisa la ubicación que elegiste.
 Couldn't remove the incomplete file. Check your chosen save location.	No se pudo eliminar el archivo incompleto. Revisa la ubicación que elegiste.
+Queued	En cola
+Downloading	Descargando
+Paused	En pausa
+Failed	Falló
+Completed	Completado
+Missing	No encontrado
+Unavailable	No disponible
+Android will retry the download.	Android volverá a intentar la descarga.
+Waiting for a network connection.	Esperando una conexión de red.
+Waiting for Wi-Fi.	Esperando Wi-Fi.
+Paused by Android.	Android lo puso en pausa.
+Not enough storage.	No hay suficiente espacio.
+Download storage is unavailable.	El almacenamiento de descargas no está disponible.
+The file already exists.	El archivo ya existe.
+Android couldn't resume the download.	Android no pudo reanudar la descarga.
+The download server couldn't complete the request.	El servidor de descarga no pudo completar la solicitud.
+Android couldn't save the file.	Android no pudo guardar el archivo.
+Download failed.	La descarga falló.
+Check Downloads for the saved file.	Busca el archivo guardado en Descargas.
+Android no longer has this request. Check Downloads before saving again.	Android ya no tiene esta solicitud. Revisa Descargas antes de volver a guardar.
+Couldn't check Downloads. Try again.	No se pudo consultar Descargas. Inténtalo de nuevo.
+Resume HushPinterest and turn on Download pins to retry.	Reanuda HushPinterest y activa Descargar pines para volver a intentarlo.
+Open the pin again to get a fresh download link.	Abre el pin de nuevo para obtener un enlace de descarga actualizado.
+This request can't be retried. Check Downloads or open the pin again.	Esta solicitud no puede repetirse. Revisa Descargas o abre el pin de nuevo.
+Download started, but its history couldn't be saved. Check Downloads.	La descarga comenzó, pero no se pudo guardar su historial. Revisa Descargas.
+History removed. Files and active downloads were kept.	Historial eliminado. Se conservaron los archivos y las descargas activas.
+Couldn't remove this history entry. Try again.	No se pudo eliminar esta entrada del historial. Inténtalo de nuevo.
+Couldn't open Downloads.	No se pudo abrir Descargas.
+Couldn't open this pin.	No se pudo abrir este pin.
+Download history	Historial de descargas
+Check recent downloads started by HushPinterest.	Consulta las descargas recientes iniciadas por HushPinterest.
+Checking download history...	Consultando el historial de descargas...
+Only the 32 most recent HushPinterest requests are listed. Manage active downloads in Downloads.	Solo se muestran las 32 solicitudes más recientes de HushPinterest. Gestiona las descargas activas en Descargas.
+No HushPinterest downloads in this history.	No hay descargas de HushPinterest en este historial.
+Android 9 uses the file picker. Its saved files aren't tracked here.	Android 9 usa el selector de archivos. Los archivos guardados allí no se registran aquí.
+Pin %s	Pin %s
+Retry download	Reintentar descarga
+Starts a new download. Android manages it.	Inicia una descarga nueva. Android la gestiona.
+Open pin	Abrir pin
+Remove from history	Eliminar del historial
+Removes this history entry. Files and active downloads are kept.	Elimina esta entrada del historial. Se conservan los archivos y las descargas activas.
+Open Downloads	Abrir Descargas
+Refresh	Actualizar
+Saving	Guardando
+Interrupted	Interrumpido
+Access unavailable	Acceso no disponible
+Save cleanup pending	Limpieza del guardado pendiente
+This save is still running. Try again when it's finished.	Este guardado sigue en curso. Inténtalo de nuevo cuando termine.
+Couldn't check your chosen save location. Open your Files app to inspect it.	No se pudo comprobar la ubicación elegida. Abre tu aplicación de archivos para revisarla.
+Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.	No se pudo confirmar la limpieza del guardado. Se conservó el archivo. Intenta quitar esta entrada del historial de nuevo.
+Check your chosen save location before saving again. HushPinterest won't resume or delete this file.	Revisa la ubicación elegida antes de guardar de nuevo. HushPinterest no reanudará ni eliminará este archivo.
+Save history removed. The file was kept.	Se quitó el historial del guardado. Se conservó el archivo.
+Couldn't record the save location. No file data was written.	No se pudo registrar la ubicación. No se escribió ningún dato en el archivo.
+Save history is full. Remove an old entry before saving another pin.	El historial de guardados está lleno. Quita una entrada antigua antes de guardar otro Pin.
+Pending saves	Guardados pendientes
+Check unfinished file picker saves. Files are kept.	Revisa los guardados sin terminar del selector de archivos. Se conservan los archivos.
+Checking pending saves...	Comprobando guardados pendientes...
+No pending HushPinterest saves.	No hay guardados pendientes de HushPinterest.
+Only unfinished saves are listed. Check your chosen location before saving again.	Solo se muestran los guardados sin terminar. Revisa la ubicación elegida antes de guardar de nuevo.
+Pin saved. Check Pending saves if its history remains.	Pin guardado. Revisa Guardados pendientes si aún aparece en el historial.
+Download unavailable	Descarga no disponible
+Supplied media details	Detalles del contenido proporcionado
+These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Estos detalles proceden de la URL y los metadatos que proporcionó Pinterest. No se ha inspeccionado el archivo.
+Supplied width: %s	Ancho proporcionado: %s
+Supplied height: %s	Alto proporcionado: %s
+Supplied URL type: %s	Tipo según la URL proporcionada: %s
+%d pixels	%d píxeles
+Unknown	Desconocido
+Close	Cerrar
+Couldn't show the supplied media details. Open the pin again and try again.	No se pudieron mostrar los detalles proporcionados. Abre el Pin de nuevo e inténtalo otra vez.
+Pinterest supplied an adaptive video stream, but no downloadable MP4.	Pinterest proporcionó una transmisión de video adaptativa, pero ningún MP4 descargable.
+Pinterest hasn't supplied a downloadable MP4 for this pin.	Pinterest no ha proporcionado un MP4 descargable para este Pin.
+Pinterest hasn't supplied an original image to download.	Pinterest no ha proporcionado una imagen original para descargar.
+The supplied original image type isn't supported for download.	El tipo de imagen original proporcionado no admite descarga.
+The supplied media link isn't a supported public Pinterest link.	El enlace proporcionado no es un enlace público de Pinterest compatible.
+Couldn't start the download. Check system Downloads and try again.	No se pudo iniciar la descarga. Revisa las descargas del sistema e inténtalo de nuevo.
+Couldn't open a save location. Try again from the pin.	No se pudo abrir una ubicación de guardado. Inténtalo de nuevo desde el Pin.
+Couldn't complete the save. Check your connection and chosen save location.	No se pudo completar el guardado. Revisa la conexión y la ubicación elegida.
+Couldn't write to the chosen save location. Check its access and available space.	No se pudo escribir en la ubicación elegida. Revisa el acceso y el espacio disponible.
+Couldn't download this pin. Check your connection and try again.	No se pudo descargar este Pin. Revisa la conexión e inténtalo de nuevo.
+Couldn't prepare this pin for download. Open the pin again and try again.	No se pudo preparar este Pin para descargarlo. Ábrelo de nuevo e inténtalo otra vez.

@@ -25,6 +25,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
@@ -271,6 +272,10 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             PreferenceCategory actions = category(screen, L10n.t("Pin actions"));
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_PINS, Settings.DOWNLOAD_PINS,
                     L10n.t("Download pins"), L10n.t("Adds Download to the pin menu. Saves original images and available videos."), SettingsIcons.DOWNLOADS);
+            if (build.contains(PatchFamily.DOWNLOAD_PINS)) {
+                actions.addPreference(mark(Build.VERSION.SDK_INT == 28
+                        ? new PendingSavesPreference(context) : new DownloadHistoryPreference(context), SettingsIcons.DOWNLOADS));
+            }
             patchToggle(actions, context, build, PatchFamily.SYSTEM_SHARE, Settings.SYSTEM_SHARE,
                     L10n.t("System share sheet"), L10n.t("Share uses Android's share sheet."), SettingsIcons.EXPORT);
         }

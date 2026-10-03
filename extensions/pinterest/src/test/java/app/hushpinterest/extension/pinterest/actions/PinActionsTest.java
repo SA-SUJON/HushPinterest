@@ -16,6 +16,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Looper;
 
 import org.junit.After;
 import org.junit.Before;
@@ -28,6 +29,7 @@ import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowDownloadManager;
+import org.robolectric.shadows.ShadowToast;
 
 import java.lang.reflect.Method;
 import java.util.EnumSet;
@@ -159,5 +161,37 @@ public class PinActionsTest {
         assertEquals(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED, request.getNotificationVisibility());
         assertTrue(request.getRequestHeaders().isEmpty());
         assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
+    }
+
+    @Test public void suppliedMp4QueuesItsOwnUrlAndType() throws Exception {
+        assertTrue(PinDownloads.start(Map.of("id", "123456", "videos", Map.of("video_list", Map.of(
+                "mp4", Map.of("url", "https://v.pinimg.com/source.mp4", "width", 1920, "height", 1080)))), activity));
+        Method await = Utils.class.getDeclaredMethod("awaitBackgroundTasksForTests");
+        await.setAccessible(true);
+        await.invoke(null);
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        ShadowDownloadManager downloads = Shadows.shadowOf(manager);
+        assertEquals(1, downloads.getRequestCount());
+        ShadowDownloadManager.ShadowRequest request = Shadow.extract(downloads.getRequest(0));
+        assertEquals("https://v.pinimg.com/source.mp4", request.getUri().toString());
+        assertEquals("video/mp4", request.getMimeType());
+        assertTrue(request.getDestination().getLastPathSegment().endsWith(".mp4"));
+        assertTrue(request.getRequestHeaders().isEmpty());
+    }
+
+    @Test public void knownUnsupportedPinsExplainTheRefusalWithoutQueuingAndUnknownModelsStayNative() {
+        assertFalse(PinDownloads.start(Map.of("id", "123", "images", Map.of()), activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Pinterest hasn't supplied an original image to download.", ShadowToast.getTextOfLatestToast());
+        assertFalse(PinDownloads.start(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
+                "hls", Map.of("url", "https://v.pinimg.com/master.m3u8")))), activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Pinterest supplied an adaptive video stream, but no downloadable MP4.", ShadowToast.getTextOfLatestToast());
+        ShadowToast.reset();
+        assertFalse(PinDownloads.start(Map.of("id", "123"), activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertNull(ShadowToast.getTextOfLatestToast());
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        assertEquals(0, Shadows.shadowOf(manager).getRequestCount());
     }
 }

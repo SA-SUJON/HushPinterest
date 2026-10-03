@@ -40,6 +40,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import app.hushpinterest.extension.pinterest.actions.DownloadLedger;
+import app.hushpinterest.extension.pinterest.actions.PendingSaveJournal;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.Utils;
@@ -102,6 +104,8 @@ public final class SettingsEntry {
             Logger.printException(() -> "Settings entry: could not watch activities", ex);
         }
         ReleaseCheck.onPinterestStart();
+        DownloadLedger.onStart(context);
+        if (PatchFamily.Capability.PIN_DOWNLOADS.installed()) PendingSaveJournal.onStart(context);
         publishShortcut(context);
     }
 

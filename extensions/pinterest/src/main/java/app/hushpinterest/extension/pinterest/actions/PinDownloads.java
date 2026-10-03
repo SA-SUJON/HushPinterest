@@ -7,6 +7,7 @@
 package app.hushpinterest.extension.pinterest.actions;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.Fragment;
 import android.content.Context;
@@ -19,7 +20,13 @@ import android.provider.DocumentsContract;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.io.FileNotFoundException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.net.ssl.SSLException;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
@@ -33,6 +40,7 @@ public final class PinDownloads {
     private PinDownloads() {}
 
     static final String ROW_TAG = "hushpinterest_download_pin";
+    private static final String DETAILS_TAG = "hushpinterest_pin_media_details";
     private static final String SAVE_TAG = "hushpinterest_save_pin";
     private static final AtomicBoolean SAVING = new AtomicBoolean();
 
@@ -58,12 +66,19 @@ public final class PinDownloads {
         try {
             Object pin = menuPin(controller);
             ViewGroup layout = menuView(controller);
-            if (layout == null || layout.findViewWithTag(ROW_TAG) != null || PinMedia.source(pin) == null) return;
-            View row = menuRow(layout, L10n.t("Download pin"));
+            PinMedia.Resolution media = PinMedia.resolve(pin);
+            if (layout == null || layout.findViewWithTag(ROW_TAG) != null || media == null) return;
+            boolean supported = media.source != null;
+            String title = supported ? L10n.t("Download pin") : L10n.t("Download unavailable");
+            View row = menuRow(layout, title);
             if (row == null) return;
             row.setTag(ROW_TAG);
+            row.setFocusable(true);
+            row.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+            row.setContentDescription(supported ? title : title + ". " + refusalMessage(media.refusal));
             row.setOnClickListener(ignored -> {
                 if (!active()) return;
+                if (!supported) { showDetails(media); return; }
                 try {
                     if (start(pin, layout.getContext())) dismissMenu(controller);
                 } catch (Throwable failure) {
@@ -71,18 +86,68 @@ public final class PinDownloads {
                 }
             });
             layout.addView(row, 0);
-            HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "download row added to pin menu");
+            if (supported) {
+                String detailsTitle = L10n.t("Supplied media details");
+                View details = menuRow(layout, detailsTitle);
+                if (details != null) {
+                    details.setTag(DETAILS_TAG);
+                    details.setFocusable(true);
+                    details.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+                    details.setContentDescription(detailsTitle);
+                    details.setOnClickListener(ignored -> { if (active()) showDetails(media); });
+                    layout.addView(details, 1);
+                }
+            }
+            HookStatus.counted(FamilyNames.DOWNLOAD_PINS, supported ? "download row added to pin menu" : "download explanation added to pin menu");
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "attach download row", failure);
+        }
+    }
+
+    private static void showDetails(PinMedia.Resolution media) {
+        try {
+            Activity activity = Utils.getActivity();
+            if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+                throw new IllegalStateException("Activity unavailable");
+            }
+            String text = L10n.t("These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.")
+                    + "\n\n" + L10n.f("Supplied width: %s", media.width == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.width))
+                    + "\n" + L10n.f("Supplied height: %s", media.height == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.height))
+                    + "\n" + L10n.f("Supplied URL type: %s", media.urlType == null ? L10n.t("Unknown") : media.urlType);
+            if (media.refusal != null) text = refusalMessage(media.refusal) + "\n\n" + text;
+            new AlertDialog.Builder(activity)
+                    .setTitle(L10n.t("Supplied media details"))
+                    .setMessage(text)
+                    .setPositiveButton(L10n.t("Close"), (dialog, which) -> dialog.dismiss())
+                    .show();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "show supplied media details", failure);
+            Utils.showToastLong(L10n.t("Couldn't show the supplied media details. Open the pin again and try again."));
+        }
+    }
+
+    private static String refusalMessage(PinMedia.Refusal refusal) {
+        switch (refusal) {
+            case ADAPTIVE_VIDEO: return L10n.t("Pinterest supplied an adaptive video stream, but no downloadable MP4.");
+            case MP4_MISSING: return L10n.t("Pinterest hasn't supplied a downloadable MP4 for this pin.");
+            case ORIGINAL_MISSING: return L10n.t("Pinterest hasn't supplied an original image to download.");
+            case ORIGINAL_TYPE: return L10n.t("The supplied original image type isn't supported for download.");
+            case PUBLIC_LINK: return L10n.t("The supplied media link isn't a supported public Pinterest link.");
+            default: throw new IllegalArgumentException("Unknown media refusal");
         }
     }
 
     static boolean start(Object pin, Context context) {
         if (!active()) return false;
         try {
-            PinMedia.Source source = PinMedia.source(pin);
-            String id = PinMedia.id(pin);
-            if (source == null || id == null || context == null) return false;
+            PinMedia.Resolution media = PinMedia.resolve(pin);
+            if (media == null || context == null) return false;
+            PinMedia.Source source = media.source;
+            if (source == null) {
+                Utils.showToastLong(refusalMessage(media.refusal));
+                return false;
+            }
+            String id = media.id;
             String fileName = "Pinterest_" + id + "_" + Long.toUnsignedString(System.nanoTime()) + source.suffix;
             Context app = context.getApplicationContext();
             if (Build.VERSION.SDK_INT >= 29) {
@@ -93,8 +158,10 @@ public final class PinDownloads {
                         if (manager == null) throw new IllegalStateException("Download service unavailable");
                         long request = manager.enqueue(request(source, fileName));
                         if (request < 0) throw new IllegalStateException("Download service rejected pin");
+                        boolean tracked = DownloadLedger.record(app, request, id);
                         HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin queued in Downloads");
-                        Utils.showToastLong(L10n.t("Download started. Check Downloads."));
+                        Utils.showToastLong(L10n.t(tracked ? "Download started. Check Downloads."
+                                : "Download started, but its history couldn't be saved. Check Downloads."));
                     } catch (Throwable failure) {
                         failed("queue pin download", failure);
                     }
@@ -143,7 +210,33 @@ public final class PinDownloads {
 
     private static void failed(String action, Throwable failure) {
         HookStatus.threw(FamilyNames.DOWNLOAD_PINS, action, failure);
-        Utils.showToastLong(L10n.t("Couldn't save this pin."));
+        String message;
+        switch (action) {
+            case "queue pin download":
+                message = L10n.t("Couldn't start the download. Check system Downloads and try again.");
+                break;
+            case "open save location":
+                message = L10n.t("Couldn't open a save location. Try again from the pin.");
+                break;
+            case "save pin document":
+                message = L10n.t("Couldn't complete the save. Check your connection and chosen save location.");
+                int remaining = 8;
+                for (Throwable cause = failure; cause != null && remaining-- > 0; cause = cause.getCause()) {
+                    if (cause instanceof SecurityException || cause instanceof FileNotFoundException) {
+                        message = L10n.t("Couldn't write to the chosen save location. Check its access and available space.");
+                        break;
+                    }
+                    if (cause instanceof SocketException || cause instanceof SocketTimeoutException ||
+                            cause instanceof UnknownHostException || cause instanceof SSLException) {
+                        message = L10n.t("Couldn't download this pin. Check your connection and try again.");
+                        break;
+                    }
+                }
+                break;
+            default:
+                message = L10n.t("Couldn't prepare this pin for download. Open the pin again and try again.");
+        }
+        Utils.showToastLong(message);
     }
 
     static void failedDocument(Context app, Uri destination, Throwable failure) {
@@ -245,19 +338,33 @@ public final class PinDownloads {
                 return;
             }
             PinMedia.Source source = new PinMedia.Source(args.getString("url"), args.getString("mime"), args.getString("suffix"));
+            int offeredFlags = data.getFlags();
             try {
                 boolean queued = Utils.runOnBackgroundThread(() -> {
+                    PendingSaveJournal.Ticket ticket = null;
                     try {
                         if (!active()) {
                             removeDocument(app, destination);
                             return;
                         }
+                        try {
+                            ticket = PendingSaveJournal.begin(app, destination, offeredFlags);
+                        } catch (java.io.IOException unavailable) {
+                            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "record chosen save location", unavailable);
+                            Utils.showToastLong(unavailable instanceof PendingSaveJournal.FullHistoryException
+                                    ? L10n.t("Save history is full. Remove an old entry before saving another pin.")
+                                    : L10n.t("Couldn't record the save location. No file data was written."));
+                            return;
+                        }
                         PinTransfer.save(app, destination, source.url);
                         HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin saved to chosen document");
-                        Utils.showToastLong(L10n.t("Pin saved."));
+                        Utils.showToastLong(PendingSaveJournal.completed(app, ticket)
+                                ? L10n.t("Pin saved.")
+                                : L10n.t("Pin saved. Check Pending saves if its history remains."));
                     } catch (Throwable failure) {
                         failedDocument(app, destination, failure);
                     } finally {
+                        PendingSaveJournal.interrupted(app, ticket);
                         SAVING.set(false);
                     }
                 });

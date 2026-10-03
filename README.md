@@ -93,6 +93,16 @@ Download pins adds a Download row only when Pinterest supplies an original image
 
 Android 9 saves have a five-minute limit and a 256 MiB size limit. Empty or incomplete responses fail. If a save might have finished despite a storage error, HushPinterest keeps the file and asks you to check your chosen location. Pause prevents new requests but doesn't cancel a save already running.
 
+On Android 10 and newer, Download history in Pin actions checks the requests HushPinterest started. It shows Android's current status after Pinterest restarts, when a result arrives and when you tap Refresh. A failed request offers Retry only when Android still supplies a supported media address. Otherwise, reopen the pin. Removing a history entry keeps the downloaded file. Use system Downloads to cancel a request that's still running.
+
+On Android 9, Pending saves lists interrupted file picker saves. HushPinterest records the chosen location before writing and keeps only the recovery access Android offered. If a save's completion is uncertain, check that location yourself before saving again. HushPinterest won't resume, append to or delete the file during recovery. Removing the entry releases only its owned recovery access.
+
+Supplied media details shows dimensions and a type from Pinterest's metadata and media address. The file hasn't been inspected, and missing values stay unknown. A recognized pin without a downloadable original shows Download unavailable with a reason. Adaptive streams don't become thumbnail downloads.
+
+<p>
+  <img src="assets/screenshots/settings-download-history.png" width="240" alt="Download history with Refresh and Back">
+</p>
+
 The release check compares your Pinterest version with every version a release explicitly supports. Updates also has links to the release notes and installation steps. Those links don't download anything automatically.
 
 ## Opening Pinterest links

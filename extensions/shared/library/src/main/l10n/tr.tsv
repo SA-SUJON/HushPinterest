@@ -207,3 +207,84 @@ Couldn't save this pin.	Bu Pin kaydedilemedi.
 Another pin is being saved. Try again when it's finished.	Başka bir Pin kaydediliyor. Bitince tekrar dene.
 The file may have saved. Check your chosen save location.	Dosya kaydedilmiş olabilir. Seçtiğiniz kayıt konumunu kontrol edin.
 Couldn't remove the incomplete file. Check your chosen save location.	Tamamlanmamış dosya kaldırılamadı. Seçtiğiniz kayıt konumunu kontrol edin.
+Queued	Sırada
+Downloading	İndiriliyor
+Paused	Duraklatıldı
+Failed	Başarısız
+Completed	Tamamlandı
+Missing	Bulunamadı
+Unavailable	Kullanılamıyor
+Android will retry the download.	Android indirmeyi yeniden deneyecek.
+Waiting for a network connection.	Ağ bağlantısı bekleniyor.
+Waiting for Wi-Fi.	Wi-Fi bekleniyor.
+Paused by Android.	Android tarafından duraklatıldı.
+Not enough storage.	Yeterli depolama alanı yok.
+Download storage is unavailable.	İndirme depolaması kullanılamıyor.
+The file already exists.	Dosya zaten var.
+Android couldn't resume the download.	Android indirmeyi sürdüremedi.
+The download server couldn't complete the request.	İndirme sunucusu isteği tamamlayamadı.
+Android couldn't save the file.	Android dosyayı kaydedemedi.
+Download failed.	İndirme başarısız oldu.
+Check Downloads for the saved file.	Kaydedilen dosya için İndirilenler'e bakın.
+Android no longer has this request. Check Downloads before saving again.	Android'de bu istek artık yok. Yeniden kaydetmeden önce İndirilenler'i kontrol edin.
+Couldn't check Downloads. Try again.	İndirilenler kontrol edilemedi. Yeniden deneyin.
+Resume HushPinterest and turn on Download pins to retry.	Yeniden denemek için HushPinterest'i sürdürün ve Pinleri indir'i açın.
+Open the pin again to get a fresh download link.	Yeni bir indirme bağlantısı almak için pini yeniden açın.
+This request can't be retried. Check Downloads or open the pin again.	Bu istek yeniden denenemiyor. İndirilenler'i kontrol edin veya pini yeniden açın.
+Download started, but its history couldn't be saved. Check Downloads.	İndirme başladı ancak geçmişi kaydedilemedi. İndirilenler'i kontrol edin.
+History removed. Files and active downloads were kept.	Geçmiş kaldırıldı. Dosyalar ve etkin indirmeler korundu.
+Couldn't remove this history entry. Try again.	Bu geçmiş kaydı kaldırılamadı. Yeniden deneyin.
+Couldn't open Downloads.	İndirilenler açılamadı.
+Couldn't open this pin.	Bu pin açılamadı.
+Download history	İndirme geçmişi
+Check recent downloads started by HushPinterest.	HushPinterest'in başlattığı son indirmeleri kontrol edin.
+Checking download history...	İndirme geçmişi kontrol ediliyor...
+Only the 32 most recent HushPinterest requests are listed. Manage active downloads in Downloads.	Yalnızca HushPinterest'in son 32 isteği listelenir. Etkin indirmeleri İndirilenler'de yönetin.
+No HushPinterest downloads in this history.	Bu geçmişte HushPinterest indirmesi yok.
+Android 9 uses the file picker. Its saved files aren't tracked here.	Android 9 dosya seçiciyi kullanır. Kaydettiği dosyalar burada izlenmez.
+Pin %s	Pin %s
+Retry download	İndirmeyi yeniden dene
+Starts a new download. Android manages it.	Yeni bir indirme başlatır. Android bunu yönetir.
+Open pin	Pini aç
+Remove from history	Geçmişten kaldır
+Removes this history entry. Files and active downloads are kept.	Bu geçmiş kaydını kaldırır. Dosyalar ve etkin indirmeler korunur.
+Open Downloads	İndirilenler'i aç
+Refresh	Yenile
+Saving	Kaydediliyor
+Interrupted	Kesildi
+Access unavailable	Erişim kullanılamıyor
+Save cleanup pending	Kaydetme temizliği bekliyor
+This save is still running. Try again when it's finished.	Bu kaydetme işlemi sürüyor. Tamamlandığında tekrar deneyin.
+Couldn't check your chosen save location. Open your Files app to inspect it.	Seçtiğiniz kaydetme konumu kontrol edilemedi. İncelemek için Dosyalar uygulamanızı açın.
+Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.	Kaydetme temizliği doğrulanamadı. Dosya korundu. Bu geçmiş kaydını kaldırmayı tekrar deneyin.
+Check your chosen save location before saving again. HushPinterest won't resume or delete this file.	Tekrar kaydetmeden önce seçtiğiniz konumu kontrol edin. HushPinterest bu dosyayı devam ettirmez veya silmez.
+Save history removed. The file was kept.	Kaydetme geçmişi kaldırıldı. Dosya korundu.
+Couldn't record the save location. No file data was written.	Kaydetme konumu kaydedilemedi. Dosyaya veri yazılmadı.
+Save history is full. Remove an old entry before saving another pin.	Kaydetme geçmişi dolu. Başka bir Pin kaydetmeden önce eski bir kaydı kaldırın.
+Pending saves	Bekleyen kaydetmeler
+Check unfinished file picker saves. Files are kept.	Dosya seçicisindeki tamamlanmamış kaydetmeleri kontrol edin. Dosyalar korunur.
+Checking pending saves...	Bekleyen kaydetmeler kontrol ediliyor...
+No pending HushPinterest saves.	Bekleyen HushPinterest kaydetmesi yok.
+Only unfinished saves are listed. Check your chosen location before saving again.	Yalnızca tamamlanmamış kaydetmeler listelenir. Tekrar kaydetmeden önce seçtiğiniz konumu kontrol edin.
+Pin saved. Check Pending saves if its history remains.	Pin kaydedildi. Geçmiş kaydı kalırsa Bekleyen kaydetmeler bölümünü kontrol edin.
+Download unavailable	İndirme kullanılamıyor
+Supplied media details	Sağlanan medya ayrıntıları
+These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Bu ayrıntılar Pinterest'in sağladığı medya adresinden ve meta verilerden gelir. Dosya incelenmedi.
+Supplied width: %s	Sağlanan genişlik: %s
+Supplied height: %s	Sağlanan yükseklik: %s
+Supplied URL type: %s	Sağlanan adrese göre tür: %s
+%d pixels	%d piksel
+Unknown	Bilinmiyor
+Close	Kapat
+Couldn't show the supplied media details. Open the pin again and try again.	Sağlanan medya ayrıntıları gösterilemedi. Pin'i yeniden açıp tekrar deneyin.
+Pinterest supplied an adaptive video stream, but no downloadable MP4.	Pinterest uyarlanabilir bir video akışı sağladı, ancak indirilebilir MP4 sağlamadı.
+Pinterest hasn't supplied a downloadable MP4 for this pin.	Pinterest bu Pin için indirilebilir MP4 sağlamadı.
+Pinterest hasn't supplied an original image to download.	Pinterest indirilecek özgün bir görsel sağlamadı.
+The supplied original image type isn't supported for download.	Sağlanan özgün görsel türünün indirilmesi desteklenmiyor.
+The supplied media link isn't a supported public Pinterest link.	Sağlanan medya bağlantısı desteklenen herkese açık bir Pinterest bağlantısı değil.
+Couldn't start the download. Check system Downloads and try again.	İndirme başlatılamadı. Sistemin İndirilenler bölümünü kontrol edip tekrar deneyin.
+Couldn't open a save location. Try again from the pin.	Kaydetme konumu açılamadı. Pin'den tekrar deneyin.
+Couldn't complete the save. Check your connection and chosen save location.	Kaydetme tamamlanamadı. Bağlantınızı ve seçtiğiniz konumu kontrol edin.
+Couldn't write to the chosen save location. Check its access and available space.	Seçilen konuma yazılamadı. Erişimi ve kullanılabilir alanı kontrol edin.
+Couldn't download this pin. Check your connection and try again.	Bu Pin indirilemedi. Bağlantınızı kontrol edip tekrar deneyin.
+Couldn't prepare this pin for download. Open the pin again and try again.	Bu Pin indirmeye hazırlanamadı. Pin'i yeniden açıp tekrar deneyin.
