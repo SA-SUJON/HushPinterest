@@ -19,6 +19,9 @@
 param(
     [string]$Root,
     [switch]$VerifyPublishedAsset,
+    # Pin these independently of the release download. Companion keys are never fetched.
+    [string]$TrustedPublicKeyPath = $env:HUSHPINTEREST_RELEASE_PUBLIC_KEY,
+    [string]$TrustedFingerprint = $env:HUSHPINTEREST_RELEASE_FINGERPRINT,
     [string]$ArtifactPath,
     # The published asset checked on its own, for an index push from a checkout with no bundle
     # built for the version the index publishes. The indexed asset is downloaded and read wherever
@@ -78,6 +81,7 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 . (Join-Path $PSScriptRoot 'release-advisories.ps1')
 . (Join-Path $PSScriptRoot 'common.ps1')
 . (Join-Path $PSScriptRoot 'pinterest-sources.ps1')
+. (Join-Path $PSScriptRoot 'release-checksums.ps1')
 
 function Read-JsonFile {
     param([string]$Path)
@@ -543,8 +547,14 @@ if (-not $SkipDescriptionTestCount) {
 $hostedArtifact = $null
 $hostedSbom = $null
 $hostedReceiptDir = $null
+$authenticatedChecksumsDir = $null
 try {
 if ($VerifyPublishedAsset) {
+    if ([string]::IsNullOrWhiteSpace($TrustedPublicKeyPath) -or [string]::IsNullOrWhiteSpace($TrustedFingerprint)) {
+        throw 'Published asset verification requires an independently pinned public key and full fingerprint.'
+    }
+    [void](Get-ReleaseChecksumFingerprint $TrustedFingerprint)
+    [void](Get-ReleaseChecksumPath -Path $TrustedPublicKeyPath)
     if (-not $ArtifactIsHosted) {
         if ([string]::IsNullOrWhiteSpace($ArtifactPath)) {
             $ArtifactPath = Get-ReleaseBundlePath -Root $rootPath -Version $releaseVersion
@@ -588,7 +598,6 @@ if ($VerifyPublishedAsset) {
             if ($localHash -ne $publishedHash) {
                 throw "The hosted bundle hash $publishedHash does not match the local artifact hash $localHash."
             }
-            Write-Host "[release] the hosted $assetName matches the bundle built here byte for byte: $ArtifactPath"
         }
 
         $checksumUri = [Uri]::new($assetUri, 'SHA256SUMS.txt')
@@ -601,6 +610,22 @@ if ($VerifyPublishedAsset) {
             throw "The hosted SHA256SUMS.txt returned HTTP $($checksumResponse.StatusCode)."
         }
         $checksumText = [Text.Encoding]::UTF8.GetString([byte[]]$checksumResponse.Content)
+        $authenticatedChecksumsDir = Join-Path ([IO.Path]::GetTempPath()) ('hushpinterest-release-auth-' + [guid]::NewGuid().ToString('N'))
+        [void][IO.Directory]::CreateDirectory($authenticatedChecksumsDir)
+        $checksumPath = Join-Path $authenticatedChecksumsDir 'SHA256SUMS.txt'
+        $signaturePath = Join-Path $authenticatedChecksumsDir 'SHA256SUMS.txt.asc'
+        [IO.File]::WriteAllBytes($checksumPath, [byte[]]$checksumResponse.Content)
+        $signatureUri = [Uri]::new($assetUri, 'SHA256SUMS.txt.asc')
+        try {
+            $signatureResponse = Invoke-WebRequest -Uri $signatureUri -MaximumRedirection 5 -TimeoutSec 60 -UseBasicParsing
+        } catch {
+            throw "Could not download the detached checksum signature: $($_.Exception.Message)"
+        }
+        if ($signatureResponse.StatusCode -ne 200) { throw "The detached checksum signature returned HTTP $($signatureResponse.StatusCode)." }
+        [IO.File]::WriteAllBytes($signaturePath, [byte[]]$signatureResponse.Content)
+        $authenticatedChecksums = Read-AuthenticatedReleaseChecksums -ChecksumsPath $checksumPath -SignaturePath $signaturePath `
+            -TrustedPublicKeyPath $TrustedPublicKeyPath -TrustedFingerprint $TrustedFingerprint
+        Write-Host "[release] checksum signature authenticated offline against pinned signer $($authenticatedChecksums.Fingerprint)"
         $checksumMatch = [regex]::Match(
             $checksumText,
             "(?im)^\s*([0-9a-f]{64})\s+\*?$([regex]::Escape($assetName))\s*$"
@@ -611,6 +636,9 @@ if ($VerifyPublishedAsset) {
         $listedHash = $checksumMatch.Groups[1].Value.ToLowerInvariant()
         if ($listedHash -ne $publishedHash) {
             throw "SHA256SUMS.txt lists $listedHash for $assetName, but the hosted artifact is $publishedHash."
+        }
+        if (-not $ArtifactIsHosted) {
+            Write-Host "[release] the hosted $assetName matches the bundle built here byte for byte: $ArtifactPath"
         }
         # A matching hash proves the published file is the one this checkout built. It does not
         # prove either of them is what the released commit builds, and on v0.28.0 the two came
@@ -1145,6 +1173,7 @@ Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " +
 # command's code in $LASTEXITCODE, so a clean run has to say so itself.
 exit 0
 } finally {
+    if ($authenticatedChecksumsDir) { Remove-ReleaseChecksumWorkspace $authenticatedChecksumsDir }
     if ($hostedArtifact) { Remove-Item -LiteralPath $hostedArtifact -Force -ErrorAction SilentlyContinue }
     if ($hostedSbom) { Remove-Item -LiteralPath $hostedSbom -Recurse -Force -ErrorAction SilentlyContinue }
     if ($hostedReceiptDir) { Remove-Item -LiteralPath $hostedReceiptDir -Recurse -Force -ErrorAction SilentlyContinue }

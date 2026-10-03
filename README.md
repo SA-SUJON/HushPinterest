@@ -151,6 +151,29 @@ Build dependencies have a separate advisory check. Run `./gradlew :patches:build
 
 These constraints apply to builds from this repository. They don't replace libraries inside an installed Morphe Manager or Desktop JAR. Desktop 1.18.0 includes Guava 33.5.0-jre. That separate tool needs an upstream build with reviewed Guava 33.7.2 or newer. Check Manager's own resolved dependencies when upgrading it. Neither tool's bundled dependencies are attested by this project's build report.
 
+## Verify a release download
+
+Release verification requires a public signing key and its complete fingerprint that you obtained through an independent trusted channel. A key downloaded beside the bundle doesn't establish that trust. There's no published release or production release signer yet.
+
+Keep the bundle, its SBOM and release receipt together with `SHA256SUMS.txt` and `SHA256SUMS.txt.asc`. With GnuPG installed, verify them locally before importing the bundle into Morphe Manager:
+
+```powershell
+& ./scripts/verify-release-checksums.ps1 `
+    -AssetDirectory ./download `
+    -ChecksumsPath ./download/SHA256SUMS.txt `
+    -SignaturePath ./download/SHA256SUMS.txt.asc `
+    -TrustedPublicKeyPath ./trusted/release-public-key.asc `
+    -TrustedFingerprint '<complete independently verified fingerprint>'
+```
+
+The check authenticates the checksum signature offline in a fresh keyring, then checks every listed file. Missing signatures, different signers and changed bytes fail. Morphe Manager 1.33.0 and Desktop 1.18.0 don't perform this authentication automatically. Import the locally verified bundle yourself.
+
+`validate-release-facts.ps1 -VerifyPublishedAsset` also requires `-TrustedPublicKeyPath` and `-TrustedFingerprint`. Its nonsecret environment alternatives are `HUSHPINTEREST_RELEASE_PUBLIC_KEY` and `HUSHPINTEREST_RELEASE_FINGERPRINT`. It authenticates the hosted checksum payload before accepting bundle hashes, then checks the published receipt, SBOM and release commit as before.
+
+For release preparation, `sign-release-checksums.ps1` writes a canonical checksum payload and detached signature using an explicitly selected private keyring kept outside the repository and release assets. It verifies its own result before writing final files. Existing checksum files are never overwritten. Signing remains part of an explicitly requested release.
+
+Key rotation requires independently verifying the replacement fingerprint before changing your pin. Refresh the trusted public key through that same channel to receive revocation and expiry updates. A cached key can't tell you about a revocation it hasn't received. Stop accepting a revoked or expired key. Don't replace your pin just because a download fails authentication.
+
 ## License
 
 [GPL-3.0](LICENSE), with the Morphe section 7 notices carried in [NOTICE](NOTICE). Pinterest is a trademark of Pinterest, Inc. HushPinterest isn't made by or connected with Pinterest.

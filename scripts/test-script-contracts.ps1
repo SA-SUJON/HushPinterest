@@ -4841,6 +4841,22 @@ try {
     $servedSbom = $cleanServedSbom
     $servedSums = $null
     $servedReceipt = $null
+    . (Join-Path $PSScriptRoot 'release-checksums.ps1')
+    $signerFixture = Join-Path $releaseRoot 'checksum-signer'
+    [void][IO.Directory]::CreateDirectory($signerFixture)
+    $signerHome = Join-Path $signerFixture 'private'
+    [void][IO.Directory]::CreateDirectory($signerHome)
+    $generated = Invoke-ReleaseChecksumGpg 'gpg' (@(Get-ReleaseChecksumGpgArguments $signerHome) + @(
+        '--pinentry-mode','loopback','--passphrase=','--quick-generate-key',
+        'Release fixture <release-fixture@example.invalid>','ed25519','sign','1d'))
+    Assert-True ($generated.ExitCode -eq 0) "Could not create the isolated checksum test signer: $($generated.Output -join ' ')"
+    $listedSigner = Invoke-ReleaseChecksumGpg 'gpg' (@(Get-ReleaseChecksumGpgArguments $signerHome) + @('--with-colons','--with-fingerprint','--list-keys'))
+    $signerFingerprint = (@($listedSigner.Output | Where-Object { $_ -like 'fpr:*' })[0].Split(':')[9]).ToUpperInvariant()
+    $signerPublicKey = Join-Path $signerFixture 'public.asc'
+    $exportedSigner = Invoke-ReleaseChecksumGpg 'gpg' (@(Get-ReleaseChecksumGpgArguments $signerHome) + @(
+        '--armor','--output',$signerPublicKey,'--export',$signerFingerprint))
+    Assert-True ($exportedSigner.ExitCode -eq 0) 'Could not export the isolated checksum public key.'
+    $servedSignatureMode = 'valid'
     $publishedStandIns = {
         function Invoke-WebRequest {
             param($Uri, $Method, $OutFile, $MaximumRedirection, $TimeoutSec, [switch]$PassThru, [switch]$UseBasicParsing)
@@ -4858,6 +4874,29 @@ try {
                 "$((Get-FileHash -LiteralPath $servedBundle -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.mpp`n" +
                     "$((Get-FileHash -LiteralPath $servedSbom -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.cdx.json`n" +
                     "$((Get-FileHash -LiteralPath $receiptServed -Algorithm SHA256).Hash.ToLowerInvariant())  release-receipt-$releaseVersionHere.json`n"
+            }
+            if ("$Uri" -like '*/SHA256SUMS.txt' -or "$Uri" -like '*/SHA256SUMS.txt.asc') {
+                $lines = @($sums.TrimEnd([char]10).Split([char]10) | Sort-Object { $_.Substring(66) })
+                $sums = ($lines -join "`n") + "`n"
+                $payloadPath = Join-Path $signerFixture 'SHA256SUMS.txt'
+                $signaturePath = "$payloadPath.asc"
+                if ("$Uri" -like '*/SHA256SUMS.txt') {
+                    [IO.File]::WriteAllText($payloadPath, $sums, [Text.Encoding]::ASCII)
+                    Remove-Item -LiteralPath $signaturePath -Force -ErrorAction SilentlyContinue
+                    $signedFixture = Invoke-ReleaseChecksumGpg 'gpg' (@(Get-ReleaseChecksumGpgArguments $signerHome) + @(
+                        '--armor','--digest-algo','SHA256','--local-user',$signerFingerprint,'--output',$signaturePath,
+                        '--detach-sign',$payloadPath))
+                    if ($signedFixture.ExitCode -ne 0) { throw 'Could not sign the hosted checksum fixture.' }
+                    if ($servedSignatureMode -eq 'tampered-hash') {
+                        $first = if ($sums[0] -eq '0') { '1' } else { '0' }
+                        $sums = $first + $sums.Substring(1)
+                    }
+                } else {
+                    if ($servedSignatureMode -eq 'missing') { throw 'Detached signature fixture is missing.' }
+                    $signatureBytes = [IO.File]::ReadAllBytes($signaturePath)
+                    if ($servedSignatureMode -eq 'tampered-signature') { $signatureBytes = [Text.Encoding]::ASCII.GetBytes('not a signature') }
+                    return [pscustomobject]@{ StatusCode = 200; Content = $signatureBytes }
+                }
             }
             [pscustomobject]@{ StatusCode = 200; Content = [Text.Encoding]::UTF8.GetBytes($sums) }
         }
@@ -4887,8 +4926,21 @@ try {
         }
     }
     $publishedRun = @{ VerifyPublishedAsset = $true; ArtifactPath = $releaseBundle; SkipDescriptionTestCount = $true
-        SkipUrlCheck = $true; DesktopJar = $stubJar; Java = $listJava }
+        SkipUrlCheck = $true; DesktopJar = $stubJar; Java = $listJava;
+        TrustedPublicKeyPath = $signerPublicKey; TrustedFingerprint = $signerFingerprint }
     try {
+        $missingPin = $publishedRun.Clone()
+        $missingPin['TrustedPublicKeyPath'] = ''; $missingPin['TrustedFingerprint'] = ''
+        Assert-Throws { Invoke-IndexPushCheck $missingPin } '*requires an independently pinned*' 'An asset was accepted without an independent signer pin.'
+        $wrongPin = $publishedRun.Clone()
+        $wrongPin['TrustedFingerprint'] = '0' * 40
+        Assert-Throws { Invoke-IndexPushCheck $wrongPin } '*pinned fingerprint*' 'An asset was accepted under a mismatched pinned key.'
+        foreach ($mode in @('tampered-hash','tampered-signature','missing')) {
+            $servedSignatureMode = $mode
+            $pattern = if ($mode -eq 'missing') { '*Could not download the detached checksum signature*' } else { '*signature authentication failed*' }
+            Assert-Throws { Invoke-IndexPushCheck $publishedRun } $pattern "The asset runner accepted $mode checksum authentication."
+        }
+        $servedSignatureMode = 'valid'
         Invoke-FixtureGit -Root $releaseRepo -Arguments @('tag', '-d', "v$indexVersionHere") | Out-Null
         $said = Invoke-IndexPushCheck $publishedRun
         Assert-True ($said -like "*published bundle is pinned to v$indexVersionHere ($releaseCommit)*" -and
@@ -5034,7 +5086,8 @@ try {
         function Invoke-IndexPushHook {
             $saved = @{}
             foreach ($variable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'GIT_*' -or $_.Name -in @('TMP', 'TEMP',
-                    'HUSHPINTEREST_DESKTOP_JAR', 'HUSHPINTEREST_JAVA', 'HUSHPINTEREST_SKIP_PRE_PUSH') })) {
+                    'HUSHPINTEREST_DESKTOP_JAR', 'HUSHPINTEREST_JAVA', 'HUSHPINTEREST_SKIP_PRE_PUSH',
+                    'HUSHPINTEREST_RELEASE_PUBLIC_KEY', 'HUSHPINTEREST_RELEASE_FINGERPRINT') })) {
                 $saved[$variable.Name] = $variable.Value
                 Remove-Item -LiteralPath ('Env:\' + $variable.Name) -ErrorAction SilentlyContinue
             }
@@ -5042,6 +5095,8 @@ try {
             $env:TEMP = $hookTemp
             $env:HUSHPINTEREST_DESKTOP_JAR = $stubJar
             $env:HUSHPINTEREST_JAVA = $listJava
+            $env:HUSHPINTEREST_RELEASE_PUBLIC_KEY = $signerPublicKey
+            $env:HUSHPINTEREST_RELEASE_FINGERPRINT = $signerFingerprint
             try {
                 . $publishedStandIns
                 . $osvStandIn
@@ -5051,7 +5106,8 @@ try {
                 if ($LASTEXITCODE -ne 0) { throw "The index push exited $LASTEXITCODE`: $said" }
                 return $said
             } finally {
-                foreach ($name in @('TMP', 'TEMP', 'HUSHPINTEREST_DESKTOP_JAR', 'HUSHPINTEREST_JAVA')) {
+                foreach ($name in @('TMP', 'TEMP', 'HUSHPINTEREST_DESKTOP_JAR', 'HUSHPINTEREST_JAVA',
+                        'HUSHPINTEREST_RELEASE_PUBLIC_KEY', 'HUSHPINTEREST_RELEASE_FINGERPRINT')) {
                     Remove-Item -LiteralPath ('Env:\' + $name) -ErrorAction SilentlyContinue
                 }
                 foreach ($name in $saved.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $saved[$name] }
@@ -5296,6 +5352,9 @@ try {
     Assert-True ($said -like "*tag v$indexVersionHere isn't in this clone, so the Manager floor the index names wasn't checked*") `
         "A lag window without the index version's tag did not say the floor went unchecked: $said"
 } finally {
+    if ($signerHome -and (Test-Path -LiteralPath $signerHome)) {
+        Invoke-ReleaseChecksumGpg 'gpgconf' @('--homedir', $signerHome, '--kill', 'gpg-agent') | Out-Null
+    }
     Remove-Item -LiteralPath $releaseRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
 
@@ -5425,3 +5484,5 @@ Write-Host '[scripts] report, target, Java and guarded replacement contracts pas
 
 & (Join-Path $PSScriptRoot 'test-manifest-contracts.ps1') -Root $Root
 if ($LASTEXITCODE -ne 0) { throw 'The compiled manifest contracts did not pass.' }
+& (Join-Path $PSScriptRoot 'test-release-checksums.ps1')
+if ($LASTEXITCODE -ne 0) { throw 'The offline release signature contracts did not pass.' }
