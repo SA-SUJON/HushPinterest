@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod;
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation;
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10t;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c;
@@ -51,6 +52,9 @@ public final class FeatureDexFixture {
     private static final String CLIPBOARD = "Landroid/content/ClipData;";
     private static final String STRING = "Ljava/lang/String;";
     private static final String TEXT = "Ljava/lang/CharSequence;";
+    private static final String MANAGER = "Landroid/content/pm/ShortcutManager;";
+    private static final String PUBLISHER = "Lfixture/ShortcutPublisher;";
+    private static final List<String> SHORTCUTS = List.of("pushDynamicShortcut", "addDynamicShortcuts", "setDynamicShortcuts", "updateShortcuts", "removeAllDynamicShortcuts");
     private static final Map<String, String[]> FAMILIES = new LinkedHashMap<>();
     private static final Map<String, Boolean> FLAGS = new LinkedHashMap<>();
 
@@ -99,6 +103,7 @@ public final class FeatureDexFixture {
         classes.put(ACTIVITY, new ArrayList<>(List.of(
                 method(ACTIVITY, "onCreate", VOID, false, 2, create, "Landroid/os/Bundle;"),
                 method(ACTIVITY, "onNewIntent", VOID, false, 2, intent, INTENT))));
+        shortcuts(classes, patched, "good");
         return classes;
     }
 
@@ -107,11 +112,48 @@ public final class FeatureDexFixture {
         FLAGS.forEach((name, value) -> flags.add(method(STATUS, name, "Z", true, 1,
                 List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, value ? 1 : 0), new ImmutableInstruction11x(Opcode.RETURN, 0)))));
         classes.put(STATUS, flags);
-        classes.put(UTILS, List.of(method(UTILS, "setContext", VOID, true, 1, List.of(end()), CONTEXT)));
-        classes.put(ENTRY, List.of(
+        classes.put(UTILS, List.of(method(UTILS, "setContext", VOID, true, 1, List.of(end()), CONTEXT),
+                method(UTILS, "settingsReady", "Z", true, 1,
+                        List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 1), new ImmutableInstruction11x(Opcode.RETURN, 0)))));
+        List<Method> entry = new ArrayList<>(List.of(
                 method(ENTRY, "onApplicationCreate", VOID, true, 1, List.of(end()), CONTEXT),
                 method(ENTRY, "onActivityCreate", VOID, true, 1, List.of(end()), "Landroid/app/Activity;"),
                 method(ENTRY, "onNewIntent", VOID, true, 2, List.of(end()), "Landroid/app/Activity;", INTENT)));
+        for (Method m : classes.getOrDefault(ENTRY, List.of())) if (SHORTCUTS.contains(m.getName())) entry.add(m);
+        classes.put(ENTRY, entry);
+    }
+
+    private static Instruction readiness() { return invoke(Opcode.INVOKE_STATIC, ref(UTILS, "settingsReady", "Z")); }
+
+    private static void shortcuts(Map<String, List<Method>> classes, boolean patched, String variant) {
+        List<Instruction> publisher = new ArrayList<>();
+        List<Method> wrappers = new ArrayList<>();
+        for (String name : SHORTCUTS) {
+            String[] parameters = name.equals("removeAllDynamicShortcuts") ? new String[]{}
+                    : new String[]{name.equals("pushDynamicShortcut") ? "Landroid/content/pm/ShortcutInfo;" : LIST};
+            String result = name.equals("pushDynamicShortcut") || parameters.length == 0 ? VOID : "Z";
+            int[] hostArgs = parameters.length == 0 ? new int[]{1} : new int[]{1, name.equals("pushDynamicShortcut") ? 2 : 3};
+            List<String> wrapperParameters = new ArrayList<>(List.of(MANAGER)); wrapperParameters.addAll(Arrays.asList(parameters));
+            publisher.add(invoke(patched ? Opcode.INVOKE_STATIC : Opcode.INVOKE_VIRTUAL,
+                    patched ? ref(ENTRY, name, result, wrapperParameters.toArray(String[]::new)) : ref(MANAGER, name, result, parameters), hostArgs));
+            if (!result.equals(VOID)) publisher.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
+            if (!patched) continue;
+            List<Instruction> body = new ArrayList<>();
+            if (variant.equals(name)) {
+                if (result.equals(VOID)) body.add(end());
+                else { body.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0)); body.add(new ImmutableInstruction11x(Opcode.RETURN, 0)); }
+            }
+            if (variant.equals("branch-good") && name.equals("pushDynamicShortcut")) {
+                body.add(new ImmutableInstruction10t(Opcode.GOTO, 2)); body.add(end());
+            }
+            body.add(invoke(Opcode.INVOKE_VIRTUAL, ref(MANAGER, name, result, parameters), parameters.length == 0 ? new int[]{1} : new int[]{1, 2}));
+            if (!result.equals(VOID)) body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
+            body.add(result.equals(VOID) ? end() : new ImmutableInstruction11x(Opcode.RETURN, 0));
+            wrappers.add(method(ENTRY, name, result, true, wrapperParameters.size() + 1, body, wrapperParameters.toArray(String[]::new)));
+        }
+        publisher.add(end());
+        classes.put(PUBLISHER, List.of(method(PUBLISHER, "publish", VOID, true, 4, publisher, MANAGER, "Landroid/content/pm/ShortcutInfo;", LIST)));
+        if (patched) classes.put(ENTRY, wrappers);
     }
 
     private static void enable(String name) {
@@ -161,8 +203,14 @@ public final class FeatureDexFixture {
         if (variant.equals("misrouted")) methods.add(method(OBSERVER, "unrelated", VOID, true, 1,
                 List.of(invoke(Opcode.INVOKE_STATIC, ref(SCREENSHOT, "hideScreenshotShare", "Z")), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end())));
         classes.put(OBSERVER, methods);
-        if (!variant.equals("clean")) classes.put(SCREENSHOT, List.of(method(SCREENSHOT, "hideScreenshotShare", "Z", true, 1,
-                List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction11x(Opcode.RETURN, 0)))));
+        if (!variant.equals("clean")) {
+            List<Instruction> decision = new ArrayList<>();
+            if (variant.equals("unreachable-control")) {
+                decision.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0)); decision.add(new ImmutableInstruction11x(Opcode.RETURN, 0));
+            }
+            decision.add(readiness()); decision.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)); decision.add(new ImmutableInstruction11x(Opcode.RETURN, 0));
+            classes.put(SCREENSHOT, List.of(method(SCREENSHOT, "hideScreenshotShare", "Z", true, 1, decision)));
+        }
     }
 
     private static void feed(Map<String, List<Method>> classes, String variant) {
@@ -178,18 +226,26 @@ public final class FeatureDexFixture {
         ctor.add(end());
         classes.put(FEED, List.of(method(FEED, "<init>", VOID, false, 2, ctor, LIST), method(FEED, "toString", STRING, false, 2,
                 List.of(literal(", _items count:", 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)))));
-        if (!variant.equals("clean")) classes.put(FILTER, List.of(method(FILTER, "filter", LIST, true, 1,
-                List.of(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)), LIST)));
+        if (!variant.equals("clean")) {
+            List<Instruction> decision = new ArrayList<>();
+            if (variant.equals("unreachable-control")) decision.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1));
+            decision.add(readiness()); decision.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)); decision.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1));
+            classes.put(FILTER, List.of(method(FILTER, "filter", LIST, true, 2, decision, LIST)));
+        }
     }
 
     private static void links(Map<String, List<Method>> classes, boolean patched, String variant, boolean clipboard) {
         ImmutableMethodReference nativeIntent = ref(INTENT, "putExtra", INTENT, STRING, STRING);
         ImmutableMethodReference intentHook = ref(TRACKING, "putStringExtra", INTENT, INTENT, STRING, STRING);
+        ImmutableMethodReference nativeText = ref(INTENT, "putExtra", INTENT, STRING, TEXT);
+        ImmutableMethodReference textHook = ref(TRACKING, "putTextExtra", INTENT, INTENT, STRING, TEXT);
         ImmutableMethodReference nativeClipboard = ref(CLIPBOARD, "newPlainText", CLIPBOARD, TEXT, TEXT);
         ImmutableMethodReference clipboardHook = ref(TRACKING, "newPlainText", CLIPBOARD, TEXT, TEXT);
         List<Instruction> body = new ArrayList<>();
         if (patched && !variant.equals("left-original")) body.add(invoke(Opcode.INVOKE_STATIC, intentHook, variant.equals("wrong-register") ? 2 : 1, 2, 3));
         else body.add(invoke(Opcode.INVOKE_VIRTUAL, nativeIntent, 1, 2, 3));
+        body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
+        body.add(invoke(patched ? Opcode.INVOKE_STATIC : Opcode.INVOKE_VIRTUAL, patched ? textHook : nativeText, 1, 2, 3));
         body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
         if (clipboard) {
             body.add(invoke(Opcode.INVOKE_STATIC, patched ? clipboardHook : nativeClipboard, 2, 3));
@@ -198,16 +254,41 @@ public final class FeatureDexFixture {
         body.add(end());
         classes.put(SENDER, List.of(method(SENDER, "send", VOID, true, 4, body, INTENT, STRING, STRING)));
         if (patched) {
-            List<Instruction> wrapper = new ArrayList<>();
-            if (!variant.equals("missing-original-fallback")) {
-                wrapper.add(invoke(Opcode.INVOKE_VIRTUAL, nativeIntent, 0, 1, 2));
-                wrapper.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
+            List<Instruction> active = new ArrayList<>();
+            if (variant.equals("unreachable-helper-control")) {
+                active.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0)); active.add(new ImmutableInstruction11x(Opcode.RETURN, 0));
             }
-            wrapper.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
-            classes.put(TRACKING, List.of(method(TRACKING, "putStringExtra", INTENT, true, 3, wrapper, INTENT, STRING, STRING),
-                    method(TRACKING, "newPlainText", CLIPBOARD, true, 2, List.of(invoke(Opcode.INVOKE_STATIC, nativeClipboard, 0, 1),
-                            new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)), TEXT, TEXT)));
+            active.add(readiness()); active.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)); active.add(new ImmutableInstruction11x(Opcode.RETURN, 0));
+            classes.put(TRACKING, List.of(method(TRACKING, "active", "Z", true, 1, active),
+                    linkWrapper("putStringExtra", nativeIntent, INTENT, variant, INTENT, STRING, STRING),
+                    linkWrapper("putTextExtra", nativeText, INTENT, variant, INTENT, STRING, TEXT),
+                    linkWrapper("newPlainText", nativeClipboard, CLIPBOARD, variant, TEXT, TEXT)));
         }
+    }
+
+    private static Method linkWrapper(String name, ImmutableMethodReference nativeCall, String result, String variant, String... parameters) {
+        List<Instruction> body = new ArrayList<>();
+        if (variant.equals("unreachable-" + name + "-fallback")) {
+            body.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0)); body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+        }
+        boolean string = name.equals("putStringExtra");
+        if (string && variant.equals("unreachable-control")) body.add(new ImmutableInstruction10t(Opcode.GOTO, 5));
+        body.add(invoke(Opcode.INVOKE_STATIC, ref(TRACKING, "active", "Z")));
+        body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
+        if (string && (variant.equals("guarded-fallback-good") || variant.equals("disabled-misses-fallback"))) {
+            body.add(new ImmutableInstruction21t(variant.equals("guarded-fallback-good") ? Opcode.IF_EQZ : Opcode.IF_NEZ, 0, 3));
+            body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1));
+        }
+        if (string && variant.equals("branch-fallback-good")) {
+            body.add(new ImmutableInstruction10t(Opcode.GOTO, 2)); body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1));
+        }
+        if (!string || !variant.equals("missing-original-fallback")) {
+            body.add(invoke(name.equals("newPlainText") ? Opcode.INVOKE_STATIC : Opcode.INVOKE_VIRTUAL, nativeCall,
+                    name.equals("newPlainText") ? new int[]{1, 2} : new int[]{1, 2, 3}));
+            body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
+        } else body.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
+        body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+        return method(TRACKING, name, result, true, parameters.length + 1, body, parameters);
     }
 
     public static void main(String[] args) throws Exception {
@@ -245,7 +326,7 @@ public final class FeatureDexFixture {
             reset();
             write(root, "feature-selected-missing-" + family, new LinkedHashMap<>(settings), true, family);
         }
-        for (String variant : List.of("good", "missing", "duplicate", "misrouted", "bad-fallback", "changed-original", "false-capability", "unselected-call")) {
+        for (String variant : List.of("good", "missing", "duplicate", "misrouted", "bad-fallback", "changed-original", "false-capability", "unselected-call", "unreachable-control")) {
             reset(); enable("hideScreenshotShare");
             if (variant.equals("false-capability")) FLAGS.put("screenshotShare", false);
             if (variant.equals("unselected-call")) reset();
@@ -273,7 +354,7 @@ public final class FeatureDexFixture {
             loop.put(OBSERVER, List.of(method(OBSERVER, "onScreenshot", VOID, false, 4, guarded, OBJECT, "Landroidx/fragment/app/FragmentActivity;")));
             write(root, "feature-guard-interior-" + (unsafe ? "bad" : "good"), loop, true, "hideScreenshotShare");
         }
-        for (String variant : List.of("ads", "ai", "shopping", "shared", "duplicate", "wrong-register", "wrong-result")) {
+        for (String variant : List.of("ads", "ai", "shopping", "shared", "duplicate", "wrong-register", "wrong-result", "unreachable-control")) {
             reset();
             String[] selected = variant.equals("ai") ? new String[]{"hideAiPins"} : variant.equals("shopping") ? new String[]{"hideShopping"}
                     : variant.equals("ads") ? new String[]{"hideAds"} : new String[]{"hideAds", "hideAiPins", "hideShopping"};
@@ -283,7 +364,9 @@ public final class FeatureDexFixture {
             feed(classes, variant);
             write(root, "feature-feed-" + variant, classes, true, selected);
         }
-        for (String variant : List.of("good", "left-original", "wrong-register", "missing-original-fallback", "partial", "false-capability")) {
+        for (String variant : List.of("good", "left-original", "wrong-register", "missing-original-fallback", "partial", "false-capability",
+                "unreachable-putStringExtra-fallback", "unreachable-putTextExtra-fallback", "unreachable-newPlainText-fallback",
+                "unreachable-control", "unreachable-helper-control", "disabled-misses-fallback", "guarded-fallback-good", "branch-fallback-good")) {
             boolean partial = variant.equals("partial");
             if (partial) {
                 Map<String, List<Method>> partialClean = new LinkedHashMap<>(clean);
@@ -296,6 +379,16 @@ public final class FeatureDexFixture {
             links(classes, true, variant, !partial);
             write(root, "feature-links-" + variant, classes, true, "stripLinkTracking");
         }
+        for (String variant : SHORTCUTS) {
+            reset();
+            Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
+            shortcuts(classes, true, variant);
+            write(root, "feature-shortcuts-unreachable-" + variant, classes, true);
+        }
+        reset();
+        Map<String, List<Method>> branchingShortcut = new LinkedHashMap<>(settings);
+        shortcuts(branchingShortcut, true, "branch-good");
+        write(root, "feature-shortcuts-branch-good", branchingShortcut, true);
         reset();
         Map<String, List<Method>> absentClean = new LinkedHashMap<>(clean); absentClean.remove("Lfixture/UpdateTask;");
         write(root, "feature-optional-clean", absentClean, false);

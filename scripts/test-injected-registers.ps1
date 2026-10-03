@@ -627,6 +627,7 @@ try {
         'feature-guard-false-capability' = $false
         'feature-guard-unselected-call' = $false
         'feature-guard-missing-callee' = $false
+        'feature-guard-unreachable-control' = $false
         'feature-guard-interior-good' = $true
         'feature-guard-interior-bad' = $false
         'feature-feed-ads' = $true
@@ -636,12 +637,22 @@ try {
         'feature-feed-duplicate' = $false
         'feature-feed-wrong-register' = $false
         'feature-feed-wrong-result' = $false
+        'feature-feed-unreachable-control' = $false
         'feature-links-good' = $true
         'feature-links-left-original' = $false
         'feature-links-wrong-register' = $false
         'feature-links-missing-original-fallback' = $false
         'feature-links-partial' = $true
         'feature-links-false-capability' = $false
+        'feature-links-unreachable-putStringExtra-fallback' = $false
+        'feature-links-unreachable-putTextExtra-fallback' = $false
+        'feature-links-unreachable-newPlainText-fallback' = $false
+        'feature-links-unreachable-control' = $false
+        'feature-links-unreachable-helper-control' = $false
+        'feature-links-disabled-misses-fallback' = $false
+        'feature-links-guarded-fallback-good' = $true
+        'feature-links-branch-fallback-good' = $true
+        'feature-shortcuts-branch-good' = $true
         'feature-optional-absent' = $true
         'feature-optional-unrelated' = $true
     }
@@ -649,6 +660,10 @@ try {
         $featureCases["feature-installed-missing-$($family.Flag)"] = $false
         $featureCases["feature-selected-missing-$($family.Flag)"] = $false
     }
+    foreach ($shortcut in $shortcutCalls) { $featureCases["feature-shortcuts-unreachable-$($shortcut.Call)"] = $false }
+    $compiledCases = @(Get-ChildItem -LiteralPath $dexDir -Filter '*.selected' | ForEach-Object { $_.BaseName } | Sort-Object)
+    $coveredCases = @($featureCases.Keys | Sort-Object)
+    Assert-True (($compiledCases -join "`n") -ceq ($coveredCases -join "`n")) 'A compiled family fixture has no result assertion.'
     foreach ($entry in $featureCases.GetEnumerator()) {
         $name = $entry.Key
         $cleanName = if ($name -eq 'feature-links-partial') { 'feature-links-partial-clean' }
@@ -673,6 +688,15 @@ try {
         }
         if ($name -eq 'feature-unknown-public') {
             Assert-True ($text.Contains('unknown selected patch Hide imaginary pins')) "An unknown public patch selection was accepted.`n$text"
+        }
+        if ($name -like 'feature-links-unreachable-*-fallback' -or $name -like 'feature-shortcuts-unreachable-*') {
+            Assert-True ($text.Contains('no reachable original framework call fallback')) "A disconnected original framework call in $name passed as a fallback.`n$text"
+        }
+        if ($name -like '*unreachable-control' -or $name -eq 'feature-links-unreachable-helper-control') {
+            Assert-True ($text.Contains('unreachable required family control')) "An early return disconnected the family control in $name without detection.`n$text"
+        }
+        if ($name -eq 'feature-links-disabled-misses-fallback') {
+            Assert-True ($text.Contains('fallback after its disabled family control')) "An original call reachable only when filtering is enabled passed as a disabled fallback.`n$text"
         }
     }
     $duplicateFlags = Invoke-DexDiff -Clean (Get-FeatureApk 'feature-clean') -Patched (New-DexApk -Name 'feature-duplicate-flags' -Entries ([ordered]@{

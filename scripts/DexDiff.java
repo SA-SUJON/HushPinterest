@@ -1997,6 +1997,85 @@ public class DexDiff {
         final Map<Integer, Instruction> replacements = new HashMap<>();
     }
 
+    /** Executable successors, including switch cases and only the handlers an instruction can reach. */
+    private static final class FeatureFlow {
+        final Layout layout;
+        final List<List<Integer>> normal = new ArrayList<>();
+        final List<List<Integer>> handlers = new ArrayList<>();
+        final Map<Integer, Integer> indexAt = new HashMap<>();
+
+        FeatureFlow(Method m) {
+            layout = new Layout(m.getImplementation());
+            for (int at = 0; at < layout.instructions.size(); at++) indexAt.put(layout.addresses.get(at), at);
+            for (int at = 0; at < layout.instructions.size(); at++) {
+                Instruction i = layout.instructions.get(at);
+                int address = layout.addresses.get(at);
+                List<Integer> next = new ArrayList<>();
+                List<Integer> caught = new ArrayList<>();
+                if (i.getOpcode().canContinue()) add(next, address + i.getCodeUnits());
+                if (i instanceof OffsetInstruction && i.getOpcode() != Opcode.FILL_ARRAY_DATA) {
+                    int target = address + ((OffsetInstruction) i).getCodeOffset();
+                    if (i.getOpcode() == Opcode.PACKED_SWITCH || i.getOpcode() == Opcode.SPARSE_SWITCH) {
+                        Instruction payload = layout.byAddress.get(target);
+                        if (payload instanceof SwitchPayload) for (SwitchElement element : ((SwitchPayload) payload).getSwitchElements())
+                            add(next, address + element.getOffset());
+                    } else add(next, target);
+                }
+                if (i.getOpcode().canThrow()) for (TryBlock<? extends ExceptionHandler> block : m.getImplementation().getTryBlocks()) {
+                    if (address < block.getStartCodeAddress() || address >= block.getStartCodeAddress() + block.getCodeUnitCount()) continue;
+                    for (ExceptionHandler handler : block.getExceptionHandlers()) add(caught, handler.getHandlerCodeAddress());
+                }
+                normal.add(next);
+                handlers.add(caught);
+            }
+        }
+
+        void add(List<Integer> into, int address) {
+            Integer index = indexAt.get(address);
+            if (index != null && !isPayload(layout.instructions.get(index))) into.add(index);
+        }
+
+        BitSet reachable(int start, boolean exceptions) { return reachable(start, exceptions, -1, -1); }
+
+        BitSet reachable(int start, boolean exceptions, int branch, int chosen) {
+            BitSet reached = new BitSet();
+            Deque<Integer> work = new ArrayDeque<>();
+            if (start >= 0 && start < normal.size()) work.add(start);
+            while (!work.isEmpty()) {
+                int at = work.poll();
+                if (reached.get(at)) continue;
+                reached.set(at);
+                if (at == branch) {
+                    if (chosen >= 0) work.add(chosen);
+                } else work.addAll(normal.get(at));
+                if (exceptions) work.addAll(handlers.get(at));
+            }
+            return reached;
+        }
+
+        /** A boolean control's false arm, when its result is tested before being overwritten. */
+        BitSet afterControl(int call) {
+            List<Instruction> body = layout.instructions;
+            Reference ref = reference(body.get(call));
+            if (!(ref instanceof MethodReference) || !((MethodReference) ref).getReturnType().equals("Z")
+                    || call + 1 >= body.size() || body.get(call + 1).getOpcode() != Opcode.MOVE_RESULT)
+                return reachable(call + 1, false);
+            int register = firstRegister(body.get(call + 1));
+            Set<Integer> seen = new HashSet<>();
+            for (int at = call + 2; at < body.size() && seen.add(at); ) {
+                Instruction i = body.get(at);
+                if ((i.getOpcode() == Opcode.IF_EQZ || i.getOpcode() == Opcode.IF_NEZ) && firstRegister(i) == register) {
+                    int chosen = i.getOpcode() == Opcode.IF_EQZ
+                            ? indexAt.getOrDefault(layout.addresses.get(at) + ((OffsetInstruction) i).getCodeOffset(), -1) : at + 1;
+                    return reachable(call + 1, false, at, chosen);
+                }
+                if (i.getOpcode().setsRegister() && firstRegister(i) == register || normal.get(at).size() != 1) break;
+                at = normal.get(at).get(0);
+            }
+            return reachable(call + 1, false);
+        }
+    }
+
     private static Reference reference(Instruction i) {
         return i instanceof ReferenceInstruction ? ((ReferenceInstruction) i).getReference() : null;
     }
@@ -2025,6 +2104,12 @@ public class DexDiff {
         final Map<String, FeatureEdits> edits = new LinkedHashMap<>();
         final Set<String> claimed = new HashSet<>();
         final Set<String> selected;
+        final Map<String, FeatureFlow> flows = new HashMap<>();
+        final Map<String, Set<String>> controlCallers = new HashMap<>();
+        final Map<String, List<Method>> callbacks = new HashMap<>();
+        final Set<String> controlMethods = new HashSet<>();
+        final Set<String> checkedControls = new HashSet<>();
+        boolean featureControls;
 
         static int firstRegister(Instruction i) {
             return i instanceof OneRegisterInstruction ? ((OneRegisterInstruction) i).getRegisterA() : DexDiff.firstRegister(i);
@@ -2034,10 +2119,91 @@ public class DexDiff {
             this.clean = clean;
             this.patched = patched;
             this.selected = selected;
+            indexControls();
         }
 
         void fail(String reason) { findings.add("contract: feature " + reason); }
         boolean flag(String name) { return flags.getOrDefault(name, false); }
+
+        FeatureFlow flow(Method m) { return flows.computeIfAbsent(m.toString(), key -> new FeatureFlow(m)); }
+
+        static boolean controlReference(Reference r) {
+            if (r instanceof FieldReference) {
+                String owner = ((FieldReference) r).getDefiningClass();
+                return owner.equals(BASE + "settings/Settings;") || owner.equals(BASE + "settings/PatchFamily;")
+                        || owner.equals(BASE + "settings/PatchFamily$Capability;");
+            }
+            if (!(r instanceof MethodReference)) return false;
+            MethodReference m = (MethodReference) r;
+            String owner = m.getDefiningClass();
+            return owner.equals(STATUS) || r.toString().equals("Lapp/hushpinterest/extension/shared/Utils;->settingsReady()Z")
+                    || owner.equals(BASE + "settings/PatchFamily;") && m.getName().equals("inBuild")
+                    || owner.equals(BASE + "settings/PatchFamily$Capability;") && m.getName().equals("installed")
+                    || owner.equals("Lapp/hushpinterest/extension/shared/settings/BooleanSetting;") && m.getName().equals("get");
+        }
+
+        void indexControls() {
+            for (ClassDef cd : patched.classes.values()) {
+                // Compiled lambdas run through their interface after their constructor has returned.
+                if (!cd.getType().startsWith(OWN) || !AccessFlags.SYNTHETIC.isSet(cd.getAccessFlags()) || cd.getInterfaces().isEmpty()) continue;
+                List<Method> implementations = new ArrayList<>();
+                for (Method m : cd.getMethods()) if (m.getImplementation() != null && !AccessFlags.STATIC.isSet(m.getAccessFlags())
+                        && !m.getName().startsWith("<")) implementations.add(m);
+                for (Method m : cd.getMethods()) if (m.getName().equals("<init>")) {
+                    callbacks.put(m.toString(), implementations);
+                    for (Method callback : implementations) controlCallers.computeIfAbsent(callback.toString(), key -> new HashSet<>()).add(m.toString());
+                }
+            }
+            for (Method m : patched.methods.values()) {
+                if (!m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null) continue;
+                for (Instruction i : instructions(m)) {
+                    Reference r = reference(i);
+                    if (controlReference(r)) controlMethods.add(m.toString());
+                    else if (r instanceof MethodReference && patched.methods.containsKey(r.toString()))
+                        controlCallers.computeIfAbsent(r.toString(), key -> new HashSet<>()).add(m.toString());
+                }
+            }
+            Deque<String> work = new ArrayDeque<>(controlMethods);
+            while (!work.isEmpty()) for (String caller : controlCallers.getOrDefault(work.poll(), Set.of()))
+                if (controlMethods.add(caller)) work.add(caller);
+        }
+
+        boolean leadsToControl(Reference r) {
+            return controlReference(r) || r instanceof MethodReference && controlMethods.contains(r.toString());
+        }
+
+        void controls(Method m, boolean required) {
+            if (m == null) return;
+            if (!controlMethods.contains(m.toString())) {
+                if (required) fail(m + " has no compiled family control");
+                return;
+            }
+            if (!checkedControls.add(m.toString())) return;
+            BitSet reached = flow(m).reachable(0, true);
+            List<Instruction> body = instructions(m);
+            for (int at = 0; at < body.size(); at++) {
+                Reference r = reference(body.get(at));
+                if (!leadsToControl(r)) continue;
+                if (!reached.get(at)) fail(m + " has an unreachable required family control " + r);
+                if (!controlReference(r) && r instanceof MethodReference) controls(patched.methods.get(r.toString()), false);
+            }
+            for (Method callback : callbacks.getOrDefault(m.toString(), List.of())) controls(callback, false);
+        }
+
+        void fallback(Method m, String original) {
+            List<Integer> sites = callSites(instructions(m), original);
+            FeatureFlow graph = flow(m);
+            BitSet reached = graph.reachable(0, false);
+            if (sites.stream().noneMatch(reached::get)) fail(m + " has no reachable original framework call fallback");
+            // Settings wrappers restore their shortcut after the framework call; they have no disabled family arm.
+            if (!featureControls) return;
+            List<Instruction> body = instructions(m);
+            for (int at = 0; at < body.size(); at++) {
+                if (!reached.get(at) || !leadsToControl(reference(body.get(at)))) continue;
+                BitSet disabled = graph.afterControl(at);
+                if (sites.stream().noneMatch(disabled::get)) fail(m + " has no original framework call fallback after its disabled family control " + reference(body.get(at)));
+            }
+        }
 
         Method unique(List<Method> targets, String what) {
             if (targets.size() != 1) { fail(what + " has " + targets.size() + " clean targets, expected 1"); return null; }
@@ -2104,8 +2270,10 @@ public class DexDiff {
             if (m == null) return List.of();
             List<Integer> sites = callSites(instructions(m), hook);
             if (sites.size() != count) fail(hook + " has " + sites.size() + " calls in " + m + ", expected " + count);
+            BitSet reached = flow(m).reachable(0, true);
             for (int at : sites) {
                 claimed.add(m + "@" + at);
+                if (!reached.get(at)) fail(hook + " is unreachable in " + m);
                 Instruction i = instructions(m).get(at);
                 if (i.getOpcode() != Opcode.INVOKE_STATIC && i.getOpcode() != Opcode.INVOKE_STATIC_RANGE)
                     fail(hook + " is not invoked statically in " + m);
@@ -2114,6 +2282,7 @@ public class DexDiff {
             if (callee != null && (!AccessFlags.PUBLIC.isSet(callee.getAccessFlags())
                     || !AccessFlags.STATIC.isSet(callee.getAccessFlags())
                     || !AccessFlags.PUBLIC.isSet(patched.classes.get(callee.getDefiningClass()).getAccessFlags()))) fail(hook + " is not a public static hook");
+            if (featureControls) controls(callee, true);
             return sites;
         }
 
@@ -2632,7 +2801,7 @@ public class DexDiff {
             }
             if (fallback && total > 0) {
                 Method method = actual(hook);
-                if (method != null && callSites(instructions(method), original).isEmpty()) fail(hook + " has no original framework call fallback");
+                if (method != null) fallback(method, original);
             }
             return total;
         }
@@ -2720,7 +2889,7 @@ public class DexDiff {
             List<Integer> args = new ArrayList<>();
             for (int p = parameter(wrapper, 0); p < wrapper.getImplementation().getRegisterCount(); p++) args.add(p);
             if (!arguments(body.get(at)).equals(args)) fail(wrapper + " changes original endpoint arguments");
-            actual(hook);
+            controls(actual(hook), true);
         }
 
         Method inherited(String type, String name, String shape) {
@@ -2852,6 +3021,7 @@ public class DexDiff {
                     if (!owners.containsKey(cap) && !cap.equals("settings")) fail("unowned mutation capability " + cap);
                 }
                 if (!active(c)) continue;
+                featureControls = !c.target.equals("settings");
                 switch (c.target) {
                     case "feed": feed(c); break;
                     case "views": views(c); break;
