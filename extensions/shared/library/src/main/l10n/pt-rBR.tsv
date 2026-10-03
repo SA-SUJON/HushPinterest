@@ -128,10 +128,10 @@ A change here applies after Pinterest restarts.	Uma alteração daqui vale depoi
 Android verified this app for Pinterest's web addresses, so their links open here.	O Android verificou este app para os endereços web do Pinterest, então os links deles abrem aqui.
 Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.	As configurações do Android para este app não abriram. Abra Informações do app pelo ícone do Pinterest e depois Abrir por padrão.
 HushPinterest %1$s on Pinterest %2$s	HushPinterest %1$s no Pinterest %2$s
-HushPinterest %1$s targets Pinterest %2$s.	O HushPinterest %1$s é compatível com o Pinterest %2$s.
+HushPinterest %1$s supports Pinterest %2$s.	O HushPinterest %1$s é compatível com o Pinterest %2$s.
 HushPinterest pauses when Pinterest restarts.	O HushPinterest será pausado quando o Pinterest for reiniciado.
 HushPinterest turns back on when Pinterest restarts.	O HushPinterest será reativado quando o Pinterest for reiniciado.
-It targets Pinterest %1$s.	Compatível com o Pinterest %1$s.
+It supports Pinterest %1$s.	Compatível com o Pinterest %1$s.
 None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Nenhum endereço web do Pinterest está selecionado para este app, então os links deles abrem em outro lugar. Toque para selecioná-los nas configurações do Android.
 Only some of Pinterest's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Só alguns endereços web do Pinterest estão selecionados para este app, e os links para os outros abrem em outro lugar. Toque para selecioná-los nas configurações do Android.
 Saved. Restart Pinterest to apply this change.	Salvo. Reinicie o Pinterest para aplicar esta alteração.
@@ -141,6 +141,10 @@ This build covers %1$s. Missing coverage: %2$s.	Esta versão cobre %1$s. Falta c
 Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.	O Pinterest fechou com erro ou travou no primeiro minuto após iniciar, três vezes seguidas, então o HushPinterest foi pausado automaticamente.
 Pinterest's web addresses are selected for this app in Android's settings, so their links open here.	Os endereços web do Pinterest estão selecionados para este app nas configurações do Android, então os links deles abrem aqui.
 Try again, or go back to Pinterest.	Tente novamente ou volte para o Pinterest.
+Release notes	Notas da versão
+Read HushPinterest releases on GitHub. Nothing is downloaded here.	Leia as versões do HushPinterest no GitHub. Nada é baixado aqui.
+Update instructions	Instruções de atualização
+Open the installation steps on GitHub.	Abra as etapas de instalação no GitHub.
 Your choices are saved. Tap Resume, then restart Pinterest.	Suas escolhas estão salvas. Toque em Retomar e depois reinicie o Pinterest.
 No HushPinterest release is out yet.	Ainda não há nenhuma versão do HushPinterest.
 Accounts	Contas
@@ -198,3 +202,5 @@ Download started. Check Downloads.	Download iniciado. Confira Downloads.
 Pin saved.	Pin salvo.
 Couldn't save this pin.	Não foi possível salvar este Pin.
 Another pin is being saved. Try again when it's finished.	Outro Pin está sendo salvo. Tente novamente quando terminar.
+The file may have saved. Check your chosen save location.	O arquivo pode ter sido salvo. Confira o local escolhido.
+Couldn't remove the incomplete file. Check your chosen save location.	Não foi possível remover o arquivo incompleto. Confira o local escolhido.

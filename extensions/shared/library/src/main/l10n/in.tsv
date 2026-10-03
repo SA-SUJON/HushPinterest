@@ -131,10 +131,10 @@ A change here applies after Pinterest restarts.	Perubahan di sini berlaku setela
 Android verified this app for Pinterest's web addresses, so their links open here.	Android telah memverifikasi aplikasi ini untuk alamat web Pinterest, jadi tautannya terbuka di sini.
 Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.	Pengaturan Android untuk aplikasi ini tidak terbuka. Buka Info aplikasi dari ikon Pinterest, lalu Buka secara default.
 HushPinterest %1$s on Pinterest %2$s	HushPinterest %1$s di Pinterest %2$s
-HushPinterest %1$s targets Pinterest %2$s.	HushPinterest %1$s ditujukan untuk Pinterest %2$s.
+HushPinterest %1$s supports Pinterest %2$s.	HushPinterest %1$s mendukung Pinterest %2$s.
 HushPinterest pauses when Pinterest restarts.	HushPinterest dijeda saat Pinterest dimulai ulang.
 HushPinterest turns back on when Pinterest restarts.	HushPinterest aktif lagi saat Pinterest dimulai ulang.
-It targets Pinterest %1$s.	Rilis ini ditujukan untuk Pinterest %1$s.
+It supports Pinterest %1$s.	Rilis ini mendukung Pinterest %1$s.
 None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Tidak ada alamat web Pinterest yang dipilih untuk aplikasi ini, jadi tautannya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
 Only some of Pinterest's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Hanya sebagian alamat web Pinterest yang dipilih untuk aplikasi ini, dan tautan ke alamat lainnya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
 Saved. Restart Pinterest to apply this change.	Tersimpan. Mulai ulang Pinterest untuk menerapkan perubahan ini.
@@ -144,6 +144,10 @@ This build covers %1$s. Missing coverage: %2$s.	Versi ini mencakup %1$s. Cakupan
 Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.	Pinterest berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushPinterest menjeda dirinya sendiri.
 Pinterest's web addresses are selected for this app in Android's settings, so their links open here.	Alamat web Pinterest dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.
 Try again, or go back to Pinterest.	Coba lagi, atau kembali ke Pinterest.
+Release notes	Catatan rilis
+Read HushPinterest releases on GitHub. Nothing is downloaded here.	Baca rilis HushPinterest di GitHub. Tidak ada yang diunduh di sini.
+Update instructions	Petunjuk pembaruan
+Open the installation steps on GitHub.	Buka langkah pemasangan di GitHub.
 Your choices are saved. Tap Resume, then restart Pinterest.	Pilihan Anda tersimpan. Ketuk Lanjutkan, lalu mulai ulang Pinterest.
 No HushPinterest release is out yet.	Belum ada rilis HushPinterest.
 Accounts	Akun
@@ -201,3 +205,5 @@ Download started. Check Downloads.	Unduhan dimulai. Periksa Unduhan.
 Pin saved.	Pin disimpan.
 Couldn't save this pin.	Pin ini tidak dapat disimpan.
 Another pin is being saved. Try again when it's finished.	Pin lain sedang disimpan. Coba lagi setelah selesai.
+The file may have saved. Check your chosen save location.	File mungkin sudah tersimpan. Periksa lokasi penyimpanan yang dipilih.
+Couldn't remove the incomplete file. Check your chosen save location.	File yang belum selesai tidak dapat dihapus. Periksa lokasi penyimpanan yang dipilih.

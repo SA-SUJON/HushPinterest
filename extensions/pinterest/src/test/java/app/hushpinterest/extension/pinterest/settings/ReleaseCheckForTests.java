@@ -60,6 +60,7 @@ final class ReleaseCheckForTests {
         ReleaseCheck.Stored.CHECKED_AT.resetToDefault();
         ReleaseCheck.Stored.RESULT.resetToDefault();
         ReleaseCheck.Stored.NEWEST.resetToDefault();
-        ReleaseCheck.Stored.TARGET.resetToDefault();
+        ReleaseCheck.Stored.LEGACY_TARGET.resetToDefault();
+        ReleaseCheck.Stored.TARGETS.resetToDefault();
     }
 }

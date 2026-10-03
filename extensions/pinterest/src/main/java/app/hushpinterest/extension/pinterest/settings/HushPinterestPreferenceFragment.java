@@ -91,6 +91,10 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
     static final String STAYS_WHILE_PAUSED = "Stays in while paused";
     /** The Check now row's key. It stores nothing: no setting has this name. */
     static final String CHECK_NOW = "action_check_for_release";
+    static final String RELEASE_NOTES = "action_release_notes";
+    static final String UPDATE_INSTRUCTIONS = "action_update_instructions";
+    static final String RELEASE_NOTES_URL = SOURCE_URL + "/releases";
+    static final String UPDATE_INSTRUCTIONS_URL = SOURCE_URL + "#install";
     /** The Supported links row's key. It stores nothing either. */
     static final String SUPPORTED_LINKS = "action_supported_links";
 
@@ -317,6 +321,10 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                 L10n.t("Ask GitHub once a day when Pinterest starts, and show a newer release at the top of these "
                         + "settings. Off by default. Nothing is downloaded.")), SettingsIcons.BELL));
         updates.addPreference(mark(checkNowRow(context), SettingsIcons.UPDATES));
+        updates.addPreference(mark(releaseLink(context, RELEASE_NOTES, L10n.t("Release notes"),
+                L10n.t("Read HushPinterest releases on GitHub. Nothing is downloaded here."), RELEASE_NOTES_URL), SettingsIcons.OPENING));
+        updates.addPreference(mark(releaseLink(context, UPDATE_INSTRUCTIONS, L10n.t("Update instructions"),
+                L10n.t("Open the installation steps on GitHub."), UPDATE_INSTRUCTIONS_URL), SettingsIcons.OPENING));
         ReleaseCheck.watch(this);
 
         // Named for its rows: the screen's own title already says HushPinterest.
@@ -576,6 +584,27 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             return true;
         });
         checkNowRow = row;
+        return row;
+    }
+
+    /** Fixed project pages. Neither a release's body nor its html_url can choose the destination. */
+    private Preference releaseLink(Context context, String key, String title, String summary, String url) {
+        Row row = new Row(context);
+        row.setKey(key);
+        row.setTitle(title);
+        row.setSummary(summary);
+        row.setPersistent(false);
+        row.setOnPreferenceClickListener(ignored -> {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+            } catch (ActivityNotFoundException | SecurityException missing) {
+                Logger.printInfo(() -> "No app opened the release help link");
+                String address = url.substring(url.indexOf("://") + 3);
+                Utils.showToastLong(L10n.f("No app on this phone can open the link. The address is %1$s.",
+                        L10n.isolate(address)));
+            }
+            return true;
+        });
         return row;
     }
 

@@ -131,10 +131,10 @@ A change here applies after Pinterest restarts.	Buradaki bir değişiklik Pinter
 Android verified this app for Pinterest's web addresses, so their links open here.	Android bu uygulamayı Pinterest'ın web adresleri için doğruladı, bu yüzden bağlantıları burada açılır.
 Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.	Bu uygulamanın Android ayarları açılamadı. Pinterest simgesinden Uygulama bilgileri'ni, ardından Varsayılan olarak aç'ı açın.
 HushPinterest %1$s on Pinterest %2$s	Pinterest %2$s üzerinde HushPinterest %1$s
-HushPinterest %1$s targets Pinterest %2$s.	HushPinterest %1$s, Pinterest %2$s için hazırlandı.
+HushPinterest %1$s supports Pinterest %2$s.	HushPinterest %1$s, Pinterest %2$s sürümlerini destekler.
 HushPinterest pauses when Pinterest restarts.	HushPinterest, Pinterest yeniden başladığında duraklatılır.
 HushPinterest turns back on when Pinterest restarts.	HushPinterest, Pinterest yeniden başladığında tekrar açılır.
-It targets Pinterest %1$s.	Pinterest %1$s için hazırlandı.
+It supports Pinterest %1$s.	Pinterest %1$s sürümlerini destekler.
 None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Pinterest'ın web adreslerinden hiçbiri bu uygulama için seçili değil, bu yüzden bağlantıları başka yerde açılır. Android ayarlarında seçmek için dokunun.
 Only some of Pinterest's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Pinterest'ın web adreslerinden yalnızca bazıları bu uygulama için seçili ve diğerlerinin bağlantıları başka yerde açılır. Android ayarlarında seçmek için dokunun.
 Saved. Restart Pinterest to apply this change.	Kaydedildi. Bu değişikliği uygulamak için Pinterest'ı yeniden başlat.
@@ -144,6 +144,10 @@ This build covers %1$s. Missing coverage: %2$s.	Bu derlemenin kapsamı: %1$s. Ek
 Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.	Pinterest açıldıktan sonraki bir dakika içinde üst üste üç kez çöktü veya dondu, bu yüzden HushPinterest kendini duraklattı.
 Pinterest's web addresses are selected for this app in Android's settings, so their links open here.	Pinterest'ın web adresleri Android ayarlarında bu uygulama için seçili, bu yüzden bağlantıları burada açılır.
 Try again, or go back to Pinterest.	Tekrar dene veya Pinterest'a geri dön.
+Release notes	Sürüm notları
+Read HushPinterest releases on GitHub. Nothing is downloaded here.	HushPinterest sürümlerini GitHub'da oku. Burada hiçbir şey indirilmez.
+Update instructions	Güncelleme talimatları
+Open the installation steps on GitHub.	GitHub'daki kurulum adımlarını aç.
 Your choices are saved. Tap Resume, then restart Pinterest.	Tercihleriniz kayıtlı. Devam et'e dokunun, sonra Pinterest'ı yeniden başlatın.
 No HushPinterest release is out yet.	Henüz bir HushPinterest sürümü yayınlanmadı.
 Accounts	Hesaplar
@@ -201,3 +205,5 @@ Download started. Check Downloads.	İndirme başladı. İndirilenler’i kontrol
 Pin saved.	Pin kaydedildi.
 Couldn't save this pin.	Bu Pin kaydedilemedi.
 Another pin is being saved. Try again when it's finished.	Başka bir Pin kaydediliyor. Bitince tekrar dene.
+The file may have saved. Check your chosen save location.	Dosya kaydedilmiş olabilir. Seçtiğiniz kayıt konumunu kontrol edin.
+Couldn't remove the incomplete file. Check your chosen save location.	Tamamlanmamış dosya kaldırılamadı. Seçtiğiniz kayıt konumunu kontrol edin.

@@ -21,6 +21,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Looper;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
@@ -33,6 +34,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowToast;
@@ -88,11 +90,11 @@ public class ReleaseCheckTest {
     private static final long HOUR = TimeUnit.HOURS.toMillis(1);
     private static final long DAY = TimeUnit.DAYS.toMillis(1);
 
-    /** Release notes in the shape the 0.1.8 release's took on GitHub. */
+    /** Example release notes with both exact supported Pinterest versions. */
     private static final String NOTES_0_1_8 = "HushPinterest 0.1.8 fixes the known issue from 0.1.7: Hide ads now "
             + "finds sponsored posts in the Following feed too.\n\nChecked on a signed-in test phone (Galaxy S22, "
-            + "Android 16) before release.\n\nAll 6 patches applied without force to Pinterest 449.0.0.54.82 and "
-            + "447.0.0.50.72, with no manifest changes. Local checks passed: 471 extension tests, 171 patch tests and "
+            + "Android 16) before release.\n\nAll 6 patches applied without force to Pinterest 14.38.0 and "
+            + "14.25.0, with no manifest changes. Local checks passed: 471 extension tests, 171 patch tests and "
             + "both Android lints.\n\nRequires Morphe Manager 1.32.0 or newer.\n";
 
     private static final String NEWER = "HushPinterest " + L10n.isolate("0.2.0") + " is out. Update it in Morphe Manager.";
@@ -107,7 +109,7 @@ public class ReleaseCheckTest {
         github = new FakeGitHub();
         ReleaseCheck.transport = github;
         ReleaseCheck.versionForTests = "0.1.8";
-        ReleaseCheck.pinterestForTests = "449.0.0.54.82";
+        ReleaseCheck.pinterestForTests = "14.38.0";
     }
 
     @After
@@ -130,25 +132,28 @@ public class ReleaseCheckTest {
     // ---- What an answer says -------------------------------------------------------------------
 
     @Test
-    public void aNewerReleaseIsNamedOnTheCardWithTheThreadsItTargets() {
-        github.then(Reply.release("v0.2.0", "HushPinterest v0.2.0 targets Pinterest 451.0.0.40.70 "
-                + "(com.instagram.barcelona), and 449.0.0.54.82 still works.\n\nMore notes."));
+    public void aNewerBundleAndItsExactPinterestTargetsAreIndependent() {
+        ReleaseCheck.pinterestForTests = "14.26.0";
+        github.then(Reply.release("v0.2.0", "HushPinterest v0.2.0 targets Pinterest 14.38.0 "
+                + "(com.pinterest), and 14.25.0 still works.\n\nMore notes."));
         ReleaseCheck.run(NOW);
 
         assertEquals(NOW, (long) Stored.CHECKED_AT.get());
         assertEquals("OK", Stored.RESULT.get());
         assertEquals("0.2.0", Stored.NEWEST.get());
-        assertEquals("451.0.0.40.70", Stored.TARGET.get());
-        assertEquals(NEWER + " It targets Pinterest " + L10n.isolate("451.0.0.40.70") + ".", ReleaseCheck.statusLine());
+        assertEquals("14.38.0,14.25.0", Stored.TARGETS.get());
+        assertEquals(NEWER + " It supports Pinterest " + L10n.isolate("14.38.0, 14.25.0") + ".", ReleaseCheck.statusLine());
         assertEquals(NEWER, ReleaseCheck.checkNowSummary());
 
         // Once HushPinterest is 0.2.0 the line goes, with no new try, and only the other Pinterest stays.
         ReleaseCheck.versionForTests = "0.2.0";
-        assertEquals("HushPinterest " + L10n.isolate("0.2.0") + " targets Pinterest " + L10n.isolate("451.0.0.40.70") + ".",
+        assertEquals("HushPinterest " + L10n.isolate("0.2.0") + " supports Pinterest " + L10n.isolate("14.38.0, 14.25.0") + ".",
                 ReleaseCheck.statusLine());
         assertEquals("You have the newest HushPinterest release.", ReleaseCheck.checkNowSummary());
-        ReleaseCheck.pinterestForTests = "451.0.0.40.70";
+        ReleaseCheck.pinterestForTests = "14.38.0";
         assertNull(ReleaseCheck.statusLine());
+        ReleaseCheck.pinterestForTests = "14.25.0";
+        assertNull("the Android 9 fallback is explicitly supported too", ReleaseCheck.statusLine());
         assertEquals(1, github.asked.size());
     }
 
@@ -158,7 +163,7 @@ public class ReleaseCheckTest {
         ReleaseCheck.run(NOW);
 
         assertEquals("0.1.8", Stored.NEWEST.get());
-        assertEquals("the notes' first target sentence, its newest version", "449.0.0.54.82", Stored.TARGET.get());
+        assertEquals("both targets survive the cache", "14.38.0,14.25.0", Stored.TARGETS.get());
         assertNull(ReleaseCheck.statusLine());
         assertEquals("You have the newest HushPinterest release.", ReleaseCheck.checkNowSummary());
     }
@@ -174,24 +179,72 @@ public class ReleaseCheckTest {
     }
 
     @Test
-    public void aTargetOtherThanTheRunningThreadsIsNamed() {
-        ReleaseCheck.pinterestForTests = "447.0.0.50.72";
+    public void anUnsupportedExactPinterestVersionNamesTheSupportedSet() {
+        ReleaseCheck.pinterestForTests = "14.26.0";
         github.then(Reply.release("v0.1.8", NOTES_0_1_8));
         ReleaseCheck.run(NOW);
 
-        assertEquals("HushPinterest " + L10n.isolate("0.1.8") + " targets Pinterest " + L10n.isolate("449.0.0.54.82") + ".",
+        assertEquals("HushPinterest " + L10n.isolate("0.1.8") + " supports Pinterest " + L10n.isolate("14.38.0, 14.25.0") + ".",
                 ReleaseCheck.statusLine());
         // Notes that name no Pinterest build say nothing about one.
         ReleaseCheckForTests.forget();
         github.then(Reply.release("v0.1.8", "Bug fixes."));
         ReleaseCheck.run(NOW);
-        assertEquals("", Stored.TARGET.get());
+        assertEquals("", Stored.TARGETS.get());
         assertNull(ReleaseCheck.statusLine());
         // And a Pinterest version this can't read isn't taken for another one.
         ReleaseCheck.pinterestForTests = "Unknown";
         github.then(Reply.release("v0.1.8", NOTES_0_1_8));
         ReleaseCheck.run(NOW + DAY);
         assertNull(ReleaseCheck.statusLine());
+    }
+
+    @Test
+    public void theFallbackDoesNotLoseSupportWhenANewerBundleIsFound() {
+        ReleaseCheck.pinterestForTests = "14.25.0";
+        github.then(Reply.release("v0.2.0", NOTES_0_1_8));
+        ReleaseCheck.run(NOW);
+        assertEquals(NEWER, ReleaseCheck.statusLine());
+        ReleaseCheck.versionForTests = "0.2.0";
+        assertNull(ReleaseCheck.statusLine());
+
+        // These compare numerically equal, but neither exact host version was declared.
+        for (String different : Arrays.asList("14.025.0", "14.25.0.0")) {
+            assertEquals(Integer.valueOf(0), ReleaseCheck.compare("14.25.0", different));
+            ReleaseCheck.pinterestForTests = different;
+            assertNotNull("numeric equality invented support for " + different, ReleaseCheck.statusLine());
+        }
+    }
+
+    @Test
+    public void anOldSingleTargetCacheKeepsTheBundleButCannotInventCompatibility() {
+        Stored.NEWEST.save("0.2.0");
+        Stored.LEGACY_TARGET.save("14.38.0");
+        Stored.RESULT.save("OK");
+        Stored.CHECKED_AT.save(NOW);
+        ReleaseCheck.pinterestForTests = "14.25.0";
+        assertEquals("the old cache still names a newer bundle", NEWER, ReleaseCheck.statusLine());
+        assertFalse(String.join("\n", ReleaseCheck.reportLines(false)).contains("supports Pinterest"));
+        ReleaseCheck.versionForTests = "0.2.0";
+        assertNull("lossy old data cannot label the fallback incompatible", ReleaseCheck.statusLine());
+
+        github.then(Reply.release("v0.2.0", NOTES_0_1_8));
+        ReleaseCheck.run(NOW + DAY);
+        assertEquals("14.38.0,14.25.0", Stored.TARGETS.get());
+        assertEquals("the obsolete value is discarded after a successful check", "", Stored.LEGACY_TARGET.get());
+        assertNull(ReleaseCheck.statusLine());
+    }
+
+    @Test
+    public void malformedTargetNotesDoNotPreventANewerBundleFromBeingNamed() {
+        for (String notes : Arrays.asList("Bug fixes.", "Supports Pinterest 14.25.0 through 14.38.0.",
+                "Targets Pinterest 14.38.0 and 14.25.", "Targets Pinterest 14.38.0-beta.")) {
+            github.then(Reply.release("v0.2.0", notes));
+            ReleaseCheck.run(NOW);
+            assertEquals(notes, "0.2.0", Stored.NEWEST.get());
+            assertEquals(notes, "", Stored.TARGETS.get());
+            assertEquals(notes, NEWER, ReleaseCheck.statusLine());
+        }
     }
 
     @Test
@@ -242,17 +295,18 @@ public class ReleaseCheckTest {
     /** An answer the store can't keep leaves the last one on the card, as a restart would find it. */
     @Test
     public void anAnswerTheStoreCanNotKeepLeavesTheLastOneOnTheCard() {
-        github.then(Reply.release("v0.2.0", null));
+        github.then(Reply.release("v0.2.0", NOTES_0_1_8));
         ReleaseCheck.run(NOW);
         assertEquals(NEWER, ReleaseCheck.statusLine());
 
-        github.then(Reply.release("v0.3.0", null));
+        github.then(Reply.release("v0.3.0", "Supports Pinterest 14.40.0."));
         // The first editor keeps the time of the try; the second is the answer's one commit.
         try (FailingStore ignored = FailingStore.install(FailingStore.Fault.NONE, FailingStore.Fault.COMMIT_THROWS)) {
             ReleaseCheck.run(NOW + DAY);
         }
         assertEquals(NOW + DAY, (long) Stored.CHECKED_AT.get());
         assertEquals("0.2.0", Stored.NEWEST.get());
+        assertEquals("the bundle and its target set roll back together", "14.38.0,14.25.0", Stored.TARGETS.get());
         assertEquals(NEWER, ReleaseCheck.statusLine());
     }
 
@@ -599,6 +653,8 @@ public class ReleaseCheckTest {
             assertFalse("the switch starts on", ((SwitchPreference) rows.get(toggle)).isChecked());
             assertEquals("Check now sits under its switch", toggle + 1, checkNow);
             assertTrue("the release check is drawn below the Pause row", checkNow < pause);
+            assertEquals(checkNow + 1, indexOf(rows, HushPinterestPreferenceFragment.RELEASE_NOTES));
+            assertEquals(checkNow + 2, indexOf(rows, HushPinterestPreferenceFragment.UPDATE_INSTRUCTIONS));
             assertEquals(ReleaseCheck.idleSummary(), String.valueOf(rows.get(checkNow).getSummary()));
         }
 
@@ -613,6 +669,48 @@ public class ReleaseCheckTest {
     }
 
     @Test
+    public void releaseHelpOpensOnlyFixedProjectPagesAndNeverDownloadsAnAsset() {
+        github.then(Reply.json("{\"tag_name\":\"v0.2.0\",\"body\":\"Supports Pinterest 14.38.0. "
+                + "[Update](https://example.invalid/update.apk)\",\"html_url\":\"https://example.invalid/release\","
+                + "\"assets\":[{\"browser_download_url\":\"https://example.invalid/bundle.mpp\"}]}"));
+        ReleaseCheck.run(NOW);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = open(controller);
+            String[] keys = {HushPinterestPreferenceFragment.RELEASE_NOTES, HushPinterestPreferenceFragment.UPDATE_INSTRUCTIONS};
+            String[] fixed = {"https://github.com/SysAdminDoc/HushPinterest/releases", "https://github.com/SysAdminDoc/HushPinterest#install"};
+            for (int i = 0; i < keys.length; i++) {
+                Preference row = page.findPreference(keys[i]);
+                assertNotNull(row);
+                row.getOnPreferenceClickListener().onPreferenceClick(row);
+                Intent opened = Shadows.shadowOf(controller.get()).getNextStartedActivity();
+                assertNotNull("no browser action for " + keys[i], opened);
+                assertEquals(Intent.ACTION_VIEW, opened.getAction());
+                assertEquals(fixed[i], opened.getDataString());
+            }
+            assertNull("opening help launched another action", Shadows.shadowOf(controller.get()).getNextStartedActivity());
+        }
+        assertEquals("help links do not fetch release assets", 1, github.asked.size());
+        assertEquals(ReleaseCheck.LATEST_RELEASE, github.asked.get(0).toString());
+    }
+
+    @Test
+    public void releaseHelpWithoutABrowserLeavesTheAddressAndPinterestRunning() {
+        try (ActivityController<SettingsScreenStatesTest.NoBrowserAround> controller =
+                     Robolectric.buildActivity(SettingsScreenStatesTest.NoBrowserAround.class).setup()) {
+            HushPinterestPreferenceFragment page = open(controller);
+            for (String key : Arrays.asList(HushPinterestPreferenceFragment.RELEASE_NOTES,
+                    HushPinterestPreferenceFragment.UPDATE_INSTRUCTIONS)) {
+                Preference row = page.findPreference(key);
+                row.getOnPreferenceClickListener().onPreferenceClick(row);
+                String tip = String.valueOf(ShadowToast.getTextOfLatestToast());
+                assertTrue(tip, tip.contains("github.com/SysAdminDoc/HushPinterest"));
+                assertFalse(controller.get().isFinishing());
+            }
+        }
+        assertTrue("opening help unexpectedly checked GitHub", github.asked.isEmpty());
+    }
+
+    @Test
     public void checkNowSaysItsCheckingThenTheCardAndTheRowNameTheNewerRelease() throws Exception {
         CountDownLatch hold = new CountDownLatch(1);
         github.onRequest = () -> {
@@ -622,7 +720,7 @@ public class ReleaseCheckTest {
                 throw new AssertionError(interrupted);
             }
         };
-        github.then(Reply.release("v0.2.0", NOTES_0_1_8.replace("449.0.0.54.82 and 447.0.0.50.72", "449.0.0.54.82")));
+        github.then(Reply.release("v0.2.0", NOTES_0_1_8.replace("14.38.0 and 14.25.0", "14.38.0")));
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushPinterestPreferenceFragment page = open(controller);
             Preference card = rows(page).get(0);
@@ -683,13 +781,13 @@ public class ReleaseCheckTest {
         Settings.CHECK_FOR_RELEASES.save(true);
         assertEquals(Collections.singletonList("switch: hushpinterest_check_releases=on"), ReleaseCheck.reportLines(false));
 
-        github.then(Reply.release("v0.2.0", "This release targets Pinterest 451.0.0.40.70."));
+        github.then(Reply.release("v0.2.0", "This release targets Pinterest 14.39.0."));
         ReleaseCheck.run(NOW);
         List<String> lines = ReleaseCheck.reportLines(false);
         assertEquals(Arrays.asList(
                 "switch: hushpinterest_check_releases=on",
                 "last try: 2026-09-21 14:13 UTC, result: ok",
-                "latest release: 0.2.0, targets Pinterest 451.0.0.40.70"), lines);
+                "latest release: 0.2.0, supports Pinterest 14.39.0"), lines);
         assertEquals("switch: disabled while paused (saved hushpinterest_check_releases=on)",
                 ReleaseCheck.reportLines(true).get(0));
 
@@ -708,26 +806,53 @@ public class ReleaseCheckTest {
     @Test
     public void targetsAreReadTheWaysReleaseNotesSayThem() {
         // The bundle index's description, the GitHub release's notes and the changelog.
-        assertEquals("449.0.0.54.82", ReleaseCheck.targetIn("HushPinterest v0.1.8 targets Pinterest 449.0.0.54.82 "
-                + "(com.instagram.barcelona), and 447.0.0.50.72 still works.\n\nHide ads now covers the Following feed."));
-        assertEquals("449.0.0.54.82", ReleaseCheck.targetIn(NOTES_0_1_8));
-        assertEquals("449.0.0.54.82", ReleaseCheck.targetIn("* **Pinterest:** The 6 patches target Pinterest "
-                + "449.0.0.54.82 and 447.0.0.50.72. Morphe Manager 1.32.0 or newer is required."));
-        assertEquals("449.0.0.54.82", ReleaseCheck.targetIn("- All 13 patches applied to Pinterest 449.0.0.54.82 and "
-                + "447.0.0.50.72 without forced compatibility mode or manifest changes."));
-        // The newest version the sentence names, whichever comes first.
-        assertEquals("449.0.0.54.82", ReleaseCheck.targetIn("It targets Pinterest 447.0.0.50.72 and 449.0.0.54.82."));
-        // The first sentence that says so counts.
-        assertEquals("451.0.0.40.70", ReleaseCheck.targetIn("This targets Pinterest 451.0.0.40.70. It no longer "
-                + "targets Pinterest 452.0.0.1.1, oddly."));
+        List<String> both = Arrays.asList("14.38.0", "14.25.0");
+        assertEquals(both, ReleaseCheck.targetsIn("HushPinterest v0.1.8 targets Pinterest 14.38.0 "
+                + "(com.pinterest), and 14.25.0 still works.\n\nHide ads now covers the Following feed."));
+        assertEquals(both, ReleaseCheck.targetsIn(NOTES_0_1_8));
+        assertEquals(both, ReleaseCheck.targetsIn("* **Pinterest:** The 6 patches target Pinterest "
+                + "14.38.0 and 14.25.0. Morphe Manager 1.32.0 or newer is required."));
+        assertEquals(both, ReleaseCheck.targetsIn("- All 13 patches applied to Pinterest 14.38.0 and "
+                + "14.25.0 without forced compatibility mode or manifest changes."));
+        assertEquals(Arrays.asList("14.25.0", "14.38.0"), ReleaseCheck.targetsIn("It targets Pinterest 14.25.0 and 14.38.0."));
+        assertEquals(both, ReleaseCheck.targetsIn("Supports Pinterest **14.38.0**, `14.25.0`, and 14.38.0."));
+        assertEquals(both, ReleaseCheck.targetsIn("Supports Pinterest 14.38.0. Also supports Pinterest 14.25.0."));
+        assertEquals(Collections.singletonList("14.38.0"), ReleaseCheck.targetsIn(
+                "Supports Pinterest 14.38.0 and requires Morphe Manager 1.33.0."));
+        assertEquals(Collections.singletonList("14.39.0"), ReleaseCheck.targetsIn("This targets Pinterest 14.39.0. It no longer "
+                + "targets Pinterest 14.40.0, oddly."));
+    }
 
-        assertNull(ReleaseCheck.targetIn(""));
-        assertNull(ReleaseCheck.targetIn("Pinterest 449.0.0.54.82 broke the quote button."));
-        assertNull(ReleaseCheck.targetIn("It targets Pinterest users who post videos."));
-        assertNull("a version in the next sentence isn't a target",
-                ReleaseCheck.targetIn("This release targets Pinterest. 451.0.0.40.70 is out too."));
-        assertNull("a version code isn't a version", ReleaseCheck.targetIn("It targets Pinterest (vc 475019344)."));
-        assertNull(ReleaseCheck.targetIn("Checked on a Galaxy S22 with Android 16."));
+    @Test
+    public void malformedRangesNegationAndUnrelatedNumbersAreNotADeclaredTargetSet() {
+        for (String notes : Arrays.asList("", "Pinterest 14.38.0 broke a button.",
+                "It targets Pinterest users who post videos.",
+                "This release targets Pinterest. 14.39.0 is out too.",
+                "It targets Pinterest (vc 14388010).", "Checked on a Galaxy S22 with Android 16.",
+                "No longer supports Pinterest 14.25.0.", "The previous release targets Pinterest 14.25.0.",
+                "Supports Pinterest 14.25.0 through 14.38.0.", "Supports Pinterest 14.38.0 or newer.",
+                "Supports Pinterest 14.25.0-14.38.0.", "Supports Pinterest 14.38.0 and 14.25.",
+                "Supports Pinterest 14.38.0-beta.", "Supports Pinterest 14.38.0.1.2.3.4.",
+                "Supports Pinterest 14.38.0 and " + String.join("", Collections.nCopies(513, "x")))) {
+            assertEquals(notes, Collections.emptyList(), ReleaseCheck.targetsIn(notes));
+        }
+        StringBuilder overflow = new StringBuilder("Supports Pinterest ");
+        for (int i = 0; i <= ReleaseCheck.MAX_TARGETS; i++) {
+            if (i > 0) overflow.append(", ");
+            overflow.append("14.").append(i).append(".0");
+        }
+        assertTrue("an incomplete bounded subset would invent compatibility", ReleaseCheck.targetsIn(overflow.toString()).isEmpty());
+    }
+
+    @Test
+    public void theNewCacheRejectsMalformedIncompleteAndDuplicateSets() {
+        assertEquals(Arrays.asList("14.38.0", "14.25.0"), ReleaseCheck.cachedTargets("14.38.0,14.25.0"));
+        for (String malformed : Arrays.asList("", "14.38", "14.38.0,", "14.38.0,14.38.0", "14.38.0-beta", "14.38.0, 14.25.0")) {
+            Stored.TARGETS.save(malformed);
+            Stored.NEWEST.save("0.2.0");
+            assertTrue(malformed, ReleaseCheck.cachedTargets(malformed).isEmpty());
+            assertEquals(malformed, NEWER, ReleaseCheck.statusLine());
+        }
     }
 
     @Test
@@ -740,7 +865,7 @@ public class ReleaseCheckTest {
         assertTrue("a pre-release comes before its release", ReleaseCheck.compare("0.2.0-dev", "0.2.0") < 0);
         assertTrue(ReleaseCheck.compare("0.2.0", "0.2.0-dev") > 0);
         assertTrue(ReleaseCheck.compare("0.2.0-dev", "0.1.8") > 0);
-        assertTrue(ReleaseCheck.compare("449.0.0.54.82", "447.0.0.50.72") > 0);
+        assertTrue(ReleaseCheck.compare("14.38.0", "14.25.0") > 0);
         assertNull(ReleaseCheck.compare("", "0.1.8"));
         assertNull(ReleaseCheck.compare("Unknown", "0.1.8"));
         assertNull(ReleaseCheck.compare(null, "0.1.8"));
@@ -821,7 +946,7 @@ public class ReleaseCheckTest {
         }
     }
 
-    private static HushPinterestPreferenceFragment open(ActivityController<Activity> controller) {
+    private static HushPinterestPreferenceFragment open(ActivityController<? extends Activity> controller) {
         HushPinterestPreferenceFragment page = new HushPinterestPreferenceFragment();
         controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
         return page;

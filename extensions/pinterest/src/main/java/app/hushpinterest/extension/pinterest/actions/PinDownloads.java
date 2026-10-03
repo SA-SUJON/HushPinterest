@@ -146,12 +146,25 @@ public final class PinDownloads {
         Utils.showToastLong(L10n.t("Couldn't save this pin."));
     }
 
+    static void failedDocument(Context app, Uri destination, Throwable failure) {
+        if (failure instanceof PinTransfer.SaveFailure && ((PinTransfer.SaveFailure) failure).incomplete) {
+            failed("save pin document", failure);
+            removeDocument(app, destination);
+        } else {
+            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "save pin document", failure);
+            Utils.showToastLong(L10n.t("The file may have saved. Check your chosen save location."));
+        }
+    }
+
     private static void removeDocument(Context app, Uri destination) {
         try {
             if (!"content".equals(destination.getScheme())) throw new IllegalArgumentException("Save location is not a document");
-            DocumentsContract.deleteDocument(app.getContentResolver(), destination);
+            if (!DocumentsContract.deleteDocument(app.getContentResolver(), destination)) {
+                throw new IllegalStateException("Document provider refused deletion");
+            }
         } catch (Exception cannotDelete) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "remove incomplete document", cannotDelete);
+            Utils.showToastLong(L10n.t("Couldn't remove the incomplete file. Check your chosen save location."));
         }
     }
 
@@ -243,8 +256,7 @@ public final class PinDownloads {
                         HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin saved to chosen document");
                         Utils.showToastLong(L10n.t("Pin saved."));
                     } catch (Throwable failure) {
-                        removeDocument(app, destination);
-                        failed("save pin document", failure);
+                        failedDocument(app, destination, failure);
                     } finally {
                         SAVING.set(false);
                     }

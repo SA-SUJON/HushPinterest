@@ -79,6 +79,7 @@ Long-press the Pinterest icon and tap HushPinterest. You can also open Pinterest
   <img src="assets/screenshots/settings-home.png" width="240" alt="HushPinterest settings categories">
   <img src="assets/screenshots/settings-feed.png" width="240" alt="Feed controls for promoted, AI-labeled and shopping pins">
   <img src="assets/screenshots/settings-privacy.png" width="240" alt="Analytics and link-tracking controls">
+  <img src="assets/screenshots/settings-updates.png" width="240" alt="Release notes and update instructions in settings">
 </p>
 
 These settings were captured on Android 16 with every patch included. All 19 feature switches saved and restored their choices. Pause and Resume were checked across restarts, and Supported links opened Android's link settings. Signed-in feed and pin-action checks are still pending.
@@ -86,6 +87,10 @@ These settings were captured on Android 16 with every patch included. All 19 fea
 Shopping filters and the new pin actions and interface controls start off. Create and Notifications have separate switches. The pin menu has separate choices for collage actions, Search image and Promote pin. Home, your profile and the ordinary Save, Share and Report actions stay available.
 
 Download pins adds a Download row only when Pinterest supplies an original image or a direct MP4. It uses the highest resolution MP4 supplied for a video. Android 10 and newer save through Downloads. On Android 9, choose where to save the file. Streaming playlists aren't saved as videos.
+
+Android 9 saves have a five-minute limit and a 256 MiB size limit. Empty or incomplete responses fail. If a save might have finished despite a storage error, HushPinterest keeps the file and asks you to check your chosen location. Pause prevents new requests but doesn't cancel a save already running.
+
+The release check compares your Pinterest version with every version a release explicitly supports. Updates also has links to the release notes and installation steps. Those links don't download anything automatically.
 
 ## Opening Pinterest links
 

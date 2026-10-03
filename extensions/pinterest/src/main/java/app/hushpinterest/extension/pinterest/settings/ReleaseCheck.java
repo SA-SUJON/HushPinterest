@@ -28,9 +28,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -124,36 +126,35 @@ public final class ReleaseCheck {
         REFUSED
     }
 
-    /** What one try found. On OK, the latest version and, when its notes name one, the Pinterest build it targets. */
+    /** What one try found. The bundle version and its explicitly named Pinterest targets are independent. */
     static final class Answer {
         final Result result;
         @Nullable
         final String newest;
-        @Nullable
-        final String target;
+        final List<String> targets;
         /** Why a try that isn't OK ended as it did, for the log. Never on screen, and never an address. */
         @Nullable
         final String reason;
 
-        private Answer(Result result, @Nullable String newest, @Nullable String target, @Nullable String reason) {
+        private Answer(Result result, @Nullable String newest, List<String> targets, @Nullable String reason) {
             this.result = result;
             this.newest = newest;
-            this.target = target;
+            this.targets = targets;
             this.reason = reason;
         }
 
-        static Answer ok(String newest, @Nullable String target) {
-            return new Answer(Result.OK, newest, target, null);
+        static Answer ok(String newest, List<String> targets) {
+            return new Answer(Result.OK, newest, targets, null);
         }
 
         static Answer failed(Result result, String reason) {
-            return new Answer(result, null, null, reason);
+            return new Answer(result, null, Collections.emptyList(), reason);
         }
 
         @Override
         public String toString() {
             if (result != Result.OK) return result + " (" + reason + ")";
-            return "newest " + newest + (target == null ? "" : ", targets Pinterest " + target);
+            return "newest " + newest + (targets.isEmpty() ? "" : ", supports Pinterest " + String.join(", ", targets));
         }
     }
 
@@ -196,11 +197,13 @@ public final class ReleaseCheck {
         static final StringSetting RESULT = new StringSetting("hushpinterest_release_result", "", false, false);
         /** The latest release the last successful try found, without its "v". */
         static final StringSetting NEWEST = new StringSetting("hushpinterest_release_newest", "", false, false);
-        /** The Pinterest build that release's notes say it targets, or empty. */
-        static final StringSetting TARGET = new StringSetting("hushpinterest_release_pinterest", "", false, false);
+        /** Discarded compatibility data from the parser that only kept the newest target. */
+        static final StringSetting LEGACY_TARGET = new StringSetting("hushpinterest_release_pinterest", "", false, false);
+        /** Explicit targets, comma separated. A new key invalidates the old lossy cache without guessing support. */
+        static final StringSetting TARGETS = new StringSetting("hushpinterest_release_pinterest_targets_v2", "", false, false);
 
         static {
-            Setting.keepWhenPaused(CHECKED_AT, RESULT, NEWEST, TARGET);
+            Setting.keepWhenPaused(CHECKED_AT, RESULT, NEWEST, LEGACY_TARGET, TARGETS);
         }
 
         private Stored() {
@@ -323,7 +326,8 @@ public final class ReleaseCheck {
         found.put(Stored.RESULT, answer.result.name());
         if (answer.result == Result.OK && answer.newest != null) {
             found.put(Stored.NEWEST, answer.newest);
-            found.put(Stored.TARGET, answer.target == null ? "" : answer.target);
+            found.put(Stored.TARGETS, String.join(",", answer.targets));
+            found.put(Stored.LEGACY_TARGET, "");
         }
         try {
             Setting.saveAll(found);
@@ -458,17 +462,22 @@ public final class ReleaseCheck {
     /** A version to compare: numbers joined by dots, then a pre-release suffix or none. */
     private static final Pattern VERSION = Pattern.compile("[vV]?(\\d{1,9}(?:\\.\\d{1,9})*)(?:-(.+))?");
 
-    /**
-     * Where release notes say which Pinterest build a release is for. The bundle's index says
-     * "targets Pinterest 449.0.0.54.82", the changelog "The 6 patches target Pinterest ...", and each
-     * GitHub release "All 6 patches applied without force to Pinterest 449.0.0.54.82 and ...".
-     */
+    /** Positive supported-target clauses. A version elsewhere in release notes is not compatibility evidence. */
     private static final Pattern TARGET_PHRASE = Pattern.compile(
-            "(?i)\\b(?:targets?|applied\\b[^.\\n]{0,60}?\\bto)\\s+Pinterest\\s+(?=\\d)");
+            "(?i)\\b(?:targets?|supports?|applied\\b[^.\\n]{0,60}?\\bto)\\s+Pinterest\\s+");
 
-    /** A Pinterest version: three to six numbers joined by dots, not part of a longer number. */
+    /** A complete Pinterest version token. Numeric equivalence is never used for host compatibility. */
     private static final Pattern PINTEREST_VERSION = Pattern.compile(
-            "(?<![\\d.])\\d{1,4}(?:\\.\\d{1,6}){2,5}(?!\\d)");
+            "\\d{1,4}(?:\\.\\d{1,6}){2,5}(?![\\w.+-])");
+    private static final Pattern TARGET_JOIN = Pattern.compile("(?i)\\s*(?:,\\s*(?:(?:and|or)\\s+)?|(?:and|or)\\s+|/\\s*)");
+    private static final Pattern TARGET_NOTE = Pattern.compile("\\s*\\([^()\\n]{0,80}\\)");
+    private static final Pattern TARGET_RANGE = Pattern.compile(
+            "(?i)^\\s*(?:[-–—+]|\\.\\.|(?:to|through)\\b|(?:(?:and|or)\\s+)?(?:newer|later|older|higher|above)\\b)");
+    private static final Pattern NEGATIVE_TARGET = Pattern.compile(
+            "(?i)\\b(?:no longer|used to|previous|formerly|not|never|cannot|can't|doesn't|don't|didn't|failed)\\b");
+    static final int MAX_TARGETS = 8;
+    private static final int MAX_TARGET_CLAUSE = 512;
+    private static final int MAX_TARGET_CLAUSES = 16;
 
     /** Where a sentence ends: a full stop before a space or the end, or a line break. */
     private static final Pattern SENTENCE_END = Pattern.compile("\\.(?=\\s|$)|\\n");
@@ -490,7 +499,7 @@ public final class ReleaseCheck {
         String newest = versionOfTag((String) tag);
         if (newest == null) return Answer.failed(Result.UNREADABLE, "the release's tag isn't a version");
         Object notes = release.opt("body");
-        return Answer.ok(newest, notes instanceof String ? targetIn((String) notes) : null);
+        return Answer.ok(newest, notes instanceof String ? targetsIn((String) notes) : Collections.emptyList());
     }
 
     /** The version a tag names, without its "v", or null when it names none. */
@@ -500,27 +509,61 @@ public final class ReleaseCheck {
         return matcher.matches() ? matcher.group(1) : null;
     }
 
-    /**
-     * The newest Pinterest build [notes] say the release targets, or null when they name none. The
-     * first sentence that says so counts, and the newest version it names: "449.0.0.54.82 and
-     * 448.0.0.40.109" is 449.
-     */
-    @Nullable
-    static String targetIn(String notes) {
+    /** A bounded list of exact versions from explicit clauses, or no compatibility claim. No ranges are expanded. */
+    static List<String> targetsIn(String notes) {
+        LinkedHashSet<String> targets = new LinkedHashSet<>();
         Matcher phrase = TARGET_PHRASE.matcher(notes);
+        int clauses = 0;
         while (phrase.find()) {
+            if (++clauses > MAX_TARGET_CLAUSES) return Collections.emptyList();
+            String prefix = notes.substring(Math.max(0, phrase.start() - 100), phrase.start());
+            int previousLine = prefix.lastIndexOf('\n');
+            int previousSentence = prefix.lastIndexOf(". ");
+            prefix = prefix.substring(Math.max(previousLine + 1, previousSentence < 0 ? 0 : previousSentence + 2));
+            if (NEGATIVE_TARGET.matcher(prefix).find()) continue;
             Matcher end = SENTENCE_END.matcher(notes);
             int stop = end.find(phrase.end()) ? end.start() : notes.length();
-            String sentence = notes.substring(phrase.end(), Math.min(stop, phrase.end() + 200));
-            String newest = null;
-            Matcher version = PINTEREST_VERSION.matcher(sentence);
-            while (version.find()) {
-                Integer order = compare(version.group(), newest);
-                if (newest == null || (order != null && order > 0)) newest = version.group();
-            }
-            if (newest != null) return newest;
+            if (stop - phrase.end() > MAX_TARGET_CLAUSE) return Collections.emptyList();
+            List<String> clause = targetClause(notes.substring(phrase.end(), stop));
+            if (clause.isEmpty()) return Collections.emptyList();
+            targets.addAll(clause);
+            if (targets.size() > MAX_TARGETS) return Collections.emptyList();
         }
-        return null;
+        return Collections.unmodifiableList(new ArrayList<>(targets));
+    }
+
+    private static List<String> targetClause(String text) {
+        String clause = text.replace("**", "").replace("`", "").trim();
+        LinkedHashSet<String> targets = new LinkedHashSet<>();
+        int offset = 0;
+        while (offset < clause.length()) {
+            Matcher version = PINTEREST_VERSION.matcher(clause).region(offset, clause.length());
+            if (!version.lookingAt()) return Collections.emptyList();
+            targets.add(version.group());
+            if (targets.size() > MAX_TARGETS) return Collections.emptyList();
+            offset = version.end();
+            Matcher note = TARGET_NOTE.matcher(clause).region(offset, clause.length());
+            if (note.lookingAt()) offset = note.end();
+            if (TARGET_RANGE.matcher(clause.substring(offset)).find()) return Collections.emptyList();
+            Matcher join = TARGET_JOIN.matcher(clause).region(offset, clause.length());
+            if (!join.lookingAt()) break;
+            offset = join.end();
+            // A trailing clause about Manager or Android is not another Pinterest version.
+            if (offset == clause.length() || !Character.isDigit(clause.charAt(offset))) break;
+        }
+        return new ArrayList<>(targets);
+    }
+
+    /** Only the new complete-list cache is read. Legacy single-target data never establishes support. */
+    static List<String> cachedTargets(String encoded) {
+        if (encoded.isEmpty() || encoded.length() > MAX_TARGET_CLAUSE) return Collections.emptyList();
+        String[] values = encoded.split(",", -1);
+        if (values.length > MAX_TARGETS) return Collections.emptyList();
+        LinkedHashSet<String> targets = new LinkedHashSet<>();
+        for (String value : values) {
+            if (!PINTEREST_VERSION.matcher(value).matches() || !targets.add(value)) return Collections.emptyList();
+        }
+        return Collections.unmodifiableList(new ArrayList<>(targets));
     }
 
     /**
@@ -562,27 +605,28 @@ public final class ReleaseCheck {
     /** The status card's line, from what the last successful try found, or null when there's nothing to say. */
     @Nullable
     static String statusLine() {
-        return statusLine(Stored.NEWEST.get(), Stored.TARGET.get(), runningVersion(), runningPinterest());
+        return statusLine(Stored.NEWEST.get(), cachedTargets(Stored.TARGETS.get()), runningVersion(), runningPinterest());
     }
 
     /**
-     * A newer release than [running], and the Pinterest build the latest release targets when it
-     * isn't [threads], or null when neither holds. Compared when shown, so the line goes once
+     * A newer release than [running], and the explicit Pinterest targets when [pinterest] isn't in
+     * that exact set, or null when neither holds. Compared when shown, so the line goes once
      * HushPinterest has been updated, with no new try.
      */
     @Nullable
-    static String statusLine(@Nullable String newest, @Nullable String target, @Nullable String running,
-                             @Nullable String threads) {
+    static String statusLine(@Nullable String newest, List<String> targets, @Nullable String running,
+                             @Nullable String pinterest) {
         if (newest == null || newest.isEmpty()) return null;
-        Integer againstPinterest = target == null || target.isEmpty() ? null : compare(target, threads);
-        boolean otherTarget = againstPinterest != null && againstPinterest != 0;
+        boolean otherTarget = !targets.isEmpty() && pinterest != null
+                && PINTEREST_VERSION.matcher(pinterest).matches() && !targets.contains(pinterest);
+        String targetNames = String.join(", ", targets);
         Integer againstRunning = compare(newest, running);
         if (againstRunning != null && againstRunning > 0) {
             String out = L10n.f("HushPinterest %1$s is out. Update it in Morphe Manager.", L10n.isolate(newest));
-            return otherTarget ? out + " " + L10n.f("It targets Pinterest %1$s.", L10n.isolate(target)) : out;
+            return otherTarget ? out + " " + L10n.f("It supports Pinterest %1$s.", L10n.isolate(targetNames)) : out;
         }
         if (!otherTarget) return null;
-        return L10n.f("HushPinterest %1$s targets Pinterest %2$s.", L10n.isolate(newest), L10n.isolate(target));
+        return L10n.f("HushPinterest %1$s supports Pinterest %2$s.", L10n.isolate(newest), L10n.isolate(targetNames));
     }
 
     /** What the Check now row says: a try on its way, the last one's answer, or what a tap does. */
@@ -660,8 +704,8 @@ public final class ReleaseCheck {
         }
         String newest = Stored.NEWEST.get();
         if (!newest.isEmpty()) {
-            String target = Stored.TARGET.get();
-            lines.add("latest release: " + newest + (target.isEmpty() ? "" : ", targets Pinterest " + target));
+            List<String> targets = cachedTargets(Stored.TARGETS.get());
+            lines.add("latest release: " + newest + (targets.isEmpty() ? "" : ", supports Pinterest " + String.join(", ", targets)));
         }
         return lines;
     }
