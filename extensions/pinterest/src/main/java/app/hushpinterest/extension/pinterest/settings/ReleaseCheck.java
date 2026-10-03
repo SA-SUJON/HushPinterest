@@ -470,11 +470,15 @@ public final class ReleaseCheck {
     private static final Pattern PINTEREST_VERSION = Pattern.compile(
             "\\d{1,4}(?:\\.\\d{1,6}){2,5}(?![\\w.+-])");
     private static final Pattern TARGET_JOIN = Pattern.compile("(?i)\\s*(?:,\\s*(?:(?:and|or)\\s+)?|(?:and|or)\\s+|/\\s*)");
+    private static final Pattern TARGET_PRODUCT = Pattern.compile("(?i)Pinterest\\s+");
     private static final Pattern TARGET_NOTE = Pattern.compile("\\s*\\([^()\\n]{0,80}\\)");
     private static final Pattern TARGET_RANGE = Pattern.compile(
             "(?i)^\\s*(?:[-–—+]|\\.\\.|(?:to|through)\\b|(?:(?:and|or)\\s+)?(?:newer|later|older|higher|above)\\b)");
     private static final Pattern NEGATIVE_TARGET = Pattern.compile(
-            "(?i)\\b(?:no longer|used to|previous|formerly|not|never|cannot|can't|doesn't|don't|didn't|failed)\\b");
+            "(?i)\\b(?:(?:no longer|used to|formerly|not|never|cannot|can't|doesn't|don't|didn't|won't|wouldn't|failed(?: to)?)"
+                    + "(?:\\s+(?:currently|yet|ever|explicitly|actually|officially|still|really|directly)){0,3}"
+                    + "|(?:previous|former|earlier|old)\\s+(?:release|version|build)"
+                    + "(?:\\s+(?:also|still|only|explicitly|officially|currently|ever|never|now)){0,3})\\s*$");
     static final int MAX_TARGETS = 8;
     private static final int MAX_TARGET_CLAUSE = 512;
     private static final int MAX_TARGET_CLAUSES = 16;
@@ -548,6 +552,11 @@ public final class ReleaseCheck {
             Matcher join = TARGET_JOIN.matcher(clause).region(offset, clause.length());
             if (!join.lookingAt()) break;
             offset = join.end();
+            Matcher product = TARGET_PRODUCT.matcher(clause).region(offset, clause.length());
+            if (product.lookingAt()) {
+                offset = product.end();
+                if (offset == clause.length() || !Character.isDigit(clause.charAt(offset))) return Collections.emptyList();
+            }
             // A trailing clause about Manager or Android is not another Pinterest version.
             if (offset == clause.length() || !Character.isDigit(clause.charAt(offset))) break;
         }

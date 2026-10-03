@@ -824,6 +824,26 @@ public class ReleaseCheckTest {
     }
 
     @Test
+    public void explicitFallbackSupportSurvivesUnrelatedHistoryAndRepeatedProductNames() {
+        List<String> both = Arrays.asList("14.38.0", "14.25.0");
+        for (String notes : Arrays.asList(
+                "Supports Pinterest 14.38.0. This release fixes previous bugs and supports Pinterest 14.25.0.",
+                "Supports Pinterest 14.38.0 and Pinterest 14.25.0.",
+                "Supports Pinterest 14.38.0, Pinterest 14.25.0.",
+                "The previous release had bugs. This release officially supports Pinterest 14.38.0 and Pinterest 14.25.0.",
+                "It not only supports Pinterest 14.38.0 and Pinterest 14.25.0, but adds settings.")) {
+            List<String> targets = ReleaseCheck.targetsIn(notes);
+            assertEquals(notes, both, targets);
+            assertNull(notes, ReleaseCheck.statusLine("0.2.0", targets, "0.2.0", "14.25.0"));
+        }
+        for (String notes : Arrays.asList("The previous release still supports Pinterest 14.25.0.",
+                "It does not currently support Pinterest 14.25.0.", "It failed to apply to Pinterest 14.25.0.",
+                "It never officially supports Pinterest 14.25.0.", "Supports Pinterest 14.38.0 and Pinterest 14.25.")) {
+            assertTrue(notes, ReleaseCheck.targetsIn(notes).isEmpty());
+        }
+    }
+
+    @Test
     public void malformedRangesNegationAndUnrelatedNumbersAreNotADeclaredTargetSet() {
         for (String notes : Arrays.asList("", "Pinterest 14.38.0 broke a button.",
                 "It targets Pinterest users who post videos.",
