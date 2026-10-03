@@ -47,15 +47,19 @@ if ((Test-Path -LiteralPath $hookPath) -and -not $Force) {
 
 # Git runs hooks through its bundled sh even on Windows, so the hook is a shell script that
 # hands the refs on stdin to PowerShell. pwsh where it exists, Windows PowerShell otherwise.
+# Git's sh doesn't search the Store app-alias folder, so a Store pwsh is only found by its full
+# path, and without it the hook fell back to Windows PowerShell, which the gate isn't built for.
 $hook = @"
 #!/bin/sh
 $marker
 script="`$(git rev-parse --show-toplevel)/scripts/pre-push.ps1"
-if command -v pwsh >/dev/null 2>&1; then
-    shell=pwsh
-else
-    shell=powershell
-fi
+shell=powershell
+for candidate in pwsh "`$LOCALAPPDATA/Microsoft/WindowsApps/pwsh.exe" "`$PROGRAMFILES/PowerShell/7/pwsh.exe"; do
+    if command -v "`$candidate" >/dev/null 2>&1; then
+        shell=`$candidate
+        break
+    fi
+done
 exec "`$shell" -NoProfile -ExecutionPolicy Bypass -File "`$script" "`$@"
 "@
 

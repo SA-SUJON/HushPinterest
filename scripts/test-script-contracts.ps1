@@ -3351,7 +3351,12 @@ Assert-True (Test-ChangelogVersions -Current $goodChangelog -ExpectedVersion '0.
 # release adds (Get-ReleaseFileText, above the release facts).
 $realVersion = Get-BundleVersion -Root $Root
 $realChangelog = Get-ReleaseFileText 'CHANGELOG.md'
-$realTag = "$(& git -C $Root describe --tags --abbrev=0 HEAD 2>$null | Select-Object -First 1)".Trim()
+# Asked only when a tag is reachable: before the first release git describe writes "No names
+# found" to stderr, and Windows PowerShell, which the hook falls back to when Git's PATH has no
+# pwsh, turns that into a terminating error under Stop even with 2>$null.
+$realTag = if (@(& git -C $Root tag --merged HEAD).Count -gt 0) {
+    "$(& git -C $Root describe --tags --abbrev=0 HEAD | Select-Object -First 1)".Trim()
+} else { '' }
 $realPrevious = if ($realTag) { (& git -C $Root show "${realTag}:CHANGELOG.md" 2>$null) -join "`n" } else { '' }
 $realCheck = if ([string]::IsNullOrWhiteSpace($realPrevious)) {
     Test-ChangelogVersions -Current $realChangelog -ExpectedVersion $realVersion
