@@ -15,6 +15,7 @@ Nothing has been released yet. This is the work toward 0.0.2.
 * **Settings import:** Review names and old/new values before applying allowed switches. Undo restores the previous snapshot once, and expires after a later saved edit or restart. Returning a switch to its imported value doesn't restore Undo. Failed writes keep Undo after rollback, and failed imports still roll back atomically.
 * **Settings writes:** Explicit saves persist their requested value even when an unsaved live value already matches. Failed writes restore the exact previous storage, including missing keys, and keep Undo available.
 * **Saved choices:** Backups and import previews read stored switch choices. Imports still persist a requested choice when a temporary live value already matches, and Undo restores the earlier stored choice.
+* **Settings backup checks:** Android 16 import and export preserve all 19 saved switches. One-use Undo and expiration after an edit followed by a revert were exercised on the installed build. Local backup also works offline. The setup guide screenshot now shows the current account help.
 
 * **Diagnostic exports:** Summaries and successful-save feedback now show the real destination on Android 9 and newer versions. Unavailable storage keeps Copy quick report available. Redaction and export bounds remain enforced.
 
