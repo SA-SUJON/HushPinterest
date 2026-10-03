@@ -25,6 +25,7 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 
 # family|installed flag|selected patch name|capability flags
 # mutation|capability flags|clean-target selector|selector-specific hook descriptors and anchors
+# Guard mutations list one or more hook/selector pairs.
 # The clean APK supplies the callers. Final flags do not excuse missing, duplicated or misplaced calls.
 # Feed ownership is shared. Ad views and the Play Core update prompt can be absent in a supported target.
 family|hideAds|Hide ads|feedAds,adViews
@@ -51,7 +52,7 @@ mutation|analyticsTasks,analyticsUploads|analytics|Lapp/hushpinterest/extension/
 mutation|linkTracking|links|Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->putStringExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;|Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->putTextExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;|Landroid/content/ClipData;->newPlainText(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->newPlainText(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;
 mutation|pinDownloads|downloads|Lapp/hushpinterest/extension/pinterest/actions/PinDownloads;->attach(Ljava/lang/Object;)V|Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;
 mutation|visitLinks|guard|Lapp/hushpinterest/extension/pinterest/actions/ExternalBrowser;->open(Ljava/lang/String;Ljava/lang/Object;)Z|visit
-mutation|pinShare|guard|Lapp/hushpinterest/extension/pinterest/actions/SystemShare;->open(Ljava/lang/Object;Ljava/lang/Object;)Z|share
+mutation|pinShare|guard|Lapp/hushpinterest/extension/pinterest/actions/SystemShare;->open(Ljava/lang/Object;Ljava/lang/Object;)Z|share|Lapp/hushpinterest/extension/pinterest/actions/SystemShare;->openSendable(Ljava/lang/Object;Ljava/lang/Object;)Z|shareCloseup
 mutation|screenshotShare|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideScreenshotShare()Z|screenshot
 mutation|searchHistory|views|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->searchHistoryVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->searchHistoryMeasureSpec(I)I|Lcom/pinterest/feature/search/landing/view/SlpRecentSearchCell;,Lcom/pinterest/feature/search/typeahead/view/SearchTypeaheadRecentSearchesCarouselView;,Lcom/pinterest/feature/search/typeahead/view/SearchTypeaheadRecentSearchPillView;
 mutation|navigationButtons|navigation|Lapp/hushpinterest/extension/pinterest/ui/InterfaceControls;->bindNavigation(Landroid/view/View;Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/ui/InterfaceControls;->refreshNavigation(Landroid/view/View;)V

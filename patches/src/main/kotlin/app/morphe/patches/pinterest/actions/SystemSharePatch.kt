@@ -21,8 +21,12 @@ import app.morphe.patches.pinterest.misc.extension.requireLocals
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
 private const val PATCH = "System share sheet"
+private const val SYSTEM_SHARE = "$EXTENSION_PACKAGE/actions/SystemShare;"
 
 @Suppress("unused")
 val systemSharePatch = bytecodePatch(
@@ -51,6 +55,7 @@ val systemSharePatch = bytecodePatch(
         method.requireLocals(PATCH, 2)
         val model = method.parameterRegister(0)
         val source = method.parameterRegister(2)
+        val sourceType = method.parameterTypes[2].toString()
         method.addInstructionsWithLabels(
             0,
             """
@@ -62,6 +67,52 @@ val systemSharePatch = bytecodePatch(
                 return-void
             """,
             ExternalLabel("hush_original_share", method.getInstruction(0)),
+        )
+        val fragment = Fingerprint(
+            returnType = "V",
+            parameters = listOf("Landroid/os/Bundle;"),
+            strings = listOf("context"),
+            custom = { candidate, _ ->
+                val body = candidate.implementation?.instructions ?: return@Fingerprint false
+                candidate.definingClass != method.definingClass &&
+                    body.any { instruction ->
+                        instruction.opcode == Opcode.CHECK_CAST &&
+                            (instruction as? ReferenceInstruction)?.reference?.toString() ==
+                            "Lcom/pinterest/sendshare/model/SendableObject;"
+                    } &&
+                    body.any { instruction ->
+                        instruction.opcode == Opcode.CHECK_CAST &&
+                            (instruction as? ReferenceInstruction)?.reference?.toString() == sourceType
+                    } &&
+                    body.any { (it as? ReferenceInstruction)?.reference?.toString()?.endsWith("->onCreate(Landroid/os/Bundle;)V") == true }
+            },
+        ).methodOrNull ?: throw PatchException("$PATCH: no native closeup share sheet fragment")
+        fragment.requireLocals(PATCH, 1)
+        val instructions = fragment.implementation!!.instructions
+        val superCall = instructions.indexOfLast {
+            (it as? ReferenceInstruction)?.reference?.toString()?.endsWith("->onCreate(Landroid/os/Bundle;)V") == true
+        }
+        val sendableValue = instructions.withIndex().take(superCall).lastOrNull { (_, instruction) ->
+            instruction.opcode == Opcode.CHECK_CAST &&
+                (instruction as? ReferenceInstruction)?.reference?.toString() == "Lcom/pinterest/sendshare/model/SendableObject;"
+        }?.let { (_, instruction) -> (instruction as OneRegisterInstruction).registerA }
+            ?: throw PatchException("$PATCH: closeup share sheet sendable register changed")
+        val sourceValue = instructions.withIndex().take(superCall).lastOrNull { (_, instruction) ->
+            instruction.opcode == Opcode.CHECK_CAST &&
+                (instruction as? ReferenceInstruction)?.reference?.toString() == sourceType
+        }?.let { (_, instruction) -> (instruction as OneRegisterInstruction).registerA }
+            ?: throw PatchException("$PATCH: closeup share sheet source register changed")
+        if (superCall < 0) throw PatchException("$PATCH: closeup share sheet onCreate order changed")
+        fragment.addInstructionsWithLabels(
+            superCall + 1,
+            """
+                invoke-static { v$sendableValue, v$sourceValue }, $SYSTEM_SHARE->openSendable(Ljava/lang/Object;Ljava/lang/Object;)Z
+                move-result v0
+                if-eqz v0, :hush_original_closeup_share
+                invoke-virtual { p0 }, Lxu1/f;->z6()V
+                return-void
+            """,
+            ExternalLabel("hush_original_closeup_share", fragment.getInstruction(superCall + 1)),
         )
         enableCapability("pinShare")
         enableStatus("systemShare")

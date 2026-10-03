@@ -83,6 +83,15 @@ public class PinActionsTest {
         assertNull(send.getPackage());
     }
 
+    @Test public void systemShareUsesLiveSendablePinLink() {
+        assertTrue(SystemShare.openSendable(new Sendable("123456", 0), Source.PIN));
+        Intent chooser = Shadows.shadowOf(activity).getNextStartedActivity();
+        Intent send = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertEquals("https://www.pinterest.com/pin/123456/", send.getStringExtra(Intent.EXTRA_TEXT));
+        assertFalse(SystemShare.openSendable(new Sendable("123456", 1), Source.PIN));
+        assertFalse(SystemShare.openSendable(new Sendable("board", 0), Source.PIN));
+    }
+
     @Test public void screenshotDownloadBoardsAndDisabledShareKeepNativePath() {
         assertFalse(SystemShare.open(pin, Source.SCREENSHOT));
         assertFalse(SystemShare.open(pin, Source.DOWNLOAD));
@@ -209,5 +218,21 @@ public class PinActionsTest {
         assertNull(ShadowToast.getTextOfLatestToast());
         DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
         assertEquals(0, Shadows.shadowOf(manager).getRequestCount());
+    }
+
+    private static final class Sendable {
+        private final String a;
+        private final int c;
+
+        private Sendable(String id, int type) {
+            a = id;
+            c = type;
+        }
+
+        @SuppressWarnings("unused") private String e() { return a; }
+
+        @SuppressWarnings("unused") private Source c() { return Source.PIN; }
+
+        @SuppressWarnings("unused") private int d() { return c; }
     }
 }

@@ -324,11 +324,15 @@ public class DexDiff {
             if (line.startsWith("family|") || line.startsWith("mutation|")) {
                 String[] columns = line.split("\\|", -1);
                 boolean family = columns[0].equals("family");
+                int mutationValues = columns.length - 3;
+                boolean validMutation = family || (!columns[2].equals("guard")
+                        ? MUTATION_COLUMNS.getOrDefault(columns[2], -1) == mutationValues
+                        : mutationValues >= 2 && mutationValues % 2 == 0);
                 if ((family && columns.length != 4) || (!family && columns.length < 4)
                         || Arrays.stream(columns).anyMatch(String::isBlank)
                         || !columns[1].matches("[A-Za-z][A-Za-z0-9]*(,[A-Za-z][A-Za-z0-9]*)*")
                         || (family && !columns[3].matches("[A-Za-z][A-Za-z0-9]*(,[A-Za-z][A-Za-z0-9]*)*"))
-                        || (!family && MUTATION_COLUMNS.getOrDefault(columns[2], -1) != columns.length - 3)) {
+                        || !validMutation) {
                     throw new IllegalArgumentException("Invalid contract line " + lineNumber + ": invalid feature columns");
                 }
                 contracts.add(new Contract(columns[0], columns[1], columns[2], null, null,
@@ -2563,7 +2567,12 @@ public class DexDiff {
         }
 
         void simpleGuard(Contract c) {
-            String selector = c.strings.get(1);
+            boolean available = true;
+            for (int i = 0; i < c.strings.size(); i += 2) if (!simpleGuard(c, c.strings.get(i), c.strings.get(i + 1))) available = false;
+            capability(c.callee, available);
+        }
+
+        boolean simpleGuard(Contract c, String hook, String selector) {
             List<Method> targets = new ArrayList<>();
             int before = 0;
             if (selector.equals("share")) {
@@ -2574,6 +2583,9 @@ public class DexDiff {
                     Set<String> fields = fieldNames(m);
                     if (fields.containsAll(Set.of("APP_LIST_AND_CONTACT_SUGGESTIONS_FOR_UPSELL", "SCREENSHOT", "DOWNLOAD"))) targets.add(m);
                 }
+            } else if (selector.equals("shareCloseup")) {
+                for (Method m : clean.holding("context")) if (m.getName().equals("onCreate")
+                        && descriptor(m).equals("(Landroid/os/Bundle;)V") && hasSendableShareSource(m)) targets.add(m);
             } else if (selector.equals("visit")) {
                 String pin = "";
                 ClassDef menu = clean.classes.get(PIN_MENU);
@@ -2592,7 +2604,7 @@ public class DexDiff {
                 if (targets.isEmpty()) {
                     boolean play = clean.classes.keySet().stream().anyMatch(t -> t.startsWith("Lcom/google/android/play/core/appupdate/"));
                     if (play || flag(owners.get(c.callee))) fail("update prompt is absent but its family is installed or Play Core remains");
-                    capability(c.callee, false); return;
+                    return false;
                 }
             } else if (selector.equals("email")) {
                 Set<String> types = new HashSet<>();
@@ -2605,7 +2617,7 @@ public class DexDiff {
                 for (String type : types) for (Method m : clean.classes.get(type).getMethods())
                     if (m.getName().equals("onCreate") && descriptor(m).equals("(Landroid/os/Bundle;)V")) targets.add(m);
                 before = 1;
-            } else { fail("unknown guard selector " + selector); return; }
+            } else { fail("unknown guard selector " + selector); return false; }
             Method original = unique(targets, c.callee);
             Method m = actual(original);
             if (m != null) {
@@ -2618,15 +2630,82 @@ public class DexDiff {
                     if (body.size() < 2 || !moveFrom(body.get(0), 0, parameter(m, 0)) || !moveFrom(body.get(1), 1, parameter(m, 2)))
                         fail(c.callee + " no longer supplies the model and source parameters");
                 }
+                if (selector.equals("shareCloseup")) {
+                    closeupShareGuard(m, hook);
+                    return original != null;
+                }
                 if (selector.equals("update")) {
                     before = -1;
                     List<Instruction> body = instructions(m);
                     for (int i = 0; i < body.size(); i++) if (reference(body.get(i)) instanceof StringReference
                             && ((StringReference) reference(body.get(i))).getString().equals("inAppUpdateManager")) before = i - 5;
                 }
-                guard(m, c.strings.get(0), before, args, prep, selector.equals("email"), selector.equals("update"));
+                guard(m, hook, before, args, prep, selector.equals("email"), selector.equals("update"));
             }
-            capability(c.callee, original != null);
+            return original != null;
+        }
+
+        boolean hasSendableShareSource(Method m) {
+            boolean sendable = false, source = false, superCreate = false;
+            for (Instruction i : instructions(m)) {
+                Reference r = reference(i);
+                if (i.getOpcode() == Opcode.CHECK_CAST && "Lcom/pinterest/sendshare/model/SendableObject;".equals(String.valueOf(r))) sendable = true;
+                if (i.getOpcode() == Opcode.CHECK_CAST && sourceEnum(String.valueOf(r))) source = true;
+                if (i.getOpcode().name.startsWith("invoke-super") && methodNamed(i, "onCreate", "(Landroid/os/Bundle;)V")) superCreate = true;
+            }
+            return sendable && source && superCreate;
+        }
+
+        boolean sourceEnum(String type) {
+            ClassDef cd = clean.classes.get(type);
+            if (cd == null || !"Ljava/lang/Enum;".equals(cd.getSuperclass())) return false;
+            Set<String> names = new HashSet<>();
+            for (Field field : cd.getFields()) names.add(field.getName());
+            return names.containsAll(Set.of("SHARE", "DOWNLOAD", "SCREENSHOT"));
+        }
+
+        void closeupShareGuard(Method m, String hook) {
+            Method original = clean.methods.get(m.toString());
+            List<Instruction> cleanBody = instructions(original);
+            int sendable = -1, source = -1, superAt = -1;
+            for (int at = 0; at < cleanBody.size(); at++) {
+                Instruction i = cleanBody.get(at);
+                Reference r = reference(i);
+                if (i.getOpcode() == Opcode.CHECK_CAST && "Lcom/pinterest/sendshare/model/SendableObject;".equals(String.valueOf(r))) sendable = uniqueRegister(sendable, firstRegister(i), hook + " sendable");
+                if (i.getOpcode() == Opcode.CHECK_CAST && sourceEnum(String.valueOf(r))) source = uniqueRegister(source, firstRegister(i), hook + " source");
+                if (i.getOpcode().name.startsWith("invoke-super") && methodNamed(i, "onCreate", "(Landroid/os/Bundle;)V")) superAt = uniqueRegister(superAt, at, hook + " superclass call");
+            }
+            List<Integer> sites = calls(m, hook, 1);
+            if (sites.size() != 1) return;
+            int at = sites.get(0);
+            List<Instruction> body = instructions(m);
+            Layout layout = new Layout(m.getImplementation());
+            int returnAt = at + 4;
+            int resume = returnAt + 1;
+            if (sendable < 0 || source < 0 || superAt < 0 || at != superAt + 1
+                    || !arguments(body.get(at)).equals(List.of(sendable, source)) || resume > body.size() || at + 2 >= body.size()) {
+                fail(hook + " has the wrong closeup placement or arguments in " + m); return;
+            }
+            Instruction answer = body.get(at + 1);
+            Instruction branch = body.get(at + 2);
+            if (answer.getOpcode() != Opcode.MOVE_RESULT || branch.getOpcode() != Opcode.IF_EQZ
+                    || firstRegister(answer) != firstRegister(branch) || !(branch instanceof OffsetInstruction)
+                    || layout.addresses.get(at + 2) + ((OffsetInstruction) branch).getCodeOffset()
+                    != (resume == body.size() ? layout.size : layout.addresses.get(resume)))
+                fail(hook + " has no false branch to the closeup original body in " + m);
+            Reference dismissed = reference(body.get(at + 3));
+            if (!(dismissed instanceof MethodReference) || !((MethodReference) dismissed).getParameterTypes().isEmpty()
+                    || !((MethodReference) dismissed).getReturnType().equals("V")
+                    || !arguments(body.get(at + 3)).equals(List.of(parameter(m, -1))))
+                fail(hook + " no longer dismisses the native closeup sheet in " + m);
+            if (body.get(returnAt).getOpcode() != Opcode.RETURN_VOID)
+                fail(hook + " does not finish only its enabled closeup branch in " + m);
+            remove(m, at, resume);
+        }
+
+        int uniqueRegister(int current, int next, String label) {
+            if (current >= 0 && current != next) fail(label + " is not unique");
+            return next;
         }
 
         static boolean moveFrom(Instruction i, int to, int from) {

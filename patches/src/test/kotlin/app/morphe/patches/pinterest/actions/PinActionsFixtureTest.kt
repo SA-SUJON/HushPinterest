@@ -55,13 +55,16 @@ class PinActionsFixtureTest {
             assertTrue("${build.name} native row factory", references(row).any { it.endsWith(")Landroid/widget/RelativeLayout;") })
             assertTrue("${build.name} native presenter dismissal", references(menu.methods.single { it.name == "hushDismissDownload" }
                 .implementation!!.instructions.toList()).any { "->" in it && it.endsWith("()V") })
-            for ((owner, helper) in listOf("ExternalBrowser" to "open(Ljava/lang/String;Ljava/lang/Object;)Z",
-                "SystemShare" to "open(Ljava/lang/Object;Ljava/lang/Object;)Z")) {
+            for ((owner, helper, expected) in listOf(
+                Triple("ExternalBrowser", "open(Ljava/lang/String;Ljava/lang/Object;)Z", 1),
+                Triple("SystemShare", "open(Ljava/lang/Object;Ljava/lang/Object;)Z", 1),
+                Triple("SystemShare", "openSendable(Ljava/lang/Object;Ljava/lang/Object;)Z", 1),
+            )) {
                 val calls = classes.flatMap { original -> context.mutableClassDefBy(original.type).methods }.count { method ->
                     method.implementation?.instructions?.any { (it as? ReferenceInstruction)?.reference?.toString() ==
                         "$EXTENSION_PACKAGE/actions/$owner;->$helper" } == true
                 }
-                assertEquals("${build.name} $owner handler count", 1, calls)
+                assertEquals("${build.name} $owner $helper handler count", expected, calls)
             }
         }
     }
@@ -88,6 +91,8 @@ class PinActionsFixtureTest {
 
     private fun read(build: File): List<ClassDef> {
         val wanted = mutableMapOf<String, ClassDef>()
+        val sourceTypes = mutableSetOf<String>()
+        val potentialShareFragments = mutableListOf<ClassDef>()
         var dispatchers = 0
         var choosers = 0
         FixtureDex.forEach(build) { dex ->
@@ -99,11 +104,31 @@ class PinActionsFixtureTest {
                             setOf("APP_LIST_AND_CONTACT_SUGGESTIONS_FOR_UPSELL", "SCREENSHOT", "DOWNLOAD"),
                         )
                 }
+                owner.methods.filter { method ->
+                    method.parameterTypes.size == 5 && method.parameterTypes[1].toString() == "I" &&
+                        method.parameterTypes[3].toString() == "Z" && method.fields().map { it.name }.toSet().containsAll(
+                            setOf("APP_LIST_AND_CONTACT_SUGGESTIONS_FOR_UPSELL", "SCREENSHOT", "DOWNLOAD"),
+                        )
+                }.mapTo(sourceTypes) { it.parameterTypes[2].toString() }
+                val shareFragment = owner.methods.any { method ->
+                    method.returnType == "V" && method.parameterTypes.map { it.toString() } == listOf("Landroid/os/Bundle;") &&
+                        method.strings().contains("context") &&
+                        method.implementation?.instructions?.any { (it as? ReferenceInstruction)?.reference?.toString() ==
+                            "Lcom/pinterest/sendshare/model/SendableObject;" } == true
+                }
                 if (visit) dispatchers++
                 if (share) choosers++
+                if (shareFragment) potentialShareFragments += owner
                 if (owner.type == PIN_MENU || visit || share) wanted[owner.type] = ImmutableClassDef.of(owner)
             }
         }
+        potentialShareFragments.filter { owner ->
+            owner.methods.any { method ->
+                method.implementation?.instructions?.any {
+                    (it as? ReferenceInstruction)?.reference?.toString() in sourceTypes
+                } == true
+            }
+        }.forEach { wanted[it.type] = ImmutableClassDef.of(it) }
         assertEquals("${build.name} Visit owner", 1, dispatchers)
         assertEquals("${build.name} share chooser owner", 1, choosers)
         val menu = wanted.getValue(PIN_MENU)

@@ -8,6 +8,8 @@ Nothing has been released yet. This is the work toward 0.0.2.
 
 * **Signed-in feed checks:** On Android 16, promoted pins were removed from home, search, related pins and board grids while repeated scrolling stayed stable. Device probes also checked AI-labeled, shoppable, shopping-story and featured-board removals with their off and Pause paths, plus all four native ad panels.
 
+* **Pin actions:** The top Share button on live pin closeups now opens Android's share sheet with the canonical pin link when System share sheet is on. The bytecode verifier checks both Pinterest share entry points.
+
 * **Local builds:** Gradle now runs at low priority with two workers, a bounded heap and a short idle timeout to keep the desktop responsive. Build caching stays enabled.
 
 * **Download history:** Hush-owned Android Downloads requests are checked across restarts and missed result broadcasts. The history shows current status and safe retry or reopen-pin guidance. Removing an entry keeps its file. Active cancellation stays in system Downloads.
