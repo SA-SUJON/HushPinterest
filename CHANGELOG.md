@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 Nothing has been released yet. This is the work toward 0.0.2.
 
+* **Signed-in Pin actions:** Android 16 live checks covered System share on, off and Pause behavior, browser routing on, off and Pause behavior, MP4 download from the pin menu, Download history after restart and the Download pins off path. Pinterest only supplied clean copied and shared links, and the exercised image pins did not expose an original-image URL. Those remaining evidence gaps are blocked for a matching live pin or signed-in Android 9 device.
+
 * **Signed-in feed checks:** On Android 16, promoted pins were removed from home, search, related pins and board grids while repeated scrolling stayed stable. Device probes also checked AI-labeled, shoppable, shopping-story and featured-board removals with their off and Pause paths, plus all four native ad panels.
 
 * **Pin actions:** The top Share button on live pin closeups now opens Android's share sheet with the canonical pin link when System share sheet is on. The bytecode verifier checks both Pinterest share entry points.
