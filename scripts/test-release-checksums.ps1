@@ -18,6 +18,7 @@ function Assert-ChecksumRefusal([scriptblock]$Action, [string]$Pattern = '*') {
 }
 function Invoke-ChecksumTestGpg([string]$KeyringHome, [string[]]$Arguments) {
     $result = Invoke-ReleaseChecksumGpg $Gpg (@(Get-ReleaseChecksumGpgArguments $KeyringHome) + $Arguments)
+    $script:checksumTestGpgProgram = $result.Program
     if ($result.ExitCode -ne 0) { throw "Test GPG operation failed: $($result.Output -join ' ')" }
     return $result.Output
 }
@@ -30,6 +31,7 @@ $work = Join-Path ([IO.Path]::GetTempPath()) ('hushpinterest-checksum-contract-'
 $homes = @((Join-Path $work 'key-one'), (Join-Path $work 'key-two'))
 $assets = Join-Path $work 'assets'
 $trusted = Join-Path $work 'trusted'
+$script:checksumTestGpgProgram = $null
 foreach ($directory in @($work, $assets, $trusted) + $homes) { [void][IO.Directory]::CreateDirectory($directory) }
 try {
     $names = @('release-receipt-0.0.2.json', 'patches-0.0.2.mpp', 'patches-0.0.2.cdx.json')
@@ -153,9 +155,25 @@ try {
     Write-Host '[checksums] canonical bytes, pinned primary/subkey signatures, tamper and collision contracts passed'
     $global:LASTEXITCODE = 0
 } finally {
-    $gpgconf = Join-Path (Split-Path -Parent (Get-Command $Gpg -ErrorAction Stop).Source) 'gpgconf.exe'
-    foreach ($keyHome in @($homes) + @((Join-Path $work 'missing-private-key'))) {
-        if (Test-Path -LiteralPath $gpgconf) { Invoke-ReleaseChecksumGpg $gpgconf @('--homedir', $keyHome, '--kill', 'gpg-agent') | Out-Null }
+    if ($script:checksumTestGpgProgram) {
+        $extension = [IO.Path]::GetExtension($script:checksumTestGpgProgram)
+        $gpgconf = Join-Path (Split-Path -Parent $script:checksumTestGpgProgram) ('gpgconf' + $extension)
+        if (-not (Test-Path -LiteralPath $gpgconf -PathType Leaf)) { throw 'The test signer has no matching gpgconf for cleanup.' }
+        foreach ($keyHome in @($homes) + @((Join-Path $work 'missing-private-key'))) {
+            $stopped = Invoke-ReleaseChecksumGpg $gpgconf @('--homedir', $keyHome, '--kill', 'gpg-agent')
+            if ($stopped.ExitCode -ne 0) { throw "Could not stop the test-owned signer: $($stopped.Output -join ' ')" }
+        }
+        if ($env:OS -eq 'Windows_NT') {
+            $deadline = [DateTime]::UtcNow.AddSeconds(5)
+            do {
+                $owned = @(Get-CimInstance Win32_Process -Filter "Name='gpg-agent.exe'" | Where-Object {
+                    $_.CommandLine -and $_.CommandLine.Contains($work)
+                })
+                if ($owned.Count -eq 0) { break }
+                Start-Sleep -Milliseconds 100
+            } while ([DateTime]::UtcNow -lt $deadline)
+            Assert-ChecksumContract ($owned.Count -eq 0) 'Checksum tests left a test-owned signing process running.'
+        }
     }
     $absolute = [IO.Path]::GetFullPath($work)
     if (-not $absolute.StartsWith([IO.Path]::GetTempPath(), [StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe test keyring cleanup.' }

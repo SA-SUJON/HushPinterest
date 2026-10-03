@@ -124,7 +124,7 @@ function Invoke-ReleaseChecksumGpg {
     $ErrorActionPreference = 'Continue'
     $global:LASTEXITCODE = -1
     $output = @(& $program @Arguments 2>&1 | ForEach-Object { "$_" })
-    return [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
+    return [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output; Program = $program }
 }
 
 function Get-ReleaseChecksumGpgArguments {
