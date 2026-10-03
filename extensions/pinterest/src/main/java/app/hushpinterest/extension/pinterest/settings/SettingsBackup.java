@@ -176,7 +176,7 @@ public final class SettingsBackup {
         Map<Setting<?>, Object> changes() {
             Map<Setting<?>, Object> changes = new LinkedHashMap<>();
             for (Map.Entry<BooleanSetting, Boolean> entry : values.entrySet()) {
-                if (!entry.getValue().equals(entry.getKey().savedValue())) {
+                if (!entry.getValue().equals(entry.getKey().persistedValue())) {
                     changes.put(entry.getKey(), entry.getValue());
                 }
             }
@@ -254,7 +254,7 @@ public final class SettingsBackup {
 
     private static Snapshot current() {
         Map<BooleanSetting, Boolean> values = new LinkedHashMap<>();
-        for (BooleanSetting setting : ALLOWLIST) values.put(setting, setting.savedValue());
+        for (BooleanSetting setting : ALLOWLIST) values.put(setting, setting.persistedValue());
         return new Snapshot(values, 0);
     }
 
@@ -321,7 +321,7 @@ public final class SettingsBackup {
     public static String create() throws JSONException {
         JSONObject switches = new JSONObject();
         for (BooleanSetting setting : ALLOWLIST) {
-            switches.put(setting.key, setting.savedValue().booleanValue());
+            switches.put(setting.key, setting.persistedValue().booleanValue());
         }
         return new JSONObject()
                 .put(FORMAT_NAME, FORMAT)

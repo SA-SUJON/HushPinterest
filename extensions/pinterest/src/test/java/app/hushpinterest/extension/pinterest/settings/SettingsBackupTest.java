@@ -171,6 +171,45 @@ public class SettingsBackupTest {
 
     // ---- What a file carries ------------------------------------------------------------------
 
+    @Test
+    public void backupsAndImportPreviewsReadStoredChoicesInsteadOfTemporaryLiveValues() throws Exception {
+        for (BooleanSetting setting : SettingsBackup.ALLOWLIST) {
+            Setting.privateSetValueFromString(setting, Boolean.toString(!setting.defaultValue));
+            JSONObject exported = new JSONObject(SettingsBackup.create()).getJSONObject("settings");
+            assertEquals(setting.key, setting.defaultValue.booleanValue(), exported.getBoolean(setting.key));
+            SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(setting, !setting.defaultValue));
+            assertEquals(setting.key, 1, snapshot.switchChanges());
+            String transition = setting.defaultValue ? "(On to Off)" : "(Off to On)";
+            assertTrue(setting.key, SettingsBackupPreference.previewMessage(snapshot).contains(transition));
+            setting.resetToDefault();
+        }
+    }
+
+    @Test
+    public void importMatchingATemporaryLiveValuePersistsAndUndoRestoresTheStoredChoice() throws Exception {
+        for (BooleanSetting setting : SettingsBackup.ALLOWLIST) {
+            for (boolean explicitDefault : new boolean[]{false, true}) {
+                SettingsBackup.discardUndo();
+                setting.resetToDefault();
+                if (explicitDefault) {
+                    assertTrue(Setting.preferences.preferences.edit().putBoolean(setting.key, setting.defaultValue).commit());
+                    setting.noteSavedPreferenceChange();
+                }
+                Setting.privateSetValueFromString(setting, Boolean.toString(!setting.defaultValue));
+                SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(setting, !setting.defaultValue));
+                assertEquals(setting.key, 1, SettingsBackup.apply(snapshot));
+                assertEquals(setting.key, !setting.defaultValue,
+                        Setting.preferences.preferences.getBoolean(setting.key, setting.defaultValue));
+                assertEquals(setting.key, SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
+                assertEquals(setting.key, SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+                assertEquals(setting.key, setting.defaultValue, setting.savedValue());
+                assertEquals(setting.key, setting.defaultValue.booleanValue(),
+                        Setting.preferences.preferences.getBoolean(setting.key, setting.defaultValue));
+                assertEquals(setting.key, SettingsBackup.UndoResult.NOTHING, SettingsBackup.undo());
+            }
+        }
+    }
+
     /**
      * Every switch in Settings is either on the list or stays out with a reason. A new switch
      * fails here until someone decides which, so it can't slip into files, or out of them, unseen.

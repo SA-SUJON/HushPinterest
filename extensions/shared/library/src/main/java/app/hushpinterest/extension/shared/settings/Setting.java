@@ -516,12 +516,20 @@ public abstract class Setting<T> {
     }
 
     /**
-     * The value this setting holds, paused or not. The settings screen, backups and undo read
-     * this: they show and keep what the user chose, not what a paused Pinterest is answered.
+     * The value this setting holds, paused or not. The settings screen reads this rather than
+     * what a paused Pinterest is answered. It can include an unsaved temporary value.
      */
     @NonNull
     public final T savedValue() {
         return value;
+    }
+
+    /** The typed choice in storage, without adopting or persisting a temporary live value. */
+    @NonNull
+    public final T persistedValue() {
+        synchronized (Setting.class) {
+            return storedValue();
+        }
     }
 
     /** The successful saved edits to this setting, even if later edits return it to an old value. */

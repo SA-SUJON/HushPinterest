@@ -390,7 +390,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             for (Map.Entry<Setting<?>, Object> entry : changes.entrySet()) {
                 BooleanSetting setting = (BooleanSetting) entry.getKey();
                 message.append("\n\n").append(L10n.f("%1$s (%2$s to %3$s)", switchName(setting),
-                        switchValue(setting.savedValue()), switchValue((Boolean) entry.getValue())));
+                        switchValue(setting.persistedValue()), switchValue((Boolean) entry.getValue())));
                 if (!available(setting)) {
                     message.append('\n').append(L10n.t("Saved choice only. This build doesn't include this control."));
                 }

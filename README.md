@@ -113,7 +113,7 @@ Supplied media details shows dimensions and a type from Pinterest's metadata and
   <img src="assets/screenshots/settings-download-history.png" width="240" alt="Download history with Refresh and Back">
 </p>
 
-Import settings shows each switch's name and its old and new values before applying the file. Undo import restores the previous switches once. Editing a saved switch or restarting Pinterest ends Undo, even if you change the switch back. Failed writes keep Undo after rollback. The file contains allowed settings, including choices whose patches aren't installed. It doesn't contain accounts, media, signing keys, logs or temporary state.
+Exports and import previews use the choices saved on this device. Import settings shows each switch's name and its old and new values before applying the file. Undo import restores the previous switches once. Editing a saved switch or restarting Pinterest ends Undo, even if you change the switch back. Failed writes keep Undo after rollback. The file contains allowed settings, including choices whose patches aren't installed. It doesn't contain accounts, media, signing keys, logs or temporary state.
 
 <p>
   <img src="assets/screenshots/settings-import-preview.png" width="240" alt="Settings import review naming the switch and its old and new values">
