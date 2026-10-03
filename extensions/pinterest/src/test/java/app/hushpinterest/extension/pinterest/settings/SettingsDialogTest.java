@@ -18,6 +18,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -25,10 +26,20 @@ import android.app.Fragment;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.preference.Preference;
+import android.preference.SwitchPreference;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
+import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.SettingsContextRule;
+import app.hushpinterest.extension.shared.settings.Setting;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -39,9 +50,12 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.util.ReflectionHelpers;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The settings dialog as Pinterest hosts it: a dialog fragment over an activity that isn't ours,
@@ -68,6 +82,8 @@ public class SettingsDialogTest {
     @After
     public void tearDown() {
         HushPinterestPreferenceFragment.failNextInitialization = null;
+        SettingsDialog.failNextMount = null;
+        Settings.CHECK_FOR_RELEASES.resetToDefault();
         controller.close();
     }
 
@@ -155,6 +171,222 @@ public class SettingsDialogTest {
         assertEquals(SettingsDialog.CONTAINER_ID, ((View) view.getParent()).getId());
         assertNull(page.findPreference(ERROR));
         assertTrue(page.getPreferenceScreen().getPreferenceCount() > 0);
+    }
+
+    @Test
+    @Config(sdk = {28, 30, 33, 36})
+    public void aFailedMountOffersReadableFocusedActionsAndRetryCreatesOneChild() {
+        SettingsDialog healthy = show(controller.get());
+        int healthyListeners = preferenceListeners();
+        healthy.dismiss();
+        ShadowLooper.idleMainLooper();
+        int listeners = preferenceListeners();
+        SettingsDialog.failNextMount = new IllegalStateException("injected child mount failure");
+        SettingsDialog dialog = show(controller.get());
+        View recovery = recoveryOf(dialog);
+        assertEquals(L10n.t(controller.get(), "HushPinterest settings couldn't open"),
+                ((TextView) recovery.findViewById(android.R.id.title)).getText().toString());
+        assertEquals(L10n.t(controller.get(), "Try again, or go back to Pinterest."),
+                ((TextView) recovery.findViewById(android.R.id.summary)).getText().toString());
+        assertTrue(pages(dialog).isEmpty());
+        assertEquals(listeners, preferenceListeners());
+        assertFalse("search took focus behind recovery", searchOf(dialog.getView()).hasFocus());
+        assertEquals(View.GONE, ((View) searchOf(dialog.getView()).getParent()).getVisibility());
+        Button retry = mountAction(dialog, SettingsDialog.MOUNT_RETRY);
+        assertTrue("recovery left focus on the empty container", retry.hasFocus());
+        for (String tag : new String[]{SettingsDialog.MOUNT_RETRY, SettingsDialog.MOUNT_BACK}) {
+            Button action = mountAction(dialog, tag);
+            AccessibilityNodeInfo node = action.createAccessibilityNodeInfo();
+            assertEquals(Button.class.getName(), String.valueOf(node.getClassName()));
+            assertTrue(node.isEnabled());
+            assertTrue(node.getActionList().contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK));
+            int surface = tag.equals(SettingsDialog.MOUNT_RETRY) ? ScreenColors.DEFAULT.accent : ScreenColors.DEFAULT.background;
+            double text = Color.luminance(action.getCurrentTextColor());
+            double background = Color.luminance(surface);
+            assertTrue("recovery text lacks contrast", (Math.max(text, background) + 0.05) / (Math.min(text, background) + 0.05) >= 4.5);
+        }
+
+        retry.performClick();
+        retry.performClick();
+        ShadowLooper.idleMainLooper();
+        HushPinterestPreferenceFragment page = pageOf(dialog);
+        assertNull(dialog.getView().findViewWithTag(SettingsDialog.MOUNT_ERROR));
+        assertEquals(1, pages(dialog).size());
+        assertEquals(healthyListeners, preferenceListeners());
+        assertNotNull(page.navigation);
+        assertTrue("successful Retry did not return focus to the settings list",
+                page.getView().findViewById(android.R.id.list).hasFocus());
+        assertFalse(controller.get().isFinishing());
+        retry.performClick();
+        ShadowLooper.idleMainLooper();
+        assertSame("an obsolete Retry button remounted the healthy child", page, pageOf(dialog));
+        assertEquals(healthyListeners, preferenceListeners());
+    }
+
+    @Test
+    public void aFailedRetryKeepsItsActionsUsableUntilASuccessfulRetry() {
+        SettingsDialog.failNextMount = new IllegalStateException("first failure");
+        SettingsDialog dialog = show(controller.get());
+        SettingsDialog.failNextMount = new IllegalStateException("retry failure");
+        mountAction(dialog, SettingsDialog.MOUNT_RETRY).performClick();
+        ShadowLooper.idleMainLooper();
+        assertNotNull(recoveryOf(dialog));
+        assertTrue(mountAction(dialog, SettingsDialog.MOUNT_RETRY).isEnabled());
+        assertTrue(mountAction(dialog, SettingsDialog.MOUNT_BACK).isEnabled());
+        assertTrue(pages(dialog).isEmpty());
+        mountAction(dialog, SettingsDialog.MOUNT_RETRY).performClick();
+        ShadowLooper.idleMainLooper();
+        assertEquals(1, pages(dialog).size());
+        assertNull(dialog.getView().findViewWithTag(SettingsDialog.MOUNT_ERROR));
+    }
+
+    @Test
+    public void theMountRecoverySurvivesRotationUntilThePersonRetries() {
+        SettingsDialog.failNextMount = new IllegalStateException("initial failure");
+        show(controller.get());
+        controller.recreate();
+        ShadowLooper.idleMainLooper();
+        SettingsDialog dialog = restored();
+        assertNotNull(recoveryOf(dialog));
+        assertTrue("rotation silently retried the failed operation", pages(dialog).isEmpty());
+        assertTrue(mountAction(dialog, SettingsDialog.MOUNT_RETRY).hasFocus());
+        controller.recreate();
+        ShadowLooper.idleMainLooper();
+        dialog = restored();
+        mountAction(dialog, SettingsDialog.MOUNT_RETRY).performClick();
+        ShadowLooper.idleMainLooper();
+        assertEquals(1, pages(dialog).size());
+        assertNull(dialog.getView().findViewWithTag(SettingsDialog.MOUNT_ERROR));
+        controller.recreate();
+        ShadowLooper.idleMainLooper();
+        assertEquals(1, pages(restored()).size());
+        assertNull(restored().getView().findViewWithTag(SettingsDialog.MOUNT_ERROR));
+    }
+
+    @Test
+    public void everyMountRecoveryBackPathClosesSettingsAndKeepsTheHostUsable() {
+        for (int path = 0; path < 3; path++) {
+            SettingsDialog.failNextMount = new IllegalStateException("mount failure");
+            SettingsDialog dialog = show(controller.get());
+            if (path == 0) mountAction(dialog, SettingsDialog.MOUNT_BACK).performClick();
+            else if (path == 1) SettingsL10nTest.backOf(dialog).performClick();
+            else dialog.getDialog().onBackPressed();
+            controller.get().getFragmentManager().executePendingTransactions();
+            ShadowLooper.idleMainLooper();
+            assertNull("Back path " + path + " left settings open", controller.get().getFragmentManager().findFragmentByTag(TAG));
+            assertFalse("Back path " + path + " finished Pinterest", controller.get().isFinishing());
+        }
+    }
+
+    @Test
+    public void restoredCategoryAndSearchRecoveryKeepOneChildAndTheirExistingListeners() {
+        SettingsDialog dialog = show(controller.get());
+        for (boolean search : new boolean[]{false, true}) {
+            HushPinterestPreferenceFragment page = pageOf(dialog);
+            page.navigation.navigate(search ? "" : "Updates");
+            if (search) searchOf(dialog.getView()).setText("release");
+            Bundle before = navigationState(page);
+            int listeners = preferenceListeners();
+            int observers = navigationObservers(page);
+            SettingsDialog.failNextMount = new IllegalStateException("restored mount failure");
+            controller.recreate();
+            ShadowLooper.idleMainLooper();
+            dialog = restored();
+            HushPinterestPreferenceFragment restoredPage = pageOf(dialog);
+            assertNotNull(recoveryOf(dialog));
+            assertEquals(View.INVISIBLE, restoredPage.getView().getVisibility());
+            assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS, restoredPage.getView().getImportantForAccessibility());
+            mountAction(dialog, SettingsDialog.MOUNT_RETRY).performClick();
+            ShadowLooper.idleMainLooper();
+            assertSame("Retry discarded a healthy restored page", restoredPage, pageOf(dialog));
+            assertEquals(before.getString("route"), navigationState(restoredPage).getString("route"));
+            assertEquals(before.getString("query"), navigationState(restoredPage).getString("query"));
+            assertEquals(before.getString("query"), searchOf(dialog.getView()).getText().toString());
+            assertEquals(1, pages(dialog).size());
+            assertEquals(listeners, preferenceListeners());
+            assertEquals(observers, navigationObservers(restoredPage));
+            assertEquals(View.VISIBLE, restoredPage.getView().getVisibility());
+            assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_AUTO, restoredPage.getView().getImportantForAccessibility());
+            assertFalse(searchOf(dialog.getView()).hasFocus());
+            Settings.CHECK_FOR_RELEASES.save(true);
+            ShadowLooper.idleMainLooper();
+            assertTrue("the preserved preference listener stopped updating rows",
+                    ((SwitchPreference) restoredPage.findPreference(Settings.CHECK_FOR_RELEASES.key)).isChecked());
+            Settings.CHECK_FOR_RELEASES.save(false);
+            ShadowLooper.idleMainLooper();
+        }
+    }
+
+    @Test
+    public void retryReplacesAChildWithoutItsContainerAndPreservesItsNavigationState() {
+        SettingsDialog dialog = show(controller.get());
+        HushPinterestPreferenceFragment original = pageOf(dialog);
+        original.navigation.navigate("Updates");
+        Bundle marker = new Bundle();
+        marker.putString("marker", "saved child arguments");
+        original.setArguments(marker);
+        int listeners = preferenceListeners();
+        int observers = navigationObservers(original);
+        ((FrameLayout) dialog.getView().findViewById(SettingsDialog.CONTAINER_ID)).removeView(original.getView());
+        SettingsDialog.failNextMount = new IllegalStateException("view mount failure");
+        dialog.onViewCreated(dialog.getView(), null);
+        mountAction(dialog, SettingsDialog.MOUNT_RETRY).performClick();
+        ShadowLooper.idleMainLooper();
+        HushPinterestPreferenceFragment replacement = pageOf(dialog);
+        assertNotSame(original, replacement);
+        assertEquals("saved child arguments", replacement.getArguments().getString("marker"));
+        assertEquals("Updates", navigationState(replacement).getString("route"));
+        assertEquals(1, pages(dialog).size());
+        assertEquals(listeners, preferenceListeners());
+        assertEquals(observers, navigationObservers(replacement));
+        assertFalse(controller.get().isFinishing());
+    }
+
+    private SettingsDialog restored() {
+        SettingsDialog dialog = (SettingsDialog) controller.get().getFragmentManager().findFragmentByTag(TAG);
+        assertNotNull("settings did not survive rotation", dialog);
+        return dialog;
+    }
+
+    private static View recoveryOf(SettingsDialog dialog) {
+        View recovery = dialog.getView().findViewWithTag(SettingsDialog.MOUNT_ERROR);
+        assertNotNull("no child-mount recovery view", recovery);
+        return recovery;
+    }
+
+    private static Button mountAction(SettingsDialog dialog, String tag) {
+        Button action = dialog.getView().findViewWithTag(tag);
+        assertNotNull(tag, action);
+        return action;
+    }
+
+    private static Bundle navigationState(HushPinterestPreferenceFragment page) {
+        Bundle saved = new Bundle();
+        page.navigation.save(saved);
+        return saved.getBundle("hushpinterest_navigation");
+    }
+
+    private static int preferenceListeners() {
+        Map<?, ?> listeners = ReflectionHelpers.getField(Setting.preferences.preferences, "mListeners");
+        return listeners.size();
+    }
+
+    private static int navigationObservers(HushPinterestPreferenceFragment page) {
+        Object observable = ReflectionHelpers.getField(page.getPreferenceScreen().getRootAdapter(), "mDataSetObservable");
+        Collection<?> observers = ReflectionHelpers.getField(observable, "mObservers");
+        return observers.size();
+    }
+
+    private static EditText searchOf(View view) {
+        if (view instanceof EditText) return (EditText) view;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                EditText found = searchOf(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private static SettingsDialog show(Activity activity) {

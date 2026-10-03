@@ -12,6 +12,7 @@ Nothing has been released yet. This is the work toward 0.0.2.
 * **Validation:** Compiled manifest checks now cover metadata, account and push components, filters and query declarations. Allowances follow the selected patches and use the full merged input. Older release receipts retain their original schemas.
 * **Development checks:** Device leases retain the full device identity across borrowed calls. Runtime bytecode verification uses the device's processor type. Analytics preflight rejects inaccessible owners and malformed hook bodies without editing code.
 * **Build dependencies:** Commons Lang, HttpClient and Guava now resolve to reviewed versions across tooling and provided graphs. Strict checksums were refreshed, and vulnerable or missing resolutions fail the advisory gate.
+* **Settings recovery:** A settings page that fails to load now shows Retry and Back. Retry preserves the requested page and loads one settings view. Back returns to Pinterest.
 * **Android 9 saves:** Downloads now have a five-minute limit and a 256 MiB size limit. Partial responses and empty files fail. Storage errors preserve possibly completed files and explain when incomplete-file cleanup failed.
 * **Updates:** Release compatibility checks every explicitly supported Pinterest version, including the Android 9 target. It accepts repeated Pinterest names and doesn't confuse previous bug fixes with previous version support. Old single-version caches no longer invent support. Release notes and installation steps open from Updates without automatic downloads.
 

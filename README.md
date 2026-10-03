@@ -80,9 +80,12 @@ Long-press the Pinterest icon and tap HushPinterest. You can also open Pinterest
   <img src="assets/screenshots/settings-feed.png" width="240" alt="Feed controls for promoted, AI-labeled and shopping pins">
   <img src="assets/screenshots/settings-privacy.png" width="240" alt="Analytics and link-tracking controls">
   <img src="assets/screenshots/settings-updates.png" width="240" alt="Release notes and update instructions in settings">
+  <img src="assets/screenshots/settings-recovery.png" width="240" alt="Retry and Back if the settings screen can't open">
 </p>
 
 These settings were captured on Android 16 with every patch included. All 19 feature switches saved and restored their choices. Pause and Resume were checked across restarts, and Supported links opened Android's link settings. Signed-in feed and pin-action checks are still pending.
+
+If the settings page can't open, Retry tries to load it again. Back returns to Pinterest. The recovery screen was checked with a controlled load failure.
 
 Shopping filters and the new pin actions and interface controls start off. Create and Notifications have separate switches. The pin menu has separate choices for collage actions, Search image and Promote pin. Home, your profile and the ordinary Save, Share and Report actions stay available.
 

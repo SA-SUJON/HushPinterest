@@ -27,7 +27,11 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.preference.SwitchPreference;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.SettingsContextRule;
@@ -44,6 +48,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowToast;
 
@@ -60,6 +65,7 @@ public class SettingsScreenStatesTest {
     public void restore() {
         PatchFamily.inBuildForTests = null;
         HushPinterestPreferenceFragment.failNextInitialization = null;
+        SettingsDialog.failNextMount = null;
         PauseForTests.resume();
         BaseSettings.PAUSED.resetToDefault();
         BaseSettings.SAFE_MODE.resetToDefault();
@@ -196,6 +202,60 @@ public class SettingsScreenStatesTest {
             assertEquals("ff000000", Integer.toHexString(ScreenColors.DEFAULT.background));
             assertEquals(Integer.toHexString(ScreenColors.DEFAULT.background),
                     Integer.toHexString(((ColorDrawable) list.getBackground()).getColor()));
+        }
+    }
+
+    /** The mount error does not depend on preferences, the host's theme or its default button text. */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void theMountErrorAndItsActionsStayReadableAtDoubleTextSizeInEveryShippedLanguage() {
+        RuntimeEnvironment.setFontScale(2f);
+        try {
+            // Arabic exercises right-to-left layout with the documented English fallback.
+            for (String language : new String[]{"de-rDE", "es-rES", "in-rID", "pt-rBR", "tr-rTR", "ar"}) {
+                RuntimeEnvironment.setQualifiers(language + "-w411dp-h891dp-notnight-xxhdpi");
+                RuntimeEnvironment.setFontScale(2f);
+                SettingsDialog.failNextMount = new IllegalStateException("mount failure");
+                try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                    if (language.equals("ar")) assertEquals(View.LAYOUT_DIRECTION_RTL,
+                            controller.get().getResources().getConfiguration().getLayoutDirection());
+                    SettingsDialog dialog = SettingsL10nTest.show(controller.get());
+                    View root = dialog.getView();
+                    root.measure(View.MeasureSpec.makeMeasureSpec(780, View.MeasureSpec.EXACTLY),
+                            View.MeasureSpec.makeMeasureSpec(1200, View.MeasureSpec.EXACTLY));
+                    root.layout(0, 0, 780, 1200);
+                    ShadowLooper.idleMainLooper();
+                    ScrollView recovery = root.findViewWithTag(SettingsDialog.MOUNT_ERROR);
+                    assertNotNull(language, recovery);
+                    assertEquals(ScreenColors.DEFAULT.background, ((ColorDrawable) recovery.getBackground()).getColor());
+                    TextView title = recovery.findViewById(android.R.id.title);
+                    TextView summary = recovery.findViewById(android.R.id.summary);
+                    assertEquals(L10n.t(controller.get(), "HushPinterest settings couldn't open"), title.getText().toString());
+                    if (!language.equals("ar")) assertFalse(language + " fell back to English",
+                            "HushPinterest settings couldn't open".contentEquals(title.getText()));
+                    assertEquals(L10n.t(controller.get(), "Try again, or go back to Pinterest."), summary.getText().toString());
+                    assertTrue(title.isAccessibilityHeading());
+                    for (TextView text : new TextView[]{title, summary,
+                            recovery.findViewWithTag(SettingsDialog.MOUNT_RETRY), recovery.findViewWithTag(SettingsDialog.MOUNT_BACK)}) {
+                        assertNotNull(language + " has no text layout", text.getLayout());
+                        for (int line = 0; line < text.getLayout().getLineCount(); line++) {
+                            assertEquals(language + " cuts off " + text.getText(), 0, text.getLayout().getEllipsisCount(line));
+                        }
+                        assertTrue(language + " clips " + text.getText(), text.getLayout().getHeight()
+                                <= text.getHeight() - text.getCompoundPaddingTop() - text.getCompoundPaddingBottom());
+                    }
+                    Button retry = recovery.findViewWithTag(SettingsDialog.MOUNT_RETRY);
+                    Button back = recovery.findViewWithTag(SettingsDialog.MOUNT_BACK);
+                    assertEquals(L10n.t(controller.get(), "Retry"), retry.getText().toString());
+                    assertEquals(L10n.t(controller.get(), "Back"), back.getText().toString());
+                    assertTrue(retry.isEnabled());
+                    assertTrue(back.isEnabled());
+                    assertTrue("native recovery cannot scroll to its controls", recovery.isFillViewport());
+                }
+            }
+        } finally {
+            RuntimeEnvironment.setFontScale(1f);
+            RuntimeEnvironment.setQualifiers("+en");
         }
     }
 }

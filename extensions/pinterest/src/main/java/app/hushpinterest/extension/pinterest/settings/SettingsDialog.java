@@ -17,6 +17,8 @@ package app.hushpinterest.extension.pinterest.settings;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
@@ -32,11 +34,13 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -58,6 +62,14 @@ public final class SettingsDialog extends DialogFragment {
      * carries an id.
      */
     static final int CONTAINER_ID = 0x48464301;
+    static final String MOUNT_ERROR = "hushpinterest_mount_error";
+    static final String MOUNT_RETRY = "hushpinterest_mount_retry";
+    static final String MOUNT_BACK = "hushpinterest_mount_back";
+    private static final String MOUNT_FAILED_STATE = "hushpinterest_mount_failed";
+    private static final String REPLACE_CHILD_STATE = "hushpinterest_replace_failed_child";
+
+    /** Thrown once before mounting, so a test reaches recovery even when no child exists. */
+    static volatile RuntimeException failNextMount;
 
     private TextView pageTitle;
     private LinearLayout searchBox;
@@ -70,11 +82,29 @@ public final class SettingsDialog extends DialogFragment {
         if (!count.contentEquals(results.getText())) results.setText(count);
     };
     private boolean settingSearch;
+    private FrameLayout container;
+    private ScrollView recovery;
+    private boolean mountFailed;
+    private boolean replaceFailedChild;
+    private boolean retryScheduled;
+    private CharSequence mountedTitle = "HushPinterest";
+    private boolean mountedHome;
+    private String mountedQuery = "";
+    private int mountedResults = -1;
+    private final Runnable retryMount = () -> {
+        retryScheduled = false;
+        if (!isAdded() || getView() == null || getDialog() == null || !getDialog().isShowing()) return;
+        mountPage(true);
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(STYLE_NO_TITLE, ScreenColors.THEME);
+        if (savedInstanceState != null) {
+            mountFailed = savedInstanceState.getBoolean(MOUNT_FAILED_STATE);
+            replaceFailedChild = savedInstanceState.getBoolean(REPLACE_CHILD_STATE);
+        }
     }
 
     @Override
@@ -86,7 +116,7 @@ public final class SettingsDialog extends DialogFragment {
             @Override
             public void onBackPressed() {
                 HushPinterestPreferenceFragment page = page();
-                if (page != null && page.backFromJump()) return;
+                if (!mountFailed && page != null && page.backFromJump()) return;
                 super.onBackPressed();
             }
         };
@@ -143,7 +173,7 @@ public final class SettingsDialog extends DialogFragment {
         });
         back.setOnClickListener(v -> {
             HushPinterestPreferenceFragment page = page();
-            if (page != null && page.backFromJump()) return;
+            if (!mountFailed && page != null && page.backFromJump()) return;
             SettingsEntry.onClosedByUser();
             dismissAllowingStateLoss();
         });
@@ -162,7 +192,7 @@ public final class SettingsDialog extends DialogFragment {
 
         buildSearch(root);
 
-        FrameLayout container = new FrameLayout(getContext());
+        container = new FrameLayout(getContext());
         container.setId(CONTAINER_ID);
         root.addView(container, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
@@ -222,6 +252,7 @@ public final class SettingsDialog extends DialogFragment {
             @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
                 clear.setVisibility(text.length() == 0 ? View.INVISIBLE : View.VISIBLE);
+                if (!settingSearch) mountedQuery = text.toString();
                 HushPinterestPreferenceFragment page = page();
                 if (!settingSearch && page != null && page.navigation != null) page.navigation.search(text.toString());
             }
@@ -256,6 +287,10 @@ public final class SettingsDialog extends DialogFragment {
     }
 
     void showPage(CharSequence title, boolean home, String query) {
+        mountedTitle = title;
+        mountedHome = home;
+        mountedQuery = query;
+        if (mountFailed) return;
         pageTitle.setText(title);
         searchBox.setVisibility(home ? View.VISIBLE : View.GONE);
         settingSearch = true;
@@ -269,8 +304,9 @@ public final class SettingsDialog extends DialogFragment {
 
     /** How many settings the search shows, or -1 when there is no search. */
     void showResults(int count) {
+        mountedResults = count;
         results.removeCallbacks(showFound);
-        if (count < 0) {
+        if (mountFailed || count < 0) {
             results.setVisibility(View.GONE);
             results.setText("");
             return;
@@ -294,15 +330,165 @@ public final class SettingsDialog extends DialogFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        if (mountFailed) showMountRecovery();
+        else mountPage(false);
+    }
+
+    private void mountPage(boolean retry) {
         try {
-            if (getChildFragmentManager().findFragmentById(CONTAINER_ID) == null) {
-                getChildFragmentManager().beginTransaction()
-                        .replace(CONTAINER_ID, new HushPinterestPreferenceFragment())
-                        .commitNow();
+            RuntimeException injected = failNextMount;
+            if (injected != null) {
+                failNextMount = null;
+                throw injected;
+            }
+            FragmentManager manager = getChildFragmentManager();
+            Fragment current = manager.findFragmentById(CONTAINER_ID);
+            if (!(current instanceof HushPinterestPreferenceFragment) || replaceFailedChild
+                    || (retry && (current.getView() == null || current.getView().getParent() != container))) {
+                HushPinterestPreferenceFragment replacement = new HushPinterestPreferenceFragment();
+                if (current instanceof HushPinterestPreferenceFragment && current.isAdded()) {
+                    if (current.getArguments() != null) replacement.setArguments(new Bundle(current.getArguments()));
+                    replacement.setInitialSavedState(manager.saveFragmentInstanceState(current));
+                }
+                // If commitNow fails after adding a child, Retry must replace that partial page.
+                replaceFailedChild = true;
+                manager.beginTransaction().replace(CONTAINER_ID, replacement).commitNow();
+                replaceFailedChild = false;
+            }
+            mountFailed = false;
+            clearMountRecovery();
+            showPage(mountedTitle, mountedHome, mountedQuery);
+            showResults(mountedResults);
+            if (retry) {
+                View list = getView().findViewById(android.R.id.list);
+                if (list != null) {
+                    list.setFocusableInTouchMode(true);
+                    list.requestFocus();
+                    list.sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
+                }
             }
         } catch (Exception ex) {
-            Logger.printException(() -> "Could not show the preference list", ex);
+            mountFailed = true;
+            // Recovery is the visible outcome. Keep the diagnostic logger's toast quiet.
+            Logger.printInfo(() -> "Could not show the preference list", ex);
+            showMountRecovery();
         }
+    }
+
+    /** Built without the child manager, which is the part that just failed. */
+    private void showMountRecovery() {
+        if (container == null) return;
+        if (recovery != null) container.removeView(recovery);
+        pageTitle.setText("HushPinterest");
+        searchBox.setVisibility(View.GONE);
+        search.clearFocus();
+        hideKeyboard();
+        results.removeCallbacks(showFound);
+        results.setVisibility(View.GONE);
+        recovery = new ScrollView(getContext());
+        recovery.setTag(MOUNT_ERROR);
+        recovery.setBackgroundColor(ScreenColors.DEFAULT.background);
+        recovery.setFillViewport(true);
+        LinearLayout content = new LinearLayout(getContext());
+        content.setOrientation(LinearLayout.VERTICAL);
+        recovery.addView(content, new ScrollView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        LinearLayout message = new LinearLayout(getContext());
+        message.setOrientation(LinearLayout.VERTICAL);
+        TextView title = new TextView(getContext());
+        title.setId(android.R.id.title);
+        title.setText(L10n.t(getContext(), "HushPinterest settings couldn't open"));
+        title.setAccessibilityHeading(true);
+        message.addView(title);
+        TextView summary = new TextView(getContext());
+        summary.setId(android.R.id.summary);
+        summary.setText(L10n.t(getContext(), "Try again, or go back to Pinterest."));
+        message.addView(summary);
+        content.addView(message);
+        ScreenColors.recoveryMessage(message);
+        message.setPadding(dp(32), dp(32), dp(32), dp(24));
+        Button retry = recoveryButton(MOUNT_RETRY, L10n.t(getContext(), "Retry"), true);
+        retry.setOnClickListener(ignored -> {
+            if (!mountFailed || retryScheduled || getView() == null) return;
+            retryScheduled = true;
+            retry.setEnabled(false);
+            getView().post(retryMount);
+        });
+        content.addView(retry);
+        Button back = recoveryButton(MOUNT_BACK, L10n.t(getContext(), "Back"), false);
+        back.setOnClickListener(ignored -> {
+            if (getDialog() != null) getDialog().cancel();
+            else {
+                SettingsEntry.onClosedByUser();
+                dismissAllowingStateLoss();
+            }
+        });
+        content.addView(back);
+        container.addView(recovery, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        coverChild();
+        retry.setFocusableInTouchMode(true);
+        retry.requestFocus();
+        recovery.sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
+    }
+
+    private Button recoveryButton(String tag, String label, boolean primary) {
+        Button button = new Button(getContext());
+        button.setTag(tag);
+        button.setText(label);
+        button.setAllCaps(false);
+        button.setSingleLine(false);
+        button.setMaxLines(Integer.MAX_VALUE);
+        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        button.setTextColor(primary ? ScreenColors.DEFAULT.onAccent : ScreenColors.DEFAULT.secondaryActionText());
+        button.setTypeface(Typeface.DEFAULT_BOLD);
+        button.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        ScreenColors.recoveryAction(button, primary);
+        button.setBackgroundTintList(null);
+        return button;
+    }
+
+    private void coverChild() {
+        for (int i = 0; i < container.getChildCount(); i++) {
+            View child = container.getChildAt(i);
+            if (child == recovery) continue;
+            child.setVisibility(View.INVISIBLE);
+            child.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+        }
+        recovery.bringToFront();
+    }
+
+    private void clearMountRecovery() {
+        if (recovery == null) return;
+        container.removeView(recovery);
+        recovery = null;
+        for (int i = 0; i < container.getChildCount(); i++) {
+            View child = container.getChildAt(i);
+            child.setVisibility(View.VISIBLE);
+            child.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
+        }
+    }
+
+    @Override public void onStart() {
+        super.onStart();
+        // The framework restores an existing child's view after this dialog's onViewCreated.
+        if (mountFailed && recovery != null) coverChild();
+    }
+
+    @Override public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(MOUNT_FAILED_STATE, mountFailed);
+        outState.putBoolean(REPLACE_CHILD_STATE, replaceFailedChild);
+    }
+
+    @Override public void onDestroyView() {
+        if (getView() != null) getView().removeCallbacks(retryMount);
+        if (results != null) results.removeCallbacks(showFound);
+        retryScheduled = false;
+        recovery = null;
+        container = null;
+        super.onDestroyView();
     }
 
     private int dp(int value) {
