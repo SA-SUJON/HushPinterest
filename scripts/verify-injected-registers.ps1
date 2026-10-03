@@ -73,7 +73,10 @@ param(
     [string]$ReportPath,
     [string]$Java,
     [string]$DesktopJar,
-    [string]$Aapt2
+    [string]$Aapt2,
+    [string[]]$SelectedPatchNames,
+    [string]$AndroidJar,
+    [string]$ApiVersions
 )
 
 $ErrorActionPreference = 'Stop'
@@ -128,7 +131,16 @@ function Invoke-DexDiff {
     $output = @(& $Java '-Xmx8g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'DexDiff.java') `
         $CleanMerged $PatchedApk $ReportPath `
         (Join-Path $PSScriptRoot 'injected-register-removal-allowlist.txt') `
-        (Join-Path $PSScriptRoot 'injected-mutation-contracts.txt') $cleanBase 2>&1 | ForEach-Object { "$_" })
+        (Join-Path $PSScriptRoot 'injected-mutation-contracts.txt') $cleanBase $selectionFile 2>&1 | ForEach-Object { "$_" })
+    [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
+}
+
+function Invoke-HostReferences {
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = -1
+    $output = @(& $Java '-Xmx8g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'HostReferences.java') `
+        $CleanMerged $PatchedApk $referenceReport $AndroidJar $ApiVersions "$($patched.minSdk)" `
+        (Join-Path $PSScriptRoot 'host-reference-contracts.txt') 2>&1 | ForEach-Object { "$_" })
     [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
 }
 
@@ -146,6 +158,18 @@ $failed = $false
 $completed = $false
 $deviceLease = $null
 try {
+
+$selectionFile = '-'
+if ($PSBoundParameters.ContainsKey('SelectedPatchNames')) {
+    if ($SelectedPatchNames.Count -eq 1) { $SelectedPatchNames = $SelectedPatchNames[0].Split(',') }
+    if ($SelectedPatchNames.Count -eq 0 -or $SelectedPatchNames.Count -gt 128 -or
+            @($SelectedPatchNames | Where-Object { [string]::IsNullOrWhiteSpace($_) -or $_.Length -gt 256 -or $_ -match '[\r\n]' }).Count -ne 0 -or
+            @($SelectedPatchNames | Select-Object -Unique).Count -ne $SelectedPatchNames.Count) {
+        throw 'Selected patch names must be a bounded nonempty unique list.'
+    }
+    $selectionFile = Join-Path $work 'selected-patches.txt'
+    [IO.File]::WriteAllLines($selectionFile, $SelectedPatchNames, (New-Object Text.UTF8Encoding($false)))
+}
 
 $adbPath = $null
 if ($FromDevice -or $Serial) { $adbPath = Resolve-Adb -Explicit $Adb }
@@ -218,6 +242,22 @@ if (-not $CleanMerged) {
 }
 if (-not (Test-Path -LiteralPath $CleanMerged -PathType Leaf)) { throw "No merged clean APK at $CleanMerged." }
 
+if (-not $AndroidJar) {
+    $sdkRoots = @((Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Aapt2))),
+        $env:ANDROID_HOME, $env:ANDROID_SDK_ROOT)
+    if ($env:LOCALAPPDATA) { $sdkRoots += Join-Path $env:LOCALAPPDATA 'Android/Sdk' }
+    foreach ($sdk in $sdkRoots | Where-Object { $_ }) {
+        $candidate = Join-Path $sdk 'platforms/android-36/android.jar'
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) { $AndroidJar = $candidate; break }
+    }
+}
+if (-not $AndroidJar -or -not (Test-Path -LiteralPath $AndroidJar -PathType Leaf)) {
+    throw 'Android SDK public stubs are required for host reference verification. Pass -AndroidJar and -ApiVersions, or install Android SDK Platform 36.'
+}
+if (-not $ApiVersions) { $ApiVersions = Join-Path (Split-Path -Parent $AndroidJar) 'data/api-versions.xml' }
+if (-not (Test-Path -LiteralPath $ApiVersions -PathType Leaf)) { throw "SDK API history is missing: $ApiVersions" }
+$referenceReport = "$ReportPath.host-references.txt"
+
 Write-Host "[registers] clean   $CleanApk (Pinterest $($clean.versionName), signed by Pinterest)"
 Write-Host "[registers] merged  $CleanMerged (the dex comparison's clean side)"
 Write-Host "[registers] patched $PatchedApk"
@@ -229,10 +269,17 @@ if ($diff.ExitCode -ne 0) {
     Write-Host "[registers] FAIL: the dex comparison exited $($diff.ExitCode); see $ReportPath"
     $failed = $true
 } else {
-    Write-Host '[registers] static: every injected instruction stays inside its method, and the structure and contracts hold.'
+    $references = Invoke-HostReferences
+    $references.Output | ForEach-Object { Write-Host "[references] $_" }
+    if ($references.ExitCode -ne 0) {
+        Write-Host "[references] FAIL: host reference verification exited $($references.ExitCode); see $referenceReport"
+        $failed = $true
+    } else {
+        Write-Host '[registers] static: injected registers, compiled feature contracts and inserted host/framework members passed.'
+    }
 }
 
-if ($Serial) {
+if ($Serial -and -not $failed) {
     $deviceLease = Enter-HushDeviceLease -Adb $adbPath -Serial $Serial -LeaseToken $LeaseToken `
         -LeaseDirectory $LeaseDirectory -ChatIdentity $ChatIdentity
     Write-Host "[registers] running the device verifier on $Serial"

@@ -317,6 +317,9 @@ try {
         $deviceHalfStart = { param($Node)
             $Node -is [System.Management.Automation.Language.CommandAst] -and
             $Node.Extent.Text -like '*running the device verifier on*' }
+        $deviceHalf = { param($Node)
+            $Node -is [System.Management.Automation.Language.IfStatementAst] -and
+            $Node.Clauses[0].Item1.Extent.Text -eq '$Serial -and -not $failed' }
         $beforeDeviceHalf = { param([string]$Statement)
             Edit-ScriptNode $verifierText $deviceHalfStart { param($Text) "$Statement`n    $Text" }.GetNewClosure() }
         # And the other places the tally copies put a statement: before the compare, and after
@@ -339,9 +342,7 @@ try {
                     $Node.GetCommandName() -eq 'Invoke-AndroidVerifierTally' -and $Node.Extent.Text -like '*$cleanBase*'
                 } { param($Text) $Text.Replace('$cleanBase', '$PatchedApk') } }
             @{ Name = 'both tallies taken into one variable'; Check = $talliesBothSides
-                Text = Edit-ScriptNode $verifierText { param($Node)
-                    $Node -is [System.Management.Automation.Language.IfStatementAst] -and
-                    $Node.Clauses[0].Item1.Extent.Text -eq '$Serial' } { param($Text)
+                Text = Edit-ScriptNode $verifierText $deviceHalf { param($Text)
                     $Text.Replace('$cleanTally', '$tally').Replace('$patchedTally', '$tally') } }
             @{ Name = 'the clean tally written over with the patched one before the compare'; Check = $talliesBothSides
                 Text = Edit-ScriptNode $verifierText { param($Node)
@@ -356,9 +357,7 @@ try {
                 Text = Edit-ScriptNode $verifierText $deviceDotSource { param($Text)
                     "$Text`nfunction Invoke-AndroidVerifierTally { @{} }" } }
             @{ Name = 'the device half in a function nothing calls'; Check = $talliesBothSides
-                Text = Edit-ScriptNode $verifierText { param($Node)
-                    $Node -is [System.Management.Automation.Language.IfStatementAst] -and
-                    $Node.Clauses[0].Item1.Extent.Text -eq '$Serial' } { param($Text) "function Invoke-DeviceHalf {`n$Text`n}" } }
+                Text = Edit-ScriptNode $verifierText $deviceHalf { param($Text) "function Invoke-DeviceHalf {`n$Text`n}" } }
             @{ Name = 'the device helper dot-sourced in a dead branch'; Check = $dotSourcesDevice
                 Text = Edit-ScriptNode $verifierText $deviceDotSource { param($Text) "if (`$false) { $Text }" } }
             # Statements that end their block with the exit nested inside them. First in the device

@@ -43,6 +43,8 @@ param(
     [string]$DesktopJar,
     [string]$Java,
     [string]$Aapt2,
+    [string]$AndroidJar,
+    [string]$ApiVersions,
     [string]$Keystore = "$HOME\.android\sideload-release.jks",
     [string]$KeyAlias = 'sideload',
     [string]$OutDir = (Join-Path $env:TEMP 'hushpinterest-device'),
@@ -220,6 +222,12 @@ $patchedManifest = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
 $manifestCheck = Test-ManifestDelta -Stock $stockManifest -Patched $patchedManifest `
     -SelectedPatchNames $manifestSelection -ApprovedManifestDelta $approvedChanges
 if (-not $manifestCheck.Valid) { throw "Patching changed an unapproved compiled manifest fact: $($manifestCheck.Reason)" }
+$registerReport = Join-Path $OutDir 'injected-registers.txt'
+$global:LASTEXITCODE = -1
+& (Join-Path $PSScriptRoot 'verify-injected-registers.ps1') -CleanApk $Apk -CleanMerged $patchInput `
+    -PatchedApk $out -ReportPath $registerReport -Java $java -DesktopJar $DesktopJar -Aapt2 $Aapt2 `
+    -SelectedPatchNames $manifestSelection -AndroidJar $AndroidJar -ApiVersions $ApiVersions
+if ($LASTEXITCODE -ne 0) { throw 'Patched bytecode failed its compiled mutation or structural checks.' }
 Write-Host "[device] applied $(@($report.appliedPatches).Count), failed $(@($report.failedPatches).Count), target $($report.packageName) $($report.packageVersion)"
 if ($outputReservation) {
     $input = [IO.File]::OpenRead($out)

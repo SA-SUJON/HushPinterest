@@ -84,11 +84,12 @@ function New-DexApk {
 }
 
 function Invoke-DexDiff {
-    param([string]$Clean, [string]$Patched, [string]$Allowlist, [string]$Name, [string]$Contracts, [string]$Base)
+    param([string]$Clean, [string]$Patched, [string]$Allowlist, [string]$Name, [string]$Contracts, [string]$Base, [string]$Selected)
     $report = Join-Path $caseRoot "$Name-report.txt"
     $arguments = @('-Xmx1g', '-cp', $classPath, 'DexDiff', $Clean, $Patched, $report, $Allowlist)
     if ($Contracts) { $arguments += $Contracts }
-    if ($Base) { $arguments += $Base }
+    if ($Base) { $arguments += $Base } elseif ($Selected) { $arguments += '-' }
+    if ($Selected) { $arguments += $Selected }
     $ErrorActionPreference = 'Continue'
     $global:LASTEXITCODE = 0
     $output = @(& $Java @arguments 2>&1 | ForEach-Object { "$_" })
@@ -477,7 +478,7 @@ $delete
 echo Signer #1 certificate SHA-256 digest: $($metaSigner[0])
 exit /b 0
 "@
-    foreach ($file in 'clean.apk', 'patched.apk', 'desktop.jar') {
+    foreach ($file in 'clean.apk', 'patched.apk', 'desktop.jar', 'android.jar', 'api-versions.xml') {
         [System.IO.File]::WriteAllText((Join-Path $case $file), 'stand-in')
     }
     $ErrorActionPreference = 'Continue'
@@ -485,7 +486,8 @@ exit /b 0
     $output = @(& (Get-Process -Id $PID).Path -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $verifier `
         -CleanApk (Join-Path $case 'clean.apk') -PatchedApk (Join-Path $case 'patched.apk') `
         -ReportPath (Join-Path $case 'report.txt') -Java $javaStandIn -DesktopJar (Join-Path $case 'desktop.jar') `
-        -Aapt2 (Join-Path $case 'aapt2.cmd') 2>&1 | ForEach-Object { "$_" })
+        -Aapt2 (Join-Path $case 'aapt2.cmd') -AndroidJar (Join-Path $case 'android.jar') `
+        -ApiVersions (Join-Path $case 'api-versions.xml') 2>&1 | ForEach-Object { "$_" })
     [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output; Text = $output -join "`n" }
 }
 
@@ -515,6 +517,7 @@ $DesktopJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $Root -Required
 $javac = Join-Path (Split-Path -Parent $Java) 'javac.exe'
 if (-not (Test-Path -LiteralPath $javac -PathType Leaf)) { throw "Required tool not found: $javac" }
 $contracts = Join-Path $PSScriptRoot 'injected-mutation-contracts.txt'
+$featureContracts = $contracts
 
 $tempBase = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
 $caseRoot = [System.IO.Path]::GetFullPath((Join-Path $tempBase `
@@ -532,7 +535,8 @@ try {
     # Compiled once rather than launched from source per case: the same code, a fraction of the time.
     $classes = Join-Path $caseRoot 'classes'
     Invoke-Checked -Program $javac -Arguments @('-encoding', 'UTF-8', '-cp', $DesktopJar, '-d', $classes,
-        (Join-Path $PSScriptRoot 'DexDiff.java'), (Join-Path $PSScriptRoot 'BadDexFixture.java')) `
+        (Join-Path $PSScriptRoot 'DexDiff.java'), (Join-Path $PSScriptRoot 'BadDexFixture.java'),
+        (Join-Path $PSScriptRoot 'FeatureDexFixture.java')) `
         -Description 'javac for DexDiff and its fixtures'
     $classPath = $DesktopJar + [System.IO.Path]::PathSeparator + $classes
     $dexDir = Join-Path $caseRoot 'dex'
@@ -542,6 +546,11 @@ try {
 
     $emptyAllowlist = Join-Path $caseRoot 'empty-allowlist.txt'
     [System.IO.File]::WriteAllText($emptyAllowlist, "# nothing reviewed`n")
+    # Neutral instruction fixtures carry no Pinterest status class. Use the legacy grammar for
+    # those cases; production feature contracts must reject a missing status class, not skip it.
+    $contracts = Join-Path $caseRoot 'legacy-contracts.txt'
+    [IO.File]::WriteAllLines($contracts, [string[]]@(Get-Content -LiteralPath $featureContracts |
+        Where-Object { $_ -match '^\s*no-call\s' }), [Text.UTF8Encoding]::new($false))
     $cleanApk = New-DexApk -Name 'clean' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'clean') })
 
     $good = Invoke-DexDiff -Clean $cleanApk -Patched (New-DexApk -Name 'good' -Entries ([ordered]@{
@@ -578,12 +587,99 @@ try {
             ("The good build's $($shortcut.Call), sent to the stand-in whose own call is inside the extension, " +
             "was not reported clean.`n$($good.Output -join "`n")")
     }
-    # Every other rule the grammar knows needs bad builds of its own, and this suite builds none,
-    # so a rule of another kind in the contract file would pass on a count nobody checks.
-    $otherRules = @(Get-Content -LiteralPath $contracts | ForEach-Object { $_.Trim() } |
-        Where-Object { $_ -and -not $_.StartsWith('#') -and $_ -notmatch '^no-call\s' })
+    # Family fixtures exercise final flags and actual bytecode. Every declared capability needs a
+    # mutation rule, and every production flag needs a declared owner, so new rules cannot pass unused.
+    $otherRules = @(Get-Content -LiteralPath $featureContracts | ForEach-Object { $_.Trim() } |
+        Where-Object { $_ -and -not $_.StartsWith('#') -and $_ -notmatch '^(no-call\s|family\||mutation\|)' })
     Assert-True ($otherRules.Count -eq 0) `
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
+    $families = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('family|') } |
+        ForEach-Object { $values = $_ -split '\|'; [pscustomobject]@{ Flag = $values[1]; Name = $values[2]; Caps = @($values[3] -split ',') } })
+    Assert-True ($families.Count -eq 16) 'Every one of the 16 installed families needs a compiled contract.'
+    $declaredFlags = @($families | ForEach-Object { $_.Flag; $_.Caps } | Sort-Object)
+    $statusSource = Join-Path $Root 'extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsStatus.java'
+    $sourceFlags = @([regex]::Matches([IO.File]::ReadAllText($statusSource), 'public static boolean ([A-Za-z0-9]+)\(\)') |
+        ForEach-Object { $_.Groups[1].Value } | Sort-Object)
+    Assert-True (($declaredFlags -join "`n") -ceq ($sourceFlags -join "`n")) 'Compiled contracts and production installed/capability flags differ.'
+    $mutationCaps = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('mutation|') } |
+        ForEach-Object { ($_ -split '\|')[1] -split ',' } | Where-Object { $_ -ne 'settings' } | Sort-Object)
+    $familyCaps = @($families | ForEach-Object { $_.Caps } | Sort-Object)
+    Assert-True (($mutationCaps -join "`n") -ceq ($familyCaps -join "`n")) 'A capability has no mutation rule or has duplicated ownership.'
+    Invoke-Checked -Program $Java -Arguments @('-cp', $classPath, 'FeatureDexFixture', $dexDir, $featureContracts) `
+        -Description 'FeatureDexFixture'
+    $featureApks = @{}
+    function Get-FeatureApk([string]$Name) {
+        if (-not $featureApks.ContainsKey($Name)) { $featureApks[$Name] = New-DexApk -Name $Name -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $Name) }) }
+        $featureApks[$Name]
+    }
+    $featureCases = [ordered]@{
+        'feature-unselected' = $true
+        'feature-internal-dependencies' = $true
+        'feature-unknown-public' = $false
+        'feature-no-status' = $false
+        'feature-nonboolean-status' = $false
+        'feature-guard-good' = $true
+        'feature-guard-missing' = $false
+        'feature-guard-duplicate' = $false
+        'feature-guard-misrouted' = $false
+        'feature-guard-bad-fallback' = $false
+        'feature-guard-changed-original' = $false
+        'feature-guard-false-capability' = $false
+        'feature-guard-unselected-call' = $false
+        'feature-guard-missing-callee' = $false
+        'feature-guard-interior-good' = $true
+        'feature-guard-interior-bad' = $false
+        'feature-feed-ads' = $true
+        'feature-feed-ai' = $true
+        'feature-feed-shopping' = $true
+        'feature-feed-shared' = $true
+        'feature-feed-duplicate' = $false
+        'feature-feed-wrong-register' = $false
+        'feature-feed-wrong-result' = $false
+        'feature-links-good' = $true
+        'feature-links-left-original' = $false
+        'feature-links-wrong-register' = $false
+        'feature-links-missing-original-fallback' = $false
+        'feature-links-partial' = $true
+        'feature-links-false-capability' = $false
+        'feature-optional-absent' = $true
+        'feature-optional-unrelated' = $true
+    }
+    foreach ($family in $families) {
+        $featureCases["feature-installed-missing-$($family.Flag)"] = $false
+        $featureCases["feature-selected-missing-$($family.Flag)"] = $false
+    }
+    foreach ($entry in $featureCases.GetEnumerator()) {
+        $name = $entry.Key
+        $cleanName = if ($name -eq 'feature-links-partial') { 'feature-links-partial-clean' }
+            elseif ($name -like 'feature-guard-interior-*') { 'feature-guard-interior-clean' }
+            elseif ($name -eq 'feature-optional-unrelated') { 'feature-optional-unrelated-clean' }
+            elseif ($name -eq 'feature-optional-absent') { 'feature-optional-clean' } else { 'feature-clean' }
+        $result = Invoke-DexDiff -Clean (Get-FeatureApk $cleanName) -Patched (Get-FeatureApk $name) `
+            -Allowlist $emptyAllowlist -Name $name -Contracts $featureContracts -Selected (Join-Path $dexDir "$name.selected")
+        $findings = Get-Findings $result
+        $text = $result.Output -join "`n"
+        if ($entry.Value) {
+            Assert-True ($result.ExitCode -eq 0 -and $findings.Fails.Count -eq 0) "Valid family fixture $name failed.`n$text"
+        } else {
+            Assert-True ($result.ExitCode -ne 0 -and $findings.Categories.Count -gt 0 -and
+                @($findings.Categories | Where-Object { $_ -ne 'contract' }).Count -eq 0) "Unsafe family fixture $name was not refused for contracts alone.`n$text"
+        }
+        if ($name -like 'feature-selected-missing-*') {
+            Assert-True ($text.Contains('installed flag disagrees with selected patches and clean capability')) "Selected failed family $name was not distinguished from an intentionally unselected family.`n$text"
+        }
+        if ($name -eq 'feature-guard-interior-bad') {
+            Assert-True ($text.Contains('middle of an injected block')) "An original back edge redirected into an enabled-only return was accepted.`n$text"
+        }
+        if ($name -eq 'feature-unknown-public') {
+            Assert-True ($text.Contains('unknown selected patch Hide imaginary pins')) "An unknown public patch selection was accepted.`n$text"
+        }
+    }
+    $duplicateFlags = Invoke-DexDiff -Clean (Get-FeatureApk 'feature-clean') -Patched (New-DexApk -Name 'feature-duplicate-flags' -Entries ([ordered]@{
+        'classes.dex' = (Get-Dex 'feature-unselected'); 'classes2.dex' = (Get-Dex 'feature-status-copy') })) `
+        -Allowlist $emptyAllowlist -Name 'feature-duplicate-flags' -Contracts $featureContracts -Selected (Join-Path $dexDir 'feature-unselected.selected')
+    Assert-True ($duplicateFlags.ExitCode -ne 0 -and ($duplicateFlags.Output -join "`n").Contains('duplicated compiled method')) `
+        "Duplicated installed flags were accepted.`n$($duplicateFlags.Output -join "`n")"
 
     $bad = [ordered]@{
         'bad-branch' = 'branch'
@@ -913,5 +1009,7 @@ try {
     }
 }
 
+& (Join-Path $PSScriptRoot 'test-host-references.ps1') -Root $Root -Java $Java -DesktopJar $DesktopJar
+if ($LASTEXITCODE -ne 0) { throw 'Host reference fixture contracts failed.' }
 $global:LASTEXITCODE = 0
-Write-Host "[scripts] injected-register and mutation contracts passed ($($bad.Count) bad fixtures, each refused for its own check)"
+Write-Host "[scripts] injected-register and mutation contracts passed ($($bad.Count) structural bad fixtures, $($featureCases.Count) compiled family cases)"

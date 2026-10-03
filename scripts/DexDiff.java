@@ -1,10 +1,10 @@
 import com.android.tools.smali.dexlib2.AccessFlags;
 import com.android.tools.smali.dexlib2.DexFileFactory;
 import com.android.tools.smali.dexlib2.Opcode;
-import com.android.tools.smali.dexlib2.Opcodes;
 import com.android.tools.smali.dexlib2.iface.ClassDef;
 import com.android.tools.smali.dexlib2.iface.DexFile;
 import com.android.tools.smali.dexlib2.iface.ExceptionHandler;
+import com.android.tools.smali.dexlib2.iface.Field;
 import com.android.tools.smali.dexlib2.iface.Method;
 import com.android.tools.smali.dexlib2.iface.MethodImplementation;
 import com.android.tools.smali.dexlib2.iface.MultiDexContainer;
@@ -22,9 +22,11 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.formats.ArrayPayload;
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference;
 import com.android.tools.smali.dexlib2.iface.reference.Reference;
 import com.android.tools.smali.dexlib2.iface.reference.StringReference;
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference;
+import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -269,6 +271,11 @@ public class DexDiff {
             "sole-call", "sole-call <method reference> replacing <method reference>",
             "once-call", "once-call <method reference>");
 
+    private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
+            Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
+            Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
+            Map.entry("links", 6), Map.entry("analytics", 4), Map.entry("settings", 3));
+
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
      * "after &lt;method reference&gt;" or the sole-call's "replacing &lt;method reference&gt;", then "[in
@@ -313,6 +320,20 @@ public class DexDiff {
             lineNumber++;
             String line = raw.trim();
             if (line.isEmpty() || line.startsWith("#")) continue;
+            if (line.startsWith("family|") || line.startsWith("mutation|")) {
+                String[] columns = line.split("\\|", -1);
+                boolean family = columns[0].equals("family");
+                if ((family && columns.length != 4) || (!family && columns.length < 4)
+                        || Arrays.stream(columns).anyMatch(String::isBlank)
+                        || !columns[1].matches("[A-Za-z][A-Za-z0-9]*(,[A-Za-z][A-Za-z0-9]*)*")
+                        || (family && !columns[3].matches("[A-Za-z][A-Za-z0-9]*(,[A-Za-z][A-Za-z0-9]*)*"))
+                        || (!family && MUTATION_COLUMNS.getOrDefault(columns[2], -1) != columns.length - 3)) {
+                    throw new IllegalArgumentException("Invalid contract line " + lineNumber + ": invalid feature columns");
+                }
+                contracts.add(new Contract(columns[0], columns[1], columns[2], null, null,
+                        Arrays.asList(columns).subList(3, columns.length), null, null));
+                continue;
+            }
             String[] parts = line.split("\\s+");
             String form = PICKED_FORMS.get(parts[0]);
             if (form != null) {
@@ -1246,7 +1267,7 @@ public class DexDiff {
             } else if (contract.kind.equals("no-call")) {
                 noCallInside.put(contract.callee, contract.target);
                 noCallSites.put(contract.callee, new ArrayList<>());
-            } else {
+            } else if (contract.picks()) {
                 pickRules.add(contract);
                 holders.put(contract, new ArrayList<>());
                 pickStrings.addAll(contract.strings);
@@ -1254,7 +1275,7 @@ public class DexDiff {
             }
         }
         MultiDexContainer<? extends DexFile> container =
-                DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
+                DexFileFactory.loadDexContainer(apk, null);
         for (String entry : container.getDexEntryNames()) {
             for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
                 for (Method m : cd.getMethods()) {
@@ -1291,6 +1312,7 @@ public class DexDiff {
         }
         List<String> contractFindings = new ArrayList<>();
         for (Contract contract : contracts) {
+            if (contract.kind.equals("family") || contract.kind.equals("mutation")) continue;
             if (contract.picks()) {
                 checkPicked(contract, holders.get(contract), hookCallers.get(contract.callee), clean, contractFindings);
                 continue;
@@ -1565,7 +1587,7 @@ public class DexDiff {
     private static List<List<Integer>> cleanCallRegisters(File clean, String method, String callee) throws Exception {
         String type = method.substring(0, method.indexOf("->"));
         List<List<Integer>> calls = new ArrayList<>();
-        MultiDexContainer<? extends DexFile> container = DexFileFactory.loadDexContainer(clean, Opcodes.getDefault());
+        MultiDexContainer<? extends DexFile> container = DexFileFactory.loadDexContainer(clean, null);
         for (String entry : container.getDexEntryNames()) {
             for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
                 if (!cd.getType().equals(type)) continue;
@@ -1690,7 +1712,7 @@ public class DexDiff {
 
     private static Set<String> dexEntries(File apk) throws Exception {
         MultiDexContainer<? extends DexFile> container =
-                DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
+                DexFileFactory.loadDexContainer(apk, null);
         return new TreeSet<>(container.getDexEntryNames());
     }
 
@@ -1710,7 +1732,7 @@ public class DexDiff {
     private static Map<String, String> fingerprintAll(File apk) throws Exception {
         Map<String, String> out = new HashMap<>(1 << 20);
         MultiDexContainer<? extends DexFile> container =
-                DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
+                DexFileFactory.loadDexContainer(apk, null);
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         for (String entry : container.getDexEntryNames()) {
             for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
@@ -1813,7 +1835,7 @@ public class DexDiff {
     private static Map<String, List<List<String>>> bodiesOf(File apk, Set<String> wanted) throws Exception {
         Map<String, List<List<String>>> out = new LinkedHashMap<>();
         MultiDexContainer<? extends DexFile> container =
-                DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
+                DexFileFactory.loadDexContainer(apk, null);
         for (String entry : container.getDexEntryNames()) {
             for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
                 for (Method m : cd.getMethods()) {
@@ -1914,9 +1936,952 @@ public class DexDiff {
         return b.append(" |maxreg=").append(maxReg).toString();
     }
 
+    /** Compiled contracts use the clean target, never a hook's own presence, to locate callers. */
+    private static final class FeatureIndex {
+        final Map<String, ClassDef> classes = new LinkedHashMap<>();
+        final Map<String, Method> methods = new LinkedHashMap<>();
+        final Set<String> duplicates = new HashSet<>();
+        final Map<String, Set<String>> texts = new HashMap<>();
+        final Map<String, Set<String>> classTexts = new HashMap<>();
+        final Map<String, List<FeatureSite>> ownCalls = new LinkedHashMap<>();
+
+        FeatureIndex(File apk) throws Exception {
+            MultiDexContainer<? extends DexFile> container = DexFileFactory.loadDexContainer(apk, null);
+            for (String entry : container.getDexEntryNames()) for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
+                if (classes.putIfAbsent(cd.getType(), cd) != null) duplicates.add(cd.getType());
+                for (Method m : cd.getMethods()) {
+                    String key = m.toString();
+                    if (methods.putIfAbsent(key, m) != null) duplicates.add(key);
+                    Set<String> strings = new HashSet<>();
+                    if (m.getImplementation() != null) {
+                        int at = 0;
+                        for (Instruction i : m.getImplementation().getInstructions()) {
+                            Reference r = reference(i);
+                            if (r instanceof StringReference) strings.add(((StringReference) r).getString());
+                            if (!cd.getType().startsWith(OWN) && r instanceof MethodReference && r.toString().startsWith(OWN)) {
+                                ownCalls.computeIfAbsent(r.toString(), k -> new ArrayList<>()).add(new FeatureSite(m, at));
+                            }
+                            at++;
+                        }
+                    }
+                    texts.put(key, strings);
+                    classTexts.computeIfAbsent(cd.getType(), k -> new HashSet<>()).addAll(strings);
+                }
+            }
+        }
+
+        List<Method> holding(String text) {
+            List<Method> out = new ArrayList<>();
+            for (Method m : methods.values()) if (!m.getDefiningClass().startsWith(OWN)
+                    && texts.get(m.toString()).contains(text)) out.add(m);
+            return out;
+        }
+
+        List<ClassDef> classesHolding(String text) {
+            List<ClassDef> out = new ArrayList<>();
+            for (ClassDef cd : classes.values()) if (!cd.getType().startsWith(OWN)
+                    && classTexts.getOrDefault(cd.getType(), Set.of()).contains(text)) out.add(cd);
+            return out;
+        }
+    }
+
+    private static final class FeatureSite {
+        final Method method;
+        final int at;
+        FeatureSite(Method method, int at) { this.method = method; this.at = at; }
+        String key() { return method + "@" + at; }
+    }
+
+    private static final class FeatureEdits {
+        final Set<Integer> removed = new HashSet<>();
+        final Map<Integer, Instruction> replacements = new HashMap<>();
+    }
+
+    private static Reference reference(Instruction i) {
+        return i instanceof ReferenceInstruction ? ((ReferenceInstruction) i).getReference() : null;
+    }
+
+    private static List<Integer> arguments(Instruction i) {
+        List<Integer> out = new ArrayList<>();
+        for (int register : invokeRegisters(i)) out.add(register);
+        return out;
+    }
+
+    private static String descriptor(MethodReference m) {
+        StringBuilder b = new StringBuilder("(");
+        for (CharSequence p : m.getParameterTypes()) b.append(p);
+        return b.append(')').append(m.getReturnType()).toString();
+    }
+
+    private static final class FeatureCheck {
+        static final String BASE = "Lapp/hushpinterest/extension/pinterest/";
+        static final String STATUS = BASE + "settings/SettingsStatus;";
+        static final String PIN_MENU = "Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;";
+        final FeatureIndex clean;
+        final FeatureIndex patched;
+        final List<String> findings = new ArrayList<>();
+        final Map<String, Boolean> flags = new LinkedHashMap<>();
+        final Map<String, String> owners = new LinkedHashMap<>();
+        final Map<String, FeatureEdits> edits = new LinkedHashMap<>();
+        final Set<String> claimed = new HashSet<>();
+        final Set<String> selected;
+
+        static int firstRegister(Instruction i) {
+            return i instanceof OneRegisterInstruction ? ((OneRegisterInstruction) i).getRegisterA() : DexDiff.firstRegister(i);
+        }
+
+        FeatureCheck(FeatureIndex clean, FeatureIndex patched, Set<String> selected) {
+            this.clean = clean;
+            this.patched = patched;
+            this.selected = selected;
+        }
+
+        void fail(String reason) { findings.add("contract: feature " + reason); }
+        boolean flag(String name) { return flags.getOrDefault(name, false); }
+
+        Method unique(List<Method> targets, String what) {
+            if (targets.size() != 1) { fail(what + " has " + targets.size() + " clean targets, expected 1"); return null; }
+            Method m = targets.get(0);
+            if (clean.duplicates.contains(m.toString()) || clean.duplicates.contains(m.getDefiningClass())) {
+                fail(what + " has duplicate clean definitions"); return null;
+            }
+            return m;
+        }
+
+        ClassDef uniqueClass(List<ClassDef> targets, String what) {
+            if (targets.size() != 1) { fail(what + " has " + targets.size() + " clean classes, expected 1"); return null; }
+            ClassDef cd = targets.get(0);
+            if (clean.duplicates.contains(cd.getType())) { fail(what + " has duplicate clean classes"); return null; }
+            return cd;
+        }
+
+        Method actual(Method original) {
+            if (original == null) return null;
+            Method m = actual(original.toString());
+            if (m != null && (AccessFlags.STATIC.isSet(original.getAccessFlags()) != AccessFlags.STATIC.isSet(m.getAccessFlags())
+                    || original.getImplementation() != null && original.getImplementation().getRegisterCount() != m.getImplementation().getRegisterCount()))
+                fail(original + " changed its original static flag or parameter frame");
+            return m;
+        }
+
+        Method actual(String key) {
+            Method m = patched.methods.get(key);
+            if (m == null || m.getImplementation() == null || patched.duplicates.contains(key)
+                    || patched.duplicates.contains(m.getDefiningClass())) {
+                fail("missing or duplicated compiled method " + key); return null;
+            }
+            return m;
+        }
+
+        void readFlag(String name) {
+            Method m = actual(STATUS + "->" + name + "()Z");
+            if (m == null) { flags.put(name, false); return; }
+            List<Instruction> body = instructions(m);
+            if (!AccessFlags.PUBLIC.isSet(m.getAccessFlags()) || !AccessFlags.STATIC.isSet(m.getAccessFlags())
+                    || body.size() < 2 || !body.get(0).getOpcode().name.startsWith("const")
+                    || !(body.get(0) instanceof WideLiteralInstruction) || body.get(1).getOpcode() != Opcode.RETURN
+                    || firstRegister(body.get(0)) != firstRegister(body.get(1))) {
+                fail(name + " is not a public static literal flag"); flags.put(name, false); return;
+            }
+            long value = ((WideLiteralInstruction) body.get(0)).getWideLiteral();
+            if (value != 0 && value != 1) fail(name + " has a non-boolean literal");
+            flags.put(name, value == 1);
+        }
+
+        boolean active(Contract rule) {
+            for (String cap : rule.callee.split(",")) if (flag(owners.get(cap))) return true;
+            return rule.target.equals("settings");
+        }
+
+        void capability(String names, boolean available) {
+            for (String cap : names.split(",")) {
+                boolean expected = flag(owners.get(cap)) && available;
+                if (flag(cap) != expected) fail(cap + " flag is " + flag(cap) + ", clean target requires " + expected);
+            }
+        }
+
+        List<Integer> calls(Method m, String hook, int count) {
+            if (m == null) return List.of();
+            List<Integer> sites = callSites(instructions(m), hook);
+            if (sites.size() != count) fail(hook + " has " + sites.size() + " calls in " + m + ", expected " + count);
+            for (int at : sites) {
+                claimed.add(m + "@" + at);
+                Instruction i = instructions(m).get(at);
+                if (i.getOpcode() != Opcode.INVOKE_STATIC && i.getOpcode() != Opcode.INVOKE_STATIC_RANGE)
+                    fail(hook + " is not invoked statically in " + m);
+            }
+            Method callee = actual(hook);
+            if (callee != null && (!AccessFlags.PUBLIC.isSet(callee.getAccessFlags())
+                    || !AccessFlags.STATIC.isSet(callee.getAccessFlags())
+                    || !AccessFlags.PUBLIC.isSet(patched.classes.get(callee.getDefiningClass()).getAccessFlags()))) fail(hook + " is not a public static hook");
+            return sites;
+        }
+
+        void remove(Method m, int first, int end) {
+            if (m == null) return;
+            FeatureEdits e = edits.computeIfAbsent(m.toString(), k -> new FeatureEdits());
+            for (int at = Math.max(0, first); at < Math.min(end, instructions(m).size()); at++) e.removed.add(at);
+        }
+
+        int parameter(Method m, int index) {
+            int start = m.getImplementation().getRegisterCount();
+            for (CharSequence p : m.getParameterTypes()) start -= slots(p);
+            if (!AccessFlags.STATIC.isSet(m.getAccessFlags())) start--;
+            if (index < 0) return start;
+            if (!AccessFlags.STATIC.isSet(m.getAccessFlags())) start++;
+            for (int k = 0; k < index; k++) start += slots(m.getParameterTypes().get(k));
+            return start;
+        }
+
+        void prefix(Method m, String hook, List<Integer> parameters, boolean result) {
+            List<Integer> sites = calls(m, hook, parameters.size());
+            if (m == null || sites.size() != parameters.size()) return;
+            List<Instruction> body = instructions(m);
+            for (int n = 0; n < sites.size(); n++) {
+                int at = sites.get(n);
+                int expectedAt = n * (result ? 2 : 1);
+                if (at != expectedAt || !arguments(body.get(at)).equals(List.of(parameters.get(n))))
+                    fail(hook + " is not a parameter-preserving prefix in " + m);
+                if (result && (at + 1 >= body.size() || !isMoveResult(body.get(at + 1).getOpcode())
+                        || firstRegister(body.get(at + 1)) != parameters.get(n)))
+                    fail(hook + " does not replace its input register in " + m);
+                remove(m, at, at + (result ? 2 : 1));
+            }
+        }
+
+        void guard(Method m, String hook, int before, List<Integer> arguments, int preparations, boolean dismiss, boolean unit) {
+            List<Integer> sites = calls(m, hook, 1);
+            if (m == null || sites.size() != 1) return;
+            List<Instruction> body = instructions(m);
+            Layout layout = new Layout(m.getImplementation());
+            int at = sites.get(0);
+            int returnAt = at + (dismiss || unit ? 4 : 3);
+            int resume = returnAt + 1;
+            if (at != before + preparations || !arguments(body.get(at)).equals(arguments)
+                    || resume > body.size() || at + 2 >= body.size()) {
+                fail(hook + " has the wrong guarded placement or arguments in " + m); return;
+            }
+            Instruction answer = body.get(at + 1);
+            Instruction branch = body.get(at + 2);
+            if (answer.getOpcode() != Opcode.MOVE_RESULT || branch.getOpcode() != Opcode.IF_EQZ
+                    || firstRegister(answer) != firstRegister(branch) || !(branch instanceof OffsetInstruction)
+                    || layout.addresses.get(at + 2) + ((OffsetInstruction) branch).getCodeOffset()
+                    != (resume == body.size() ? layout.size : layout.addresses.get(resume)))
+                fail(hook + " has no false branch to its original body in " + m);
+            if (body.get(returnAt).getOpcode() != (unit ? Opcode.RETURN_OBJECT : Opcode.RETURN_VOID))
+                fail(hook + " does not finish only its enabled branch in " + m);
+            if (dismiss) {
+                Reference r = reference(body.get(at + 3));
+                if (!(r instanceof MethodReference) || !((MethodReference) r).getParameterTypes().isEmpty()
+                        || !((MethodReference) r).getReturnType().equals("V")
+                        || !arguments(body.get(at + 3)).equals(List.of(parameter(m, -1))))
+                    fail(hook + " no longer invokes the host dismissal in " + m);
+                Method original = clean.methods.get(m.toString());
+                Map<String, Integer> counts = new HashMap<>();
+                if (original != null) for (Instruction instruction : instructions(original)) if (reference(instruction) instanceof MethodReference) {
+                    MethodReference call = (MethodReference) reference(instruction);
+                    if (descriptor(call).equals("()V")) counts.merge(call.toString(), 1, Integer::sum);
+                }
+                List<String> repeated = counts.entrySet().stream().filter(entry -> entry.getValue() >= 2).map(Map.Entry::getKey).toList();
+                if (repeated.size() != 1 || !repeated.get(0).equals(String.valueOf(r)) || original == null
+                        || instructions(original).isEmpty() || !instructions(original).get(0).getOpcode().name.startsWith("invoke-super"))
+                    fail(hook + " is routed to a different native dismissal or runs before the superclass");
+            }
+            if (unit) {
+                Reference r = reference(body.get(at + 3));
+                if (body.get(at + 3).getOpcode() != Opcode.SGET_OBJECT || !(r instanceof FieldReference)
+                        || !((FieldReference) r).getType().equals("Lkotlin/Unit;")
+                        || firstRegister(body.get(at + 3)) != firstRegister(body.get(returnAt)))
+                    fail(hook + " does not return Kotlin Unit in " + m);
+            }
+            remove(m, before, resume);
+        }
+
+        boolean canOverride(String type, String name, String shape) {
+            for (ClassDef cd = clean.classes.get(type); cd != null; cd = clean.classes.get(cd.getSuperclass())) {
+                for (Method m : cd.getMethods()) if (m.getName().equals(name) && descriptor(m).equals(shape))
+                    return !AccessFlags.FINAL.isSet(m.getAccessFlags()) && !AccessFlags.STATIC.isSet(m.getAccessFlags())
+                            && !AccessFlags.PRIVATE.isSet(m.getAccessFlags()) && !AccessFlags.ABSTRACT.isSet(m.getAccessFlags())
+                            && m.getImplementation() != null;
+            }
+            // android.view.View's platform methods are deliberately absent from the vendor DEX.
+            return clean.classes.containsKey(type);
+        }
+
+        void view(String type, String visibility, String measure, String refresh) {
+            ClassDef cd = clean.classes.get(type);
+            if (cd == null) { fail("missing view " + type); return; }
+            String[] names = refresh == null ? new String[]{"setVisibility", "onMeasure"} : new String[]{"onMeasure"};
+            for (String name : names) {
+                String shape = name.equals("setVisibility") ? "(I)V" : "(II)V";
+                if (!canOverride(type, name, shape)) continue;
+                Method m = actual(type + "->" + name + shape);
+                if (m == null) continue;
+                if (refresh != null) prefix(m, refresh, List.of(parameter(m, -1)), false);
+                else if (name.equals("setVisibility")) prefix(m, visibility, List.of(parameter(m, 0)), true);
+                else prefix(m, measure, List.of(parameter(m, 0), parameter(m, 1)), true);
+                if (!clean.methods.containsKey(m.toString())) {
+                    List<Instruction> retained = retained(m, edits.get(m.toString()));
+                    if (retained.size() != 2 || !retained.get(0).getOpcode().name.startsWith("invoke-super")
+                            || retained.get(1).getOpcode() != Opcode.RETURN_VOID
+                            || !(reference(retained.get(0)) instanceof MethodReference)) {
+                        fail(m + " lost its inherited original behavior"); continue;
+                    }
+                    MethodReference call = (MethodReference) reference(retained.get(0));
+                    List<Integer> args = new ArrayList<>();
+                    for (int p = parameter(m, -1); p < m.getImplementation().getRegisterCount(); p++) args.add(p);
+                    if (!call.getDefiningClass().equals(cd.getSuperclass()) || !call.getName().equals(name)
+                            || !descriptor(call).equals(shape) || !arguments(retained.get(0)).equals(args))
+                        fail(m + " invokes the wrong inherited implementation");
+                }
+            }
+        }
+
+        void feed(Contract c) {
+            int count = 0;
+            for (String anchor : c.strings.subList(1, c.strings.size())) {
+                List<Method> holders = new ArrayList<>();
+                for (Method m : clean.holding(anchor)) if (m.getName().equals("toString") && descriptor(m).equals("()Ljava/lang/String;")) holders.add(m);
+                if (holders.isEmpty()) continue;
+                Method description = unique(holders, "feed " + anchor);
+                if (description == null) continue;
+                for (Method ctor : clean.classes.get(description.getDefiningClass()).getMethods()) {
+                    if (!ctor.getName().equals("<init>") || ctor.getImplementation() == null) continue;
+                    int parameter = -1;
+                    for (int p = 0; p < ctor.getParameterTypes().size(); p++) if (ctor.getParameterTypes().get(p).toString().equals("Ljava/util/List;")) {
+                        if (parameter != -1) { parameter = -2; break; }
+                        parameter = p;
+                    }
+                    if (parameter < 0) continue;
+                    Method m = actual(ctor);
+                    if (m != null) prefix(m, c.strings.get(0), List.of(parameter(m, parameter)), true);
+                    count++;
+                }
+            }
+            if (count == 0) fail("feed filter has no usable clean constructor");
+            capability(c.callee, count > 0);
+        }
+
+        void views(Contract c) {
+            int count = 0;
+            for (String type : c.strings.get(2).split(",")) {
+                if (!clean.classes.containsKey(type)) {
+                    if (!c.callee.equals("adViews")) fail("required view target is absent: " + type);
+                    continue;
+                }
+                if (canOverride(type, "setVisibility", "(I)V") || canOverride(type, "onMeasure", "(II)V")) count++;
+                view(type, c.strings.get(0), c.strings.get(1), null);
+            }
+            capability(c.callee, count > 0);
+        }
+
+        void simpleGuard(Contract c) {
+            String selector = c.strings.get(1);
+            List<Method> targets = new ArrayList<>();
+            int before = 0;
+            if (selector.equals("share")) {
+                for (Method m : clean.methods.values()) {
+                    if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null || !m.getReturnType().equals("V")
+                            || m.getParameterTypes().size() != 5
+                            || !m.getParameterTypes().get(1).toString().equals("I") || !m.getParameterTypes().get(3).toString().equals("Z")) continue;
+                    Set<String> fields = fieldNames(m);
+                    if (fields.containsAll(Set.of("APP_LIST_AND_CONTACT_SUGGESTIONS_FOR_UPSELL", "SCREENSHOT", "DOWNLOAD"))) targets.add(m);
+                }
+            } else if (selector.equals("visit")) {
+                String pin = "";
+                ClassDef menu = clean.classes.get(PIN_MENU);
+                List<String> pins = new ArrayList<>();
+                if (menu != null) for (Field field : menu.getFields()) if (field.getName().equals("pin") && field.getType().startsWith("Lcom/pinterest/api/model/")) pins.add(field.getType());
+                if (pins.size() != 1) fail("Visit has no unique native pin model field"); else pin = pins.get(0);
+                for (Method m : clean.holding("android_client_tracking_params_consistency")) if (clean.texts.get(m.toString()).contains("_url")
+                        && m.getReturnType().equals("V") && m.getParameterTypes().size() >= 2
+                        && m.getParameterTypes().get(0).toString().equals("Ljava/lang/String;") && m.getParameterTypes().get(1).toString().equals(pin)) targets.add(m);
+            } else if (selector.equals("screenshot")) {
+                for (Method m : clean.holding("sg_android_new_screenshot_api_14")) if (!AccessFlags.STATIC.isSet(m.getAccessFlags())
+                        && m.getReturnType().equals("V") && m.getParameterTypes().size() == 2
+                        && m.getParameterTypes().get(1).toString().equals("Landroidx/fragment/app/FragmentActivity;")) targets.add(m);
+            } else if (selector.equals("update")) {
+                targets.addAll(updateTargets());
+                if (targets.isEmpty()) {
+                    boolean play = clean.classes.keySet().stream().anyMatch(t -> t.startsWith("Lcom/google/android/play/core/appupdate/"));
+                    if (play || flag(owners.get(c.callee))) fail("update prompt is absent but its family is installed or Play Core remains");
+                    capability(c.callee, false); return;
+                }
+            } else if (selector.equals("email")) {
+                Set<String> types = new HashSet<>();
+                for (ClassDef binding : clean.classesHolding("confirmEmailButton")) for (Field field : binding.getFields()) {
+                    ClassDef fragment = clean.classes.get(field.getType());
+                    if (fragment == null) continue;
+                    for (Method m : fragment.getMethods()) if (m.getName().equals("onViewCreated")
+                            && fieldNames(m).contains("email_verification_reminder_title")) types.add(fragment.getType());
+                }
+                for (String type : types) for (Method m : clean.classes.get(type).getMethods())
+                    if (m.getName().equals("onCreate") && descriptor(m).equals("(Landroid/os/Bundle;)V")) targets.add(m);
+                before = 1;
+            } else { fail("unknown guard selector " + selector); return; }
+            Method original = unique(targets, c.callee);
+            Method m = actual(original);
+            if (m != null) {
+                List<Integer> args = List.of();
+                int prep = 0;
+                if (selector.equals("visit")) args = List.of(parameter(m, 0), parameter(m, 1));
+                if (selector.equals("share")) {
+                    args = List.of(0, 1); prep = 2;
+                    List<Instruction> body = instructions(m);
+                    if (body.size() < 2 || !moveFrom(body.get(0), 0, parameter(m, 0)) || !moveFrom(body.get(1), 1, parameter(m, 2)))
+                        fail(c.callee + " no longer supplies the model and source parameters");
+                }
+                if (selector.equals("update")) {
+                    before = -1;
+                    List<Instruction> body = instructions(m);
+                    for (int i = 0; i < body.size(); i++) if (reference(body.get(i)) instanceof StringReference
+                            && ((StringReference) reference(body.get(i))).getString().equals("inAppUpdateManager")) before = i - 5;
+                }
+                guard(m, c.strings.get(0), before, args, prep, selector.equals("email"), selector.equals("update"));
+            }
+            capability(c.callee, original != null);
+        }
+
+        static boolean moveFrom(Instruction i, int to, int from) {
+            return i.getOpcode().name.startsWith("move-object") && i instanceof TwoRegisterInstruction
+                    && ((TwoRegisterInstruction) i).getRegisterA() == to && ((TwoRegisterInstruction) i).getRegisterB() == from;
+        }
+
+        List<Method> updateTargets() {
+            List<Method> out = new ArrayList<>();
+            for (Method m : clean.holding("inAppUpdateManager")) if (m.getName().equals("invokeSuspend")
+                    && descriptor(m).equals("(Ljava/lang/Object;)Ljava/lang/Object;")) out.add(m);
+            return out;
+        }
+
+        static Set<String> fieldNames(Method m) {
+            Set<String> names = new HashSet<>();
+            for (Instruction i : instructions(m)) if (reference(i) instanceof FieldReference) names.add(((FieldReference) reference(i)).getName());
+            return names;
+        }
+
+        static List<Instruction> retained(Method m, FeatureEdits e) {
+            List<Instruction> out = new ArrayList<>();
+            List<Instruction> body = instructions(m);
+            for (int at = 0; at < body.size(); at++) if (e == null || !e.removed.contains(at)) out.add(e == null ? body.get(at) : e.replacements.getOrDefault(at, body.get(at)));
+            return out;
+        }
+
+        void refresh(Contract c) {
+            String type = c.strings.get(1);
+            if (c.callee.equals("headerButtons")) {
+                Set<String> fields = new HashSet<>();
+                ClassDef header = clean.classes.get(type);
+                if (header != null) for (Method m : header.getMethods()) fields.addAll(fieldNames(m));
+                if (!fields.containsAll(Set.of("start_container_icon_bt", "end_container_icon_bt", "end_container_icon_buttons")))
+                    fail("header target does not own all supported icon containers");
+            }
+            view(type, null, null, c.strings.get(0));
+            capability(c.callee, clean.classes.containsKey(type) && canOverride(type, "onMeasure", "(II)V"));
+        }
+
+        void navigation(Contract c) {
+            ClassDef model = uniqueClass(clean.classesHolding("BottomNavTabModel(type="), "navigation model");
+            ClassDef navigation = uniqueClass(clean.classesHolding("BottomNavBar tab insertion out of range"), "navigation view");
+            if (model == null || navigation == null) { capability(c.callee, false); return; }
+            List<Field> identities = new ArrayList<>();
+            for (Field field : model.getFields()) {
+                ClassDef type = clean.classes.get(field.getType());
+                if (type == null || !"Ljava/lang/Enum;".equals(type.getSuperclass())) continue;
+                Set<String> names = new HashSet<>();
+                for (Field value : type.getFields()) names.add(value.getName());
+                if (names.containsAll(Set.of("HOME", "PROFILE", "CREATE", "NOTIFICATIONS"))) identities.add(field);
+            }
+            if (identities.size() != 1) fail("navigation model has no unique tab identity");
+            List<Method> targets = new ArrayList<>();
+            for (Method method : navigation.getMethods()) if (method.getImplementation() != null && method.getReturnType().equals("V")
+                    && method.getParameterTypes().size() >= 2 && method.getParameterTypes().get(0).toString().equals(model.getType())
+                    && method.getParameterTypes().get(1).toString().equals("I") && namedCalls(method, "setId", "(I)V").size() > 0) targets.add(method);
+            Method m = actual(unique(targets, "navigation binding"));
+            List<Integer> sites = calls(m, c.strings.get(0), 1);
+            if (m != null && sites.size() == 1) {
+                int at = sites.get(0);
+                List<Instruction> body = instructions(m);
+                if (at < 2 || body.get(at - 1).getOpcode() != Opcode.IGET_OBJECT || identities.size() != 1
+                        || !identities.get(0).toString().equals(String.valueOf(reference(body.get(at - 1))))
+                        || !methodNamed(body.get(at - 2), "setId", "(I)V")) fail("navigation hook is not immediately after its ID and tab read");
+                else {
+                    TwoRegisterInstruction identity = (TwoRegisterInstruction) body.get(at - 1);
+                    List<Integer> nativeArgs = arguments(body.get(at - 2));
+                    if (identity.getRegisterB() != parameter(m, 0) || nativeArgs.isEmpty()
+                            || !arguments(body.get(at)).equals(List.of(nativeArgs.get(0), identity.getRegisterA())))
+                        fail("navigation hook reads a different view or model");
+                }
+                remove(m, at - 1, at + 1);
+            }
+            view(navigation.getType(), null, null, c.strings.get(1));
+            capability(c.callee, m != null && identities.size() == 1);
+        }
+
+        static boolean methodNamed(Instruction i, String name, String shape) {
+            Reference r = reference(i);
+            return r instanceof MethodReference && ((MethodReference) r).getName().equals(name) && descriptor((MethodReference) r).equals(shape);
+        }
+
+        static List<Integer> namedCalls(Method m, String name, String shape) {
+            List<Integer> out = new ArrayList<>();
+            List<Instruction> body = instructions(m);
+            for (int at = 0; at < body.size(); at++) if (methodNamed(body.get(at), name, shape)) out.add(at);
+            return out;
+        }
+
+        ClassDef menuLayout() {
+            ClassDef menu = clean.classes.get(PIN_MENU);
+            if (menu == null) { fail("pin menu class is absent"); return null; }
+            List<ClassDef> types = new ArrayList<>();
+            for (Field field : menu.getFields()) if (field.getName().equals("modalView") && clean.classes.containsKey(field.getType()))
+                types.add(clean.classes.get(field.getType()));
+            return uniqueClass(types, "pin menu layout");
+        }
+
+        void menu(Contract c) {
+            ClassDef layout = menuLayout();
+            if (layout == null) { capability(c.callee, false); return; }
+            List<Method> constructors = new ArrayList<>();
+            for (Method m : layout.getMethods()) if (m.getName().equals("<init>") && m.getImplementation() != null) constructors.add(m);
+            Method m = actual(unique(constructors, "pin menu constructor"));
+            String[] keys = c.strings.get(1).split(",");
+            List<Integer> sites = calls(m, c.strings.get(0), keys.length);
+            Set<String> found = new HashSet<>();
+            if (m != null) for (int at : sites) {
+                List<Instruction> body = instructions(m);
+                if (at < 3 || !(reference(body.get(at - 1)) instanceof StringReference)
+                        || body.get(at - 2).getOpcode() != Opcode.MOVE_RESULT_OBJECT
+                        || !(reference(body.get(at - 3)) instanceof MethodReference)
+                        || !((MethodReference) reference(body.get(at - 3))).getReturnType().equals("Landroid/widget/RelativeLayout;")) {
+                    fail("pin menu hook is not attached to a native row result"); continue;
+                }
+                String key = ((StringReference) reference(body.get(at - 1))).getString();
+                if (!Arrays.asList(keys).contains(key) || !found.add(key)
+                        || !arguments(body.get(at)).equals(List.of(firstRegister(body.get(at - 2)), firstRegister(body.get(at - 1)))))
+                    fail("pin menu hook has a duplicated key or the wrong row registers");
+                boolean resource = false;
+                for (int i = Math.max(0, at - 23); i < at - 2; i++) if (reference(body.get(i)) instanceof FieldReference
+                        && ((FieldReference) reference(body.get(i))).getName().equals(key)) resource = true;
+                if (!resource) fail("pin menu key " + key + " is routed to a different resource row");
+                remove(m, at - 1, at + 1);
+            }
+            if (found.size() != keys.length) fail("pin menu does not cover all dedicated rows");
+            capability(c.callee, m != null);
+        }
+
+        void downloads(Contract c) {
+            ClassDef menu = clean.classes.get(c.strings.get(1));
+            List<Method> creators = new ArrayList<>();
+            if (menu != null) for (Method m : menu.getMethods()) if (m.getName().equals("createModalView") && m.getImplementation() != null) creators.add(m);
+            Method m = actual(unique(creators, "download menu creation"));
+            List<Integer> sites = calls(m, c.strings.get(0), 1);
+            if (m != null && sites.size() == 1) {
+                int at = sites.get(0);
+                List<Instruction> body = instructions(m);
+                if (at < 1 || body.get(at - 1).getOpcode() != Opcode.IPUT_OBJECT
+                        || !(reference(body.get(at - 1)) instanceof FieldReference)
+                        || !((FieldReference) reference(body.get(at - 1))).getName().equals("modalView")
+                        || !((FieldReference) reference(body.get(at - 1))).getDefiningClass().equals(PIN_MENU)
+                        || !arguments(body.get(at)).equals(List.of(parameter(m, -1)))) fail("download hook is not after its own menu view assignment");
+                remove(m, at, at + 1);
+            }
+            String downloads = BASE + "actions/PinDownloads;";
+            bridge(downloads + "->menuPin(Ljava/lang/Object;)Ljava/lang/Object;", PIN_MENU, "hushDownloadPin", "()Ljava/lang/Object;");
+            bridge(downloads + "->menuView(Ljava/lang/Object;)Landroid/view/ViewGroup;", PIN_MENU, "hushDownloadMenu", "()Landroid/view/ViewGroup;");
+            bridge(downloads + "->dismissMenu(Ljava/lang/Object;)V", PIN_MENU, "hushDismissDownload", "()V");
+            Method row = actual(downloads + "->menuRow(Landroid/view/ViewGroup;Ljava/lang/String;)Landroid/view/View;");
+            ClassDef layout = menuLayout();
+            if (row != null && layout != null) {
+                List<Instruction> body = instructions(row);
+                List<Method> factories = new ArrayList<>();
+                for (Method candidate : layout.getMethods()) if (candidate.getReturnType().equals("Landroid/widget/RelativeLayout;")
+                        && candidate.getParameterTypes().size() == 2 && AccessFlags.PUBLIC.isSet(candidate.getAccessFlags())
+                        && !AccessFlags.STATIC.isSet(candidate.getAccessFlags())
+                        && candidate.getParameterTypes().stream().filter(p -> p.toString().equals("Ljava/lang/String;")).count() == 1) {
+                    String icon = candidate.getParameterTypes().stream().map(Object::toString).filter(p -> !p.equals("Ljava/lang/String;")).findFirst().orElse("");
+                    ClassDef iconType = clean.classes.get(icon);
+                    int downloadsFound = 0;
+                    if (iconType != null) for (Field field : iconType.getFields()) if (field.getName().equals("DOWNLOAD") && field.getType().equals(icon)
+                            && AccessFlags.STATIC.isSet(field.getAccessFlags())) downloadsFound++;
+                    if (downloadsFound == 1) factories.add(candidate);
+                }
+                Method factory = unique(factories, "native download row factory");
+                if (body.size() != 5 || body.get(0).getOpcode() != Opcode.CHECK_CAST || !layout.getType().equals(String.valueOf(reference(body.get(0))))
+                        || firstRegister(body.get(0)) != parameter(row, 0) || body.get(1).getOpcode() != Opcode.SGET_OBJECT
+                        || !(reference(body.get(1)) instanceof FieldReference) || !((FieldReference) reference(body.get(1))).getName().equals("DOWNLOAD")
+                        || factory == null || !factory.toString().equals(String.valueOf(reference(body.get(2))))
+                        || body.get(3).getOpcode() != Opcode.MOVE_RESULT_OBJECT || body.get(4).getOpcode() != Opcode.RETURN_OBJECT
+                        || firstRegister(body.get(3)) != firstRegister(body.get(4))) fail("download row stub has no native themed row contract");
+                else {
+                    int stringAt = factory.getParameterTypes().get(0).toString().equals("Ljava/lang/String;") ? 0 : 1;
+                    List<Integer> args = stringAt == 0 ? List.of(parameter(row, 0), parameter(row, 1), firstRegister(body.get(1)))
+                            : List.of(parameter(row, 0), firstRegister(body.get(1)), parameter(row, 1));
+                    if (!arguments(body.get(2)).equals(args)) fail("download row factory receives the wrong icon or title");
+                }
+            }
+            for (String name : List.of("hushDownloadPin", "hushDownloadMenu", "hushDismissDownload")) {
+                List<Method> bridges = new ArrayList<>();
+                ClassDef owner = patched.classes.get(PIN_MENU);
+                if (owner != null) for (Method method : owner.getMethods()) if (method.getName().equals(name)) bridges.add(method);
+                if (bridges.size() != 1 || !AccessFlags.PUBLIC.isSet(bridges.get(0).getAccessFlags())
+                        || AccessFlags.STATIC.isSet(bridges.get(0).getAccessFlags())) fail("download native bridge " + name + " is missing or inaccessible");
+                else {
+                    List<Instruction> body = instructions(bridges.get(0));
+                    if (body.isEmpty()) { fail("download native bridge " + name + " has no instructions"); continue; }
+                    if (body.isEmpty() || body.get(0).getOpcode() != Opcode.IGET_OBJECT || !(reference(body.get(0)) instanceof FieldReference)
+                            || !((FieldReference) reference(body.get(0))).getDefiningClass().equals(PIN_MENU)) fail("download native bridge " + name + " reads no menu field");
+                    else {
+                        String expectedField = name.equals("hushDownloadPin") ? "pin" : name.equals("hushDownloadMenu") ? "modalView" : "presenter";
+                        if (!((FieldReference) reference(body.get(0))).getName().equals(expectedField)
+                                || ((TwoRegisterInstruction) body.get(0)).getRegisterB() != parameter(bridges.get(0), -1))
+                            fail("download native bridge " + name + " reads the wrong receiver or field");
+                    }
+                    if (!name.equals("hushDismissDownload") && (body.size() != 2 || body.get(1).getOpcode() != Opcode.RETURN_OBJECT
+                            || firstRegister(body.get(0)) != firstRegister(body.get(1)))) fail("download native getter " + name + " is not a field read and return");
+                    if (name.equals("hushDismissDownload")) {
+                        FieldReference presenter = reference(body.get(0)) instanceof FieldReference ? (FieldReference) reference(body.get(0)) : null;
+                        List<Method> dismissals = new ArrayList<>();
+                        ClassDef presenterType = presenter == null ? null : clean.classes.get(presenter.getType());
+                        if (presenterType != null) for (Method method : presenterType.getMethods()) if (descriptor(method).equals("()V")
+                                && AccessFlags.PUBLIC.isSet(method.getAccessFlags()) && instructions(method).stream().map(Instruction::getOpcode).toList().equals(
+                                        List.of(Opcode.NEW_INSTANCE, Opcode.CONST_4, Opcode.INVOKE_DIRECT, Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID))) dismissals.add(method);
+                        if (dismissals.size() != 1 || body.size() != 4 || body.get(1).getOpcode() != Opcode.IF_EQZ
+                                || !dismissals.get(0).toString().equals(String.valueOf(reference(body.get(2))))
+                                || !arguments(body.get(2)).equals(List.of(firstRegister(body.get(0)))) || body.get(3).getOpcode() != Opcode.RETURN_VOID)
+                            fail("download dismissal bridge no longer dispatches its native presenter event");
+                        else {
+                            Layout nativeLayout = new Layout(bridges.get(0).getImplementation());
+                            if (firstRegister(body.get(1)) != firstRegister(body.get(0)) || nativeLayout.addresses.get(1)
+                                    + ((OffsetInstruction) body.get(1)).getCodeOffset() != nativeLayout.addresses.get(3)) fail("download dismissal bridge lost its absent-presenter fallback");
+                        }
+                    }
+                }
+            }
+            capability(c.callee, m != null && layout != null);
+        }
+
+        void bridge(String key, String type, String name, String shape) {
+            Method m = actual(key);
+            if (m == null) return;
+            List<Instruction> body = instructions(m);
+            String nativeKey = type + "->" + name + shape;
+            if (body.size() < 3 || body.get(0).getOpcode() != Opcode.CHECK_CAST || !type.equals(String.valueOf(reference(body.get(0))))
+                    || firstRegister(body.get(0)) != parameter(m, 0) || !nativeKey.equals(String.valueOf(reference(body.get(1))))
+                    || !arguments(body.get(1)).equals(List.of(parameter(m, 0)))) fail(key + " has no typed native bridge dispatch");
+            actual(nativeKey);
+        }
+
+        void comments(Contract c) {
+            String[][] resources = {{"pin_closeup_unified_comments_module", "unified_comments_module_container"},
+                    {"pin_closeup_new_comments_module", "new_comments_module_container"}};
+            for (String[] pair : resources) {
+                List<ClassDef> modules = new ArrayList<>();
+                for (ClassDef cd : clean.classes.values()) {
+                    boolean component = false;
+                    Set<String> fields = new HashSet<>();
+                    for (Method method : cd.getMethods()) {
+                        if (method.getName().equals("getComponentType") && fieldNames(method).contains("PIN_CLOSEUP_COMMENTS")) component = true;
+                        fields.addAll(fieldNames(method));
+                    }
+                    if (component && fields.containsAll(Arrays.asList(pair))) modules.add(cd);
+                }
+                ClassDef module = uniqueClass(modules, "comments " + pair[0]);
+                if (module == null) continue;
+                boolean inherits = false;
+                Set<String> visited = new HashSet<>();
+                for (String type = module.getSuperclass(); type != null && visited.add(type); ) {
+                    if (type.equals(c.strings.get(4))) { inherits = true; break; }
+                    ClassDef parent = clean.classes.get(type); type = parent == null ? null : parent.getSuperclass();
+                }
+                if (!inherits) fail("comments target does not inherit its dedicated module");
+                view(module.getType(), c.strings.get(0), c.strings.get(1), null);
+            }
+            view(c.strings.get(3), c.strings.get(0), c.strings.get(1), null);
+            List<Method> descriptions = new ArrayList<>();
+            for (Method method : clean.holding("CommentsZone(isVisible=")) if (method.getName().equals("toString")) descriptions.add(method);
+            if (!descriptions.isEmpty()) {
+                Method description = unique(descriptions, "comments zone");
+                List<Method> constructors = new ArrayList<>();
+                if (description != null) for (Method method : clean.classes.get(description.getDefiningClass()).getMethods())
+                    if (method.getName().equals("<init>") && !method.getParameterTypes().isEmpty() && method.getParameterTypes().get(0).toString().equals("Z")) constructors.add(method);
+                Method zone = actual(unique(constructors, "comments zone constructor"));
+                if (zone != null) prefix(zone, c.strings.get(2), List.of(parameter(zone, 0)), true);
+            }
+            capability(c.callee, true);
+        }
+
+        int replacement(String original, String hook, String prefix, boolean fallback) {
+            int total = 0;
+            for (Method old : clean.methods.values()) {
+                if (old.getDefiningClass().startsWith(OWN) || prefix != null && !old.getDefiningClass().startsWith(prefix)) continue;
+                List<Integer> originals = callSites(instructions(old), original);
+                if (originals.isEmpty()) continue;
+                total += originals.size();
+                Method m = actual(old);
+                List<Integer> sites = calls(m, hook, originals.size());
+                if (m == null) continue;
+                List<Instruction> body = instructions(m);
+                if (!callSites(body, original).isEmpty()) fail(original + " remains beside its replacement in " + m);
+                for (int i = 0; i < Math.min(sites.size(), originals.size()); i++) {
+                    int at = sites.get(i);
+                    Instruction was = instructions(old).get(originals.get(i));
+                    if (!arguments(body.get(at)).equals(arguments(was))) fail(hook + " changed receiver or argument registers in " + m);
+                    edits.computeIfAbsent(m.toString(), k -> new FeatureEdits()).replacements.put(at, was);
+                }
+            }
+            if (fallback && total > 0) {
+                Method method = actual(hook);
+                if (method != null && callSites(instructions(method), original).isEmpty()) fail(hook + " has no original framework call fallback");
+            }
+            return total;
+        }
+
+        void links(Contract c) {
+            int intents = replacement(c.strings.get(0), c.strings.get(1), null, true)
+                    + replacement(c.strings.get(2), c.strings.get(3), null, true);
+            int clipboard = replacement(c.strings.get(4), c.strings.get(5), null, true);
+            if (intents + clipboard == 0) fail("link tracking has no outgoing clean text boundary");
+            capability(c.callee, intents > 0 && clipboard > 0);
+        }
+
+        void analytics(Contract c) {
+            Set<String> paths = Set.of("v3/callback/event/", "v3/callback/ping/", "v3/callback/post_install/", "v3/callback/track_funnel/{event}/",
+                    "v3/register/track_action/{event}/", "v4/log/mobile_perf/", "callback/client_network_error/", "log/", "track/");
+            Set<String> covered = new HashSet<>();
+            Set<String> wrappers = new HashSet<>();
+            for (ClassDef cd : clean.classes.values()) if (AccessFlags.INTERFACE.isSet(cd.getAccessFlags())) for (Method endpoint : cd.getMethods()) {
+                String path = null;
+                for (var annotation : endpoint.getAnnotations()) for (var element : annotation.getElements())
+                    if (element.getValue() instanceof StringEncodedValue && paths.contains(((StringEncodedValue) element.getValue()).getValue()))
+                        path = ((StringEncodedValue) element.getValue()).getValue();
+                if (path == null) continue;
+                List<Method> candidates = new ArrayList<>();
+                ClassDef analytics = patched.classes.get(BASE + "privacy/Analytics;");
+                if (analytics != null) for (Method method : analytics.getMethods()) if (method.getName().startsWith("hushUpload")
+                        && callSites(instructions(method), endpoint.toString()).size() == 1) candidates.add(method);
+                if (candidates.size() != 1) { fail(endpoint + " has " + candidates.size() + " generated wrappers, expected 1"); continue; }
+                Method wrapper = candidates.get(0);
+                wrappers.add(wrapper.toString());
+                List<CharSequence> parameters = new ArrayList<>(); parameters.add(endpoint.getDefiningClass()); parameters.addAll(endpoint.getParameterTypes());
+                if (!wrapper.getParameterTypes().equals(parameters) || !wrapper.getReturnType().equals(endpoint.getReturnType())) fail(wrapper + " does not preserve its endpoint signature");
+                int count = replacement(endpoint.toString(), wrapper.toString(), null, false);
+                if (count > 0) covered.add(path);
+                wrapperFallback(wrapper, endpoint, c.strings.get(3));
+            }
+            if (!covered.equals(paths)) { Set<String> missing = new TreeSet<>(paths); missing.removeAll(covered); fail("analytics has uncovered endpoint paths " + missing); }
+            ClassDef analytics = patched.classes.get(BASE + "privacy/Analytics;");
+            if (analytics != null) for (Method method : analytics.getMethods()) if (method.getName().startsWith("hushUpload") && !wrappers.contains(method.toString())) fail("analytics has an unrelated or duplicated wrapper " + method);
+            int sdk = replacement(c.strings.get(1), c.strings.get(2), "Lcom/appsflyer/", true);
+            if (sdk == 0) fail("analytics has no clean AppsFlyer transport");
+            List<ClassDef> tags = new ArrayList<>();
+            for (ClassDef cd : clean.classes.values()) {
+                Set<String> fields = new HashSet<>(); for (Field f : cd.getFields()) fields.add(f.getName());
+                if ("Ljava/lang/Enum;".equals(cd.getSuperclass()) && fields.containsAll(Set.of("TAG_APPSFLYER_INIT", "TAG_FIREBASE_ANALYTICS_INIT"))) tags.add(cd);
+            }
+            ClassDef tag = uniqueClass(tags, "analytics task tags");
+            List<Method> tasks = new ArrayList<>();
+            Field tagField = null;
+            if (tag != null) for (ClassDef cd : clean.classes.values()) {
+                boolean runnable = false; Field identity = null;
+                for (Field field : cd.getFields()) {
+                    if (field.getType().equals("Ljava/lang/Runnable;")) runnable = true;
+                    if (field.getType().equals(tag.getType()) && !AccessFlags.STATIC.isSet(field.getAccessFlags())) identity = field;
+                }
+                if (!runnable || identity == null) continue;
+                for (Method method : cd.getMethods()) if (!method.getName().equals("<init>") && !AccessFlags.STATIC.isSet(method.getAccessFlags())
+                        && descriptor(method).equals("()V") && namedCalls(method, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;").size() > 0) {
+                    tasks.add(method); tagField = identity;
+                }
+            }
+            Method task = actual(unique(tasks, "analytics task dispatch"));
+            if (task != null) {
+                List<Instruction> body = instructions(task);
+                if (body.isEmpty() || body.get(0).getOpcode() != Opcode.IGET_OBJECT || !String.valueOf(tagField).equals(String.valueOf(reference(body.get(0))))
+                        || ((TwoRegisterInstruction) body.get(0)).getRegisterB() != parameter(task, -1)) fail("analytics task guard reads the wrong task identity");
+                else guard(task, c.strings.get(0), 0, List.of(firstRegister(body.get(0))), 1, false, false);
+            }
+            capability(c.callee, covered.equals(paths) && sdk > 0 && task != null);
+        }
+
+        void wrapperFallback(Method wrapper, Method endpoint, String hook) {
+            List<Instruction> body = instructions(wrapper);
+            Layout layout = new Layout(wrapper.getImplementation());
+            List<Integer> calls = callSites(body, endpoint.toString());
+            if (body.size() < 6 || calls.size() != 1 || !hook.equals(String.valueOf(reference(body.get(0))))
+                    || body.get(1).getOpcode() != Opcode.MOVE_RESULT || body.get(2).getOpcode() != Opcode.IF_EQZ
+                    || firstRegister(body.get(1)) != firstRegister(body.get(2))) { fail(wrapper + " lost its upload switch guard"); return; }
+            int at = calls.get(0);
+            if (layout.addresses.get(2) + ((OffsetInstruction) body.get(2)).getCodeOffset() != layout.addresses.get(at)
+                    || at < 4 || body.get(at - 1).getOpcode() != Opcode.RETURN_OBJECT
+                    || body.get(at).getOpcode() != Opcode.INVOKE_INTERFACE_RANGE || at + 3 != body.size()
+                    || body.get(at + 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT || body.get(at + 2).getOpcode() != Opcode.RETURN_OBJECT
+                    || firstRegister(body.get(at + 1)) != firstRegister(body.get(at + 2))) fail(wrapper + " has no guarded original endpoint fallback");
+            List<Integer> args = new ArrayList<>();
+            for (int p = parameter(wrapper, 0); p < wrapper.getImplementation().getRegisterCount(); p++) args.add(p);
+            if (!arguments(body.get(at)).equals(args)) fail(wrapper + " changes original endpoint arguments");
+            actual(hook);
+        }
+
+        Method inherited(String type, String name, String shape) {
+            Set<String> seen = new HashSet<>();
+            for (ClassDef cd = clean.classes.get(type); cd != null && seen.add(cd.getType()); cd = clean.classes.get(cd.getSuperclass()))
+                for (Method m : cd.getMethods()) if (m.getName().equals(name) && descriptor(m).equals(shape) && m.getImplementation() != null) return m;
+            fail("settings lifecycle target is absent: " + type + "->" + name + shape); return null;
+        }
+
+        void settings(Contract c) {
+            String entry = c.strings.get(2);
+            Method app = actual(inherited(c.strings.get(0), "onCreate", "()V"));
+            if (app != null) {
+                prefix(app, "Lapp/hushpinterest/extension/shared/Utils;->setContext(Landroid/content/Context;)V", List.of(parameter(app, -1)), false);
+                int count = 0;
+                Method old = clean.methods.get(app.toString());
+                for (Instruction i : instructions(old)) if (i.getOpcode() == Opcode.RETURN_VOID) count++;
+                if (count == 0) fail("settings application lifecycle has no original return");
+                for (int at : calls(app, entry + "->onApplicationCreate(Landroid/content/Context;)V", count)) {
+                    List<Instruction> body = instructions(app);
+                    if (at + 1 >= body.size() || body.get(at + 1).getOpcode() != Opcode.RETURN_VOID
+                            || !arguments(body.get(at)).equals(List.of(parameter(app, -1)))) fail("settings application hook is not before its original return");
+                    remove(app, at, at + 1);
+                }
+            }
+            Method create = actual(inherited(c.strings.get(1), "onCreate", "(Landroid/os/Bundle;)V"));
+            if (create != null) prefix(create, entry + "->onActivityCreate(Landroid/app/Activity;)V", List.of(parameter(create, -1)), false);
+            Method intent = actual(inherited(c.strings.get(1), "onNewIntent", "(Landroid/content/Intent;)V"));
+            if (intent != null) {
+                String hook = entry + "->onNewIntent(Landroid/app/Activity;Landroid/content/Intent;)V";
+                List<Integer> sites = calls(intent, hook, 1);
+                if (sites.size() == 1) {
+                    int at = sites.get(0);
+                    if (at != 0 || !arguments(instructions(intent).get(at)).equals(List.of(parameter(intent, -1), parameter(intent, 0)))) fail("settings intent hook is not a parameter-preserving prefix");
+                    remove(intent, at, at + 1);
+                }
+            }
+            String manager = "Landroid/content/pm/ShortcutManager;";
+            String[] names = {"pushDynamicShortcut", "addDynamicShortcuts", "setDynamicShortcuts", "updateShortcuts", "removeAllDynamicShortcuts"};
+            for (String name : names) {
+                String parameters = name.equals("pushDynamicShortcut") ? "Landroid/content/pm/ShortcutInfo;" : name.equals("removeAllDynamicShortcuts") ? "" : "Ljava/util/List;";
+                String answer = name.equals("pushDynamicShortcut") || name.equals("removeAllDynamicShortcuts") ? "V" : "Z";
+                replacement(manager + "->" + name + "(" + parameters + ")" + answer, entry + "->" + name + "(" + manager + parameters + ")" + answer, null, true);
+            }
+        }
+
+        List<String> normalized(Method m, FeatureEdits e) {
+            List<String> out = new ArrayList<>();
+            if (m == null || m.getImplementation() == null) return out;
+            Layout layout = new Layout(m.getImplementation());
+            Map<Integer, Integer> positions = new HashMap<>();
+            int position = 0;
+            for (int at = 0; at < layout.instructions.size(); at++) {
+                positions.put(layout.addresses.get(at), position);
+                if ((e == null || !e.removed.contains(at)) && layout.instructions.get(at).getOpcode() != Opcode.NOP) position++;
+            }
+            positions.put(layout.size, position);
+            Map<Integer, Integer> switches = new HashMap<>();
+            for (int at = 0; at < layout.instructions.size(); at++) {
+                Instruction i = layout.instructions.get(at);
+                if ((i.getOpcode() == Opcode.PACKED_SWITCH || i.getOpcode() == Opcode.SPARSE_SWITCH) && i instanceof OffsetInstruction)
+                    switches.put(layout.addresses.get(at) + ((OffsetInstruction) i).getCodeOffset(), layout.addresses.get(at));
+            }
+            for (int at = 0; at < layout.instructions.size(); at++) {
+                if (e != null && e.removed.contains(at)) continue;
+                Instruction i = e == null ? layout.instructions.get(at) : e.replacements.getOrDefault(at, layout.instructions.get(at));
+                if (i.getOpcode() == Opcode.NOP) continue;
+                String text = render(i).replace("const-string/jumbo", "const-string");
+                if (i instanceof OffsetInstruction) {
+                    String raw = String.format("%+d", ((OffsetInstruction) i).getCodeOffset());
+                    int target = layout.addresses.get(at) + ((OffsetInstruction) i).getCodeOffset();
+                    text = text.replace(", " + raw + " |maxreg=", ", target=" + originalTarget(m, layout, e, positions, target) + " |maxreg=");
+                    if (i.getOpcode().name.startsWith("goto")) text = text.replaceFirst("goto(?:/16|/32)?", "goto");
+                }
+                if (i instanceof SwitchPayload) {
+                    text = i.getOpcode().name;
+                    Integer owner = switches.get(layout.addresses.get(at));
+                    for (SwitchElement element : ((SwitchPayload) i).getSwitchElements()) text += " " + element.getKey() + "->" + (owner == null ? "missing" : originalTarget(m, layout, e, positions, owner + element.getOffset()));
+                }
+                out.add(text);
+            }
+            for (TryBlock<? extends ExceptionHandler> block : m.getImplementation().getTryBlocks()) {
+                String text = "try " + positions.get(block.getStartCodeAddress()) + ":" + positions.get(block.getStartCodeAddress() + block.getCodeUnitCount());
+                for (ExceptionHandler handler : block.getExceptionHandlers()) text += " " + handler.getExceptionType() + "->" + originalTarget(m, layout, e, positions, handler.getHandlerCodeAddress());
+                out.add(text);
+            }
+            return out;
+        }
+
+        Integer originalTarget(Method m, Layout layout, FeatureEdits e, Map<Integer, Integer> positions, int target) {
+            if (e != null) {
+                int index = layout.addresses.indexOf(target);
+                if (index > 0 && e.removed.contains(index) && e.removed.contains(index - 1))
+                    fail(m + " routes an original branch or handler into the middle of an injected block");
+            }
+            return positions.get(target);
+        }
+
+        void run(List<Contract> rules) {
+            ClassDef status = patched.classes.get(STATUS);
+            if (status == null || !AccessFlags.PUBLIC.isSet(status.getAccessFlags())) fail("compiled SettingsStatus class is absent or inaccessible");
+            Set<String> names = new HashSet<>();
+            names.add("HushPinterest settings");
+            // The patcher reports unnamed dependencies using their two concrete patch kinds.
+            names.add("BytecodePatch");
+            names.add("ResourcePatch");
+            for (Contract c : rules) if (c.kind.equals("family")) {
+                if (!names.add(c.target) || flags.containsKey(c.callee)) { fail("duplicate family " + c.target); continue; }
+                readFlag(c.callee);
+                for (String cap : c.strings.get(0).split(",")) {
+                    if (owners.putIfAbsent(cap, c.callee) != null) fail("duplicate capability " + cap);
+                    readFlag(cap);
+                    if (!flag(c.callee) && flag(cap)) fail(cap + " is installed without " + c.callee);
+                }
+                if (selected != null) {
+                    boolean selectedFamily = selected.contains(c.target);
+                    boolean optionalAbsent = c.callee.equals("disableUpdateNag") && updateTargets().isEmpty()
+                            && clean.classes.keySet().stream().noneMatch(t -> t.startsWith("Lcom/google/android/play/core/appupdate/"));
+                    if (flag(c.callee) != (selectedFamily && !optionalAbsent)) fail(c.target + " installed flag disagrees with selected patches and clean capability");
+                }
+            }
+            if (selected != null) for (String name : selected) if (!names.contains(name)) fail("unknown selected patch " + name);
+            if (status != null) for (Method m : status.getMethods()) if (descriptor(m).equals("()Z") && !flags.containsKey(m.getName()))
+                fail("compiled status flag has no family contract: " + m.getName());
+            Set<String> coveredCapabilities = new HashSet<>();
+            for (Contract c : rules) if (c.kind.equals("mutation")) {
+                for (String cap : c.callee.split(",")) {
+                    coveredCapabilities.add(cap);
+                    if (!owners.containsKey(cap) && !cap.equals("settings")) fail("unowned mutation capability " + cap);
+                }
+                if (!active(c)) continue;
+                switch (c.target) {
+                    case "feed": feed(c); break;
+                    case "views": views(c); break;
+                    case "guard": simpleGuard(c); break;
+                    case "refresh": refresh(c); break;
+                    case "navigation": navigation(c); break;
+                    case "menu": menu(c); break;
+                    case "downloads": downloads(c); break;
+                    case "comments": comments(c); break;
+                    case "links": links(c); break;
+                    case "analytics": analytics(c); break;
+                    case "settings": settings(c); break;
+                    default: fail("unknown mutation kind " + c.target);
+                }
+            }
+            for (String cap : owners.keySet()) if (!coveredCapabilities.contains(cap)) fail("capability has no compiled mutation contract: " + cap);
+            for (Map.Entry<String, List<FeatureSite>> entry : patched.ownCalls.entrySet()) for (FeatureSite site : entry.getValue())
+                if (!claimed.contains(site.key())) fail("unselected, duplicated or misrouted call " + entry.getKey() + " in " + site.method);
+            for (Map.Entry<String, FeatureEdits> entry : edits.entrySet()) {
+                Method original = clean.methods.get(entry.getKey());
+                Method changed = patched.methods.get(entry.getKey());
+                if (original != null && !normalized(original, null).equals(normalized(changed, entry.getValue())))
+                    fail(entry.getKey() + " changed original instructions, branches or exception ranges beyond its validated mutations");
+            }
+        }
+    }
+
     public static void main(String[] args) throws Exception {
-        if (args.length < 4 || args.length > 6) {
-            System.err.println("usage: DexDiff <cleanApk> <patchedApk> <reportFile> <removalAllowlist> [<contracts> [<signedBase>]]");
+        if (args.length < 4 || args.length > 7) {
+            System.err.println("usage: DexDiff <cleanApk> <patchedApk> <reportFile> <removalAllowlist> [<contracts> [<signedBase> [<selectedPatches>]]]");
             System.exit(2);
         }
         File clean = new File(args[0]);
@@ -1926,7 +2891,18 @@ public class DexDiff {
         File contractFile = args.length > 4 ? new File(args[4]) : null;
         List<Contract> contracts = readContracts(contractFile);
         // The base.apk whose signer was checked, when the clean side is the bundle's merge.
-        File signedBase = args.length > 5 ? new File(args[5]) : null;
+        File signedBase = args.length > 5 && !args[5].equals("-") ? new File(args[5]) : null;
+        Set<String> selected = null;
+        if (args.length > 6 && !args[6].equals("-")) {
+            File file = new File(args[6]);
+            if (!file.isFile()) throw new IllegalArgumentException("Selected patch file not found: " + file);
+            selected = new TreeSet<>();
+            for (String line : Files.readAllLines(file.toPath(), StandardCharsets.UTF_8)) {
+                String name = line.trim();
+                if (name.isEmpty() || name.startsWith("#")) continue;
+                if (!selected.add(name)) throw new IllegalArgumentException("Duplicated selected patch: " + name);
+            }
+        }
         List<String> baseMismatch = signedBase == null ? List.of() : rootDexMismatch(signedBase, clean);
 
         System.out.println("[diff] fingerprinting clean " + clean.getName());
@@ -2040,6 +3016,16 @@ public class DexDiff {
         Map<String, List<String>> fresh = new HashMap<>();
         for (String s : structuralWanted) fresh.put(s, without(prints(after.get(s)), prints(before.get(s))));
         Map<String, List<String>> structural = structuralPass(patched, clean, structuralWanted, fresh, contracts);
+        if (contracts.stream().anyMatch(c -> c.kind.equals("family"))) {
+            FeatureIndex featurePatched = new FeatureIndex(patched);
+            System.out.println("[diff] checking compiled family flags, capabilities and original fallbacks"
+                    + (selected == null ? " (selection file not supplied)" : " against " + selected.size() + " selected patches"));
+            FeatureCheck check = new FeatureCheck(new FeatureIndex(clean), featurePatched, selected);
+            check.run(contracts);
+            structural.computeIfAbsent("contract", k -> new ArrayList<>()).addAll(check.findings);
+        } else if (selected != null) {
+            structural.computeIfAbsent("contract", k -> new ArrayList<>()).add("contract: selected patches supplied without family contracts");
+        }
         int structuralCount = 0;
         for (Map.Entry<String, List<String>> e : structural.entrySet()) {
             for (String finding : e.getValue()) {

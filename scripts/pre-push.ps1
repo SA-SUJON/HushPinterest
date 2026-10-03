@@ -550,11 +550,17 @@ try {
     $injectedRegisterVerifierPaths = @(
         'scripts/BadDexFixture.java',
         'scripts/DexDiff.java',
+        'scripts/FeatureDexFixture.java',
+        'scripts/HostReferences.java',
+        'scripts/HostReferenceFixture.java',
+        'scripts/host-reference-contracts.txt',
+        'scripts/test-host-references.ps1',
         'scripts/injected-mutation-contracts.txt',
         'scripts/injected-register-contracts.ps1',
         'scripts/injected-register-removal-allowlist.txt',
         'scripts/script-wiring.ps1',
         'scripts/test-injected-registers.ps1',
+        'scripts/patch-for-device.ps1',
         'scripts/verify-all-patches.ps1',
         'scripts/verify-injected-registers.ps1'
     )

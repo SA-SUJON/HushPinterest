@@ -2352,7 +2352,9 @@ try {
     $prePushSource = [System.IO.File]::ReadAllText($prePushScript)
     $deadSuiteCopy = Join-Path $hookRoot 'pre-push-dead-suite.ps1'
     $verifierRoutes = [ordered]@{
-        'scripts/test-injected-registers.ps1' = @('BadDexFixture.java', 'DexDiff.java', 'injected-mutation-contracts.txt',
+        'scripts/test-injected-registers.ps1' = @('BadDexFixture.java', 'DexDiff.java', 'FeatureDexFixture.java',
+            'HostReferences.java', 'HostReferenceFixture.java', 'host-reference-contracts.txt', 'test-host-references.ps1',
+            'patch-for-device.ps1', 'injected-mutation-contracts.txt',
             'injected-register-contracts.ps1', 'injected-register-removal-allowlist.txt', 'script-wiring.ps1',
             'test-injected-registers.ps1', 'verify-all-patches.ps1', 'verify-injected-registers.ps1')
         'scripts/test-resource-table-check.ps1' = @('MergeSplits.java', 'ResourceTableCheck.java', 'test-resource-table-check.ps1',
@@ -4114,6 +4116,10 @@ try {
     $javaLog = Join-Path $tools 'java.log'
     $mergeLog = Join-Path $tools 'merge.log'
     $resourceStock = Join-Path $tools 'resource-stock.txt'
+    $stubAndroidJar = Join-Path $tools 'android.jar'
+    $stubApiVersions = Join-Path $tools 'api-versions.xml'
+    [IO.File]::WriteAllText($stubAndroidJar, 'stub SDK read by the Java stand-in')
+    [IO.File]::WriteAllText($stubApiVersions, '<api/>')
     [System.IO.File]::WriteAllText($stubJava, ((@(
         '@echo off',
         'setlocal EnableExtensions EnableDelayedExpansion',
@@ -4127,6 +4133,7 @@ try {
         'if /i "%~nx4"=="MergeSplits.java" goto merge',
         'if /i "%~nx4"=="ResourceTableCheck.java" goto resources',
         'if /i "%~nx4"=="DexDiff.java" goto dexdiff',
+        'if /i "%~nx4"=="HostReferences.java" goto references',
         'set "OUT=" & set "RESULT=" & set "LAST=" & set "PREV=" & set "FORCED=0"',
         'shift',
         'shift',
@@ -4190,7 +4197,30 @@ try {
         'echo [resources] stand-in: every stock resource resolves in the patched table',
         'exit /b 0',
         ':dexdiff',
+        'shift',
+        'shift',
+        'shift',
+        'shift',
+        'if not "%~7"=="-" copy /y "%~7" "!HERE!selected-patches.txt" >nul || exit /b 8',
+        'if exist "!HERE!dexdiff-fails.txt" (',
+        '    echo [diff] FAIL: contract: feature required hook missing',
+        '    echo [diff] structural findings: 1',
+        '    exit /b 9',
+        ')',
         'echo [diff] structural findings: 0',
+        'exit /b 0',
+        ':references',
+        'shift',
+        'shift',
+        'shift',
+        'shift',
+        'if exist "!HERE!references-fails.txt" (',
+        '    >"%~3" echo missing method Lmaterial/Widget;-^>removed^(^)V',
+        '    echo [references] missing method Lmaterial/Widget;-^>removed^(^)V',
+        '    exit /b 9',
+        ')',
+        '>"%~3" echo findings=0',
+        'echo [references] findings=0',
         'exit /b 0') -join "`r`n") + "`r`n"), [System.Text.Encoding]::ASCII)
     [System.IO.File]::WriteAllText($stubAapt2, ((@(
         '@echo off',
@@ -4404,7 +4434,7 @@ try {
         $global:LASTEXITCODE = 0
         $said = @(& $verifyAllScript -Apk $Apk -DesktopJar $stubJar -WorkDir (Join-Path $releaseRoot 'verify-work') `
             -Bundle $releaseBundle -PatchList (Join-Path $releaseRepo 'patches-list.json') -Java $stubJava `
-            -Aapt2 $stubAapt2 -Force:$Force 3>&1 6>&1 | ForEach-Object { "$_" }) -join "`n"
+            -Aapt2 $stubAapt2 -AndroidJar $stubAndroidJar -ApiVersions $stubApiVersions -Force:$Force 3>&1 6>&1 | ForEach-Object { "$_" }) -join "`n"
         if ($LASTEXITCODE -ne 0) { throw "verify-all-patches.ps1 exited $LASTEXITCODE`: $said" }
         return $said
     }
@@ -4613,7 +4643,8 @@ try {
     function Invoke-DeviceBuild([string]$Apk, [string]$OutDir = $deviceOut, [string]$DesktopJar = $stubJar,
             [string]$OutputApk) {
         Remove-Item -LiteralPath $javaLog, $mergeLog -Force -ErrorAction SilentlyContinue
-        $arguments = @{ Root = $releaseRepo; DesktopJar = $DesktopJar; Java = $stubJava; Aapt2 = $stubAapt2; OutDir = $OutDir }
+        $arguments = @{ Root = $releaseRepo; DesktopJar = $DesktopJar; Java = $stubJava; Aapt2 = $stubAapt2; OutDir = $OutDir
+            AndroidJar = $stubAndroidJar; ApiVersions = $stubApiVersions }
         if ($Apk) { $arguments['Apk'] = $Apk }
         if ($OutputApk) { $arguments['OutputApk'] = $OutputApk }
         $paths = @(& (Join-Path $PSScriptRoot 'patch-for-device.ps1') @arguments 6> $null)
@@ -4633,6 +4664,10 @@ try {
             "patch-for-device.ps1 did not build $build once, without -f: $($deviceRuns -join '; ')"
         Assert-True (-not (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $deviceApk) 'stock-base.apk'))) `
             "patch-for-device.ps1 left the base APK it read for $build behind."
+        $checkedSelection = @([IO.File]::ReadAllLines((Join-Path $tools 'selected-patches.txt')))
+        $expectedSelection = @($releaseNames) + @($dependencyNamesHere)
+        Assert-True (($checkedSelection -join "`n") -ceq ($expectedSelection -join "`n")) `
+            'The device builder did not pass its exact selected patches and dependencies to the bytecode check.'
     }
     $savedFixtureDir = $env:HUSHPINTEREST_FIXTURE_DIR
     try {
@@ -4648,6 +4683,35 @@ try {
     # deliver that retained output. Each failed run must clean only its own workspace.
     $goodPath = $deviceApk
     $goodHash = Get-Sha256Hex -Path $goodPath
+    # A successful patch report is insufficient when the compiled hooks violate their contracts.
+    $compiledFailureOut = Join-Path $releaseRoot 'compiled-failure-device'
+    $compiledFailureMarker = Join-Path $tools 'dexdiff-fails.txt'
+    [IO.File]::WriteAllText($compiledFailureMarker, 'required call absent')
+    try {
+        Assert-Throws { Invoke-DeviceBuild -Apk $fixturePaths[$releaseTarget.PackageVersion] -OutDir $compiledFailureOut } `
+            '*compiled mutation or structural checks*' 'The device runner delivered an unsafe compiled APK.'
+        Assert-True (@(Get-ChildItem -LiteralPath $compiledFailureOut -Directory).Count -eq 0 -and
+            (Get-Sha256Hex -Path $goodPath) -ceq $goodHash) `
+            'A compiled failure retained its output or changed a previously verified APK.'
+        Assert-Throws { Invoke-VerifyAll -Apk $fixturePaths[$releaseTarget.PackageVersion] } `
+            '*verify-all-patches.ps1 exited 1*' 'The throwaway runner accepted missing compiled hooks.'
+        Assert-True (@(Get-ChildItem -LiteralPath (Join-Path $releaseRoot 'verify-work') -Directory -Filter 'verify-*').Count -eq 0) `
+            'The throwaway runner retained an unsafe compiled APK.'
+    } finally { Remove-Item -LiteralPath $compiledFailureMarker -Force }
+    $referenceFailureOut = Join-Path $releaseRoot 'reference-failure-device'
+    $referenceFailureMarker = Join-Path $tools 'references-fails.txt'
+    [IO.File]::WriteAllText($referenceFailureMarker, 'inserted host method missing')
+    try {
+        Assert-Throws { Invoke-DeviceBuild -Apk $fixturePaths[$releaseTarget.PackageVersion] -OutDir $referenceFailureOut } `
+            '*compiled mutation or structural checks*' 'The device runner delivered an APK with an unresolved inserted host call.'
+        Assert-True (@(Get-ChildItem -LiteralPath $referenceFailureOut -Directory).Count -eq 0 -and
+            (Get-Sha256Hex -Path $goodPath) -ceq $goodHash) `
+            'A reference failure retained its output or changed a previously verified APK.'
+        Assert-Throws { Invoke-VerifyAll -Apk $fixturePaths[$releaseTarget.PackageVersion] } `
+            '*verify-all-patches.ps1 exited 1*' 'The throwaway runner accepted an unresolved inserted host call.'
+        Assert-True (@(Get-ChildItem -LiteralPath (Join-Path $releaseRoot 'verify-work') -Directory -Filter 'verify-*').Count -eq 0) `
+            'The throwaway runner retained an APK with an unresolved inserted host call.'
+    } finally { Remove-Item -LiteralPath $referenceFailureMarker -Force }
     $failureFixture = $fixturePaths[$releaseTarget.PackageVersions[-1]]
     $failureReportPath = "$failureFixture.result.json"
     $savedReport = [IO.File]::ReadAllBytes($failureReportPath)
@@ -4661,6 +4725,7 @@ try {
         try {
             foreach ($inputApk in @($fixturePaths[$releaseTarget.PackageVersion], $failureFixture)) {
                 $jobArgs = @{ Root = $releaseRepo; DesktopJar = $stubJar; Java = $stubJava; Aapt2 = $stubAapt2;
+                    AndroidJar = $stubAndroidJar; ApiVersions = $stubApiVersions;
                     OutDir = $concurrentOut; Apk = $inputApk }
                 $jobs += Start-Job -ScriptBlock {
                     param($Script, $Arguments)
