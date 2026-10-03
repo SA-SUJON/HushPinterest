@@ -11,12 +11,16 @@
     - the Morphe community directory, Awesome Morphe, the Morphe Patch Tracker and Jman's bundle
       index, for every bundle that targets a census package, and for whether HushPinterest is
       listed on each, plus the Morphe Archive for HushPinterest' own listing;
-    - GitHub code search for each census package name in patch lists, patch code and Xposed hooks,
+    - GitHub indexed code search for each census package name in patch lists, patch code and Xposed hooks,
       with the two archive mirrors mapped back to the repositories they copied, and GitLab code
       search when GITLAB_TOKEN is set and -SkipGitLabCodeSearch isn't passed;
     - every ledger source's repository, licence, branches and forks. A source with watchPaths is
       read through the newest commit that touched those paths, so a busy multi-app repository only
-      counts as moved when its Pinterest code did.
+      counts as moved when its Pinterest code advances beyond the reviewed pin.
+
+    Search evidence is bounded by the exact query, GitHub's index and the date. It cannot prove
+    global absence of Xposed or LSPosed modules. The report records each GitHub query and its
+    result count; incomplete responses or results beyond the 1,000-result cap prevent a stamp.
 
     A repository the ledger doesn't know is an addition, unless every file code search found in it
     is byte for byte a file the ledger already holds (the same git blob id), which makes it a copy
@@ -98,6 +102,7 @@ if ($ReportPath -match '(?i)\.(kt|kts|java|smali)$') {
 $findings = New-Object System.Collections.Generic.List[object]
 $notes = New-Object System.Collections.Generic.List[string]
 $sourceStatus = New-Object System.Collections.Generic.List[object]
+$searchCoverage = New-Object System.Collections.Generic.List[object]
 $requestCount = 0
 
 function Write-Step {
@@ -123,6 +128,7 @@ function Save-Report {
         findings = $findings.ToArray()
         notes = $notes.ToArray()
         knownHits = @($KnownHits | Where-Object { $null -ne $_ })
+        searches = $searchCoverage.ToArray()
     }
     $directory = Split-Path -Parent $ReportPath
     if ($directory -and -not (Test-Path -LiteralPath $directory)) { New-Item -ItemType Directory -Path $directory -Force | Out-Null }
@@ -517,6 +523,10 @@ Invoke-Source 'GitHub code search' {
     }
     $hits = 0
     foreach ($query in $queries) {
+        $coverage = [pscustomobject][ordered]@{ service = 'GitHub indexed code'; query = $query.Query
+            verifiedAt = $todayText; endpoint = ('https://api.github.com/search/code?q=' + [Uri]::EscapeDataString($query.Query))
+            totalCount = 0; returnedCount = 0; pages = 0; complete = $false }
+        $searchCoverage.Add($coverage)
         for ($page = 1; $page -le 10; $page++) {
             if ($script:searchCount -gt 0 -and $SearchDelaySeconds -gt 0) { Start-Sleep -Milliseconds ([int]($SearchDelaySeconds * 1000)) }
             $script:searchCount++
@@ -524,7 +534,18 @@ Invoke-Source 'GitHub code search' {
                 "&per_page=100&page=$page") -Auth github
             if ($answer.Status -ne 200) { throw "the search '$($query.Query)' answered HTTP $($answer.Status)" }
             $result = ConvertFrom-SourceJson -Text $answer.Content -What "the search '$($query.Query)'"
+            $total = Get-SourceProperty $result 'total_count'
+            $incomplete = Get-SourceProperty $result 'incomplete_results'
+            if (($total -isnot [int] -and $total -isnot [long]) -or $total -lt 0 -or $incomplete -isnot [bool]) {
+                $coverage.complete = $false
+                throw "the search '$($query.Query)' lacks a nonnegative total_count or boolean incomplete_results"
+            }
+            if ($page -eq 1) { $coverage.complete = $true }
+            $coverage.pages = $page
+            $coverage.totalCount = [Math]::Max($coverage.totalCount, $total)
+            if ($incomplete) { $coverage.complete = $false }
             $items = @(Get-JsonItems $result.items)
+            $coverage.returnedCount += $items.Count
             foreach ($item in $items) {
                 $key = ConvertTo-SourceKey ([string]$item.repository.full_name)
                 $path = [string]$item.path
@@ -541,6 +562,13 @@ Invoke-Source 'GitHub code search' {
                 $hits++
             }
             if ($items.Count -lt 100 -or ($page * 100) -ge [int]$result.total_count) { break }
+        }
+        if ($coverage.totalCount -gt 1000) {
+            $coverage.complete = $false
+            Add-Finding -Kind 'search-limited' -Repository $null -Detail "the query '$($query.Query)' exceeds GitHub's 1,000-result cap" -Evidence $coverage
+        } elseif (-not $coverage.complete -or $coverage.returnedCount -lt $coverage.totalCount) {
+            $coverage.complete = $false
+            Add-Finding -Kind 'search-incomplete' -Repository $null -Detail "the query '$($query.Query)' returned incomplete results ($($coverage.returnedCount) of $($coverage.totalCount))" -Evidence $coverage
         }
     }
     "$($queries.Count) queries, $hits hits outside the indexes"
@@ -718,6 +746,7 @@ function Test-CommitContained {
     # pin rewritten away by a force push, say) counts as not contained, so it gets looked at.
     param($Where, [string]$Commit, [string]$Within)
     if ($Commit -notmatch '^[0-9a-f]{40}$' -or $Within -notmatch '^[0-9a-f]{40}$') { return $false }
+    if ($Commit -eq $Within) { return $true }
     if ($Where.Host -eq 'github.com') {
         $answer = Invoke-SourceRequest -Uri "https://api.github.com/repos/$($Where.Path)/compare/$Within...$Commit" -Auth github
         if ($answer.Status -ne 200) { return $false }
@@ -828,7 +857,11 @@ foreach ($entry in $entries) {
                 continue
             }
             $now = $live.Branches[$name]
-            if ($now.Watched -ne [string]$pin.commit) {
+            # A reviewed pin can include release metadata or other apps after the last Pinterest
+            # edit. Only watched work outside that pin requires another source review.
+            if ($now.Watched -ne [string]$pin.commit -and
+                (-not (Test-CommitContained -Where $where -Commit $now.Watched -Within ([string]$pin.commit)) -or
+                 -not (Test-CommitContained -Where $where -Commit ([string]$pin.commit) -Within $now.Head))) {
                 Add-Finding -Kind 'changed-head' -Repository $repository `
                     -Detail ("branch $name moved from $([string]$pin.commit) to " + $(if ($now.Watched) { $now.Watched } else { 'no Pinterest code' })) `
                     -Evidence ([ordered]@{ branch = $name; pinned = [string]$pin.commit; watchedHead = $now.Watched; head = $now.Head })

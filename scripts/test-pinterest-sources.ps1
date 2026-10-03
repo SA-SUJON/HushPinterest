@@ -86,10 +86,22 @@ Assert-True ($browz.branches[0].name -eq 'main' -and $browz.branches[0].commit -
     'browzomje must keep its pinned main commit and its 28 Pinterest patches, as a candidate and not an adopted source.'
 $oyasumi = @($entries | Where-Object { $_.id -eq 'oyasumi' })[0]
 Assert-True ($oyasumi.branches.Count -eq 1 -and $oyasumi.branches[0].name -eq 'dev' -and
-    $oyasumi.branches[0].commit -eq '9b279952d561a5192fd2153e71353f8b772e656b' -and
+    $oyasumi.branches[0].commit -eq '6465d7af8460692b8eca63a18eb30a23aba73b59' -and $oyasumi.patchCounts.'com.pinterest' -eq 8 -and
     $oyasumi.targetVersions.'com.pinterest' -contains '14.38.0' -and $oyasumi.reason -like '*dev branch only*' -and
+    $oyasumi.reason -like '*v0.6.0-dev.10*' -and $oyasumi.reason -like '*Stable v0.5.3*' -and
+    $oyasumi.watchPaths -contains 'extensions/extension/src/main/java/app/oyasumi/extension' -and
     $oyasumi.disposition -eq 'candidate') `
-    'oyasumi must keep its dev branch pin (main has no Pinterest work) without claiming it was adopted.'
+    'oyasumi must distinguish eight dev Pinterest patches from stable v0.5.3, without claiming adoption.'
+$mubelotix = @($entries | Where-Object { $_.id -eq 'mubelotix' })[0]
+Assert-True ($mubelotix.repository -ceq 'https://github.com/Mubelotix/my-morphe-patches' -and
+    $mubelotix.branches[0].commit -eq '8b6f75e226634c6a0b4031bba6cda1de7db146a0' -and
+    $mubelotix.license.url -like '*8b6f75e226634c6a0b4031bba6cda1de7db146a0/LICENSE' -and
+    $mubelotix.license.sha256 -eq '3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986' -and
+    $mubelotix.patchCounts.'com.pinterest' -eq 2 -and $mubelotix.features -contains 'Remove GMA ads' -and
+    $mubelotix.features -contains 'Remove promoted content' -and $mubelotix.targetVersions.'com.pinterest'.Count -eq 1 -and
+    $mubelotix.targetVersions.'com.pinterest'[0] -eq '14.23.0' -and $mubelotix.disposition -eq 'candidate' -and
+    $mubelotix.reason -like '*Mubelotix/my-revanced-patches*') `
+    'Mubelotix must keep its canonical name, reviewed commit and license, and two 14.23.0 candidate patches.'
 $stale = @($entries | Where-Object { $_.id -in @('binarymend', 'satanmerde') })
 Assert-True ($stale.Count -eq 2 -and @($stale | Where-Object { $_.disposition -ne 'rejected' }).Count -eq 0) `
     'binarymend and satanmerde have no usable anchors and must stay rejected.'
@@ -105,6 +117,8 @@ Assert-True ($nagram.reference.kind -eq 'historical' -and $nagram.reference.bran
 # NOTICE line and provenance rule the adopted one needs.
 $catalogBuilds = @((Get-PatchTarget -PatchList ([IO.File]::ReadAllText((Join-Path $Root 'patches-list.json')) | ConvertFrom-Json)).PackageVersions)
 Assert-True ($catalogBuilds.Count -ge 1) 'The catalog declares no Pinterest build, so the two-fixture cases would prove nothing.'
+Assert-True ($catalogBuilds -notcontains '14.23.0' -and @($entries | Where-Object { $_.disposition -eq 'adopted' }).Count -eq 0) `
+    'Reviewing native sources must not adopt their code or add 14.23.0 support.'
 # Two-fixture evidence is two builds, every declared one among them. Pinterest declares one, so the
 # fixture adds the build before it.
 $olderBuild = '14.24.0'
@@ -196,7 +210,10 @@ if ($haveSourcesDoc) {
     Assert-True ($docProblems.Count -eq 0) ($docProblems -join ' | ')
     Assert-True ($sourcesDoc.Contains('28 Pinterest patches') -and
         $sourcesDoc.Contains($browz.branches[0].commit.Substring(0, 7)) -and $sourcesDoc.Contains($oyasumi.branches[0].commit.Substring(0, 7)) -and
-        $sourcesDoc.Contains($nagram.reference.commit.Substring(0, 7)) -and $sourcesDoc.Contains('dev branch only')) 'The source document lost a pinned classification or patch count.'
+        $sourcesDoc.Contains($mubelotix.branches[0].commit.Substring(0, 7)) -and
+        $sourcesDoc.Contains($nagram.reference.commit.Substring(0, 7)) -and $sourcesDoc.Contains('dev branch only') -and
+        $sourcesDoc.Contains('pinterest org:Xposed-Modules-Repo') -and $sourcesDoc.Contains('incomplete_results=false')) `
+        'The source document lost a pin, release distinction or bounded search evidence.'
 } else {
     Write-Host '[sources] docs/sources.md is local and this checkout has none, so only the page check''s own controls run here'
 }
@@ -321,6 +338,8 @@ Test-Broken { param($c) $c.entries[1].repository = $c.entries[0].repository } '*
 Test-Broken { param($c) $c.entries[0].branches[0].commit = 'main' } '*has no pinned commit (40 hex characters)*' 'A branch with no pinned commit'
 Test-Broken { param($c) $c.entries[0].lastChecked = '25/09/2026' } '*lastChecked is not a yyyy-MM-dd date*' 'A lastChecked that isn''t ISO'
 Test-Broken { param($c) $c.entries[0].lastChecked = '2999-01-01' } '*lastChecked is 2999-01-01, after today*' 'A lastChecked in the future'
+Test-Broken { param($c) $c.schemaVersion = 2 } '*schema*' 'An unsupported source ledger schema'
+Test-Broken { param($c) $c.census.checkedAt = '2026-02-30' } '*census.checkedAt*date*' 'An impossible calendar date'
 Test-Broken { param($c) $c.entries[0].features = @() } '*names no features*' 'A source with no features'
 Test-Broken { param($c) $c.entries[0].targetVersions = [pscustomobject]@{} } '*records no declared target versions*' 'A source with no target versions'
 Test-Broken { param($c) $c.entries[0].packages = @('org.example.otherapp') } '*names no Pinterest package*outOfScope*' 'A fork-only source'
@@ -550,6 +569,7 @@ function New-FakeAnswers {
             # The archive keeps a recorded fork's patch list for its entry's own package, which is no bundle of its own.
             @{ repository = @{ full_name = 'rushiforai/morphe-archive' }; path = 'examplepatches/someone/alpha-patches/patches-list.json'; sha = ('7b' * 20) }
         )
+        searchOverride = $null
         alphaRepo = @{ Status = 200; Content = '{"full_name":"fixture-owner/alpha-patches","archived":false,"default_branch":"main"}' }
         alphaLicense = @{ Status = 200; Content = (@{ path = 'LICENSE'; content = $licenseBase64; license = @{ spdx_id = 'GPL-3.0' } } | ConvertTo-Json) }
         alphaBranches = @{ Status = 200; Content = "[{`"name`":`"main`",`"commit`":{`"sha`":`"$commitA1`"}}]" }
@@ -596,6 +616,9 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
                 $query = [Uri]::UnescapeDataString($Matches[1])
                 $items = if ($query -eq '"com.pinterest" bytecodePatch') { @($a.searchHits) } else { @() }
                 $answer = @{ Status = 200; Content = (@{ total_count = $items.Count; incomplete_results = $false; items = $items } | ConvertTo-Json -Depth 8) }
+                if ($null -ne $a.searchOverride -and $query -eq '"com.pinterest" bytecodePatch') {
+                    $answer.Content = $a.searchOverride
+                }
                 break
             }
             '^https://api\.github\.com/repos/fixture-owner/alpha-patches$' { $answer = $a.alphaRepo; break }
@@ -604,7 +627,14 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
             '^https://api\.github\.com/repos/fixture-owner/alpha-patches/forks\?per_page=100&page=1$' { $answer = $a.alphaForks; break }
             '^https://api\.github\.com/repos/fixture-owner/alpha-patches/compare/([0-9a-f]{40})\.\.\.([0-9a-f]{40})$' {
                 $status = $a.compare[$Matches[2]]
-                if ($status) { $answer = @{ Status = 200; Content = "{`"status`":`"$status`"}" } }
+                if (-not $status) { $status = 'diverged' }
+                $answer = @{ Status = 200; Content = "{`"status`":`"$status`"}" }
+                break
+            }
+            '^https://api\.github\.com/repos/fixture-owner/beta-module/compare/([0-9a-f]{40})\.\.\.([0-9a-f]{40})$' {
+                $status = $a.compare[$Matches[2]]
+                if (-not $status) { $status = 'diverged' }
+                $answer = @{ Status = 200; Content = "{`"status`":`"$status`"}" }
                 break
             }
             '^https://api\.github\.com/repos/fixture-owner/beta-module$' { $answer = $a.betaRepo; break }
@@ -692,6 +722,55 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
         'A GitHub API request went out without the token.'
     Assert-True ($clean.ReportText.IndexOf($fakeToken) -lt 0 -and $stamped.IndexOf($fakeToken) -lt 0) 'The token was written to the report or the ledger.'
     Reset-FixtureLedger
+
+    Assert-True ($clean.Report.searches.Count -eq 5 -and
+        @($clean.Report.searches | Where-Object { -not $_.complete -or $_.verifiedAt -ne '2026-09-25' }).Count -eq 0 -and
+        @($clean.Report.searches | Where-Object { $_.query -eq '"com.pinterest" bytecodePatch' -and $_.totalCount -eq 8 -and $_.returnedCount -eq 8 }).Count -eq 1) `
+        'The clean report must retain each exact GitHub query, date, indexed scope and result count.'
+
+    # Schema/date failures must stop the actual audit before the stand-in receives a request.
+    foreach ($invalid in @(
+        @{ Json = $fixtureLedgerText.Replace('"schemaVersion": 1', '"schemaVersion": 2'); Detail = '*schema*'; Name = 'unsupported schema' },
+        @{ Json = $fixtureLedgerText.Replace('"checkedAt": "2026-09-01"', '"checkedAt": "2026-02-30"'); Detail = '*census.checkedAt*date*'; Name = 'impossible census date' },
+        @{ Json = $fixtureLedgerText.Replace('"lastChecked": "2026-09-01"', '"lastChecked": "2026-09-26"'); Detail = '*lastChecked*after today*'; Name = 'future source verification' }
+    )) {
+        Assert-True ($invalid.Json -cne $fixtureLedgerText) "The $($invalid.Name) case did not change its input."
+        [IO.File]::WriteAllText($fixtureLedgerPath, $invalid.Json)
+        $refused = Invoke-Audit -Extra @{ ValidateOnly = $true }
+        Assert-True ($refused.ExitCode -eq 1 -and @($refused.Report.findings | Where-Object {
+            $_.kind -eq 'ledger-invalid' -and $_.detail -like $invalid.Detail }).Count -gt 0 -and $fakeForge.Requests.Count -eq 0) `
+            "The audit did not refuse $($invalid.Name) before network: $($refused.Said)"
+        Assert-True ([IO.File]::ReadAllText($fixtureLedgerPath) -ceq $invalid.Json) 'Refusing invalid metadata changed the ledger.'
+        Reset-FixtureLedger
+    }
+
+    # A query can return HTTP 200 without providing complete evidence. None may stamp the census.
+    foreach ($partial in @(
+        @{ Body = '{"total_count":0,"incomplete_results":true,"items":[]}'; Kind = 'search-incomplete'; Detail = '*bytecodePatch*incomplete*' },
+        @{ Body = '{"total_count":1001,"incomplete_results":false,"items":[]}'; Kind = 'search-limited'; Detail = '*bytecodePatch*1,000-result cap*' },
+        @{ Body = '{"total_count":1,"incomplete_results":false,"items":[]}'; Kind = 'search-incomplete'; Detail = '*bytecodePatch*0 of 1*' },
+        @{ Body = '{"total_count":0,"items":[]}'; Kind = 'source-failed'; Detail = '*bytecodePatch*boolean incomplete_results*' }
+    )) {
+        $fakeForge.Answers.searchOverride = $partial.Body
+        Assert-Drift $partial.Kind $partial.Detail 'A partial GitHub search response'
+        $fakeForge.Answers = New-FakeAnswers
+    }
+
+    # A later reviewed release pin may contain earlier Pinterest work. Ahead/diverged edits still
+    # fail, and no ancestry answer can turn a canonical repository rename into a clean run.
+    $fakeForge.Answers.betaWatch.Content = $fakeForge.Answers.betaWatch.Content.Replace($commitB1, ('b0' * 20))
+    $fakeForge.Answers.compare[('b0' * 20)] = 'behind'
+    $fakeForge.Answers.compare[$commitB1] = 'behind'
+    $reviewed = Invoke-Audit
+    Assert-True ($reviewed.ExitCode -eq 0) "A watched commit already contained in the reviewed pin was refused: $($reviewed.Said)"
+    Reset-FixtureLedger
+    $fakeForge.Answers.compare[('b0' * 20)] = 'ahead'
+    Assert-Drift 'changed-head' '*beta-module*branch main moved*' 'Watched code beyond the reviewed pin'
+    $fakeForge.Answers.compare[('b0' * 20)] = 'behind'
+    $fakeForge.Answers.compare[$commitB1] = 'ahead'
+    $fakeForge.Answers.betaBranches.Content = $fakeForge.Answers.betaBranches.Content.Replace(('b9' * 20), ('b0' * 20))
+    Assert-Drift 'changed-head' '*beta-module*branch main moved*' 'A branch rolled back before its reviewed pin'
+    $fakeForge.Answers = New-FakeAnswers
 
     # -SkipGitLabCodeSearch holds with GITLAB_TOKEN set, as the audit's help tells a maintainer to
     # set it: no GitLab search goes out and the census keeps recording the skip.

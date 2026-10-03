@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "Every public source found for com.pinterest, with the branches and commits it was last read at, its licence and what HushPinterest may take from it. scripts/pinterest-sources.ps1 holds it to its rules, scripts/audit-pinterest-sources.ps1 refreshes it, and a local release needs a census from the last 14 days. docs/sources.md is the readable version. No Pinterest-specific Xposed or LSPosed module exists: all 1,183 public repositories in the Xposed-Modules-Repo organization were scanned on 2026-10-02 and none matches, so there's nothing to record for that route.",
+  "note": "Public sources reviewed for com.pinterest, with pinned commits, licenses and dispositions. scripts/pinterest-sources.ps1 validates schema version 1, scripts/audit-pinterest-sources.ps1 reports changes, and a local release needs a census from the last 14 days. docs/sources.md is the readable version. The 2026-10-03 native-source review did not refresh the full 2026-10-02 census. On 2026-10-03, GitHub repository search for pinterest org:Xposed-Modules-Repo returned 0. Indexed code searches for \"com.pinterest\" IXposedHookLoadPackage and \"com.pinterest\" XposedHelpers returned 1 and 4 files respectively, all from this project's audit or ktlint build catalogs. All three responses reported incomplete_results=false. No Pinterest hook implementation was identified in those results. These query results do not establish global absence of Xposed or LSPosed modules.",
   "census": {
     "checkedAt": "2026-10-02",
     "skipped": []
@@ -224,34 +224,90 @@
         ]
       },
       "features": [
-        "Neutralize advertising ID (random ID)",
+        "Disable AppsFlyer tracking",
+        "Disable Google Engage",
         "Disable email confirmation dialog",
-        "Disable AppsFlyer tracking (deep)",
-        "Disable Google Engage (receiver onReceive)",
-        "Morphe settings screen label + manifest (stubs)"
+        "Hide Search nav button",
+        "Morphe settings entry",
+        "Morphe settings screen (label)",
+        "Morphe settings screen (manifest)",
+        "Neutralize advertising ID"
       ],
+      "patchCounts": {
+        "com.pinterest": 8
+      },
       "branches": [
         {
           "name": "dev",
-          "commit": "9b279952d561a5192fd2153e71353f8b772e656b"
+          "commit": "6465d7af8460692b8eca63a18eb30a23aba73b59"
         }
       ],
       "watchPaths": [
-        "patches/src/main/kotlin/app/pinterest/patches"
+        "patches/src/main/kotlin/app/pinterest/patches",
+        "extensions/extension/src/main/java/app/oyasumi/extension"
       ],
       "license": {
         "spdx": "GPL-3.0",
-        "url": "https://github.com/dunecache/oyasumi-patches/blob/9b279952d561a5192fd2153e71353f8b772e656b/LICENSE",
+        "url": "https://github.com/dunecache/oyasumi-patches/blob/6465d7af8460692b8eca63a18eb30a23aba73b59/LICENSE",
         "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "The only source targeting a current build, 14.38.0 (14388010). Its Pinterest work lives on the dev branch only (v0.6.0-dev.1), and main is v0.5.3 with none. Five patches, with fingerprints documented down to the call sites that verify them, which makes it the best written reference for how to anchor on 14.38.0 once we have a clean fixture. Its settings patches are stubs that register an activity the extension doesn't ship yet. Its numeric version compare (as a string, 14.38.0 sorts below 14.9.0) is a trap we avoid. Nothing has been ported.",
+      "reason": "Pinterest work lives on the dev branch only. Reviewed dev 6465d7af8460692b8eca63a18eb30a23aba73b59, released as prerelease v0.6.0-dev.10 on 2026-10-03, lists eight patches for 14.38.0 (14388010). It now includes the settings entry and its extension activity, plus an optional Search navigation button patch. Stable v0.5.3, published 2026-09-30 from main f419de56016295da9adab0b6c1a3d9bc6efb0e44, lists no Pinterest patches. The version helper compares numeric components. Its code and settings changes have been studied, not adopted or exercised by HushPinterest.",
       "archived": false,
       "forks": [],
       "contentHashes": [],
       "mirrors": [],
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-03"
+    },
+    {
+      "id": "mubelotix",
+      "repository": "https://github.com/Mubelotix/my-morphe-patches",
+      "lineage": "mubelotix",
+      "upstream": null,
+      "kind": "morphe-patches",
+      "packages": [
+        "com.pinterest"
+      ],
+      "targetVersions": {
+        "com.pinterest": [
+          "14.23.0"
+        ]
+      },
+      "features": [
+        "Remove GMA ads",
+        "Remove promoted content"
+      ],
+      "patchCounts": {
+        "com.pinterest": 2
+      },
+      "branches": [
+        {
+          "name": "main",
+          "commit": "8b6f75e226634c6a0b4031bba6cda1de7db146a0"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/app/revanced/patches/pinterest"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/Mubelotix/my-morphe-patches/blob/8b6f75e226634c6a0b4031bba6cda1de7db146a0/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "Reviewed main 8b6f75e226634c6a0b4031bba6cda1de7db146a0 and stable v1.0.2, published 2026-10-02. GitHub redirects its old name Mubelotix/my-revanced-patches to this canonical repository. Its two Pinterest patches declare 14.23.0 only. Remove GMA ads returns false from the ads experiment, and Remove promoted content changes the promotion predicates and Shop the Look method. Both source files import Morphe's patcher API despite retaining the app.revanced package. The pinned GPL-3.0 license hash was verified. No code has been adopted and 14.23.0 is not a HushPinterest target.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [
+        "9bf7d457b88478a0a40ca6b9a1bdd4d7aa0bc8c7",
+        "88182af2462cc04e3b5eac3809ae4dd1bd746ee5",
+        "773083b073e7dfd4e464ad60798323ee32a7fa4f",
+        "b0c3db70d418aa83bb88a7907b7ff5dcf53c0c76"
+      ],
+      "mirrors": [],
+      "lastChecked": "2026-10-03"
     },
     {
       "id": "insane96",
