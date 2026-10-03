@@ -43,11 +43,15 @@ Morphe Manager signs the patched Pinterest with a key it makes on your phone. An
 
 ## Patches
 
-| Patch | Default | What it does |
-|---|---|---|
-| Hide ads | On | Removes promoted pins from the home feed, search, related pins and boards before Pinterest draws them, and folds away the four panels Pinterest only builds for an ad. |
-| Hide AI-labeled pins | Off | Removes the pins Pinterest itself marks as made or changed with AI. An AI image that Pinterest hasn't labeled still shows, since there's nothing to go by. Off unless you pick it, because it changes what you see and not just what's sold to you. |
-| HushPinterest settings | On | Adds a settings screen where every patch has its own switch, plus Pause, diagnostics and backup. Required by the others. |
+There are 3 patches so far.
+
+| Patch | What it does |
+|---|---|
+| `Hide ads` | Removes promoted pins from the home feed, search, related pins and boards, and hides Pinterest's ad-only panels. Turn it off in HushPinterest settings at any time. |
+| `Hide AI-labeled pins` | Removes pins that Pinterest labels as made or changed with AI from the home feed, search, related pins and boards. AI images without Pinterest's label still show. |
+| `HushPinterest settings` | Adds HushPinterest settings to Pinterest. Long-press Pinterest's launcher icon, or open Additional settings in the app on Pinterest's App info page, to turn features on or off, pause HushPinterest, save your switches to a file or load them, and export diagnostics. The licenses are there too. |
+
+Morphe Manager picks Hide ads and the settings for you. Hide AI-labeled pins stays off unless you pick it, because it changes what you see and not just what's sold to you. The settings patch is needed by the other two.
 
 Every switch takes effect without patching again. Pause turns them all off at once until Pinterest restarts, which helps tell whether a problem is HushPinterest's or Pinterest's own.
 
