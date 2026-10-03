@@ -661,6 +661,11 @@ try {
         $featureCases["feature-selected-missing-$($family.Flag)"] = $false
     }
     foreach ($shortcut in $shortcutCalls) { $featureCases["feature-shortcuts-unreachable-$($shortcut.Call)"] = $false }
+    foreach ($shape in 'copied-fallback', 'copied-from16-fallback', 'copied-16-fallback', 'copied-two-register-fallback',
+            'copied-prezero-fallback', 'copied-overwrite-alias', 'copied-overwrite-source', 'copied-branch-fallback', 'copied-loop-fallback') {
+        $featureCases["feature-links-$shape-good"] = $true
+        $featureCases["feature-links-$shape-bad"] = $false
+    }
     $compiledCases = @(Get-ChildItem -LiteralPath $dexDir -Filter '*.selected' | ForEach-Object { $_.BaseName } | Sort-Object)
     $coveredCases = @($featureCases.Keys | Sort-Object)
     Assert-True (($compiledCases -join "`n") -ceq ($coveredCases -join "`n")) 'A compiled family fixture has no result assertion.'
@@ -695,7 +700,7 @@ try {
         if ($name -like '*unreachable-control' -or $name -eq 'feature-links-unreachable-helper-control') {
             Assert-True ($text.Contains('unreachable required family control')) "An early return disconnected the family control in $name without detection.`n$text"
         }
-        if ($name -eq 'feature-links-disabled-misses-fallback') {
+        if ($name -eq 'feature-links-disabled-misses-fallback' -or $name -like 'feature-links-copied-*-bad') {
             Assert-True ($text.Contains('fallback after its disabled family control')) "An original call reachable only when filtering is enabled passed as a disabled fallback.`n$text"
         }
     }

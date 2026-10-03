@@ -11,6 +11,7 @@ import com.android.tools.smali.dexlib2.iface.MultiDexContainer;
 import com.android.tools.smali.dexlib2.iface.TryBlock;
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction;
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction;
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction;
@@ -2035,9 +2036,7 @@ public class DexDiff {
             if (index != null && !isPayload(layout.instructions.get(index))) into.add(index);
         }
 
-        BitSet reachable(int start, boolean exceptions) { return reachable(start, exceptions, -1, -1); }
-
-        BitSet reachable(int start, boolean exceptions, int branch, int chosen) {
+        BitSet reachable(int start, boolean exceptions) {
             BitSet reached = new BitSet();
             Deque<Integer> work = new ArrayDeque<>();
             if (start >= 0 && start < normal.size()) work.add(start);
@@ -2045,34 +2044,79 @@ public class DexDiff {
                 int at = work.poll();
                 if (reached.get(at)) continue;
                 reached.set(at);
-                if (at == branch) {
-                    if (chosen >= 0) work.add(chosen);
-                } else work.addAll(normal.get(at));
+                work.addAll(normal.get(at));
                 if (exceptions) work.addAll(handlers.get(at));
             }
             return reached;
         }
 
-        /** A boolean control's false arm, when its result is tested before being overwritten. */
+        private record ControlState(int at, Map<Integer, Integer> values, boolean controlled) {}
+
+        static int valueRegister(Instruction i) { return ((OneRegisterInstruction) i).getRegisterA(); }
+
+        /** Normal paths after this control answers false. Copies preserve values; every other write kills them. */
         BitSet afterControl(int call) {
             List<Instruction> body = layout.instructions;
             Reference ref = reference(body.get(call));
             if (!(ref instanceof MethodReference) || !((MethodReference) ref).getReturnType().equals("Z")
                     || call + 1 >= body.size() || body.get(call + 1).getOpcode() != Opcode.MOVE_RESULT)
                 return reachable(call + 1, false);
-            int register = firstRegister(body.get(call + 1));
-            Set<Integer> seen = new HashSet<>();
-            for (int at = call + 2; at < body.size() && seen.add(at); ) {
+            BitSet reached = new BitSet();
+            Set<ControlState> seen = new HashSet<>();
+            Deque<ControlState> work = new ArrayDeque<>();
+            work.add(new ControlState(0, Map.of(), false));
+            while (!work.isEmpty()) {
+                ControlState state = work.poll();
+                if (!seen.add(state)) continue;
+                int at = state.at;
                 Instruction i = body.get(at);
-                if ((i.getOpcode() == Opcode.IF_EQZ || i.getOpcode() == Opcode.IF_NEZ) && firstRegister(i) == register) {
-                    int chosen = i.getOpcode() == Opcode.IF_EQZ
-                            ? indexAt.getOrDefault(layout.addresses.get(at) + ((OffsetInstruction) i).getCodeOffset(), -1) : at + 1;
-                    return reachable(call + 1, false, at, chosen);
+                boolean controlled = state.controlled || at == call + 1;
+                if (controlled) reached.set(at);
+                Map<Integer, Integer> values = state.values;
+                if (i.getOpcode().setsRegister()) {
+                    int destination = valueRegister(i);
+                    Map<Integer, Integer> written = new HashMap<>(values);
+                    written.remove(destination);
+                    if (i.getOpcode().setsWideRegister()) written.remove(destination + 1);
+                    else if (at == call + 1) written.put(destination, 0);
+                    else if (copiesConflict(i.getOpcode())) {
+                        Integer source = values.get(((TwoRegisterInstruction) i).getRegisterB());
+                        if (source != null) written.put(destination, source);
+                    } else if (i instanceof NarrowLiteralInstruction && i.getOpcode().name.startsWith("const"))
+                        written.put(destination, ((NarrowLiteralInstruction) i).getNarrowLiteral());
+                    values = Map.copyOf(written);
                 }
-                if (i.getOpcode().setsRegister() && firstRegister(i) == register || normal.get(at).size() != 1) break;
-                at = normal.get(at).get(0);
+                Integer chosen = null;
+                Boolean taken = branchTaken(i, values);
+                if (taken != null) chosen = taken
+                        ? indexAt.getOrDefault(layout.addresses.get(at) + ((OffsetInstruction) i).getCodeOffset(), -1) : at + 1;
+                else if ((i.getOpcode() == Opcode.PACKED_SWITCH || i.getOpcode() == Opcode.SPARSE_SWITCH) && values.containsKey(valueRegister(i))) {
+                    chosen = at + 1;
+                    Instruction payload = layout.byAddress.get(layout.addresses.get(at) + ((OffsetInstruction) i).getCodeOffset());
+                    if (payload instanceof SwitchPayload) for (SwitchElement element : ((SwitchPayload) payload).getSwitchElements())
+                        if (element.getKey() == values.get(valueRegister(i))) chosen = indexAt.getOrDefault(layout.addresses.get(at) + element.getOffset(), -1);
+                }
+                for (int next : normal.get(at)) if (chosen == null || chosen == next)
+                    work.add(new ControlState(next, values, controlled));
             }
-            return reachable(call + 1, false);
+            return reached;
+        }
+
+        static Boolean branchTaken(Instruction i, Map<Integer, Integer> values) {
+            if (!i.getOpcode().name.startsWith("if-")) return null;
+            Integer first = values.get(valueRegister(i));
+            Integer second = i instanceof TwoRegisterInstruction ? values.get(((TwoRegisterInstruction) i).getRegisterB()) : Integer.valueOf(0);
+            if (first == null || second == null) return null;
+            int compared = Integer.compare(first, second);
+            return switch (i.getOpcode()) {
+                case IF_EQ, IF_EQZ -> compared == 0;
+                case IF_NE, IF_NEZ -> compared != 0;
+                case IF_LT, IF_LTZ -> compared < 0;
+                case IF_LE, IF_LEZ -> compared <= 0;
+                case IF_GT, IF_GTZ -> compared > 0;
+                case IF_GE, IF_GEZ -> compared >= 0;
+                default -> null;
+            };
         }
     }
 

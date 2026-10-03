@@ -13,8 +13,12 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10t;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction12x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22t;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22x;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction32x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference;
@@ -55,6 +59,9 @@ public final class FeatureDexFixture {
     private static final String MANAGER = "Landroid/content/pm/ShortcutManager;";
     private static final String PUBLISHER = "Lfixture/ShortcutPublisher;";
     private static final List<String> SHORTCUTS = List.of("pushDynamicShortcut", "addDynamicShortcuts", "setDynamicShortcuts", "updateShortcuts", "removeAllDynamicShortcuts");
+    private static final List<String> COPIED_FALLBACKS = List.of("copied-fallback", "copied-from16-fallback", "copied-16-fallback",
+            "copied-two-register-fallback", "copied-prezero-fallback", "copied-overwrite-alias", "copied-overwrite-source",
+            "copied-branch-fallback", "copied-loop-fallback");
     private static final Map<String, String[]> FAMILIES = new LinkedHashMap<>();
     private static final Map<String, Boolean> FLAGS = new LinkedHashMap<>();
 
@@ -272,9 +279,45 @@ public final class FeatureDexFixture {
             body.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0)); body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
         }
         boolean string = name.equals("putStringExtra");
+        boolean copied = string && variant.startsWith("copied-");
+        int locals = copied ? 3 : 1;
+        if (copied && variant.startsWith("copied-prezero")) body.add(new ImmutableInstruction11n(Opcode.CONST_4, 2, 0));
+        if (copied && variant.startsWith("copied-loop")) body.add(new ImmutableInstruction11n(Opcode.CONST_4, 2, 1));
+        if (copied && variant.startsWith("copied-branch")) {
+            body.add(invoke(Opcode.INVOKE_STATIC, ref("Ljava/lang/System;", "identityHashCode", "I", OBJECT), locals));
+            body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 2));
+        }
         if (string && variant.equals("unreachable-control")) body.add(new ImmutableInstruction10t(Opcode.GOTO, 5));
         body.add(invoke(Opcode.INVOKE_STATIC, ref(TRACKING, "active", "Z")));
         body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
+        if (copied) {
+            if (variant.startsWith("copied-branch")) {
+                body.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 2, 4));
+                body.add(new ImmutableInstruction12x(Opcode.MOVE, 1, 0));
+                body.add(new ImmutableInstruction10t(Opcode.GOTO, 3));
+                body.add(new ImmutableInstruction22x(Opcode.MOVE_FROM16, 1, 0));
+            } else {
+                body.add(variant.startsWith("copied-from16") ? new ImmutableInstruction22x(Opcode.MOVE_FROM16, 1, 0)
+                        : variant.startsWith("copied-16") ? new ImmutableInstruction32x(Opcode.MOVE_16, 1, 0)
+                        : new ImmutableInstruction12x(Opcode.MOVE, 1, 0));
+                if (variant.startsWith("copied-loop")) {
+                    body.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 2, 4));
+                    body.add(new ImmutableInstruction11n(Opcode.CONST_4, 2, 0));
+                    body.add(new ImmutableInstruction10t(Opcode.GOTO, -4));
+                }
+            }
+            if (variant.startsWith("copied-overwrite")) body.add(new ImmutableInstruction11n(Opcode.CONST_4,
+                    variant.startsWith("copied-overwrite-alias") ? 1 : 0, 1));
+            boolean good = variant.endsWith("-good");
+            if (variant.startsWith("copied-two-register") || variant.startsWith("copied-prezero")) {
+                if (!variant.startsWith("copied-prezero")) body.add(new ImmutableInstruction11n(Opcode.CONST_4, 2, 0));
+                body.add(new ImmutableInstruction22t(good ? Opcode.IF_EQ : Opcode.IF_NE, 1, 2, 3));
+            } else {
+                boolean equal = good != variant.startsWith("copied-overwrite-alias");
+                body.add(new ImmutableInstruction21t(equal ? Opcode.IF_EQZ : Opcode.IF_NEZ, 1, 3));
+            }
+            body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, locals));
+        }
         if (string && (variant.equals("guarded-fallback-good") || variant.equals("disabled-misses-fallback"))) {
             body.add(new ImmutableInstruction21t(variant.equals("guarded-fallback-good") ? Opcode.IF_EQZ : Opcode.IF_NEZ, 0, 3));
             body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1));
@@ -284,11 +327,11 @@ public final class FeatureDexFixture {
         }
         if (!string || !variant.equals("missing-original-fallback")) {
             body.add(invoke(name.equals("newPlainText") ? Opcode.INVOKE_STATIC : Opcode.INVOKE_VIRTUAL, nativeCall,
-                    name.equals("newPlainText") ? new int[]{1, 2} : new int[]{1, 2, 3}));
+                    name.equals("newPlainText") ? new int[]{locals, locals + 1} : new int[]{locals, locals + 1, locals + 2}));
             body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
         } else body.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
         body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
-        return method(TRACKING, name, result, true, parameters.length + 1, body, parameters);
+        return method(TRACKING, name, result, true, parameters.length + locals, body, parameters);
     }
 
     public static void main(String[] args) throws Exception {
@@ -378,6 +421,12 @@ public final class FeatureDexFixture {
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             links(classes, true, variant, !partial);
             write(root, "feature-links-" + variant, classes, true, "stripLinkTracking");
+        }
+        for (String shape : COPIED_FALLBACKS) for (String answer : List.of("good", "bad")) {
+            reset(); enable("stripLinkTracking");
+            Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
+            links(classes, true, shape + "-" + answer, true);
+            write(root, "feature-links-" + shape + "-" + answer, classes, true, "stripLinkTracking");
         }
         for (String variant : SHORTCUTS) {
             reset();
