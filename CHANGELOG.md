@@ -17,7 +17,9 @@ Nothing has been released yet. This is the work toward 0.0.2.
 
 * **Settings search:** Interface summaries describe their affected controls and refresh boundaries. Reviewed search aliases cover common names in every supported language, while features absent from the installed patch set stay hidden.
 
-* **Setup guide:** About now has dismissible guidance on patch choices, settings backup and signing keys. It reuses Supported links and offers public password and data-export help. Email sign-in remains unverified, and Facebook sign-in and push aren't promised.
+* **Setup guide:** About now has dismissible guidance on patch choices, settings backup and signing keys. It reuses Supported links and offers public password and data-export help.
+
+* **Account help:** Use existing-account password recovery when an account was created through Google. The guide distinguishes Pinterest and Google passwords and explains that Facebook login is no longer available. Push notifications remain unverified.
 
 * **Download guarantees:** The docs distinguish the initial address check before Android Downloads from Android 9's check of every redirect. Native execution on newer Android versions is preserved.
 

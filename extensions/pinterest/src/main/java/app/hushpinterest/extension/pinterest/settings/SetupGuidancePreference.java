@@ -136,8 +136,8 @@ public final class SetupGuidancePreference extends DialogPreference {
             paragraph(L10n.t(getContext(), "Choose the patches when you build the app in Morphe Manager. The switches here can control only patches included in that build. Changing switches doesn't add or remove patches. Pause keeps your saved choices, but changes made while patching remain in the app."));
 
             heading(L10n.t(getContext(), "Sign in to your existing account"));
-            paragraph(L10n.t(getContext(), "Email and password is the intended sign-in route for this re-signed build, but it hasn't been verified here yet. Google sign-in is limited by the changed signing key. Facebook sign-in and push notifications haven't been verified. Use your existing Pinterest account."));
-            paragraph(L10n.t(getContext(), "For password recovery, use Pinterest's help page. It explains how to reset a password using the email address already linked to your account."));
+            paragraph(L10n.t(getContext(), "Use the email linked to your existing Pinterest account and a Pinterest password. Google sign-in isn't supported with this build's changed signing key. Pinterest no longer offers Facebook login. Push notifications haven't been verified."));
+            paragraph(L10n.t(getContext(), "If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google."));
             action(L10n.t(getContext(), "Pinterest password help"), () -> openHelp(PASSWORD_HELP));
 
             heading(L10n.t(getContext(), "Supported links"));

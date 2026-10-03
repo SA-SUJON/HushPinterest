@@ -12,7 +12,7 @@
 
 HushPinterest is a Morphe patch bundle for Android that takes promoted pins out of Pinterest and can hide the pins Pinterest labels as AI. It also adds pin downloads, browser and sharing choices, privacy controls and switches for the interface.
 
-It's early. There's no release yet, and the patches haven't been tried on a signed-in phone. For now you'd have to build the bundle yourself (see [Building from source](#building-from-source)). Once 0.0.2 is out, Morphe Manager will be able to add this repo as a patch source and keep it updated.
+It's early. There's no release yet. For now you'd have to build the bundle yourself (see [Building from source](#building-from-source)). Once 0.0.2 is out, Morphe Manager will be able to add this repo as a patch source and keep it updated.
 
 ## Which Pinterest
 
@@ -30,9 +30,13 @@ A patched Pinterest can't install over the stock one, because Android only accep
 
 ## Signing in
 
-**Continue with Google doesn't work on a patched Pinterest.** Google's sign-in checks the app's signature, and a patched app carries your key instead of Pinterest's. Email and password is the intended route, and still needs a signed-in device check. If your account was made with Google, set a password first on pinterest.com (Settings, then Account management) and use that.
+**Continue with Google isn't supported in this re-signed build.** Google's Android sign-in setup uses the [app's signing certificate](https://developers.google.com/android/guides/client-auth). A patched app carries your signing key, so Pinterest would have to authorize that key for its Google sign-in client. HushPinterest can't add that approval.
 
-Facebook sign-in hasn't been tried yet.
+Use the email already linked to your existing Pinterest account and a Pinterest password. If you joined through Google or don't know your Pinterest password, choose **Forgot your password?** on Pinterest's login page. Enter that account's email, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google or replace your account. [Pinterest's password recovery help](https://help.pinterest.com/en/article/reset-your-password) explains the steps.
+
+Pinterest [no longer offers Facebook login](https://help.pinterest.com/en/article/log-in-and-out-of-pinterest).
+
+A signed-in feed has been checked on a device. The exact login method wasn't independently observed, and push notifications remain unverified.
 
 ## Keep your signing key
 
