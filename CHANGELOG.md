@@ -2,6 +2,10 @@
 
 Every HushPinterest release, newest first.
 
+## Unreleased
+
+* **Tooling:** The script contract tests run to the end under Windows PowerShell 5.1 as well as PowerShell 7.
+
 ## 0.0.3 (2026-10-03)
 
 The first release, with 17 patches for Pinterest 14.38.0. Pinterest 14.25.0 patches the same way for phones on Android 9. Hide ads, Disable analytics and Strip link tracking are selected by default along with the settings, and everything else starts off until you pick it.

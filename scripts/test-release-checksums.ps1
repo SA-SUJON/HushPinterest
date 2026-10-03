@@ -26,6 +26,13 @@ function Write-ChecksumTestSignature([string]$KeyringHome, [string]$Fingerprint,
     Invoke-ChecksumTestGpg $KeyringHome @('--armor', '--digest-algo', 'SHA256', '--local-user', $Fingerprint,
         '--output', $Signature, '--detach-sign', $Payload) | Out-Null
 }
+# A copy of a splat with some keys replaced. Windows PowerShell 5.1 refuses a parameter that is
+# both splatted and named (ParameterAlreadyBound), where PowerShell 7 lets the named one win.
+function Join-ChecksumArguments([hashtable]$Arguments, [hashtable]$Override) {
+    $joined = $Arguments.Clone()
+    foreach ($key in $Override.Keys) { $joined[$key] = $Override[$key] }
+    return $joined
+}
 
 $work = Join-Path ([IO.Path]::GetTempPath()) ('hushpinterest-checksum-contract-' + [guid]::NewGuid().ToString('N'))
 $homes = @((Join-Path $work 'key-one'), (Join-Path $work 'key-two'))
@@ -78,11 +85,14 @@ try {
     }
     $signArguments = @{ AssetDirectory = $assets; AssetNames = $names; GpgHome = $homes[0];
         SigningFingerprint = $fingerprints[0]; TrustedPublicKeyPath = $publicKeys[0]; Gpg = $Gpg }
-    Assert-ChecksumRefusal { Write-SignedReleaseChecksums @signArguments -GpgHome (Split-Path -Parent $PSScriptRoot) } '*outside*'
-    Assert-ChecksumRefusal { Write-SignedReleaseChecksums @signArguments -GpgHome $assets } '*outside*'
+    Assert-ChecksumRefusal { $outside = Join-ChecksumArguments $signArguments @{ GpgHome = Split-Path -Parent $PSScriptRoot }
+        Write-SignedReleaseChecksums @outside } '*outside*'
+    Assert-ChecksumRefusal { $inAssets = Join-ChecksumArguments $signArguments @{ GpgHome = $assets }
+        Write-SignedReleaseChecksums @inAssets } '*outside*'
     $emptyHome = Join-Path $work 'missing-private-key'
     [void][IO.Directory]::CreateDirectory($emptyHome)
-    Assert-ChecksumRefusal { Write-SignedReleaseChecksums @signArguments -GpgHome $emptyHome } '*Provision*'
+    Assert-ChecksumRefusal { $noKey = Join-ChecksumArguments $signArguments @{ GpgHome = $emptyHome }
+        Write-SignedReleaseChecksums @noKey } '*Provision*'
     Assert-ChecksumContract (-not (Test-Path -LiteralPath (Join-Path $assets 'SHA256SUMS.txt')) -and
         -not (Test-Path -LiteralPath (Join-Path $assets 'SHA256SUMS.txt.asc'))) 'Missing private key left signed output files.'
     $signed = & (Join-Path $PSScriptRoot 'sign-release-checksums.ps1') @signArguments
@@ -110,32 +120,41 @@ try {
     $replacement = if ($alteredText[0] -eq '0') { '1' } else { '0' }
     $alteredText = $replacement + $alteredText.Substring(1)
     [IO.File]::WriteAllText($alteredSums, $alteredText, [Text.Encoding]::ASCII)
-    Assert-ChecksumRefusal { Read-AuthenticatedReleaseChecksums @readArguments -ChecksumsPath $alteredSums } '*authentication failed*'
+    Assert-ChecksumRefusal { $read = Join-ChecksumArguments $readArguments @{ ChecksumsPath = $alteredSums }
+        Read-AuthenticatedReleaseChecksums @read } '*authentication failed*'
     $noncanonical = Join-Path $assets 'noncanonical.txt'
     [IO.File]::WriteAllText($noncanonical, [Text.Encoding]::ASCII.GetString($canonical.Bytes).Replace("`n", "`r`n"), [Text.Encoding]::ASCII)
     $noncanonicalSignature = "$noncanonical.asc"
     Write-ChecksumTestSignature $homes[0] $fingerprints[0] $noncanonical $noncanonicalSignature
-    Assert-ChecksumRefusal { Read-AuthenticatedReleaseChecksums @readArguments -ChecksumsPath $noncanonical -SignaturePath $noncanonicalSignature } '*LF*'
-    Assert-ChecksumRefusal { Read-AuthenticatedReleaseChecksums @readArguments -SignaturePath (Join-Path $assets 'missing.asc') }
+    Assert-ChecksumRefusal { $read = Join-ChecksumArguments $readArguments @{ ChecksumsPath = $noncanonical; SignaturePath = $noncanonicalSignature }
+        Read-AuthenticatedReleaseChecksums @read } '*LF*'
+    Assert-ChecksumRefusal { $read = Join-ChecksumArguments $readArguments @{ SignaturePath = Join-Path $assets 'missing.asc' }
+        Read-AuthenticatedReleaseChecksums @read }
 
     $wrongSignature = Join-Path $assets 'wrong-key.asc'
     Write-ChecksumTestSignature $homes[1] $fingerprints[1] $signed.ChecksumsPath $wrongSignature
-    Assert-ChecksumRefusal { Read-AuthenticatedReleaseChecksums @readArguments -SignaturePath $wrongSignature } '*authentication failed*'
-    $primarySigned = Read-AuthenticatedReleaseChecksums @readArguments -SignaturePath $wrongSignature `
-        -TrustedPublicKeyPath $publicKeys[1] -TrustedFingerprint $fingerprints[1]
+    Assert-ChecksumRefusal { $read = Join-ChecksumArguments $readArguments @{ SignaturePath = $wrongSignature }
+        Read-AuthenticatedReleaseChecksums @read } '*authentication failed*'
+    $primaryRead = Join-ChecksumArguments $readArguments @{ SignaturePath = $wrongSignature
+        TrustedPublicKeyPath = $publicKeys[1]; TrustedFingerprint = $fingerprints[1] }
+    $primarySigned = Read-AuthenticatedReleaseChecksums @primaryRead
     Assert-ChecksumContract ($primarySigned.SignerFingerprint -ceq $fingerprints[1]) 'A valid pinned primary signing key was refused.'
-    Assert-ChecksumRefusal { Read-AuthenticatedReleaseChecksums @readArguments -TrustedPublicKeyPath $publicKeys[1] } '*pinned fingerprint*'
+    Assert-ChecksumRefusal { $read = Join-ChecksumArguments $readArguments @{ TrustedPublicKeyPath = $publicKeys[1] }
+        Read-AuthenticatedReleaseChecksums @read } '*pinned fingerprint*'
     $badSignature = Join-Path $assets 'damaged-signature.asc'
     $damaged = [IO.File]::ReadAllBytes($signed.SignaturePath)
     $damaged[100] = $damaged[100] -bxor 1
     [IO.File]::WriteAllBytes($badSignature, $damaged)
-    Assert-ChecksumRefusal { Read-AuthenticatedReleaseChecksums @readArguments -SignaturePath $badSignature } '*authentication failed*'
+    Assert-ChecksumRefusal { $read = Join-ChecksumArguments $readArguments @{ SignaturePath = $badSignature }
+        Read-AuthenticatedReleaseChecksums @read } '*authentication failed*'
     $extraKeys = Join-Path $trusted 'extra-keys.asc'
     [IO.File]::WriteAllBytes($extraKeys, ([IO.File]::ReadAllBytes($publicKeys[0]) + [IO.File]::ReadAllBytes($publicKeys[1])))
-    Assert-ChecksumRefusal { Read-AuthenticatedReleaseChecksums @readArguments -TrustedPublicKeyPath $extraKeys } '*extra keys*'
+    Assert-ChecksumRefusal { $read = Join-ChecksumArguments $readArguments @{ TrustedPublicKeyPath = $extraKeys }
+        Read-AuthenticatedReleaseChecksums @read } '*extra keys*'
     $extraSignature = Join-Path $assets 'extra-signatures.asc'
     [IO.File]::WriteAllBytes($extraSignature, ([IO.File]::ReadAllBytes($signed.SignaturePath) + [IO.File]::ReadAllBytes($signed.SignaturePath)))
-    Assert-ChecksumRefusal { Read-AuthenticatedReleaseChecksums @readArguments -SignaturePath $extraSignature } '*authentication failed*'
+    Assert-ChecksumRefusal { $read = Join-ChecksumArguments $readArguments @{ SignaturePath = $extraSignature }
+        Read-AuthenticatedReleaseChecksums @read } '*authentication failed*'
 
     $sumHash = Get-ReleaseChecksumHash $signed.ChecksumsPath
     $sigHash = Get-ReleaseChecksumHash $signed.SignaturePath
@@ -147,10 +166,12 @@ try {
     Assert-ChecksumContract (-not (Test-Path -LiteralPath $partial) -and
         (Get-ReleaseChecksumHash $signed.SignaturePath) -ceq $sigHash) 'A partial output reservation leaked or deleted another signature.'
     $commaSums = Join-Path $assets 'comma-sums.txt'
-    $commaSigned = & (Join-Path $PSScriptRoot 'sign-release-checksums.ps1') @signArguments -AssetNames ($names -join ',') -ChecksumsPath $commaSums
-    $commaVerified = & (Join-Path $PSScriptRoot 'verify-release-checksums.ps1') @readArguments `
-        -ChecksumsPath $commaSigned.ChecksumsPath -SignaturePath $commaSigned.SignaturePath -AssetDirectory $assets `
-        -ExpectedAssetNames ($names -join ',')
+    $commaSign = Join-ChecksumArguments $signArguments @{ AssetNames = $names -join ',' }
+    $commaSigned = & (Join-Path $PSScriptRoot 'sign-release-checksums.ps1') @commaSign -ChecksumsPath $commaSums
+    $commaRead = Join-ChecksumArguments $readArguments @{ ChecksumsPath = $commaSigned.ChecksumsPath
+        SignaturePath = $commaSigned.SignaturePath }
+    $commaVerified = & (Join-Path $PSScriptRoot 'verify-release-checksums.ps1') @commaRead `
+        -AssetDirectory $assets -ExpectedAssetNames ($names -join ',')
     Assert-ChecksumContract ($commaVerified.VerifiedAssets -eq 3) 'Comma-separated CLI asset lists were not normalized.'
     Write-Host '[checksums] canonical bytes, pinned primary/subkey signatures, tamper and collision contracts passed'
     $global:LASTEXITCODE = 0
