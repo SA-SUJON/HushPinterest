@@ -17,7 +17,7 @@ Nothing has been released yet. This is the work toward 0.0.2.
 
 * **Diagnostic exports:** Summaries and successful-save feedback now show the real destination on Android 9 and newer versions. Unavailable storage keeps Copy quick report available. Redaction and export bounds remain enforced.
 
-* **Settings search:** Interface summaries describe their affected controls and refresh boundaries. Reviewed search aliases cover common names in every supported language, while features absent from the installed patch set stay hidden.
+* **Settings search:** Interface summaries describe their affected controls and refresh boundaries. Reviewed search aliases cover common names in every supported language, while features absent from the installed patch set stay hidden. The interface screenshot now shows the updated summaries.
 
 * **Setup guide:** About now has dismissible guidance on patch choices, settings backup and signing keys. It reuses Supported links and offers public password and data-export help.
 
