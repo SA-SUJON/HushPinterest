@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 Nothing has been released yet. This is the work toward 0.0.2.
 
+* **Signed-in Privacy checks:** Android 16 PCAPdroid captures compared Disable analytics on, off and paused across signed-in feed and pin loads. Disable analytics on kept sign-in, feed and pin fetching working while `trk.pinterest.com` and AppsFlyer SNI appeared only when the switch was off or HushPinterest was paused. The installed manifest has `firebase_analytics_collection_deactivated=true`, so Pause cannot restore Firebase Analytics. Push plumbing is present and notifications are allowed; no live Pinterest push arrived during the check window. HTTPS captures are endpoint and SNI evidence only because paths and payloads are encrypted.
+
 * **Signed-in Interface checks:** Android 16 live checks covered the Interface settings page, local settings import restore, visible pin-menu filtering with Pause restore, and Back, Profile, Share and Report access. Focused tests passed for UI hooks, settings accessibility, navigation, localization and patch fixtures. Account-specific prompts and rows that did not appear are blocked for a matching live condition.
 
 * **Signed-in Pin actions:** Android 16 live checks covered System share on, off and Pause behavior, browser routing on, off and Pause behavior, MP4 download from the pin menu, Download history after restart and the Download pins off path. Pinterest only supplied clean copied and shared links, and the exercised image pins did not expose an original-image URL. Those remaining evidence gaps are blocked for a matching live pin or signed-in Android 9 device.
