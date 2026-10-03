@@ -38,6 +38,7 @@ import android.os.BadParcelableException;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.Preference;
+import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 
 import org.json.JSONObject;
@@ -55,6 +56,7 @@ import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowToast;
+import org.robolectric.util.ReflectionHelpers;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -502,6 +504,310 @@ public class SettingsBackupTest {
             assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
             assertFalse(Settings.HIDE_ADS.savedValue());
             assertFalse("Undo overwrote the later edit", Settings.HIDE_AI_PINS.savedValue());
+        }
+    }
+
+    @Test
+    public void savedEditsReturnedToTheImportedValueBeforeCallbacksStillExpireUndo() throws Exception {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+            SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+            settle();
+            Preference undo = page.findPreference(UNDO_ROW);
+            assertTrue(undo.isEnabled());
+            assertTrue(Settings.HIDE_ADS.save(true));
+            assertTrue(Settings.HIDE_ADS.save(false));
+            settle();
+            assertFalse(undo.isEnabled());
+            assertEquals("Undo ended because a saved switch changed.", undo.getSummary().toString());
+            assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+            assertFalse("Undo overwrote the final saved edit", Settings.HIDE_ADS.savedValue());
+            assertEquals(false, store().get(Settings.HIDE_ADS.key));
+        }
+    }
+
+    @Test
+    public void twoFrameworkSwitchTapsBeforeUndoCallbacksStillExpireUndo() throws Exception {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+            SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+            settle();
+            SwitchPreference ads = (SwitchPreference) page.findPreference(Settings.HIDE_ADS.key);
+            Preference undo = page.findPreference(UNDO_ROW);
+            assertTrue(undo.isEnabled());
+            ReflectionHelpers.callInstanceMethod(ads, "performClick",
+                    ReflectionHelpers.ClassParameter.from(PreferenceScreen.class, page.getPreferenceScreen()));
+            assertTrue(Settings.HIDE_ADS.savedValue());
+            ReflectionHelpers.callInstanceMethod(ads, "performClick",
+                    ReflectionHelpers.ClassParameter.from(PreferenceScreen.class, page.getPreferenceScreen()));
+            assertFalse(Settings.HIDE_ADS.savedValue());
+            settle();
+            assertFalse(undo.isEnabled());
+            assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+            assertFalse("Undo overwrote the final tapped choice", Settings.HIDE_ADS.savedValue());
+            assertEquals(false, store().get(Settings.HIDE_ADS.key));
+        }
+    }
+
+    @Test
+    public void savedEditsExpireUndoWithoutAnOpenSettingsPage() throws Exception {
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+        assertTrue(Settings.HIDE_ADS.save(true));
+        assertTrue(Settings.HIDE_ADS.save(false));
+        assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+        assertFalse(Settings.HIDE_ADS.savedValue());
+        assertEquals(false, store().get(Settings.HIDE_ADS.key));
+    }
+
+    @Test
+    public void batchEditsReturnedToTheirImportedValuesStillExpireUndo() throws Exception {
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+        Map<Setting<?>, Object> changed = new LinkedHashMap<>();
+        changed.put(Settings.HIDE_ADS, true);
+        changed.put(Settings.HIDE_AI_PINS, false);
+        Setting.saveAll(changed);
+        changed.put(Settings.HIDE_ADS, false);
+        changed.put(Settings.HIDE_AI_PINS, true);
+        Setting.saveAll(changed);
+        assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+        assertFalse(Settings.HIDE_ADS.savedValue());
+        assertTrue(Settings.HIDE_AI_PINS.savedValue());
+    }
+
+    @Test
+    public void persistingATransientSwitchStillExpiresUndoWhenItsValuesReturn() throws Exception {
+        for (boolean batch : new boolean[]{false, true}) {
+            SettingsBackup.discardUndo();
+            Settings.HIDE_ADS.resetToDefault();
+            SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+            Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
+            assertTrue(Setting.preferences.preferences.getBoolean(Settings.HIDE_AI_PINS.key, true));
+            if (batch) Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, false));
+            else assertTrue(Settings.HIDE_AI_PINS.save(false));
+            assertFalse("the requested edit wasn't persisted",
+                    Setting.preferences.preferences.getBoolean(Settings.HIDE_AI_PINS.key, true));
+            Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "true");
+            assertEquals(batch ? "batch" : "single", SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+            assertFalse(Settings.HIDE_ADS.savedValue());
+        }
+    }
+
+    @Test
+    public void restoringALiveValueToItsAlreadyStoredValueKeepsUndo() throws Exception {
+        for (boolean batch : new boolean[]{false, true}) {
+            SettingsBackup.discardUndo();
+            Settings.HIDE_ADS.resetToDefault();
+            SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+            long revision = Settings.HIDE_AI_PINS.savedWriteRevision();
+            Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
+            if (batch) Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, true));
+            else assertTrue(Settings.HIDE_AI_PINS.save(true));
+            assertTrue(Settings.HIDE_AI_PINS.savedValue());
+            assertEquals("a stored no-op became an edit", revision, Settings.HIDE_AI_PINS.savedWriteRevision());
+            assertEquals(batch ? "batch" : "single", SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+        }
+    }
+
+    @Test
+    public void failedWritesRestoreStoredRepresentationWithoutPersistingATransientValue() throws Exception {
+        for (boolean batch : new boolean[]{false, true}) {
+            for (boolean explicitDefault : new boolean[]{false, true}) {
+                for (FailingStore.Fault fault : new FailingStore.Fault[]{FailingStore.Fault.EDIT_THROWS,
+                        FailingStore.Fault.STAGE_THROWS, FailingStore.Fault.COMMIT_FALSE,
+                        FailingStore.Fault.COMMIT_THROWS, FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING,
+                        FailingStore.Fault.LOST}) {
+                    String mode = (batch ? "batch " : "single ") + explicitDefault + " " + fault;
+                    SettingsBackup.discardUndo();
+                    Settings.HIDE_ADS.resetToDefault();
+                    if (explicitDefault) {
+                        Setting.preferences.preferences.edit().putBoolean(Settings.HIDE_AI_PINS.key, true).commit();
+                    }
+                    try (FailingStore ignored = FailingStore.install(FailingStore.Fault.NONE, fault,
+                            FailingStore.Fault.NONE)) {
+                        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+                        Map<String, ?> original = store();
+                        long revision = Settings.HIDE_AI_PINS.savedWriteRevision();
+                        Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
+                        if (batch) {
+                            try {
+                                Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, true));
+                                fail(mode + " was reported as saved");
+                            } catch (Setting.BatchFailed failed) {
+                                assertTrue(mode, failed.restored);
+                            }
+                        } else {
+                            assertFalse(mode + " was reported as saved", Settings.HIDE_AI_PINS.save(true));
+                        }
+                        assertEquals(mode, original, store());
+                        assertFalse(mode + " changed the previous live value", Settings.HIDE_AI_PINS.savedValue());
+                        assertEquals(mode, revision, Settings.HIDE_AI_PINS.savedWriteRevision());
+                        Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "true");
+                        assertEquals(mode, SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    public void queuedFailedWriteCallbacksPreserveAnExplicitDefaultAndUndo() throws Exception {
+        for (boolean batch : new boolean[]{false, true}) {
+            SettingsBackup.discardUndo();
+            Settings.HIDE_ADS.resetToDefault();
+            Settings.HIDE_AI_PINS.resetToDefault();
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+                settle();
+                preserveAnExplicitAiDefault();
+                try (FailingStore ignored = FailingStore.install(FailingStore.Fault.NONE,
+                        FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING, FailingStore.Fault.NONE)) {
+                    SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+                    settle();
+                    Map<String, ?> original = store();
+                    assertEquals("the explicit-default fixture was normalized", true, original.get(Settings.HIDE_AI_PINS.key));
+                    long revision = Settings.HIDE_AI_PINS.savedWriteRevision();
+                    Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
+                    java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newSingleThreadExecutor();
+                    try {
+                        java.util.concurrent.Future<Boolean> saved = pool.submit(() -> {
+                            if (!batch) return Settings.HIDE_AI_PINS.save(true);
+                            try {
+                                Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, true));
+                                return true;
+                            } catch (Setting.BatchFailed failed) {
+                                assertTrue(failed.restored);
+                                return false;
+                            }
+                        });
+                        assertFalse(saved.get(5, TimeUnit.SECONDS));
+                        assertFalse("the failure changed the temporary live value", Settings.HIDE_AI_PINS.savedValue());
+                        assertEquals(original, store());
+                        // Restore the temporary value without normalizing the explicitly stored default.
+                        ReflectionHelpers.setField(Settings.HIDE_AI_PINS, "value", true);
+                        settle();
+                        assertEquals("a queued callback rewrote the recovered store", original, store());
+                        assertEquals("a rollback callback became an edit", revision,
+                                Settings.HIDE_AI_PINS.savedWriteRevision());
+                        assertTrue(page.findPreference(UNDO_ROW).isEnabled());
+                        assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+                    } finally {
+                        pool.shutdownNow();
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    public void queuedFailedWriteCallbacksDoNotCountATemporaryLiveMismatchAsASavedEdit() throws Exception {
+        for (boolean batch : new boolean[]{false, true}) {
+            Settings.HIDE_AI_PINS.resetToDefault();
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                SettingsL10nTest.show(controller.get());
+                settle();
+                preserveAnExplicitAiDefault();
+                Map<String, ?> original = store();
+                long revision = Settings.HIDE_AI_PINS.savedWriteRevision();
+                Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
+                try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING,
+                        FailingStore.Fault.NONE)) {
+                    java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newSingleThreadExecutor();
+                    try {
+                        java.util.concurrent.Future<Boolean> saved = pool.submit(() -> {
+                            if (!batch) return Settings.HIDE_AI_PINS.save(true);
+                            try {
+                                Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, true));
+                                return true;
+                            } catch (Setting.BatchFailed failed) {
+                                assertTrue(failed.restored);
+                                return false;
+                            }
+                        });
+                        assertFalse(saved.get(5, TimeUnit.SECONDS));
+                        settle();
+                        assertFalse("a queued callback changed the temporary live value", Settings.HIDE_AI_PINS.savedValue());
+                        assertEquals("a queued callback rewrote the recovered store", original, store());
+                        assertEquals("a rollback notification became a successful edit", revision,
+                                Settings.HIDE_AI_PINS.savedWriteRevision());
+                    } finally {
+                        pool.shutdownNow();
+                    }
+                }
+            } finally {
+                Settings.HIDE_AI_PINS.resetToDefault();
+            }
+        }
+    }
+
+    private static void preserveAnExplicitAiDefault() throws Exception {
+        boolean wasImporting = AbstractPreferenceFragment.settingImportInProgress;
+        AbstractPreferenceFragment.settingImportInProgress = true;
+        try {
+            assertTrue(Setting.preferences.preferences.edit().putBoolean(Settings.HIDE_AI_PINS.key, true).commit());
+            assertTrue(Settings.HIDE_AI_PINS.save(true));
+        } finally {
+            AbstractPreferenceFragment.settingImportInProgress = wasImporting;
+        }
+        settle();
+        assertEquals("the explicit-default fixture was normalized", true, store().get(Settings.HIDE_AI_PINS.key));
+    }
+
+    @Test
+    public void noopsExcludedEditsAndRestoredTransientChoicesKeepUndo() throws Exception {
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+        assertTrue(Settings.HIDE_ADS.save(false));
+        Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, true));
+        assertTrue(Settings.CHECK_FOR_RELEASES.save(true));
+        assertTrue(Settings.CHECK_FOR_RELEASES.save(false));
+        BooleanSetting.privateSetValue(Settings.HIDE_AI_PINS, false);
+        BooleanSetting.privateSetValue(Settings.HIDE_AI_PINS, true);
+        Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
+        Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "true");
+        assertEquals(SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
+        assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+        assertTrue(Settings.HIDE_ADS.savedValue());
+    }
+
+    @Test
+    public void failedSavedEditsKeepUndoAfterTheirRollbackCallbacks() throws Exception {
+        for (boolean batch : new boolean[]{false, true}) {
+            for (FailingStore.Fault fault : new FailingStore.Fault[]{FailingStore.Fault.EDIT_THROWS,
+                    FailingStore.Fault.STAGE_THROWS, FailingStore.Fault.COMMIT_FALSE,
+                    FailingStore.Fault.COMMIT_THROWS, FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING,
+                    FailingStore.Fault.LOST}) {
+                String mode = (batch ? "batch " : "single ") + fault;
+                SettingsBackup.discardUndo();
+                Settings.HIDE_ADS.resetToDefault();
+                try (FailingStore ignored = FailingStore.install(FailingStore.Fault.NONE, fault,
+                        FailingStore.Fault.NONE);
+                     ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                    HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+                    SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+                    settle();
+                    Map<String, ?> imported = store();
+                    if (batch) {
+                        Map<Setting<?>, Object> changed = new LinkedHashMap<>();
+                        changed.put(Settings.HIDE_ADS, true);
+                        changed.put(Settings.HIDE_AI_PINS, false);
+                        try {
+                            Setting.saveAll(changed);
+                            fail(mode + " was reported as saved");
+                        } catch (Setting.BatchFailed failed) {
+                            assertTrue(mode, failed.restored);
+                        }
+                    } else {
+                        assertFalse(mode + " was reported as saved", Settings.HIDE_ADS.save(true));
+                    }
+                    settle();
+                    assertFalse(mode + " changed the imported choice", Settings.HIDE_ADS.savedValue());
+                    assertTrue(mode + " changed another switch", Settings.HIDE_AI_PINS.savedValue());
+                    assertEquals(mode, imported, store());
+                    assertEquals(mode, SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
+                    assertTrue(mode + " expired Undo", page.findPreference(UNDO_ROW).isEnabled());
+                    assertEquals(mode, SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+                    assertTrue(Settings.HIDE_ADS.savedValue());
+                }
+            }
         }
     }
 

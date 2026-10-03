@@ -150,7 +150,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
     private static final SharedPreferences.OnSharedPreferenceChangeListener undoListener = (store, key) -> {
         if (key != null && SettingsBackup.ALLOWLIST.stream().noneMatch(setting -> setting.key.equals(key))) return;
         Utils.runOnMainThread(() -> {
-            // The write and its possible rollback finish before their final state is reviewed.
+            // Review successful saved revisions after the write and any rollback finish.
             if (OWNER.get() == null) setRowsBusy(0, null);
         });
     };

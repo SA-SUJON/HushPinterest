@@ -238,11 +238,13 @@ public final class SettingsBackup {
         final Snapshot before;
         final Snapshot after;
         final SharedPreferences store;
+        final Map<BooleanSetting, Long> savedRevisions = new LinkedHashMap<>();
 
         Undo(Snapshot before, Snapshot after) {
             this.before = before;
             this.after = after;
             store = Setting.preferences.preferences;
+            for (BooleanSetting setting : ALLOWLIST) savedRevisions.put(setting, setting.savedWriteRevision());
         }
     }
 
@@ -262,7 +264,7 @@ public final class SettingsBackup {
             if (pendingUndo != null) {
                 if (pendingUndo.store != Setting.preferences.preferences) {
                     discardUndo();
-                } else if (!matches(pendingUndo.after)) {
+                } else if (!matches(pendingUndo)) {
                     pendingUndo = null;
                     undoExpired = true;
                 }
@@ -272,10 +274,11 @@ public final class SettingsBackup {
         }
     }
 
-    private static boolean matches(Snapshot snapshot) {
+    private static boolean matches(Undo undo) {
         try {
-            for (Map.Entry<BooleanSetting, Boolean> entry : snapshot.values.entrySet()) {
+            for (Map.Entry<BooleanSetting, Boolean> entry : undo.after.values.entrySet()) {
                 BooleanSetting setting = entry.getKey();
+                if (setting.savedWriteRevision() != undo.savedRevisions.get(setting)) return false;
                 boolean stored = Setting.preferences.preferences.getBoolean(setting.key, setting.defaultValue);
                 if (stored != entry.getValue() || !entry.getValue().equals(setting.savedValue())) return false;
             }

@@ -16,6 +16,7 @@ import org.robolectric.annotation.Config;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Collections;
 
 /** A failed disk write must not leave the process claiming a setting was saved. */
 @RunWith(RobolectricTestRunner.class)
@@ -49,6 +50,54 @@ public class SettingPersistenceTest {
         assertFalse("the caller was told a failed write succeeded", setting.save("after"));
 
         assertEquals("a failed write escaped into the live setting", "before", setting.get());
+    }
+
+    @Test public void savingATransientStringMustPersistIt() {
+        StringSetting setting = new StringSetting("transient_string_" + System.nanoTime(), "before");
+        Setting.privateSetValueFromString(setting, "after");
+        long revision = setting.savedWriteRevision();
+        assertTrue(setting.save("after"));
+        assertEquals("after", Setting.preferences.preferences.getString(setting.key, null));
+        assertEquals(revision + 1, setting.savedWriteRevision());
+    }
+
+    @Test public void failedWritesRestoreLegacyNumericStorageAndThePreviousLiveValue() throws Exception {
+        for (boolean batch : new boolean[]{false, true}) {
+            IntegerSetting setting = new IntegerSetting("legacy_numeric_" + System.nanoTime(), 1);
+            Setting.preferences.preferences.edit().putInt(setting.key, 3).commit();
+            Setting.privateSetValueFromString(setting, "4");
+            long revision = setting.savedWriteRevision();
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING,
+                    FailingStore.Fault.NONE)) {
+                if (batch) {
+                    try {
+                        Setting.saveAll(Collections.singletonMap(setting, 5));
+                        throw new AssertionError("a failed batch was reported as saved");
+                    } catch (Setting.BatchFailed failed) {
+                        assertTrue(failed.restored);
+                    }
+                } else {
+                    assertFalse(setting.save(5));
+                }
+                assertEquals(3, Setting.preferences.preferences.getInt(setting.key, -1));
+                assertEquals(Integer.valueOf(4), setting.savedValue());
+                assertEquals(revision, setting.savedWriteRevision());
+            }
+        }
+    }
+
+    @Test public void aNumericRepresentationChangeDoesNotCountAsASavedEdit() throws Exception {
+        for (boolean batch : new boolean[]{false, true}) {
+            IntegerSetting setting = new IntegerSetting("numeric_noop_" + System.nanoTime(), 1);
+            Setting.preferences.preferences.edit().putInt(setting.key, 3).commit();
+            Setting.privateSetValueFromString(setting, "4");
+            long revision = setting.savedWriteRevision();
+            if (batch) Setting.saveAll(Collections.singletonMap(setting, 3));
+            else assertTrue(setting.save(3));
+            assertEquals("3", Setting.preferences.preferences.getString(setting.key, null));
+            assertEquals(Integer.valueOf(3), setting.savedValue());
+            assertEquals(revision, setting.savedWriteRevision());
+        }
     }
 
     @Test public void aFailedWriteCannotRollBackANewerSuccessfulWrite() throws Exception {

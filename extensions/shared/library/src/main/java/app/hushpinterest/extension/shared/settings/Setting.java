@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.StringRef;
@@ -213,6 +214,13 @@ public abstract class Setting<T> {
      */
     protected volatile T value;
 
+    // Process-local successful saved edits, guarded by Setting.class. Temporary values and
+    // failed writes, including their recovery writes, don't advance this revision.
+    private long savedWriteRevision;
+    private T lastSavedValue;
+    @Nullable private Object lastSavedStoredValue;
+    private static int savedWritesInProgress;
+
     /**
      * Pause HushPinterest, decided once when the process starts (see {@link HushPinterestPause}). While it
      * is on, every setting that changes Pinterest answers the value that leaves Pinterest as it ships.
@@ -300,6 +308,8 @@ public abstract class Setting<T> {
         }
 
         load();
+        lastSavedValue = value;
+        lastSavedStoredValue = preferences.preferences.getAll().get(key);
     }
 
     /**
@@ -410,28 +420,57 @@ public abstract class Setting<T> {
                 return false;
             }
             newValue = coerce(Objects.requireNonNull(newValue));
-            if (value.equals(newValue)) {
+            T previousValue = value;
+            final T previousSaved;
+            final Object previousStored;
+            try {
+                previousStored = preferences.preferences.getAll().get(key);
+                previousSaved = storedValue();
+            } catch (RuntimeException unreadable) {
+                Logger.printException(() -> "Could not read setting before save: " + key, unreadable);
+                return false;
+            }
+            lastSavedValue = previousSaved;
+            lastSavedStoredValue = previousStored;
+            if (value.equals(newValue) && previousSaved.equals(newValue)) {
                 return true;
             }
 
             // Must set before saving to preferences (otherwise importing fails to update UI correctly).
-            T previousValue = value;
+            savedWritesInProgress++;
             value = newValue;
             try {
                 persistCurrentValue();
+                Object savedStored = preferences.preferences.getAll().get(key);
+                if (!previousSaved.equals(newValue)) savedWriteRevision++;
+                lastSavedValue = newValue;
+                lastSavedStoredValue = savedStored;
                 return true;
             } catch (RuntimeException failure) {
-                // A failed commit means the value that survives a restart is still the old one.
-                // Keep the live process on that same value, then make a best effort to restore
-                // storage in case a platform implementation reports failure after touching it.
+                // The live value may have been temporary. Restore the actual stored representation,
+                // including an absent key, rather than persisting that temporary value.
                 value = previousValue;
                 try {
-                    persistCurrentValue();
+                    restoreStored(Collections.singletonMap(this, previousStored)).commit();
                 } catch (RuntimeException rollbackFailure) {
                     failure.addSuppressed(rollbackFailure);
                 }
+                try {
+                    if (Objects.equals(previousStored, preferences.preferences.getAll().get(key))) {
+                        value = previousValue;
+                    } else {
+                        load();
+                        value = coerce(value);
+                    }
+                    lastSavedValue = storedValue();
+                    lastSavedStoredValue = preferences.preferences.getAll().get(key);
+                } catch (RuntimeException unreadable) {
+                    failure.addSuppressed(unreadable);
+                }
                 Logger.printException(() -> "Could not save setting: " + key, failure);
                 return false;
+            } finally {
+                savedWritesInProgress--;
             }
         }
     }
@@ -439,6 +478,19 @@ public abstract class Setting<T> {
     private void persistCurrentValue() {
         if (defaultValue.equals(value)) removeFromPreferences();
         else saveToPreferences();
+    }
+
+    /** Reads the existing storage formats without replacing a temporary live value. */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private T storedValue() {
+        Object stored;
+        if (defaultValue instanceof Boolean) stored = preferences.getBoolean(key, (Boolean) defaultValue);
+        else if (defaultValue instanceof Integer) stored = preferences.getIntegerString(key, (Integer) defaultValue);
+        else if (defaultValue instanceof Long) stored = preferences.getLongString(key, (Long) defaultValue);
+        else if (defaultValue instanceof Float) stored = preferences.getFloatString(key, (Float) defaultValue);
+        else if (defaultValue instanceof Enum) stored = preferences.getEnum(key, (Enum) defaultValue);
+        else stored = preferences.getString(key, (String) defaultValue);
+        return coerce((T) stored);
     }
 
     /**
@@ -472,6 +524,38 @@ public abstract class Setting<T> {
         return value;
     }
 
+    /** The successful saved edits to this setting, even if later edits return it to an old value. */
+    public final long savedWriteRevision() {
+        synchronized (Setting.class) {
+            return savedWriteRevision;
+        }
+    }
+
+    /** Records a framework preference's successfully adopted saved edit, after its UI work succeeds. */
+    public final void noteSavedPreferenceChange() {
+        synchronized (Setting.class) {
+            if (savedWritesInProgress != 0) return;
+            T stored = storedValue();
+            Object raw = preferences.preferences.getAll().get(key);
+            if (!stored.equals(coerce(lastSavedValue))) savedWriteRevision++;
+            lastSavedValue = stored;
+            lastSavedStoredValue = raw;
+        }
+    }
+
+    /** Own write callbacks refresh the UI without adopting or rewriting an intermediate store. */
+    public static synchronized boolean isSavedWriteInProgress() {
+        return savedWritesInProgress != 0;
+    }
+
+    /** Queued owned-write callbacks already have their stored value and representation accounted for. */
+    public final boolean isSavedPreferenceUnchanged() {
+        synchronized (Setting.class) {
+            return storedValue().equals(coerce(lastSavedValue))
+                    && Objects.equals(lastSavedStoredValue, preferences.preferences.getAll().get(key));
+        }
+    }
+
     /**
      * The answer while paused. For a value setting the default is the unpatched behaviour: an
      * empty list, a zero limit, "auto", "default". A switch answers false instead.
@@ -493,7 +577,7 @@ public abstract class Setting<T> {
 
     /** A batch that didn't land. Whether every setting it named is back on its value from before is known and said. */
     public static final class BatchFailed extends java.io.IOException {
-        /** Every setting the batch named holds its value from before, live and in the store. */
+        /** Every named setting has its previous live value and exact stored representation. */
         public final boolean restored;
 
         BatchFailed(boolean restored, @Nullable Throwable cause) {
@@ -505,9 +589,9 @@ public abstract class Setting<T> {
     /**
      * Apply a validated batch in one preference transaction. Call on a worker thread.
      *
-     * @throws BatchFailed when the batch was attempted and didn't land. Each setting it named then
-     *                     runs the value the store holds, which is what a restart loads. Anything
-     *                     else is thrown before a write.
+     * @throws BatchFailed when the batch was attempted and didn't land. Exact recovery preserves
+     *                     the previous live values. Partial recovery adopts the surviving store.
+     *                     Anything else is thrown before a write.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static synchronized void saveAll(Map<Setting<?>, Object> updates) throws java.io.IOException {
@@ -515,6 +599,8 @@ public abstract class Setting<T> {
             throw new java.io.IOException("Persistent settings are writable only from the main process");
         }
         Map<Setting<?>, Object> previous = new HashMap<>();
+        Map<Setting<?>, Object> previousSaved = new HashMap<>();
+        Map<Setting<?>, Object> previousStored = new HashMap<>();
         Map<Setting<?>, Object> bounded = new HashMap<>();
         for (var entry : updates.entrySet()) {
             Setting setting = entry.getKey();
@@ -529,40 +615,76 @@ public abstract class Setting<T> {
             bounded.put(setting, setting.coerce(next));
             previous.put(setting, setting.savedValue());
         }
-        Throwable failure = null;
-        boolean committing = false;
+        Map<String, ?> storedBefore = preferences.preferences.getAll();
+        for (Setting<?> setting : bounded.keySet()) {
+            previousStored.put(setting, storedBefore.get(setting.key));
+            previousSaved.put(setting, setting.storedValue());
+            ((Setting) setting).lastSavedValue = previousSaved.get(setting);
+            setting.lastSavedStoredValue = previousStored.get(setting);
+        }
+        savedWritesInProgress++;
         try {
-            var editor = stage(bounded);
-            committing = true;
-            if (editor.commit()) return;
-        } catch (RuntimeException thrown) {
-            // An editor that wouldn't open, a value it refused or a commit that threw.
-            failure = thrown;
-        }
-        boolean restored = true;
-        if (committing) {
-            // A commit that failed may still have landed, so the values from before are written back.
+            Throwable failure = null;
+            boolean committing = false;
             try {
-                restored = stage(previous).commit();
+                var editor = stage(bounded);
+                committing = true;
+                if (editor.commit()) {
+                    Map<String, ?> savedStored = preferences.preferences.getAll();
+                    for (var entry : bounded.entrySet()) {
+                        if (!entry.getValue().equals(previousSaved.get(entry.getKey()))) {
+                            entry.getKey().savedWriteRevision++;
+                        }
+                        ((Setting) entry.getKey()).lastSavedValue = entry.getValue();
+                        entry.getKey().lastSavedStoredValue = savedStored.get(entry.getKey().key);
+                    }
+                    return;
+                }
             } catch (RuntimeException thrown) {
-                restored = false;
+                // An editor that wouldn't open, a value it refused or a commit that threw.
+                failure = thrown;
             }
-        }
-        // Each setting runs what the store holds, which is what a restart loads, and the batch
-        // counts as put back only when that is the value from before.
-        for (var entry : previous.entrySet()) {
-            Setting setting = entry.getKey();
-            setting.value = entry.getValue();
+            boolean restored = true;
+            for (var entry : previous.entrySet()) ((Setting) entry.getKey()).value = entry.getValue();
+            if (committing) {
+                // A commit that failed may still have landed, so the values from before are written back.
+                try {
+                    restored = restoreStored(previousStored).commit();
+                } catch (RuntimeException thrown) {
+                    restored = false;
+                }
+            }
+            boolean storageMatches = true;
             try {
-                setting.load();
-                setting.value = setting.coerce(setting.value);
+                Map<String, ?> surviving = preferences.preferences.getAll();
+                for (var entry : previousStored.entrySet()) {
+                    if (!Objects.equals(entry.getValue(), surviving.get(entry.getKey().key))) storageMatches = false;
+                }
             } catch (RuntimeException unreadable) {
-                setting.value = entry.getValue();
-                restored = false;
+                storageMatches = false;
             }
-            if (!setting.value.equals(entry.getValue())) restored = false;
+            restored &= storageMatches;
+            // Exact recovery preserves the prior live value even when it was temporary. A partial
+            // recovery adopts the surviving store, so hooks never run a value the failed batch lost.
+            for (var entry : previous.entrySet()) {
+                Setting setting = entry.getKey();
+                setting.value = entry.getValue();
+                try {
+                    if (!storageMatches) {
+                        setting.load();
+                        setting.value = setting.coerce(setting.value);
+                    }
+                    setting.lastSavedValue = setting.storedValue();
+                    setting.lastSavedStoredValue = preferences.preferences.getAll().get(setting.key);
+                } catch (RuntimeException unreadable) {
+                    setting.value = entry.getValue();
+                    restored = false;
+                }
+            }
+            throw new BatchFailed(restored, failure);
+        } finally {
+            savedWritesInProgress--;
         }
-        throw new BatchFailed(restored, failure);
     }
 
     /** An editor holding [values], each already the setting's live value, so an import's page shows them. */
@@ -576,6 +698,25 @@ public abstract class Setting<T> {
             if (setting.defaultValue.equals(next)) editor.remove(setting.key);
             else if (next instanceof Boolean) editor.putBoolean(setting.key, (Boolean) next);
             else editor.putString(setting.key, next instanceof Enum ? ((Enum) next).name() : next.toString());
+        }
+        return editor;
+    }
+
+    /** Restores only the named keys, using the exact representation captured before their write. */
+    @SuppressWarnings("unchecked")
+    private static android.content.SharedPreferences.Editor restoreStored(Map<Setting<?>, Object> values) {
+        var editor = preferences.preferences.edit();
+        for (var entry : values.entrySet()) {
+            String key = entry.getKey().key;
+            Object stored = entry.getValue();
+            if (stored == null) editor.remove(key);
+            else if (stored instanceof Boolean) editor.putBoolean(key, (Boolean) stored);
+            else if (stored instanceof String) editor.putString(key, (String) stored);
+            else if (stored instanceof Integer) editor.putInt(key, (Integer) stored);
+            else if (stored instanceof Long) editor.putLong(key, (Long) stored);
+            else if (stored instanceof Float) editor.putFloat(key, (Float) stored);
+            else if (stored instanceof Set) editor.putStringSet(key, (Set<String>) stored);
+            else throw new IllegalArgumentException("Unknown stored preference type: " + key);
         }
         return editor;
     }
