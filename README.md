@@ -36,7 +36,7 @@ Use the email already linked to your existing Pinterest account and a Pinterest 
 
 Pinterest [no longer offers Facebook login](https://help.pinterest.com/en/article/log-in-and-out-of-pinterest).
 
-A signed-in feed has been checked on a device. The exact login method wasn't independently observed, and push notifications remain unverified.
+A signed-in feed has been checked on a device. The final login step was completed there, and the feed was observed afterward. Push notifications remain unverified.
 
 ## Keep your signing key
 
@@ -93,7 +93,7 @@ Long-press the Pinterest icon and tap HushPinterest. You can also open Pinterest
   <img src="assets/screenshots/settings-recovery.png" width="240" alt="Retry and Back if the settings screen can't open">
 </p>
 
-These settings were captured on Android 16 with every patch included. All 19 feature switches saved and restored their choices. Pause and Resume were checked across restarts, and Supported links opened Android's link settings. Signed-in feed and pin-action checks are still pending.
+These settings were captured on Android 16 with every patch included. All 19 feature switches saved and restored their choices. Pause and Resume were checked across restarts, and Supported links opened Android's link settings. Signed-in feed scrolling and feed filtering have been checked. Pin-action checks are still pending.
 
 If the settings page can't open, Retry tries to load it again. Back returns to Pinterest. The recovery screen was checked with a controlled load failure.
 
