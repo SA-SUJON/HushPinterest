@@ -15,9 +15,13 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction12x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21s;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22b;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22s;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22t;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22x;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction23x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction32x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference;
@@ -62,6 +66,7 @@ public final class FeatureDexFixture {
     private static final List<String> COPIED_FALLBACKS = List.of("copied-fallback", "copied-from16-fallback", "copied-16-fallback",
             "copied-two-register-fallback", "copied-prezero-fallback", "copied-overwrite-alias", "copied-overwrite-source",
             "copied-branch-fallback", "copied-loop-fallback");
+    private static final List<String> INTEGER_FALLBACKS = integerFallbacks();
     private static final Map<String, String[]> FAMILIES = new LinkedHashMap<>();
     private static final Map<String, Boolean> FLAGS = new LinkedHashMap<>();
 
@@ -73,6 +78,15 @@ public final class FeatureDexFixture {
         int[] words = new int[5];
         System.arraycopy(registers, 0, words, 0, registers.length);
         return new ImmutableInstruction35c(opcode, registers.length, words[0], words[1], words[2], words[3], words[4], ref);
+    }
+
+    private static List<String> integerFallbacks() {
+        List<String> shapes = new ArrayList<>();
+        for (String operation : List.of("and", "or", "xor", "xor-not"))
+            for (String form : List.of("register", "twoaddr", "lit8", "lit16")) shapes.add("integer-" + operation + "-" + form);
+        for (String shape : List.of("or-set", "and-unknown", "chain", "overwrite", "branch", "loop", "neg", "not",
+                "narrow", "add", "rsub", "shift", "div", "zero-divisor")) shapes.add("integer-" + shape);
+        return shapes;
     }
 
     private static Method method(String owner, String name, String result, boolean isStatic, int registers, List<Instruction> body, String... parameters) {
@@ -274,6 +288,7 @@ public final class FeatureDexFixture {
     }
 
     private static Method linkWrapper(String name, ImmutableMethodReference nativeCall, String result, String variant, String... parameters) {
+        if (name.equals("putStringExtra") && variant.startsWith("integer-")) return integerLinkWrapper(nativeCall, variant);
         List<Instruction> body = new ArrayList<>();
         if (variant.equals("unreachable-" + name + "-fallback")) {
             body.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0)); body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
@@ -332,6 +347,96 @@ public final class FeatureDexFixture {
         } else body.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
         body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
         return method(TRACKING, name, result, true, parameters.length + locals, body, parameters);
+    }
+
+    private static Method integerLinkWrapper(ImmutableMethodReference nativeCall, String variant) {
+        String shape = variant.substring("integer-".length(), variant.lastIndexOf('-'));
+        boolean good = variant.endsWith("-good");
+        boolean nonzero = shape.startsWith("xor-not-") || shape.equals("or-set") || shape.equals("overwrite") || shape.equals("not");
+        List<Instruction> body = new ArrayList<>();
+        if (shape.equals("branch")) {
+            body.add(invoke(Opcode.INVOKE_STATIC, ref("Ljava/lang/System;", "identityHashCode", "I", OBJECT), 3));
+            body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 2));
+        }
+        body.add(invoke(Opcode.INVOKE_STATIC, ref(TRACKING, "active", "Z")));
+        body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
+        body.add(new ImmutableInstruction12x(Opcode.MOVE, 1, 0));
+        if (shape.endsWith("-register") || shape.endsWith("-twoaddr") || shape.endsWith("-lit8") || shape.endsWith("-lit16")) {
+            String operation = shape.substring(0, shape.indexOf('-')).toUpperCase(java.util.Locale.ROOT) + "_INT";
+            int operand = shape.startsWith("and-") || shape.startsWith("xor-not-") ? 1 : 0;
+            if (shape.endsWith("-register") || shape.endsWith("-twoaddr")) {
+                body.add(new ImmutableInstruction11n(Opcode.CONST_4, 2, operand));
+                body.add(shape.endsWith("-register") ? new ImmutableInstruction23x(Opcode.valueOf(operation), 1, 1, 2)
+                        : new ImmutableInstruction12x(Opcode.valueOf(operation + "_2ADDR"), 1, 2));
+            } else body.add(shape.endsWith("-lit8") ? new ImmutableInstruction22b(Opcode.valueOf(operation + "_LIT8"), 1, 1, operand)
+                    : new ImmutableInstruction22s(Opcode.valueOf(operation + "_LIT16"), 1, 1, operand));
+        } else switch (shape) {
+            case "or-set":
+                body.add(new ImmutableInstruction22b(Opcode.OR_INT_LIT8, 1, 1, 1)); break;
+            case "and-unknown":
+                body.add(invoke(Opcode.INVOKE_STATIC, ref("Ljava/lang/System;", "identityHashCode", "I", OBJECT), 3));
+                body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 2));
+                body.add(new ImmutableInstruction23x(Opcode.AND_INT, 1, 1, 2)); break;
+            case "chain":
+                body.add(new ImmutableInstruction22b(Opcode.AND_INT_LIT8, 1, 1, 1));
+                body.add(new ImmutableInstruction22b(Opcode.OR_INT_LIT8, 1, 1, 2));
+                body.add(new ImmutableInstruction22s(Opcode.XOR_INT_LIT16, 1, 1, 2)); break;
+            case "overwrite":
+                body.add(new ImmutableInstruction22b(Opcode.AND_INT_LIT8, 1, 1, 1));
+                body.add(new ImmutableInstruction11n(Opcode.CONST_4, 1, 1));
+                body.add(new ImmutableInstruction22b(Opcode.XOR_INT_LIT8, 1, 1, 0)); break;
+            case "branch":
+                body.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 2, 5));
+                body.add(new ImmutableInstruction22b(Opcode.AND_INT_LIT8, 1, 1, 1));
+                body.add(new ImmutableInstruction10t(Opcode.GOTO, 3));
+                body.add(new ImmutableInstruction22s(Opcode.OR_INT_LIT16, 1, 1, 0)); break;
+            case "loop":
+                body.add(new ImmutableInstruction11n(Opcode.CONST_4, 2, 1));
+                body.add(new ImmutableInstruction22b(Opcode.AND_INT_LIT8, 1, 1, 1));
+                body.add(new ImmutableInstruction22b(Opcode.ADD_INT_LIT8, 2, 2, 1));
+                // The concrete counter takes billions of iterations to overflow; the stable false value must survive widening.
+                body.add(new ImmutableInstruction21t(Opcode.IF_GTZ, 2, -4)); break;
+            case "neg": body.add(new ImmutableInstruction12x(Opcode.NEG_INT, 1, 1)); break;
+            case "not": body.add(new ImmutableInstruction12x(Opcode.NOT_INT, 1, 1)); break;
+            case "narrow":
+                body.add(new ImmutableInstruction22s(Opcode.ADD_INT_LIT16, 1, 1, 128));
+                body.add(new ImmutableInstruction12x(Opcode.INT_TO_BYTE, 1, 1));
+                body.add(new ImmutableInstruction12x(Opcode.INT_TO_SHORT, 1, 1));
+                body.add(new ImmutableInstruction12x(Opcode.INT_TO_CHAR, 1, 1));
+                body.add(new ImmutableInstruction22s(Opcode.ADD_INT_LIT16, 1, 1, 128));
+                body.add(new ImmutableInstruction12x(Opcode.INT_TO_SHORT, 1, 1)); break;
+            case "add":
+                body.add(new ImmutableInstruction22b(Opcode.ADD_INT_LIT8, 1, 1, 0));
+                body.add(new ImmutableInstruction11n(Opcode.CONST_4, 2, 1));
+                body.add(new ImmutableInstruction12x(Opcode.MUL_INT_2ADDR, 1, 2));
+                body.add(new ImmutableInstruction11n(Opcode.CONST_4, 2, 0));
+                body.add(new ImmutableInstruction23x(Opcode.SUB_INT, 1, 1, 2)); break;
+            case "rsub":
+                body.add(new ImmutableInstruction22s(Opcode.RSUB_INT, 1, 1, 0));
+                body.add(new ImmutableInstruction22b(Opcode.RSUB_INT_LIT8, 1, 1, 0)); break;
+            case "shift":
+                body.add(new ImmutableInstruction22b(Opcode.SHL_INT_LIT8, 1, 1, 33));
+                body.add(new ImmutableInstruction21s(Opcode.CONST_16, 2, 33));
+                body.add(new ImmutableInstruction12x(Opcode.SHR_INT_2ADDR, 1, 2));
+                body.add(new ImmutableInstruction23x(Opcode.SHL_INT, 1, 1, 2));
+                body.add(new ImmutableInstruction22b(Opcode.USHR_INT_LIT8, 1, 1, 33)); break;
+            case "div":
+                body.add(new ImmutableInstruction11n(Opcode.CONST_4, 2, 1));
+                body.add(new ImmutableInstruction23x(Opcode.DIV_INT, 1, 1, 2));
+                body.add(new ImmutableInstruction22b(Opcode.REM_INT_LIT8, 1, 1, 2)); break;
+            case "zero-divisor":
+                body.add(new ImmutableInstruction11n(Opcode.CONST_4, 2, good ? 1 : 0));
+                body.add(new ImmutableInstruction12x(Opcode.DIV_INT_2ADDR, 1, 2)); break;
+            default: throw new IllegalArgumentException(shape);
+        }
+        if (!shape.equals("zero-divisor")) {
+            body.add(new ImmutableInstruction21t(good != nonzero ? Opcode.IF_EQZ : Opcode.IF_NEZ, 1, 3));
+            body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 3));
+        }
+        body.add(invoke(Opcode.INVOKE_VIRTUAL, nativeCall, 3, 4, 5));
+        body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
+        body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+        return method(TRACKING, "putStringExtra", INTENT, true, 6, body, INTENT, STRING, STRING);
     }
 
     public static void main(String[] args) throws Exception {
@@ -422,7 +527,9 @@ public final class FeatureDexFixture {
             links(classes, true, variant, !partial);
             write(root, "feature-links-" + variant, classes, true, "stripLinkTracking");
         }
-        for (String shape : COPIED_FALLBACKS) for (String answer : List.of("good", "bad")) {
+        List<String> fallbackShapes = new ArrayList<>(COPIED_FALLBACKS);
+        fallbackShapes.addAll(INTEGER_FALLBACKS);
+        for (String shape : fallbackShapes) for (String answer : List.of("good", "bad")) {
             reset(); enable("stripLinkTracking");
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             links(classes, true, shape + "-" + answer, true);

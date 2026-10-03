@@ -2004,6 +2004,7 @@ public class DexDiff {
         final List<List<Integer>> normal = new ArrayList<>();
         final List<List<Integer>> handlers = new ArrayList<>();
         final Map<Integer, Integer> indexAt = new HashMap<>();
+        final BitSet loopEntries = new BitSet();
 
         FeatureFlow(Method m) {
             layout = new Layout(m.getImplementation());
@@ -2028,6 +2029,7 @@ public class DexDiff {
                 }
                 normal.add(next);
                 handlers.add(caught);
+                for (int target : next) if (target <= at) loopEntries.set(target);
             }
         }
 
@@ -2051,10 +2053,11 @@ public class DexDiff {
         }
 
         private record ControlState(int at, Map<Integer, Integer> values, boolean controlled) {}
+        private record ControlPoint(int at, boolean controlled) {}
 
         static int valueRegister(Instruction i) { return ((OneRegisterInstruction) i).getRegisterA(); }
 
-        /** Normal paths after this control answers false. Copies preserve values; every other write kills them. */
+        /** Normal paths after this control answers false. Unknown inputs explore both arms, not a proof of all paths. */
         BitSet afterControl(int call) {
             List<Instruction> body = layout.instructions;
             Reference ref = reference(body.get(call));
@@ -2063,10 +2066,22 @@ public class DexDiff {
                 return reachable(call + 1, false);
             BitSet reached = new BitSet();
             Set<ControlState> seen = new HashSet<>();
+            Map<ControlPoint, Map<Integer, Integer>> loops = new HashMap<>();
             Deque<ControlState> work = new ArrayDeque<>();
             work.add(new ControlState(0, Map.of(), false));
             while (!work.isEmpty()) {
                 ControlState state = work.poll();
+                if (loopEntries.get(state.at)) {
+                    ControlPoint point = new ControlPoint(state.at, state.controlled);
+                    Map<Integer, Integer> previous = loops.get(point);
+                    // A changing loop value becomes unknown once and stays unknown. Stable booleans survive.
+                    Map<Integer, Integer> joined = new HashMap<>(previous == null ? state.values : previous);
+                    Map<Integer, Integer> incoming = state.values;
+                    joined.entrySet().removeIf(entry -> !entry.getValue().equals(incoming.get(entry.getKey())));
+                    Map<Integer, Integer> values = Map.copyOf(joined);
+                    loops.put(point, values);
+                    state = new ControlState(state.at, values, state.controlled);
+                }
                 if (!seen.add(state)) continue;
                 int at = state.at;
                 Instruction i = body.get(at);
@@ -2084,8 +2099,14 @@ public class DexDiff {
                         if (source != null) written.put(destination, source);
                     } else if (i instanceof NarrowLiteralInstruction && i.getOpcode().name.startsWith("const"))
                         written.put(destination, ((NarrowLiteralInstruction) i).getNarrowLiteral());
+                    else {
+                        Integer value = integerValue(i, values);
+                        if (value != null) written.put(destination, value);
+                    }
                     values = Map.copyOf(written);
                 }
+                if ((i.getOpcode().name.startsWith("div-int") || i.getOpcode().name.startsWith("rem-int"))
+                        && Integer.valueOf(0).equals(integerRight(i, state.values))) continue;
                 Integer chosen = null;
                 Boolean taken = branchTaken(i, values);
                 if (taken != null) chosen = taken
@@ -2100,6 +2121,59 @@ public class DexDiff {
                     work.add(new ControlState(next, values, controlled));
             }
             return reached;
+        }
+
+        static Integer integerRight(Instruction i, Map<Integer, Integer> values) {
+            if (i instanceof NarrowLiteralInstruction) return ((NarrowLiteralInstruction) i).getNarrowLiteral();
+            if (i instanceof ThreeRegisterInstruction) return values.get(((ThreeRegisterInstruction) i).getRegisterC());
+            return i instanceof TwoRegisterInstruction ? values.get(((TwoRegisterInstruction) i).getRegisterB()) : null;
+        }
+
+        /** Exact 32-bit scalar operations. Unsupported writes and unknown operands discard the destination. */
+        static Integer integerValue(Instruction i, Map<Integer, Integer> values) {
+            if (i instanceof TwoRegisterInstruction) {
+                Integer source = values.get(((TwoRegisterInstruction) i).getRegisterB());
+                if (source != null) switch (i.getOpcode()) {
+                    case NEG_INT: return -source;
+                    case NOT_INT: return ~source;
+                    case INT_TO_BYTE: return (int) (byte) source.intValue();
+                    case INT_TO_CHAR: return (int) (char) source.intValue();
+                    case INT_TO_SHORT: return (int) (short) source.intValue();
+                    default: break;
+                }
+            }
+            int leftRegister;
+            if (i instanceof ThreeRegisterInstruction) leftRegister = ((ThreeRegisterInstruction) i).getRegisterB();
+            else if (i instanceof TwoRegisterInstruction && i.getOpcode().name.endsWith("/2addr")) leftRegister = valueRegister(i);
+            else if (i instanceof TwoRegisterInstruction && i instanceof NarrowLiteralInstruction)
+                leftRegister = ((TwoRegisterInstruction) i).getRegisterB();
+            else return null;
+            Integer first = values.get(leftRegister);
+            Integer second = integerRight(i, values);
+            String operation = i.getOpcode().name.split("/", 2)[0];
+            if (operation.equals("and-int") && (Integer.valueOf(0).equals(first) || Integer.valueOf(0).equals(second))) return 0;
+            if (operation.equals("or-int") && (Integer.valueOf(-1).equals(first) || Integer.valueOf(-1).equals(second))) return -1;
+            if ((operation.equals("xor-int") || operation.equals("sub-int")) && !(i instanceof NarrowLiteralInstruction)) {
+                int rightRegister = i instanceof ThreeRegisterInstruction ? ((ThreeRegisterInstruction) i).getRegisterC()
+                        : ((TwoRegisterInstruction) i).getRegisterB();
+                if (leftRegister == rightRegister) return 0;
+            }
+            if (first == null || second == null) return null;
+            return switch (operation) {
+                case "add-int" -> first + second;
+                case "sub-int" -> first - second;
+                case "rsub-int" -> second - first;
+                case "mul-int" -> first * second;
+                case "div-int" -> second == 0 ? null : first / second;
+                case "rem-int" -> second == 0 ? null : first % second;
+                case "and-int" -> first & second;
+                case "or-int" -> first | second;
+                case "xor-int" -> first ^ second;
+                case "shl-int" -> first << second;
+                case "shr-int" -> first >> second;
+                case "ushr-int" -> first >>> second;
+                default -> null;
+            };
         }
 
         static Boolean branchTaken(Instruction i, Map<Integer, Integer> values) {

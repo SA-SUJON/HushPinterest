@@ -666,6 +666,14 @@ try {
         $featureCases["feature-links-$shape-good"] = $true
         $featureCases["feature-links-$shape-bad"] = $false
     }
+    $integerShapes = @(foreach ($operation in 'and', 'or', 'xor', 'xor-not') {
+        foreach ($form in 'register', 'twoaddr', 'lit8', 'lit16') { "integer-$operation-$form" }
+    }) + @('or-set', 'and-unknown', 'chain', 'overwrite', 'branch', 'loop', 'neg', 'not', 'narrow', 'add', 'rsub', 'shift', 'div', 'zero-divisor' |
+        ForEach-Object { "integer-$_" })
+    foreach ($shape in $integerShapes) {
+        $featureCases["feature-links-$shape-good"] = $true
+        $featureCases["feature-links-$shape-bad"] = $false
+    }
     $compiledCases = @(Get-ChildItem -LiteralPath $dexDir -Filter '*.selected' | ForEach-Object { $_.BaseName } | Sort-Object)
     $coveredCases = @($featureCases.Keys | Sort-Object)
     Assert-True (($compiledCases -join "`n") -ceq ($coveredCases -join "`n")) 'A compiled family fixture has no result assertion.'
@@ -700,8 +708,8 @@ try {
         if ($name -like '*unreachable-control' -or $name -eq 'feature-links-unreachable-helper-control') {
             Assert-True ($text.Contains('unreachable required family control')) "An early return disconnected the family control in $name without detection.`n$text"
         }
-        if ($name -eq 'feature-links-disabled-misses-fallback' -or $name -like 'feature-links-copied-*-bad') {
-            Assert-True ($text.Contains('fallback after its disabled family control')) "An original call reachable only when filtering is enabled passed as a disabled fallback.`n$text"
+        if ($name -eq 'feature-links-disabled-misses-fallback' -or $name -like 'feature-links-copied-*-bad' -or $name -like 'feature-links-integer-*-bad') {
+            Assert-True ($text.Contains('fallback after its disabled family control')) "An original call disconnected from the disabled family path passed as a fallback.`n$text"
         }
     }
     $duplicateFlags = Invoke-DexDiff -Clean (Get-FeatureApk 'feature-clean') -Patched (New-DexApk -Name 'feature-duplicate-flags' -Entries ([ordered]@{
