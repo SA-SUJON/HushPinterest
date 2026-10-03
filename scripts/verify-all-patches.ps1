@@ -90,6 +90,8 @@ $workRoot = (Resolve-Path -LiteralPath $WorkDir).Path
 $runId = [guid]::NewGuid().ToString('N')
 $runDir = Join-Path $workRoot "verify-$runId"
 New-Item -ItemType Directory -Force -Path $runDir | Out-Null
+$exitCode = 1
+try {
 
 # A distributor's build of Pinterest can come as a split bundle. aapt2 reads the version facts off
 # one APK, the base, which holds the manifest, and the register check's clean side is the base
@@ -128,9 +130,6 @@ if ($forced) {
 $out = Resolve-WithinRoot -Path (Join-Path $runDir 'verify-all.apk') -Root $workRoot
 $temp = Resolve-WithinRoot -Path (Join-Path $runDir 'verify-all-tmp') -Root $workRoot
 $result = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-result-$runId.json") -Root $workRoot
-$exitCode = 1
-
-try {
     # What the CLI patches and what the patched table is held to, one file: a bundle's merge, made
     # here because the CLI deletes its own, or the APK itself. A bundle that won't merge stops the
     # run; base.apk alone lacks the splits' resources and would pass a table that lost them.

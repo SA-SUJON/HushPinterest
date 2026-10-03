@@ -46,6 +46,8 @@ param(
     [string]$Keystore = "$HOME\.android\sideload-release.jks",
     [string]$KeyAlias = 'sideload',
     [string]$OutDir = (Join-Path $env:TEMP 'hushpinterest-device'),
+    # An explicit final destination is reserved atomically and never overwritten.
+    [string]$OutputApk,
     # The checkout whose catalog and release bundle are used, the one holding this script unless
     # given. The contract tests point it at a fixture.
     [string]$Root
@@ -87,6 +89,29 @@ if (-not $Apk -or -not (Test-Path -LiteralPath $Apk -PathType Leaf)) {
 # refused here: without -f the CLI refuses it too, but only after unpacking it, and this is the
 # APK that goes on a phone.
 $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $root
+$runParent = $OutDir
+$runToken = [guid]::NewGuid().ToString('N')
+$OutDir = Join-Path $runParent $runToken
+if (Test-Path -LiteralPath $OutDir) { throw 'The unique patch workspace already exists.' }
+New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
+$ownerFile = Join-Path $OutDir 'owner.txt'
+$owner = [IO.File]::Open($ownerFile, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+try {
+    $ownerBytes = [Text.Encoding]::UTF8.GetBytes($runToken)
+    $owner.Write($ownerBytes, 0, $ownerBytes.Length)
+} finally { $owner.Dispose() }
+$complete = $false
+$outputReservation = $null
+$reservedPath = $null
+try {
+if ($OutputApk) {
+    $reservedPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputApk)
+    if (-not (Test-Path -LiteralPath (Split-Path -Parent $reservedPath) -PathType Container)) {
+        throw 'The explicit APK destination directory does not exist.'
+    }
+    try { $outputReservation = [IO.File]::Open($reservedPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None) }
+    catch [IO.IOException] { throw 'The explicit APK destination already exists or is owned by another run. No output was overwritten.' }
+}
 $stockBase = Join-Path $OutDir 'stock-base.apk'
 try {
     $stock = Get-ApkManifestFacts -Apk (Get-BaseApk -Apk $Apk -Destination $stockBase) -Aapt2 $Aapt2
@@ -135,7 +160,7 @@ New-Item -ItemType Directory -Force $OutDir | Out-Null
 $out = Join-Path $OutDir "hushpinterest-$version-signed.apk"
 $temp = Join-Path $OutDir 'tmp'
 $result = Join-Path $OutDir 'result.json'
-if (Test-Path $out) { Remove-Item $out -Force }
+if (Test-Path -LiteralPath $out) { throw 'The new run already has an APK output.' }
 
 Write-Host "[device] $($names.Count) patches from $(Split-Path -Leaf $bundle) onto $(Split-Path -Leaf $Apk)"
 $enable = @()
@@ -172,9 +197,10 @@ try {
     }
     if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode" }
 } finally {
+    if (-not (Test-Path -LiteralPath $ownerFile -PathType Leaf) -or [IO.File]::ReadAllText($ownerFile) -cne $runToken) {
+        throw 'Patch workspace ownership changed. Argument cleanup refused.'
+    }
     Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue
-    # The CLI unpacks the whole APK here and a run against Pinterest leaves gigabytes behind.
-    if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue }
 }
 # The same report check the throwaway verification applies: every requested patch, every
 # step, the target, and a real APK. The build that goes onto a phone deserves no less.
@@ -185,7 +211,17 @@ $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
     -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $stock.versionName
 if (-not $validation.Valid) { throw "Patching did not produce a complete APK: $($validation.Reason)" }
 Write-Host "[device] applied $(@($report.appliedPatches).Count), failed $(@($report.failedPatches).Count), target $($report.packageName) $($report.packageVersion)"
+if ($outputReservation) {
+    $input = [IO.File]::OpenRead($out)
+    try { $input.CopyTo($outputReservation); $outputReservation.Flush($true) }
+    finally { $input.Dispose() }
+    $outputReservation.Dispose()
+    $outputReservation = $null
+    $out = $reservedPath
+}
+$complete = $true
 Write-Host "[device] $out"
+Write-Output $out
 
 if (-not $Serial) { return }
 $adb = (Get-Command adb -ErrorAction SilentlyContinue).Source
@@ -199,3 +235,20 @@ try {
         -Aapt2 $Aapt2 -Lease $lease
     & $adb -s $Serial shell dumpsys package $target.PackageName | Select-String 'versionName' | Out-Host
 } finally { Exit-HushDeviceLease $lease }
+
+} finally {
+    if ($outputReservation) { $outputReservation.Dispose() }
+    # These are this run's paths only. A missing or replaced owner marker fails closed.
+    $safeRun = Resolve-WithinRoot -Path $OutDir -Root $runParent
+    if (-not (Test-Path -LiteralPath $ownerFile -PathType Leaf) -or [IO.File]::ReadAllText($ownerFile) -cne $runToken) {
+        throw 'Patch workspace ownership changed. Cleanup refused.'
+    }
+    foreach ($path in @((Join-Path $safeRun 'tmp'), (Join-Path $safeRun 'morphe-patch.args'))) {
+        $safePath = Resolve-WithinRoot -Path $path -Root $safeRun
+        if (Test-Path -LiteralPath $safePath) { Remove-Item -LiteralPath $safePath -Recurse -Force }
+    }
+    if (-not $complete) {
+        Remove-Item -LiteralPath $safeRun -Recurse -Force
+        if ($reservedPath -and $outputReservation) { Remove-Item -LiteralPath $reservedPath -Force }
+    }
+}

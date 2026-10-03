@@ -7,6 +7,7 @@ Every HushPinterest release, newest first.
 Nothing has been released yet. This is the work toward 0.0.2.
 
 * **Development installs:** Device helpers now require an exclusive serial lease and verify the device identity. Installs refuse different signing keys and downgrades without removing apps, clearing accounts or granting every permission. Child checks keep caller-owned leases.
+* **Patch outputs:** Concurrent device builds keep separate workspaces and return their verified APK paths. Explicit output collisions are refused. Failed patch reports and early verification errors clean their own generated files.
 
 * **Feed:** An optional shopping filter removes shoppable pins, shopping stories and featured board placements. It starts off and reads both text and enum labels from Pinterest's models.
 * **Privacy:** Disable analytics targets Pinterest usage uploads and AppsFlyer transport. Runtime switches and Pause restore those paths. Firebase Analytics is disabled at patch time and stays disabled until you patch without that patch. Strip link tracking removes known tracking parameters from copied and shared links without changing unknown or signed parameters.

@@ -4571,13 +4571,16 @@ try {
     # version now, the default fixture is still the newest build, and an undeclared build is
     # refused before the CLI starts. No -Serial, so nothing goes near adb.
     $deviceOut = Join-Path $releaseRoot 'device'
-    function Invoke-DeviceBuild([string]$Apk, [string]$OutDir = $deviceOut, [string]$DesktopJar = $stubJar) {
+    function Invoke-DeviceBuild([string]$Apk, [string]$OutDir = $deviceOut, [string]$DesktopJar = $stubJar,
+            [string]$OutputApk) {
         Remove-Item -LiteralPath $javaLog -Force -ErrorAction SilentlyContinue
         $arguments = @{ Root = $releaseRepo; DesktopJar = $DesktopJar; Java = $stubJava; Aapt2 = $stubAapt2; OutDir = $OutDir }
         if ($Apk) { $arguments['Apk'] = $Apk }
-        & (Join-Path $PSScriptRoot 'patch-for-device.ps1') @arguments 6> $null
+        if ($OutputApk) { $arguments['OutputApk'] = $OutputApk }
+        $paths = @(& (Join-Path $PSScriptRoot 'patch-for-device.ps1') @arguments 6> $null)
+        Assert-True ($paths.Count -eq 1) 'The device builder did not return exactly one verified APK path.'
+        $script:deviceApk = [string]$paths[0]
     }
-    $deviceApk = Join-Path $deviceOut "hushpinterest-$releaseVersionHere-signed.apk"
     foreach ($build in $releaseTarget.PackageVersions) {
         try {
             Invoke-DeviceBuild -Apk $fixturePaths[$build]
@@ -4588,7 +4591,7 @@ try {
         Assert-True ($deviceRuns.Count -eq 1 -and $deviceRuns[0] -eq "patch $($fixturePaths[$build]) forced=0" -and
             (Test-Path -LiteralPath $deviceApk -PathType Leaf)) `
             "patch-for-device.ps1 did not build $build once, without -f: $($deviceRuns -join '; ')"
-        Assert-True (-not (Test-Path -LiteralPath (Join-Path $deviceOut 'stock-base.apk'))) `
+        Assert-True (-not (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $deviceApk) 'stock-base.apk'))) `
             "patch-for-device.ps1 left the base APK it read for $build behind."
     }
     $savedFixtureDir = $env:HUSHPINTEREST_FIXTURE_DIR
@@ -4601,6 +4604,74 @@ try {
     } finally {
         $env:HUSHPINTEREST_FIXTURE_DIR = $savedFixtureDir
     }
+    # A consumer may compile an APK while reporting a failed patch. Neither local runner may
+    # deliver that retained output. Each failed run must clean only its own workspace.
+    $goodPath = $deviceApk
+    $goodHash = Get-Sha256Hex -Path $goodPath
+    $failureFixture = $fixturePaths[$releaseTarget.PackageVersions[-1]]
+    $failureReportPath = "$failureFixture.result.json"
+    $savedReport = [IO.File]::ReadAllBytes($failureReportPath)
+    try {
+        $failedReport = Get-Content -LiteralPath $failureReportPath -Raw | ConvertFrom-Json
+        $failedReport.failedPatches = @([pscustomobject]@{ name = $releaseNames[0]; message = 'late preflight failed' })
+        Set-Content -LiteralPath $failureReportPath -Value ($failedReport | ConvertTo-Json -Depth 8) -Encoding UTF8
+        $concurrentOut = Join-Path $releaseRoot 'concurrent-device'
+        $patchScript = Join-Path $PSScriptRoot 'patch-for-device.ps1'
+        $jobs = @()
+        try {
+            foreach ($inputApk in @($fixturePaths[$releaseTarget.PackageVersion], $failureFixture)) {
+                $jobArgs = @{ Root = $releaseRepo; DesktopJar = $stubJar; Java = $stubJava; Aapt2 = $stubAapt2;
+                    OutDir = $concurrentOut; Apk = $inputApk }
+                $jobs += Start-Job -ScriptBlock {
+                    param($Script, $Arguments)
+                    $ErrorActionPreference = 'Stop'
+                    try {
+                        $output = @(& $Script @Arguments 6> $null)
+                        [pscustomobject]@{ Success = $true; Paths = $output; Reason = '' }
+                    } catch { [pscustomobject]@{ Success = $false; Paths = @(); Reason = $_.Exception.Message } }
+                } -ArgumentList $patchScript, $jobArgs
+            }
+            $answers = @($jobs | Wait-Job | Receive-Job)
+            $passed = @($answers | Where-Object Success)
+            $refused = @($answers | Where-Object { -not $_.Success })
+            Assert-True ($passed.Count -eq 1 -and $refused.Count -eq 1 -and
+                $refused[0].Reason -like '*Patching did not produce a complete APK*') `
+                "Concurrent builders didn't independently accept/refuse their own reports: $($answers | ConvertTo-Json -Depth 4 -Compress)"
+            $concurrentApk = [string]@($passed[0].Paths)[0]
+            Assert-True ((Test-Path -LiteralPath $concurrentApk -PathType Leaf) -and
+                (Get-Sha256Hex -Path $concurrentApk) -ceq (Get-Sha256Hex -Path (Join-Path $tools 'patched.apk')) -and
+                (Get-Sha256Hex -Path $goodPath) -ceq $goodHash) "One patch run overwrote another run's APK."
+            $remainingRuns = @(Get-ChildItem -LiteralPath $concurrentOut -Directory)
+            Assert-True ($remainingRuns.Count -eq 1 -and
+                $remainingRuns[0].FullName -eq (Split-Path -Parent $concurrentApk)) `
+                'The failed run retained its APK or removed the successful workspace.'
+            Assert-True (-not (Test-Path -LiteralPath (Join-Path $remainingRuns[0].FullName 'morphe-patch.args')) -and
+                -not (Test-Path -LiteralPath (Join-Path $remainingRuns[0].FullName 'tmp'))) `
+                'The successful run retained its private arguments or temporary files.'
+        } finally {
+            $jobs | Remove-Job -Force -ErrorAction SilentlyContinue
+        }
+        Assert-Throws { Invoke-VerifyAll -Apk $failureFixture } '*verify-all-patches.ps1 exited 1*' `
+            'The throwaway verifier accepted an APK from a failed patch report.'
+        Assert-True (@(Get-ChildItem -LiteralPath (Join-Path $releaseRoot 'verify-work') -Directory -Filter 'verify-*').Count -eq 0) `
+            'The throwaway verifier retained a failed compiled APK.'
+        Set-Content -LiteralPath $failureReportPath -Value '{broken-json' -Encoding ASCII
+        $malformedOut = Join-Path $releaseRoot 'malformed-device'
+        Assert-Throws { Invoke-DeviceBuild -Apk $failureFixture -OutDir $malformedOut } '*JSON*' `
+            'The device runner accepted a malformed result beside a compiled APK.'
+        Assert-True (@(Get-ChildItem -LiteralPath $malformedOut -Directory).Count -eq 0) `
+            'A malformed result left a deliverable APK behind.'
+    } finally { [IO.File]::WriteAllBytes($failureReportPath, $savedReport) }
+    # Explicit destinations use atomic creation. A collision must fail before invoking tools.
+    $explicitApk = Join-Path $releaseRoot 'explicit.apk'
+    Invoke-DeviceBuild -Apk $fixturePaths[$releaseTarget.PackageVersion] -OutputApk $explicitApk
+    Assert-True ($deviceApk -ceq $explicitApk -and (Test-Path -LiteralPath $explicitApk)) `
+        'An explicit destination wasn't returned after successful validation.'
+    $explicitHash = Get-Sha256Hex -Path $explicitApk
+    Assert-Throws { Invoke-DeviceBuild -Apk $fixturePaths[$releaseTarget.PackageVersion] -OutputApk $explicitApk } `
+        '*explicit APK destination already exists*' 'A colliding explicit output was overwritten.'
+    Assert-True (-not (Test-Path -LiteralPath $javaLog) -and (Get-Sha256Hex -Path $explicitApk) -ceq $explicitHash) `
+        'An explicit collision invoked the patcher or changed the previously verified APK.'
     Assert-Throws { Invoke-DeviceBuild -Apk $fixturePaths[$newerBuild] } "*$newerBuild, which the bundle does not declare*" `
         'patch-for-device.ps1 took a build the catalog does not declare.'
     Assert-True (-not (Test-Path -LiteralPath $javaLog)) 'patch-for-device.ps1 started the CLI on an undeclared build.'
@@ -4651,7 +4722,8 @@ try {
         } catch {
             throw "patch-for-device.ps1 refused relative paths: $($_.Exception.Message)"
         }
-        Assert-True (Test-Path -LiteralPath (Join-Path $releaseRoot "device-relative\hushpinterest-$releaseVersionHere-signed.apk")) `
+        Assert-True ((Test-Path -LiteralPath $deviceApk) -and
+            $deviceApk.StartsWith((Join-Path $releaseRoot 'device-relative') + '\', [StringComparison]::OrdinalIgnoreCase)) `
             'patch-for-device.ps1 given a relative -OutDir left no APK there.'
         Assert-True (@(Get-ChildItem -LiteralPath $elsewhere -Recurse -Force).Count -eq 0) `
             ("A relative path was written in the process directory instead: " +
