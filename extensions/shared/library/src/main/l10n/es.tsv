@@ -179,9 +179,7 @@ Visit opens a web link in your browser.	Visitar abre el enlace web en tu navegad
 System share sheet	Menú de compartir del sistema
 Share uses Android's share sheet.	Compartir usa el menú de Android.
 No screenshot share menu	Sin menú al hacer capturas
-Off by default. Restart Pinterest to refresh a screen that's already open.	Desactivado por defecto. Reinicia Pinterest para actualizar una pantalla que ya esté abierta.
 Hide search history	Ocultar historial de búsquedas
-Hides recent searches on this device. Pinterest's server history isn't deleted.	Oculta las búsquedas recientes en este dispositivo. No borra el historial de los servidores de Pinterest.
 Hide navigation buttons	Ocultar botones de navegación
 Hide Create button	Ocultar botón Crear
 Hide Notifications button	Ocultar botón Notificaciones
@@ -191,10 +189,8 @@ Hide collage menu items	Ocultar opciones de collage
 Hide Search image menu item	Ocultar opción Buscar imagen
 Hide Promote pin menu item	Ocultar opción Promocionar pin
 Hide comments	Ocultar comentarios
-Hides the comments area under pins.	Oculta la zona de comentarios bajo los pines.
 Quiet email reminders	Ocultar recordatorios de correo
 Disable update nag	Ocultar aviso de actualización
-Hides Pinterest's Play Store update prompt.	Oculta el aviso de actualización de Pinterest en Play Store.
 Download pin	Descargar pin
 Share pin	Compartir pin
 Open pin link	Abrir enlace del pin
@@ -302,3 +298,20 @@ Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-i
 Save the full report in %1$s.	Guarda el informe completo en %1$s.
 Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido. El almacenamiento de informes no está disponible ahora. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa otros datos privados antes de compartirlo.
 Report storage is unavailable right now. You can still copy a quick report.	El almacenamiento de informes no está disponible ahora. Aún puedes copiar un informe rápido.
+Hides new Play Store update prompts. An open prompt won't change.	Oculta los nuevos avisos de actualización de Play Store. Un aviso abierto no cambia.
+Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still work.	Detiene las sugerencias para compartir capturas de pantalla tras reiniciar Pinterest. Las capturas siguen funcionando.
+Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Oculta las filas y los carruseles de búsquedas recientes en su próxima actualización de diseño o visibilidad. No elimina el historial de la cuenta.
+Hides Create in the bottom bar on its next layout.	Oculta Crear en la barra inferior cuando vuelva a actualizarse su diseño.
+Hides Notifications in the bottom bar on its next layout.	Oculta Notificaciones en la barra inferior cuando vuelva a actualizarse su diseño.
+Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Oculta los iconos al final de la cabecera en su próxima actualización de diseño. Volver, las acciones de texto y los controles de cuenta siguen disponibles.
+Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Oculta Añadir al collage y Remezclar collage en los menús de pines recién creados. Un menú existente no cambia.
+Hides Search image in newly created pin menus. An existing menu won't change.	Oculta Buscar imagen en los menús de pines recién creados. Un menú existente no cambia.
+Hides Promote pin in newly created pin menus. An existing menu won't change.	Oculta Promocionar pin en los menús de pines recién creados. Un menú existente no cambia.
+Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Oculta los paneles y las vistas previas de comentarios bajo los pines en su próxima actualización de diseño o visibilidad. No cambia quién puede comentar.
+Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Descarta los recordatorios opcionales de confirmación de correo recién creados. Un recordatorio abierto no cambia. Las comprobaciones de verificación e inicio de sesión siguen vigentes.
+Save media	Guardar contenido multimedia
+Recent searches autocomplete	Autocompletado de búsquedas recientes
+Activity alerts	Avisos de actividad
+Toolbar icons	Iconos de la barra de herramientas
+Reverse image search	Búsqueda inversa de imágenes
+Boost pin	Impulsar Pin

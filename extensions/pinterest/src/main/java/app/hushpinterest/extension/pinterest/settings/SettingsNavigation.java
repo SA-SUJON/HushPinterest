@@ -34,8 +34,11 @@ import androidx.annotation.Nullable;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import app.hushpinterest.extension.shared.L10n;
@@ -62,6 +65,7 @@ final class SettingsNavigation extends BaseAdapter {
     private final ListAdapter source;
     private final List<Section> sections = new ArrayList<>();
     private final List<Preference> visible = new ArrayList<>();
+    private final Map<String, String> searchAliases;
     private final Preference browse;
     private final Preference more;
     private final Preference empty;
@@ -97,6 +101,7 @@ final class SettingsNavigation extends BaseAdapter {
         normalBottomPadding = list.getPaddingBottom();
         source = screen.getRootAdapter();
         Context context = screen.getContext();
+        searchAliases = localizedSearchAliases();
         // Stable English route IDs survive a locale change; the displayed names are localized.
         Set<PatchFamily> build = PatchFamily.inThisBuild();
         section("Feed", L10n.t("Feed"), feedSummary(build), SettingsIcons.FEED, true);
@@ -174,6 +179,18 @@ final class SettingsNavigation extends BaseAdapter {
         if (ads && ai) return L10n.t("Promoted and AI-labeled pins");
         if (ads) return L10n.t("Promoted pins");
         return ai ? L10n.t("AI-labeled pins") : null;
+    }
+
+    /** Reviewed alternate words for actual setting keys, in this screen's current language. */
+    static Map<String, String> localizedSearchAliases() {
+        Map<String, String> aliases = new LinkedHashMap<>();
+        aliases.put(Settings.DOWNLOAD_PINS.key, L10n.t("Save media"));
+        aliases.put(Settings.HIDE_SEARCH_HISTORY.key, L10n.t("Recent searches autocomplete"));
+        aliases.put(Settings.HIDE_NAV_NOTIFICATIONS.key, L10n.t("Activity alerts"));
+        aliases.put(Settings.HIDE_HEADER_BUTTONS.key, L10n.t("Toolbar icons"));
+        aliases.put(Settings.HIDE_PIN_MENU_VISUAL_SEARCH.key, L10n.t("Reverse image search"));
+        aliases.put(Settings.HIDE_PIN_MENU_PIN_BOOST.key, L10n.t("Boost pin"));
+        return Collections.unmodifiableMap(aliases);
     }
 
     private static Preference link(Context context, String title, String summary, String icon) {
@@ -296,7 +313,9 @@ final class SettingsNavigation extends BaseAdapter {
                 boolean headingAdded = false;
                 for (int i = 0; i < section.category.getPreferenceCount(); i++) {
                     Preference row = section.category.getPreference(i);
-                    String text = normalized(section.category.getTitle() + " " + row.getTitle() + " " + row.getSummary());
+                    // Search only rows this build shows. An alias never creates an unavailable row.
+                    String text = normalized(section.category.getTitle() + " " + row.getTitle() + " "
+                            + row.getSummary() + " " + searchAliases.getOrDefault(row.getKey(), ""));
                     boolean matches = true;
                     for (String term : terms.split("\\s+")) if (!text.contains(term)) matches = false;
                     if (!matches) continue;

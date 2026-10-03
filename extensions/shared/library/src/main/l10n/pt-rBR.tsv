@@ -176,9 +176,7 @@ Visit opens a web link in your browser.	Visitar abre o link da web no seu navega
 System share sheet	Menu de compartilhamento do sistema
 Share uses Android's share sheet.	Compartilhar usa o menu do Android.
 No screenshot share menu	Sem menu ao tirar capturas de tela
-Off by default. Restart Pinterest to refresh a screen that's already open.	Desativado por padrão. Reinicie o Pinterest para atualizar uma tela que já esteja aberta.
 Hide search history	Ocultar histórico de pesquisa
-Hides recent searches on this device. Pinterest's server history isn't deleted.	Oculta pesquisas recentes neste dispositivo. Não apaga o histórico nos servidores do Pinterest.
 Hide navigation buttons	Ocultar botões de navegação
 Hide Create button	Ocultar botão Criar
 Hide Notifications button	Ocultar botão Notificações
@@ -188,10 +186,8 @@ Hide collage menu items	Ocultar opções de colagem
 Hide Search image menu item	Ocultar opção Buscar imagem
 Hide Promote pin menu item	Ocultar opção Promover Pin
 Hide comments	Ocultar comentários
-Hides the comments area under pins.	Oculta a área de comentários abaixo dos Pins.
 Quiet email reminders	Ocultar lembretes de e-mail
 Disable update nag	Ocultar aviso de atualização
-Hides Pinterest's Play Store update prompt.	Oculta o aviso de atualização do Pinterest na Play Store.
 Download pin	Baixar Pin
 Share pin	Compartilhar Pin
 Open pin link	Abrir link do Pin
@@ -299,3 +295,20 @@ Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-i
 Save the full report in %1$s.	Salve o relatório completo em %1$s.
 Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copie um relatório rápido. O armazenamento de relatórios está indisponível agora. Links, IDs, cookies e tokens de login são omitidos. Confira outros textos privados antes de compartilhar.
 Report storage is unavailable right now. You can still copy a quick report.	O armazenamento de relatórios está indisponível agora. Você ainda pode copiar um relatório rápido.
+Hides new Play Store update prompts. An open prompt won't change.	Oculta novos avisos de atualização da Play Store. Um aviso aberto não muda.
+Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still work.	Impede sugestões de compartilhamento de capturas de tela após reiniciar o Pinterest. As capturas continuam funcionando.
+Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Oculta linhas e carrosséis de pesquisas recentes na próxima atualização de layout ou visibilidade. Não apaga o histórico da conta.
+Hides Create in the bottom bar on its next layout.	Oculta Criar na barra inferior na próxima atualização de layout.
+Hides Notifications in the bottom bar on its next layout.	Oculta Notificações na barra inferior na próxima atualização de layout.
+Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Oculta os ícones no fim do cabeçalho na próxima atualização de layout. Voltar, ações de texto e controles da conta continuam disponíveis.
+Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Oculta Adicionar à colagem e Remixar colagem nos menus de Pin recém-criados. Um menu existente não muda.
+Hides Search image in newly created pin menus. An existing menu won't change.	Oculta Buscar imagem nos menus de Pin recém-criados. Um menu existente não muda.
+Hides Promote pin in newly created pin menus. An existing menu won't change.	Oculta Promover Pin nos menus de Pin recém-criados. Um menu existente não muda.
+Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Oculta painéis e prévias de comentários abaixo dos Pins na próxima atualização de layout ou visibilidade. Não muda quem pode comentar.
+Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Dispensa lembretes opcionais de confirmação de e-mail recém-criados. Um lembrete aberto não muda. As verificações de confirmação e login continuam valendo.
+Save media	Salvar mídia
+Recent searches autocomplete	Preenchimento automático de pesquisas recentes
+Activity alerts	Alertas de atividade
+Toolbar icons	Ícones da barra de ferramentas
+Reverse image search	Pesquisa reversa de imagens
+Boost pin	Impulsionar Pin

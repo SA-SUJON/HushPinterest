@@ -203,6 +203,25 @@ public class SettingsL10nTest {
         }
     }
 
+    @Test
+    public void everySearchAliasHasItsLanguagesOwnWords() {
+        RuntimeEnvironment.setQualifiers("+en");
+        Map<String, String> english = SettingsNavigation.localizedSearchAliases();
+        String[][] languages = {{"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
+        for (String[] language : languages) {
+            RuntimeEnvironment.setQualifiers("+" + language[0]);
+            Map<String, String> table = TranslationsForTests.of(language[1]);
+            Map<String, String> translated = SettingsNavigation.localizedSearchAliases();
+            assertEquals(english.keySet(), translated.keySet());
+            for (Map.Entry<String, String> alias : english.entrySet()) {
+                String expected = table.get(alias.getValue());
+                assertNotNull(language[0] + " has no words for " + alias.getValue(), expected);
+                assertFalse(language[0] + " left an alias in English", expected.equals(alias.getValue()));
+                assertEquals(expected, translated.get(alias.getKey()));
+            }
+        }
+    }
+
     /**
      * Pinterest can set its own language on the application, and its activities can carry another.
      * The screen, its dialogs and their buttons all follow the application: with it in German

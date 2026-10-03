@@ -109,6 +109,12 @@ Import settings shows each switch's name and its old and new values before apply
   <img src="assets/screenshots/settings-import-preview.png" width="240" alt="Settings import review naming the switch and its old and new values">
 </p>
 
+Interface summaries now say which controls change and when. Bottom-bar and header choices take effect on their next layout. Recent searches and comments follow their next layout or visibility update. Pin-menu choices affect new menus. Screenshot suggestions require a restart. Search also recognizes reviewed terms such as Toolbar icons, Recent searches and Reverse image search, in each supported language.
+
+<p>
+  <img src="assets/screenshots/settings-interface.png" width="240" alt="Interface controls describing their effects and refresh boundaries">
+</p>
+
 The release check compares your Pinterest version with every version a release explicitly supports. Updates also has links to the release notes and installation steps. Those links don't download anything automatically.
 
 ## Opening Pinterest links

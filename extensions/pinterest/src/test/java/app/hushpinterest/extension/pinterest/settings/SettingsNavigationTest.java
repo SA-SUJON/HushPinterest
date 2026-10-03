@@ -519,6 +519,80 @@ public class SettingsNavigationTest {
         assertEquals(7, list().getCount());
     }
 
+    @Test public void interfaceRowsNameTheirOwnSurfaceAndRefreshBoundary() {
+        summaryContains(Settings.HIDE_SCREENSHOT_SHARE.key, "screenshot sharing", "after Pinterest restarts", "Screenshots still work");
+        summaryContains(Settings.HIDE_SEARCH_HISTORY.key, "recent-search rows and carousels", "next layout or visibility update", "doesn't delete account history");
+        summaryContains(Settings.HIDE_NAV_CREATE.key, "Create in the bottom bar", "next layout");
+        summaryContains(Settings.HIDE_NAV_NOTIFICATIONS.key, "Notifications in the bottom bar", "next layout");
+        summaryContains(Settings.HIDE_HEADER_BUTTONS.key, "trailing header icons", "next layout", "account controls stay available");
+        summaryContains(Settings.HIDE_PIN_MENU_COLLAGE.key, "Add to collage and Remix collage", "newly created pin menus", "existing menu won't change");
+        summaryContains(Settings.HIDE_PIN_MENU_VISUAL_SEARCH.key, "Search image", "newly created pin menus", "existing menu won't change");
+        summaryContains(Settings.HIDE_PIN_MENU_PIN_BOOST.key, "Promote pin", "newly created pin menus", "existing menu won't change");
+        summaryContains(Settings.HIDE_COMMENTS.key, "comments panels and previews under pins", "next layout or visibility update", "doesn't change who can comment");
+        summaryContains(Settings.QUIET_EMAIL_REMINDER.key, "newly created optional confirm-email reminders", "open reminder won't change", "Verification and sign-in checks still apply");
+    }
+
+    @Test public void aliasesKeepAccentMatchingGroupingAndTheSpokenResultCount() {
+        Map<String, Object> before = savedValues();
+        EditText search = findSearch(dialog.getView());
+        search.setText("  ÍCONS  toolbar   interface  ");
+        ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
+        assertEquals(2, list().getCount());
+        assertTrue(list().getItemAtPosition(0) instanceof PreferenceCategory);
+        assertEquals("Interface", ((Preference) list().getItemAtPosition(0)).getTitle());
+        assertSame(page.findPreference(Settings.HIDE_HEADER_BUTTONS.key), list().getItemAtPosition(1));
+        assertEquals("1 setting found", resultCount(dialog.getView()).getText().toString());
+        assertEquals(before, savedValues());
+        search.setText("toolbar icons noSuchTerm987654");
+        ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
+        assertEquals("0 settings found", resultCount(dialog.getView()).getText().toString());
+        assertFalse(contains(Settings.HIDE_HEADER_BUTTONS.key));
+    }
+
+    @Test public void aliasesCannotAddRowsForPatchesThisBuildDoesNotHave() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS);
+        recreate();
+        for (Map.Entry<String, String> alias : SettingsNavigation.localizedSearchAliases().entrySet()) {
+            assertNull(page.findPreference(alias.getKey()));
+            findSearch(dialog.getView()).setText(alias.getValue());
+            ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
+            assertFalse(alias.getKey(), contains(alias.getKey()));
+            assertEquals("0 settings found", resultCount(dialog.getView()).getText().toString());
+            assertEquals(1, list().getCount());
+            assertEquals("No matching settings", ((Preference) list().getItemAtPosition(0)).getTitle());
+        }
+    }
+
+    @Test public void alternateSearchWordsFindTheActualRowsInEveryShippedLanguage() {
+        String[][] languages = {{"en", null}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
+        Map<String, String> english = SettingsNavigation.localizedSearchAliases();
+        for (String[] language : languages) {
+            controller.close();
+            org.robolectric.RuntimeEnvironment.setQualifiers("+" + language[0]);
+            controller = Robolectric.buildActivity(Activity.class).setup().visible();
+            dialog = SettingsL10nTest.show(controller.get());
+            page = page(dialog);
+            Map<String, String> table = language[1] == null ? new TreeMap<>() : SettingsL10nTest.TranslationsForTests.of(language[1]);
+            for (Map.Entry<String, String> alias : english.entrySet()) {
+                String words = table.getOrDefault(alias.getValue(), alias.getValue());
+                // All words must match together, whatever order they were typed in.
+                List<String> terms = Arrays.asList(words.split("\\s+"));
+                java.util.Collections.reverse(terms);
+                findSearch(dialog.getView()).setText(String.join("  ", terms));
+                ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
+                assertTrue(language[0] + ": " + words + " missed " + alias.getKey(), contains(alias.getKey()));
+                assertSame(page.findPreference(alias.getKey()), list().getItemAtPosition(position(alias.getKey())));
+            }
+        }
+    }
+
+    private void summaryContains(String key, String... details) {
+        Preference row = page.findPreference(key);
+        assertNotNull(key, row);
+        String summary = String.valueOf(row.getSummary());
+        for (String detail : details) assertTrue(key + ": " + summary, summary.contains(detail));
+    }
+
     /**
      * On the S22 with TalkBack, typing a search said only "Edit box": the list changed without a
      * word. The count now sits in a polite live region, written once the typing settles.
@@ -778,6 +852,7 @@ public class SettingsNavigationTest {
                 assertUncutText(dialog.getView());
             }
             capture("large-rtl-about");
+            captureWholeInterface("large-rtl-interface");
         } finally {
             org.robolectric.RuntimeEnvironment.setFontScale(1f);
         }
@@ -809,9 +884,22 @@ public class SettingsNavigationTest {
             capture("pt-br-large-links");
             page.navigation.navigate("Pause, backup and diagnostics");
             capture("pt-br-large-pause");
+            captureWholeInterface("pt-br-large-interface");
         } finally {
             org.robolectric.RuntimeEnvironment.setFontScale(1f);
         }
+    }
+
+    private void captureWholeInterface(String name) throws Exception {
+        page.navigation.navigate("Interface");
+        for (int i = 0; i < list().getCount(); i++) {
+            list().setSelectionFromTop(i, 0);
+            layout(dialog.getView());
+            assertUncutText(dialog.getView());
+        }
+        capture(name + "-bottom");
+        list().setSelectionFromTop(0, 0);
+        capture(name);
     }
 
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)

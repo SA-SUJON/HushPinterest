@@ -179,9 +179,7 @@ Visit opens a web link in your browser.	Kunjungi membuka tautan web di browser A
 System share sheet	Menu berbagi sistem
 Share uses Android's share sheet.	Bagikan menggunakan menu berbagi Android.
 No screenshot share menu	Matikan menu berbagi tangkapan layar
-Off by default. Restart Pinterest to refresh a screen that's already open.	Nonaktif secara bawaan. Mulai ulang Pinterest untuk memperbarui layar yang sudah terbuka.
 Hide search history	Sembunyikan riwayat pencarian
-Hides recent searches on this device. Pinterest's server history isn't deleted.	Menyembunyikan pencarian terbaru di perangkat ini. Riwayat di server Pinterest tidak dihapus.
 Hide navigation buttons	Sembunyikan tombol navigasi
 Hide Create button	Sembunyikan tombol Buat
 Hide Notifications button	Sembunyikan tombol Notifikasi
@@ -191,10 +189,8 @@ Hide collage menu items	Sembunyikan opsi kolase
 Hide Search image menu item	Sembunyikan opsi Cari gambar
 Hide Promote pin menu item	Sembunyikan opsi Promosikan Pin
 Hide comments	Sembunyikan komentar
-Hides the comments area under pins.	Menyembunyikan area komentar di bawah Pin.
 Quiet email reminders	Sembunyikan pengingat email
 Disable update nag	Sembunyikan pemberitahuan pembaruan
-Hides Pinterest's Play Store update prompt.	Menyembunyikan permintaan pembaruan Play Store dari Pinterest.
 Download pin	Unduh Pin
 Share pin	Bagikan Pin
 Open pin link	Buka tautan Pin
@@ -302,3 +298,20 @@ Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-i
 Save the full report in %1$s.	Simpan laporan lengkap di %1$s.
 Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat. Penyimpanan laporan saat ini tidak tersedia. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.
 Report storage is unavailable right now. You can still copy a quick report.	Penyimpanan laporan saat ini tidak tersedia. Anda masih dapat menyalin laporan singkat.
+Hides new Play Store update prompts. An open prompt won't change.	Menyembunyikan permintaan pembaruan Play Store yang baru. Permintaan yang sudah terbuka tidak berubah.
+Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still work.	Menghentikan saran berbagi tangkapan layar setelah Pinterest dimulai ulang. Tangkapan layar tetap berfungsi.
+Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Menyembunyikan baris dan karusel pencarian terbaru saat tata letak atau visibilitasnya diperbarui berikutnya. Riwayat pencarian akun tidak dihapus.
+Hides Create in the bottom bar on its next layout.	Menyembunyikan Buat di bilah bawah saat tata letaknya diperbarui berikutnya.
+Hides Notifications in the bottom bar on its next layout.	Menyembunyikan Notifikasi di bilah bawah saat tata letaknya diperbarui berikutnya.
+Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Menyembunyikan ikon di ujung bilah judul saat tata letaknya diperbarui berikutnya. Kembali, tindakan teks, dan kontrol akun tetap tersedia.
+Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Menyembunyikan Tambahkan ke kolase dan Remix kolase di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
+Hides Search image in newly created pin menus. An existing menu won't change.	Menyembunyikan Cari gambar di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
+Hides Promote pin in newly created pin menus. An existing menu won't change.	Menyembunyikan Promosikan Pin di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
+Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Menyembunyikan panel dan pratinjau komentar di bawah Pin saat tata letak atau visibilitasnya diperbarui berikutnya. Tidak mengubah siapa yang boleh berkomentar.
+Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Menutup pengingat opsional konfirmasi email yang baru dibuat. Pengingat yang terbuka tidak berubah. Pemeriksaan verifikasi dan masuk tetap berlaku.
+Save media	Simpan media
+Recent searches autocomplete	Pelengkapan otomatis pencarian terbaru
+Activity alerts	Notifikasi aktivitas
+Toolbar icons	Ikon bilah alat
+Reverse image search	Pencarian gambar terbalik
+Boost pin	Promosikan Pin

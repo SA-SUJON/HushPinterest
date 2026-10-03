@@ -179,9 +179,7 @@ Visit opens a web link in your browser.	Ziyaret et, web bağlantısını tarayı
 System share sheet	Sistem paylaşım menüsü
 Share uses Android's share sheet.	Paylaş, Android paylaşım menüsünü kullanır.
 No screenshot share menu	Ekran görüntüsü paylaşım menüsünü kapat
-Off by default. Restart Pinterest to refresh a screen that's already open.	Varsayılan olarak kapalı. Açık bir ekranı yenilemek için Pinterest’i yeniden başlat.
 Hide search history	Arama geçmişini gizle
-Hides recent searches on this device. Pinterest's server history isn't deleted.	Bu cihazdaki son aramaları gizler. Pinterest sunucusundaki geçmiş silinmez.
 Hide navigation buttons	Gezinme düğmelerini gizle
 Hide Create button	Oluştur düğmesini gizle
 Hide Notifications button	Bildirimler düğmesini gizle
@@ -191,10 +189,8 @@ Hide collage menu items	Kolaj menü öğelerini gizle
 Hide Search image menu item	Görsel ara menü öğesini gizle
 Hide Promote pin menu item	Pin tanıt menü öğesini gizle
 Hide comments	Yorumları gizle
-Hides the comments area under pins.	Pinlerin altındaki yorum alanını gizler.
 Quiet email reminders	E-posta hatırlatmalarını sustur
 Disable update nag	Güncelleme uyarısını kapat
-Hides Pinterest's Play Store update prompt.	Pinterest’in Play Store güncelleme istemini gizler.
 Download pin	Pini indir
 Share pin	Pini paylaş
 Open pin link	Pin bağlantısını aç
@@ -302,3 +298,20 @@ Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-i
 Save the full report in %1$s.	Tam raporu %1$s konumuna kaydedin.
 Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Hızlı bir rapor kopyalayın. Rapor depolama şu anda kullanılamıyor. Bağlantılar, kimlikler, çerezler ve giriş belirteçleri dışarıda bırakılır. Paylaşmadan önce diğer özel metinleri kontrol edin.
 Report storage is unavailable right now. You can still copy a quick report.	Rapor depolama şu anda kullanılamıyor. Yine de hızlı bir rapor kopyalayabilirsiniz.
+Hides new Play Store update prompts. An open prompt won't change.	Yeni Play Store güncelleme istemlerini gizler. Açık bir istem değişmez.
+Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still work.	Pinterest yeniden başlatıldıktan sonra ekran görüntüsü paylaşım önerilerini durdurur. Ekran görüntüleri çalışmaya devam eder.
+Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Son arama satırlarını ve kaydırmalı listeleri sonraki düzen veya görünürlük güncellemesinde gizler. Hesabın arama geçmişini silmez.
+Hides Create in the bottom bar on its next layout.	Alt çubuktaki Oluştur düğmesini sonraki düzen güncellemesinde gizler.
+Hides Notifications in the bottom bar on its next layout.	Alt çubuktaki Bildirimler düğmesini sonraki düzen güncellemesinde gizler.
+Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Üst çubuğun sonundaki simgeleri sonraki düzen güncellemesinde gizler. Geri, metin işlemleri ve hesap kontrolleri kullanılabilir kalır.
+Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Yeni oluşturulan Pin menülerinde Kolaja ekle ve Kolajı remiksle öğelerini gizler. Mevcut bir menü değişmez.
+Hides Search image in newly created pin menus. An existing menu won't change.	Yeni oluşturulan Pin menülerinde Görsel ara öğesini gizler. Mevcut bir menü değişmez.
+Hides Promote pin in newly created pin menus. An existing menu won't change.	Yeni oluşturulan Pin menülerinde Pin tanıt öğesini gizler. Mevcut bir menü değişmez.
+Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Pinlerin altındaki yorum panellerini ve önizlemelerini sonraki düzen veya görünürlük güncellemesinde gizler. Kimlerin yorum yapabileceğini değiştirmez.
+Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Yeni oluşturulan isteğe bağlı e-posta doğrulama hatırlatmalarını kapatır. Açık bir hatırlatma değişmez. Doğrulama ve oturum açma kontrolleri geçerliliğini korur.
+Save media	Medyayı kaydet
+Recent searches autocomplete	Son aramalarda otomatik tamamlama
+Activity alerts	Etkinlik uyarıları
+Toolbar icons	Araç çubuğu simgeleri
+Reverse image search	Tersine görsel arama
+Boost pin	Pini tanıt

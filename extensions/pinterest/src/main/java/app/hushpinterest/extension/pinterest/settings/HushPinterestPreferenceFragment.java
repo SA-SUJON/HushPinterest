@@ -282,27 +282,34 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
 
         if (!Collections.disjoint(build, PatchFamily.INTERFACE_PAGE)) {
             PreferenceCategory ui = category(screen, L10n.t("Interface"));
-            String refresh = L10n.t("Off by default. Restart Pinterest to refresh a screen that's already open.");
             patchToggle(ui, context, build, PatchFamily.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SCREENSHOT_SHARE,
-                    L10n.t("No screenshot share menu"), refresh, SettingsIcons.BLOCK);
+                    L10n.t("No screenshot share menu"),
+                    L10n.t("Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still work."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_SEARCH_HISTORY, Settings.HIDE_SEARCH_HISTORY,
-                    L10n.t("Hide search history"), L10n.t("Hides recent searches on this device. Pinterest's server history isn't deleted."), SettingsIcons.BLOCK);
+                    L10n.t("Hide search history"),
+                    L10n.t("Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_CREATE,
-                    L10n.t("Hide Create button"), refresh, SettingsIcons.BLOCK);
+                    L10n.t("Hide Create button"), L10n.t("Hides Create in the bottom bar on its next layout."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_NOTIFICATIONS,
-                    L10n.t("Hide Notifications button"), refresh, SettingsIcons.BLOCK);
+                    L10n.t("Hide Notifications button"), L10n.t("Hides Notifications in the bottom bar on its next layout."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_HEADER_BUTTONS, Settings.HIDE_HEADER_BUTTONS,
-                    L10n.t("Hide header buttons"), refresh, SettingsIcons.BLOCK);
+                    L10n.t("Hide header buttons"),
+                    L10n.t("Hides trailing header icons on their next layout. Back, text actions and account controls stay available."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_COLLAGE,
-                    L10n.t("Hide collage menu items"), refresh, SettingsIcons.BLOCK);
+                    L10n.t("Hide collage menu items"),
+                    L10n.t("Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_VISUAL_SEARCH,
-                    L10n.t("Hide Search image menu item"), refresh, SettingsIcons.BLOCK);
+                    L10n.t("Hide Search image menu item"),
+                    L10n.t("Hides Search image in newly created pin menus. An existing menu won't change."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_PIN_BOOST,
-                    L10n.t("Hide Promote pin menu item"), refresh, SettingsIcons.BLOCK);
+                    L10n.t("Hide Promote pin menu item"),
+                    L10n.t("Hides Promote pin in newly created pin menus. An existing menu won't change."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_COMMENTS, Settings.HIDE_COMMENTS,
-                    L10n.t("Hide comments"), L10n.t("Hides the comments area under pins."), SettingsIcons.BLOCK);
+                    L10n.t("Hide comments"),
+                    L10n.t("Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.QUIET_EMAIL_REMINDER, Settings.QUIET_EMAIL_REMINDER,
-                    L10n.t("Quiet email reminders"), refresh, SettingsIcons.BELL);
+                    L10n.t("Quiet email reminders"),
+                    L10n.t("Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply."), SettingsIcons.BELL);
         }
 
         // In every build: a patched Pinterest isn't verified for its own links, so Android opens them
@@ -321,7 +328,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         // is one Pause turns off, so it sits above the Pause row with the rest.
         PreferenceCategory updates = category(screen, L10n.t("Updates"));
         patchToggle(updates, context, build, PatchFamily.DISABLE_UPDATE_NAG, Settings.DISABLE_UPDATE_NAG,
-                L10n.t("Disable update nag"), L10n.t("Hides Pinterest's Play Store update prompt."), SettingsIcons.BLOCK);
+                L10n.t("Disable update nag"), L10n.t("Hides new Play Store update prompts. An open prompt won't change."), SettingsIcons.BLOCK);
         updates.addPreference(mark(toggle(context, Settings.CHECK_FOR_RELEASES, L10n.t("Check for new HushPinterest releases"),
                 L10n.t("Ask GitHub once a day when Pinterest starts, and show a newer release at the top of these "
                         + "settings. Off by default. Nothing is downloaded.")), SettingsIcons.BELL));
