@@ -30,7 +30,7 @@ A patched Pinterest can't install over the stock one, because Android only accep
 
 ## Signing in
 
-**Continue with Google doesn't work on a patched Pinterest.** Google's sign-in checks the app's signature, and a patched app carries your key instead of Pinterest's. Sign in with your email and password. If your account was made with Google, set a password first on pinterest.com (Settings, then Account management) and use that.
+**Continue with Google doesn't work on a patched Pinterest.** Google's sign-in checks the app's signature, and a patched app carries your key instead of Pinterest's. Email and password is the intended route, and still needs a signed-in device check. If your account was made with Google, set a password first on pinterest.com (Settings, then Account management) and use that.
 
 Facebook sign-in hasn't been tried yet.
 
@@ -40,6 +40,12 @@ Morphe Manager signs the patched Pinterest with a key it makes on your phone. An
 
 - **Back it up right after your first patch.** In Morphe Manager, open Settings, then System, then Import & export, then Signing key, and tap Export. Keep the `Morphe.keystore` file somewhere private, because anyone who has it can sign an APK your phone will accept as an update.
 - **On a new phone, import it before you patch anything.** Without your exported copy, nothing you patched earlier can be updated in place.
+
+Setup and backup guide in About is optional. It explains installed patches, runtime switches and Pause, and distinguishes settings export from account, media and signing-key backups. It also opens Supported links and public Pinterest help. Same-key upgrades preserve installed data. If Android refuses a different key or an incompatible downgrade, keep the installed data and rebuild a compatible update.
+
+<p>
+  <img src="assets/screenshots/settings-setup-guide.png" width="240" alt="Optional setup guide with sign-in and supported-link guidance">
+</p>
 
 ## Patches
 
@@ -136,6 +142,7 @@ Local verification compares the compiled manifest against the full input APK, in
 The final APK is also checked against the selected feature hooks and their native fallback paths. Inserted calls must resolve through the merged app's libraries or Android's public API. Newer Android calls need a reviewed version guard. Missing hooks, duplicate calls and unresolved methods fail before a local helper delivers or installs an APK. These checks use Android SDK Platform 36, or explicit `-AndroidJar` and `-ApiVersions` paths. Device verification remains a separate check.
 
 The About and Licenses screens link to `github.com`, `gitlab.com` and `www.gnu.org`. Those open in your browser, and only when you tap one.
+The optional setup guide links to password and data-export help at `help.pinterest.com`. Those pages open in your browser when you tap their buttons.
 
 Shared pin links use `www.pinterest.com`. Downloads use media addresses Pinterest supplies under `pinimg.com`. Browser discovery checks installed handlers for `example.com` without opening or loading that address. When Disable analytics is off or paused, its AppsFlyer wrapper uses the SDK's original connection path.
 

@@ -315,3 +315,19 @@ Activity alerts	Notifikasi aktivitas
 Toolbar icons	Ikon bilah alat
 Reverse image search	Pencarian gambar terbalik
 Boost pin	Promosikan Pin
+Setup and backup guide	Panduan penyiapan dan pencadangan
+Optional help with sign-in, supported links, patch choices and backups.	Bantuan opsional untuk masuk, tautan yang didukung, pilihan patch, dan pencadangan.
+Installed patches and switches	Patch yang terpasang dan sakelar
+Choose the patches when you build the app in Morphe Manager. The switches here can control only patches included in that build. Changing switches doesn't add or remove patches. Pause keeps your saved choices, but changes made while patching remain in the app.	Pilih patch saat membuat aplikasi di Morphe Manager. Sakelar di sini hanya dapat mengontrol patch yang disertakan dalam build tersebut. Mengubah sakelar tidak menambah atau menghapus patch. Menjeda akan mempertahankan pilihan yang tersimpan, tetapi perubahan yang dibuat saat menerapkan patch tetap ada di aplikasi.
+Sign in to your existing account	Masuk ke akun yang sudah ada
+Email and password is the intended sign-in route for this re-signed build, but it hasn't been verified here yet. Google sign-in is limited by the changed signing key. Facebook sign-in and push notifications haven't been verified. Use your existing Pinterest account.	Masuk dengan email dan kata sandi adalah cara yang dituju untuk build yang ditandatangani ulang ini, tetapi belum diverifikasi di sini. Masuk dengan Google dibatasi oleh perubahan kunci penandatanganan. Masuk dengan Facebook dan notifikasi push belum diverifikasi. Gunakan akun Pinterest yang sudah Anda miliki.
+For password recovery, use Pinterest's help page. It explains how to reset a password using the email address already linked to your account.	Untuk memulihkan kata sandi, gunakan halaman bantuan Pinterest. Halaman tersebut menjelaskan cara mengatur ulang kata sandi menggunakan alamat email yang sudah terhubung ke akun Anda.
+Pinterest password help	Bantuan kata sandi Pinterest
+Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.	Penandatanganan ulang dapat mencegah verifikasi tautan otomatis. Anda dapat memilih alamat web di pengaturan Buka secara default di Android.
+Open link settings	Buka pengaturan tautan
+Back up before changing builds	Cadangkan sebelum mengganti build
+Export settings saves HushPinterest's feature switches. It doesn't include your Pinterest account, pins, downloaded files or Morphe Manager's signing key. Keep the settings file and Manager's signing-key backup somewhere you can find them.	Ekspor pengaturan menyimpan sakelar fitur HushPinterest. Ekspor ini tidak menyertakan akun Pinterest, pin, file unduhan, atau kunci penandatanganan Morphe Manager. Simpan file pengaturan dan cadangan kunci penandatanganan Manager di tempat yang mudah Anda temukan.
+An accepted upgrade signed with the same key keeps the app's data. A build with a different key isn't a compatible update, and Android may refuse a downgrade. Keep the installed app and its data if an update is refused.	Pembaruan yang diterima dan ditandatangani dengan kunci yang sama akan mempertahankan data aplikasi. Build dengan kunci berbeda bukan pembaruan yang kompatibel, dan Android dapat menolak penurunan versi. Pertahankan aplikasi yang terpasang beserta datanya jika pembaruan ditolak.
+Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.	Ekspor data Pinterest terpisah dari Ekspor pengaturan. Halaman bantuan Pinterest menjelaskan cara meminta data pribadi dari akun yang sudah Anda gunakan.
+Pinterest data export help	Bantuan ekspor data Pinterest
+Couldn't open the setup guide. Try again.	Panduan penyiapan tidak dapat dibuka. Coba lagi.

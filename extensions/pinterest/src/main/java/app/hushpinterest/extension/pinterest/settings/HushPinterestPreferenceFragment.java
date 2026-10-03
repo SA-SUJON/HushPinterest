@@ -381,6 +381,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         about.addPreference(mark(info(context, L10n.t("Accounts"), L10n.t("Every switch here applies to all the "
                 + "accounts in this Pinterest app, not only the one you have open.")), SettingsIcons.ABOUT));
 
+        about.addPreference(mark(new SetupGuidancePreference(context), SettingsIcons.ABOUT));
+
         Preference source = new Row(context);
         source.setTitle(L10n.t("Source code and issues"));
         source.setSummary(SOURCE_ADDRESS);

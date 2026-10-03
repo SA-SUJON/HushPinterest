@@ -121,7 +121,8 @@ class ExtensionHostsTest {
          * Literal hosts the README's Privacy section explains. The browser probe resolves an
          * installed handler locally and never opens its example URL.
          */
-        val ALLOWED_HOSTS = setOf("github.com", "api.github.com", "gitlab.com", "www.gnu.org", "example.com", "www.pinterest.com")
+        val ALLOWED_HOSTS = setOf("github.com", "api.github.com", "gitlab.com", "www.gnu.org", "example.com",
+            "www.pinterest.com", "help.pinterest.com")
         const val RELEASE_CHECK =
             "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/ReleaseCheck.java"
         val TRANSPORTS = listOf(

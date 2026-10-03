@@ -312,3 +312,19 @@ Activity alerts	Alertas de atividade
 Toolbar icons	Ícones da barra de ferramentas
 Reverse image search	Pesquisa reversa de imagens
 Boost pin	Impulsionar Pin
+Setup and backup guide	Guia de configuração e backup
+Optional help with sign-in, supported links, patch choices and backups.	Ajuda opcional para entrar, abrir links compatíveis, escolher patches e fazer backups.
+Installed patches and switches	Patches instalados e opções
+Choose the patches when you build the app in Morphe Manager. The switches here can control only patches included in that build. Changing switches doesn't add or remove patches. Pause keeps your saved choices, but changes made while patching remain in the app.	Escolha os patches ao gerar o aplicativo no Morphe Manager. As opções aqui só controlam os patches incluídos nessa compilação. Alterá-las não adiciona nem remove patches. Pausar mantém suas escolhas salvas, mas as alterações feitas ao aplicar os patches continuam no aplicativo.
+Sign in to your existing account	Entre na sua conta existente
+Email and password is the intended sign-in route for this re-signed build, but it hasn't been verified here yet. Google sign-in is limited by the changed signing key. Facebook sign-in and push notifications haven't been verified. Use your existing Pinterest account.	Para esta compilação assinada novamente, a forma prevista de entrar é com e-mail e senha, mas ela ainda não foi verificada aqui. A mudança da chave de assinatura limita o login com Google. O login com Facebook e as notificações push não foram verificados. Use sua conta existente do Pinterest.
+For password recovery, use Pinterest's help page. It explains how to reset a password using the email address already linked to your account.	Para recuperar sua senha, consulte a página de ajuda do Pinterest. Ela explica como redefinir a senha usando o endereço de e-mail já vinculado à sua conta.
+Pinterest password help	Ajuda do Pinterest com a senha
+Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.	Assinar novamente pode impedir a verificação automática de links. Você pode escolher os endereços web nas configurações Abrir por padrão do Android.
+Open link settings	Abrir configurações de links
+Back up before changing builds	Faça backup antes de trocar de compilação
+Export settings saves HushPinterest's feature switches. It doesn't include your Pinterest account, pins, downloaded files or Morphe Manager's signing key. Keep the settings file and Manager's signing-key backup somewhere you can find them.	Exportar configurações salva as opções de recursos do HushPinterest. Não inclui sua conta do Pinterest, Pins, arquivos baixados nem a chave de assinatura do Morphe Manager. Guarde o arquivo de configurações e o backup da chave de assinatura do Manager em um lugar onde possa encontrá-los.
+An accepted upgrade signed with the same key keeps the app's data. A build with a different key isn't a compatible update, and Android may refuse a downgrade. Keep the installed app and its data if an update is refused.	Uma atualização aceita e assinada com a mesma chave mantém os dados do aplicativo. Uma compilação com outra chave não é uma atualização compatível, e o Android pode recusar uma versão anterior. Se uma atualização for recusada, mantenha o aplicativo instalado e seus dados.
+Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.	A exportação de dados do Pinterest é separada de Exportar configurações. A página de ajuda do Pinterest explica como solicitar seus dados pessoais da conta que você já usa.
+Pinterest data export help	Ajuda do Pinterest para exportar dados
+Couldn't open the setup guide. Try again.	Não foi possível abrir o guia de configuração. Tente novamente.

@@ -315,3 +315,19 @@ Activity alerts	Etkinlik uyarıları
 Toolbar icons	Araç çubuğu simgeleri
 Reverse image search	Tersine görsel arama
 Boost pin	Pini tanıt
+Setup and backup guide	Kurulum ve yedekleme rehberi
+Optional help with sign-in, supported links, patch choices and backups.	Giriş, desteklenen bağlantılar, yama seçimleri ve yedeklemeler için isteğe bağlı yardım.
+Installed patches and switches	Yüklü yamalar ve anahtarlar
+Choose the patches when you build the app in Morphe Manager. The switches here can control only patches included in that build. Changing switches doesn't add or remove patches. Pause keeps your saved choices, but changes made while patching remain in the app.	Uygulamayı Morphe Manager'da oluştururken yamaları seçin. Buradaki anahtarlar yalnızca o derlemeye eklenen yamaları kontrol edebilir. Anahtarları değiştirmek yama eklemez veya kaldırmaz. Duraklatmak kayıtlı seçimlerinizi korur, ancak yamalar uygulanırken yapılan değişiklikler uygulamada kalır.
+Sign in to your existing account	Mevcut hesabınıza giriş yapın
+Email and password is the intended sign-in route for this re-signed build, but it hasn't been verified here yet. Google sign-in is limited by the changed signing key. Facebook sign-in and push notifications haven't been verified. Use your existing Pinterest account.	Yeniden imzalanan bu derleme için amaçlanan giriş yöntemi e-posta ve paroladır, ancak burada henüz doğrulanmadı. Değişen imzalama anahtarı, Google ile girişi sınırlar. Facebook ile giriş ve anlık bildirimler doğrulanmadı. Mevcut Pinterest hesabınızı kullanın.
+For password recovery, use Pinterest's help page. It explains how to reset a password using the email address already linked to your account.	Parolanızı kurtarmak için Pinterest'in yardım sayfasını kullanın. Bu sayfa, hesabınıza zaten bağlı olan e-posta adresiyle parolanızı nasıl sıfırlayacağınızı açıklar.
+Pinterest password help	Pinterest parola yardımı
+Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.	Yeniden imzalama, otomatik bağlantı doğrulamasını engelleyebilir. Web adreslerini Android'in Varsayılan olarak aç ayarlarından seçebilirsiniz.
+Open link settings	Bağlantı ayarlarını aç
+Back up before changing builds	Derlemeyi değiştirmeden önce yedekleyin
+Export settings saves HushPinterest's feature switches. It doesn't include your Pinterest account, pins, downloaded files or Morphe Manager's signing key. Keep the settings file and Manager's signing-key backup somewhere you can find them.	Ayarları dışa aktarmak, HushPinterest'in özellik anahtarlarını kaydeder. Pinterest hesabınız, Pin'leriniz, indirilen dosyalarınız veya Morphe Manager'ın imzalama anahtarı buna dahil değildir. Ayarlar dosyasını ve Manager'ın imzalama anahtarı yedeğini bulabileceğiniz bir yerde saklayın.
+An accepted upgrade signed with the same key keeps the app's data. A build with a different key isn't a compatible update, and Android may refuse a downgrade. Keep the installed app and its data if an update is refused.	Aynı anahtarla imzalanan ve kabul edilen bir yükseltme, uygulamanın verilerini korur. Farklı anahtarla imzalanmış bir derleme uyumlu bir güncelleme değildir ve Android daha eski bir sürümü reddedebilir. Güncelleme reddedilirse yüklü uygulamayı ve verilerini koruyun.
+Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.	Pinterest'in veri dışa aktarımı, Ayarları dışa aktar işleminden ayrıdır. Pinterest'in yardım sayfası, zaten kullandığınız hesaptan kişisel verilerinizi nasıl talep edeceğinizi açıklar.
+Pinterest data export help	Pinterest veri dışa aktarım yardımı
+Couldn't open the setup guide. Try again.	Kurulum rehberi açılamadı. Tekrar deneyin.
