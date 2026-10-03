@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 Nothing has been released yet. This is the work toward 0.0.2.
 
+* **Local builds:** Gradle now runs at low priority with two workers, a bounded heap and a short idle timeout to keep the desktop responsive. Build caching stays enabled.
+
 * **Download history:** Hush-owned Android Downloads requests are checked across restarts and missed result broadcasts. The history shows current status and safe retry or reopen-pin guidance. Removing an entry keeps its file. Active cancellation stays in system Downloads.
 * **Save recovery:** Android 9 records pending save locations before writing. After an interruption, Pending saves explains what to check without resuming or deleting files. Offered recovery access is released when safe, including after a completed save.
 * **Media details:** Pin actions can show supplied dimensions and media type without inspecting files or guessing addresses. Recognized unsupported media gets an explanatory row. Download and storage refusals explain what failed.

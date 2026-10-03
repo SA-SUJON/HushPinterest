@@ -169,6 +169,8 @@ The Pinterest patches were written for this project by reading Pinterest 14.25.0
 
 ## Building from source
 
+Gradle runs at low priority with at most two workers and a 1.5 GiB heap. Idle daemons exit after a minute. Use focused checks while editing and save full validation for a release milestone.
+
 You need JDK 21 and the Android SDK. The Morphe patcher comes from GitHub Packages, so you also need a GitHub token with `read:packages`.
 
 ```bash
