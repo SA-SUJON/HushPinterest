@@ -64,6 +64,7 @@ function Set-Advisory([string]$Severity) {
     $script:answers = @{ $purl = (@{ vulns = @($advisory) } | ConvertTo-Json -Depth 6) }
 }
 function Assert-ReviewedBuildGraph($Report) {
+    Assert-ReviewedToolingResolutions $Report
     $utpNames = @('_internal-unified-test-platform-core',
         '_internal-unified-test-platform-android-test-plugin-host-emulator-control')
     foreach ($name in $utpNames) {
@@ -103,6 +104,33 @@ function Assert-ReviewedBuildGraph($Report) {
             throw "Settings $package did not resolve exactly at $($settingsVersions[$package])."
         }
     }
+    $reviewed = @{
+        'com.google.guava:guava' = '33.7.2-jre'
+        'org.apache.commons:commons-lang3' = '3.18.0'
+        'org.apache.httpcomponents:httpclient' = '4.5.14'
+    }
+    foreach ($package in $reviewed.Keys) {
+        $parts = $package.Split(':')
+        $libraries = @($Report.Libraries | Where-Object { $_.Group -ceq $parts[0] -and $_.Name -ceq $parts[1] })
+        if ($libraries.Count -ne 1 -or $libraries[0].Version -cne $reviewed[$package]) {
+            throw "Tooling $package did not resolve exactly at $($reviewed[$package]) across every graph."
+        }
+        $required = @('settings:classpath')
+        foreach ($project in @(':extensions:pinterest', ':extensions:shared', ':extensions:shared:library')) {
+            $required += $project + ':_internal-unified-test-platform-android-test-plugin-result-listener-gradle'
+        }
+        if ($parts[1] -ceq 'guava') {
+            $required += @(':patches:compileClasspath', ':patches:patcherProvidedClasspath', ':patches:testRuntimeClasspath')
+            foreach ($project in @(':extensions:pinterest', ':extensions:shared', ':extensions:shared:library')) {
+                $required += $project + ':_internal-unified-test-platform-core'
+            }
+        }
+        foreach ($origin in $required) {
+            if ($libraries[0].Configurations -cnotcontains $origin) {
+                throw "Tooling $package is missing its resolved origin $origin."
+            }
+        }
+    }
 }
 function New-ReviewedBuildReport {
     $core = ':extensions:pinterest:_internal-unified-test-platform-core'
@@ -113,15 +141,28 @@ function New-ReviewedBuildReport {
         'org.jdom:jdom2' = '2.0.6.1'; 'org.jetbrains.kotlin:kotlin-gradle-plugin' = '2.4.20'
         'org.bouncycastle:bcprov-jdk18on' = '1.86'; 'org.bouncycastle:bcpkix-jdk18on' = '1.86'
         'org.bouncycastle:bcutil-jdk18on' = '1.86'
+        'com.google.guava:guava' = '33.7.2-jre'; 'org.apache.commons:commons-lang3' = '3.18.0'
+        'org.apache.httpcomponents:httpclient' = '4.5.14'
     }
+    $tooling = @('settings:classpath') + @(':extensions:pinterest', ':extensions:shared', ':extensions:shared:library' | ForEach-Object {
+        $_ + ':_internal-unified-test-platform-android-test-plugin-result-listener-gradle'
+    })
+    $guava = $tooling + @(':patches:compileClasspath', ':patches:patcherProvidedClasspath', ':patches:testRuntimeClasspath') +
+        @(':extensions:pinterest', ':extensions:shared', ':extensions:shared:library' | ForEach-Object {
+            $_ + ':_internal-unified-test-platform-core'
+        })
     return [ordered]@{
-        schemaVersion = 1; gradleVersion = '9.7.1'; configurations = @('settings:classpath', $core, $emulator)
+        schemaVersion = 1; gradleVersion = '9.7.1'; configurations = @('settings:classpath', $core, $emulator) +
+            @($guava | Where-Object { $_ -notin @('settings:classpath', $core, $emulator) })
         components = @(foreach ($package in $modules.Keys) {
             $parts = $package.Split(':')
             [ordered]@{
                 group = $parts[0]; name = $parts[1]; version = $modules[$package]
                 purl = ('pkg:maven/' + $parts[0] + '/' + $parts[1] + '@' + $modules[$package])
-                configurations = @(if ($parts[0] -eq 'io.netty') { $core; $emulator } else { 'settings:classpath' })
+                configurations = @(if ($parts[0] -eq 'io.netty') { $core; $emulator }
+                    elseif ($parts[1] -eq 'guava') { $guava }
+                    elseif ($parts[1] -in @('commons-lang3', 'httpclient')) { $tooling }
+                    else { 'settings:classpath' })
             }
         })
     }
@@ -206,6 +247,32 @@ try {
     Write-Report (New-ReviewedBuildReport)
     Assert-ReviewedBuildGraph (Read-BuildDependencyReport $reportPath)
     $cases++
+    foreach ($regression in @(
+        @{ Name = 'guava'; Versions = @('33.7.1-jre', '33.7.1-android', '33.7.2-unknown') },
+        @{ Name = 'commons-lang3'; Versions = @('3.16.0', '3.17.0', '3.18.0-SNAPSHOT') },
+        @{ Name = 'httpclient'; Versions = @('4.5.6', '4.5.13', '4.5.15-SNAPSHOT') }
+    )) {
+        foreach ($version in $regression.Versions) {
+            foreach ($origin in @('settings:classpath', ':patches:patcherProvidedClasspath',
+                    ':extensions:shared:library:_internal-unified-test-platform-android-test-plugin-result-listener-gradle')) {
+                $fixture = New-ReviewedBuildReport
+                if ($fixture.configurations -notcontains $origin) { $fixture.configurations += $origin }
+                $component = $fixture.components | Where-Object { $_.name -ceq $regression.Name }
+                $component.version = $version
+                $component.purl = 'pkg:maven/' + $component.group + '/' + $component.name + '@' + $version
+                $component.configurations = @($origin)
+                Write-Report $fixture
+                $asked.Clear()
+                Assert-Fails { Invoke-Gate } '*Unreviewed tooling resolution*'
+                Assert-True ($asked.Count -eq 0) 'An unsafe reviewed resolution reached the network advisory query.'
+            }
+        }
+    }
+    $fixture = New-ReviewedBuildReport
+    $component = $fixture.components | Where-Object { $_.name -ceq 'guava' }
+    $component.configurations = @($component.configurations | Where-Object { $_ -cne ':patches:patcherProvidedClasspath' })
+    Write-Report $fixture
+    Assert-Fails { Assert-ReviewedBuildGraph (Read-BuildDependencyReport $reportPath) } '*missing its resolved origin*patcherProvidedClasspath*'
     foreach ($oldVersion in @('4.1.93.Final', '4.1.110.Final')) {
         $fixture = New-ReviewedBuildReport
         $fixture.components[1].version = $oldVersion

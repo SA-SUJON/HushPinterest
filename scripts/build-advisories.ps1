@@ -66,12 +66,42 @@ function Read-BuildDependencyReport {
     return [pscustomobject]@{ Path = $Path; Libraries = $libraries.ToArray(); Configurations = @($report.configurations) }
 }
 
+function Assert-ReviewedToolingResolutions {
+    param([Parameter(Mandatory = $true)]$Report)
+    foreach ($library in $Report.Libraries) {
+        $package = $library.Group + ':' + $library.Name
+        $safe = $true
+        $required = $null
+        switch ($package) {
+            'org.apache.commons:commons-lang3' {
+                $required = '3.18.0 or later (GHSA-j288-q9x7-2f5v)'
+                $safe = $library.Version -match '^\d+\.\d+\.\d+$' -and
+                    [version]$library.Version -ge [version]'3.18.0'
+            }
+            'org.apache.httpcomponents:httpclient' {
+                $required = 'the reviewed 4.5.14 build (GHSA-7r82-7xv7-xcpj)'
+                $safe = $library.Version -ceq '4.5.14'
+            }
+            'com.google.guava:guava' {
+                # The project advisory may arrive after aggregate advisory services.
+                $required = '33.7.2 or later (GHSA-xxph-c9ww-hj94)'
+                $safe = $library.Version -match '^(\d+\.\d+\.\d+)-(jre|android)$'
+                if ($safe) { $safe = [version]$Matches[1] -ge [version]'33.7.2' }
+            }
+        }
+        if (-not $safe) {
+            throw "Unreviewed tooling resolution $($library.Purl) in $($library.Configurations -join ', '). Use $required."
+        }
+    }
+}
+
 function Invoke-BuildAdvisoryGate {
     param(
         [Parameter(Mandatory = $true)]$Report,
         [Parameter(Mandatory = $true)][string]$ExceptionsPath,
         [datetime]$Today = [datetime]::Today
     )
+    Assert-ReviewedToolingResolutions -Report $Report
     $exceptions = @(Read-AdvisoryExceptions -Path $ExceptionsPath -Today $Today)
     $findings = @(Get-SbomAdvisories -Sbom $Report)
     $verdict = Test-AdvisoryFindings -Findings $findings -Exceptions $exceptions

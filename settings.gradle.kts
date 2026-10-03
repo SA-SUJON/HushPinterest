@@ -61,6 +61,17 @@ buildscript {
             if (requested.group == "org.bouncycastle") {
                 useVersion("1.86")
             }
+            // The settings classpath resolves before the version catalog exists. Keep these
+            // reviewed host-tool pins aligned with gradle/libs.versions.toml.
+            if (requested.group == "com.google.guava" && requested.name == "guava") {
+                useVersion("33.7.2-jre")
+            }
+            if (requested.group == "org.apache.commons" && requested.name == "commons-lang3") {
+                useVersion("3.18.0")
+            }
+            if (requested.group == "org.apache.httpcomponents" && requested.name == "httpclient") {
+                useVersion("4.5.14")
+            }
             // AGP's settings-plugin dependencies are build inputs, not shipped libraries.
             // jose4j <=0.9.5 has GHSA-3677-xxcr-wjqv; JDOM <=2.0.6 has
             // GHSA-2363-cqg2-863c. Keep the fixes on their existing release lines.
