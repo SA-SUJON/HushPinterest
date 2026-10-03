@@ -72,6 +72,22 @@ $fail = [ordered]@{
     'empty' = 'No inserted method or field references were checked'
     'changed-host-missing' = 'Lfixture/Host;->run('
 }
+$inherited = [ordered]@{
+    'owner-method' = @(33, 'invoke-virtual Landroid/app/LocaleManager;->toString()Ljava/lang/String;')
+    'owner-field' = @(30, 'sget Landroid/widget/inline/InlineContentView;->VISIBLE:I')
+    'owner-method-handle' = @(33, 'const-method-handle -> invoke-virtual-handle Landroid/app/LocaleManager;->toString()Ljava/lang/String;')
+    'owner-field-handle' = @(30, 'const-method-handle -> sget-handle Landroid/widget/inline/InlineContentView;->VISIBLE:I')
+    'member-method' = @(31, 'invoke-virtual Landroid/widget/inline/InlineContentView;->setScrollCaptureHint(I)V')
+    'member-field' = @(31, 'sget Landroid/widget/inline/InlineContentView;->SCROLL_CAPTURE_HINT_AUTO:I')
+    'member-method-handle' = @(31, 'const-method-handle -> invoke-virtual-handle Landroid/widget/inline/InlineContentView;->setScrollCaptureHint(I)V')
+    'member-field-handle' = @(31, 'const-method-handle -> sget-handle Landroid/widget/inline/InlineContentView;->SCROLL_CAPTURE_HINT_AUTO:I')
+}
+foreach ($family in $inherited.Keys) {
+    $since = $inherited[$family][0]
+    $pass += "guarded-$family"
+    $fail["unguarded-$family"] = "requires API $since above minSdk 28; proven SDK >= 28, no sufficient SDK guard"
+    $fail["wrong-$family"] = "requires API $since above minSdk 28; proven SDK >= $($since - 1), no sufficient SDK guard"
+}
 foreach ($name in @($pass) + @($fail.Keys)) {
     $report = Join-Path $WorkDir "$name.txt"
     $arguments = @('-cp', $classpath, 'HostReferences', (Join-Path $WorkDir 'clean.apk'),
@@ -85,6 +101,16 @@ foreach ($name in @($pass) + @($fail.Keys)) {
         throw "Expected $name to fail with '$($fail[$name])'.`n$($result.Text)"
     }
     if ($name -match 'guarded' -and $name -in $pass -and $content -notmatch 'guarded=[1-9]') { throw "No newer API review was emitted for $name" }
+    if ($name -match '^(guarded|unguarded|wrong)-(owner|member)-') {
+        $family = $name.Substring($name.IndexOf('-') + 1)
+        $since, $reference = $inherited[$family]
+        if (-not $content.Contains(" $reference => ")) { throw "The inherited symbolic reference was not checked for $name" }
+        if ($name -in $pass) {
+            if ($content -notmatch 'guarded=1 ' -or -not $content.Contains("available since API $since, proven SDK >= $since")) {
+                throw "The inherited API floor or guard was wrong for $name"
+            }
+        } elseif ($content -notmatch 'findings=1\r?\n') { throw "Expected only the inherited API violation for $name" }
+    }
     if ($name -in @('escaped-helper', 'bad-handle-register', 'good-handle-register') -and $content -notmatch 'const-method-handle -> invoke-static-handle') {
         throw "DEX 039 method handle was hidden by the decoder for $name"
     }

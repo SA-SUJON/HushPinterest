@@ -33,6 +33,11 @@ public class HostReferenceFixture {
     private static final ImmutableMethodReference NEW_API = ref(VIEW, "setStateDescription", "V", TEXT);
     private static final ImmutableMethodReference HELPER = ref(OWN, "guarded", "V", VIEW, TEXT);
     private static final ImmutableMethodReference BRIDGE = ref(OWN, "newerBridge", "V", VIEW, TEXT);
+    private static final String LOCALE = "Landroid/app/LocaleManager;", INLINE = "Landroid/widget/inline/InlineContentView;";
+    private static final ImmutableMethodReference OWNER_METHOD = ref(LOCALE, "toString", "Ljava/lang/String;");
+    private static final ImmutableFieldReference OWNER_FIELD = new ImmutableFieldReference(INLINE, "VISIBLE", "I");
+    private static final ImmutableMethodReference MEMBER_METHOD = ref(INLINE, "setScrollCaptureHint", "V", "I");
+    private static final ImmutableFieldReference MEMBER_FIELD = new ImmutableFieldReference(INLINE, "SCROLL_CAPTURE_HINT_AUTO", "I");
     private static Instruction ret() { return new ImmutableInstruction10x(Opcode.RETURN_VOID); }
     private static Instruction call(Opcode op, ImmutableMethodReference reference, int... regs) {
         int[] args = new int[5]; System.arraycopy(regs, 0, args, 0, regs.length);
@@ -100,9 +105,39 @@ public class HostReferenceFixture {
         code.add(ret());
         return code;
     }
+    private static Method inheritedUse(String variant, int since, Instruction use, String... params) {
+        List<Instruction> code = new ArrayList<>();
+        if (!variant.startsWith("unguarded-")) {
+            code.add(new ImmutableInstruction21c(Opcode.SGET, 0, SDK));
+            code.add(new ImmutableInstruction21s(Opcode.CONST_16, 1, variant.startsWith("wrong-") ? since - 1 : since));
+            code.add(new ImmutableInstruction22t(Opcode.IF_LT, 0, 1, use.getCodeUnits() + 2));
+        }
+        code.add(use); code.add(ret());
+        return method(OWN, "use", PUBLIC | STATIC, 4, code, params);
+    }
     private static List<ClassDef> extension(String variant) {
         List<Method> methods = new ArrayList<>();
         switch (variant) {
+            case "guarded-owner-method": case "unguarded-owner-method": case "wrong-owner-method":
+                methods.add(inheritedUse(variant, 33, call(Opcode.INVOKE_VIRTUAL, OWNER_METHOD, 3), LOCALE)); break;
+            case "guarded-owner-field": case "unguarded-owner-field": case "wrong-owner-field":
+                methods.add(inheritedUse(variant, 30, new ImmutableInstruction21c(Opcode.SGET, 2, OWNER_FIELD))); break;
+            case "guarded-owner-method-handle": case "unguarded-owner-method-handle": case "wrong-owner-method-handle":
+                methods.add(inheritedUse(variant, 33, new ImmutableInstruction21c(Opcode.CONST_METHOD_HANDLE, 2,
+                        new ImmutableMethodHandleReference(MethodHandleType.INVOKE_INSTANCE, OWNER_METHOD)))); break;
+            case "guarded-owner-field-handle": case "unguarded-owner-field-handle": case "wrong-owner-field-handle":
+                methods.add(inheritedUse(variant, 30, new ImmutableInstruction21c(Opcode.CONST_METHOD_HANDLE, 2,
+                        new ImmutableMethodHandleReference(MethodHandleType.STATIC_GET, OWNER_FIELD)))); break;
+            case "guarded-member-method": case "unguarded-member-method": case "wrong-member-method":
+                methods.add(inheritedUse(variant, 31, call(Opcode.INVOKE_VIRTUAL, MEMBER_METHOD, 2, 3), INLINE, "I")); break;
+            case "guarded-member-field": case "unguarded-member-field": case "wrong-member-field":
+                methods.add(inheritedUse(variant, 31, new ImmutableInstruction21c(Opcode.SGET, 2, MEMBER_FIELD))); break;
+            case "guarded-member-method-handle": case "unguarded-member-method-handle": case "wrong-member-method-handle":
+                methods.add(inheritedUse(variant, 31, new ImmutableInstruction21c(Opcode.CONST_METHOD_HANDLE, 2,
+                        new ImmutableMethodHandleReference(MethodHandleType.INVOKE_INSTANCE, MEMBER_METHOD)))); break;
+            case "guarded-member-field-handle": case "unguarded-member-field-handle": case "wrong-member-field-handle":
+                methods.add(inheritedUse(variant, 31, new ImmutableInstruction21c(Opcode.CONST_METHOD_HANDLE, 2,
+                        new ImmutableMethodHandleReference(MethodHandleType.STATIC_GET, MEMBER_FIELD)))); break;
             case "guarded": case "wrong-guard": case "clobbered-guard":
                 methods.add(method(OWN, "use", PUBLIC | STATIC, 4,
                         guard(variant.equals("wrong-guard") ? 29 : 30, NEW_API, variant.equals("clobbered-guard")), VIEW, TEXT)); break;
@@ -161,11 +196,14 @@ public class HostReferenceFixture {
     public static void main(String[] args) throws Exception {
         File output = new File(args[0]); Files.createDirectories(output.toPath());
         write(output, "clean", library("good", false), List.of());
-        List<String> cases = List.of("good", "missing-method", "unreferenced-removal", "missing-field", "missing-parent",
+        List<String> cases = new ArrayList<>(List.of("good", "missing-method", "unreferenced-removal", "missing-field", "missing-parent",
                 "static-method", "static-field", "direct-method", "interface-owner", "private-method", "inherited-constructor",
                 "field-opcode", "missing-framework", "unguarded-api", "guarded", "wrong-guard", "clobbered-guard", "bypass-guard",
                 "exception-bypass", "guarded-helper", "unguarded-helper", "escaped-helper", "bad-handle-register", "good-handle-register", "reviewed-bridge", "unguarded-bridge",
-                "array-clone", "empty", "changed-host", "changed-host-missing");
+                "array-clone", "empty", "changed-host", "changed-host-missing"));
+        for (String family : List.of("owner-method", "owner-field", "owner-method-handle", "owner-field-handle",
+                "member-method", "member-field", "member-method-handle", "member-field-handle"))
+            for (String guard : List.of("guarded", "unguarded", "wrong")) cases.add(guard + '-' + family);
         for (String name : cases) write(output, name,
                 library(name.equals("changed-host-missing") ? "missing-method" : name, name.startsWith("changed-host")), extension(name));
         Files.writeString(new File(output, "reviewed.txt").toPath(), "api-entry " + BRIDGE + " since 30\n", StandardCharsets.UTF_8);

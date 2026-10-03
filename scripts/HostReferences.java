@@ -228,6 +228,7 @@ public class HostReferences {
         final String op;
         final Reference ref;
         Use(Body body, int index, String op, Reference ref) { this.body = body; this.index = index; this.op = op; this.ref = ref; }
+        String owner() { return ref instanceof FieldReference ? ((FieldReference) ref).getDefiningClass() : ((MethodReference) ref).getDefiningClass(); }
         String key() { return op + " " + ref; }
         String where() {
             String original = body.code.get(index).getOpcode().name;
@@ -323,7 +324,7 @@ public class HostReferences {
         }
         Member resolve(Use use) throws Exception {
             boolean field = use.ref instanceof FieldReference;
-            String owner = field ? ((FieldReference) use.ref).getDefiningClass() : ((MethodReference) use.ref).getDefiningClass();
+            String owner = use.owner();
             String key = field ? fieldKey((FieldReference) use.ref) : methodKey((MethodReference) use.ref);
             Type declared = get(owner);
             if (declared == null) throw new IllegalArgumentException("missing declaring class " + owner);
@@ -604,10 +605,19 @@ public class HostReferences {
                     Integer requirement = reviewed.get(target.owner + "->" + target.key);
                     if (requirement != null && (use.op.endsWith("-handle") || guards.at(use) < requirement))
                         throw new IllegalArgumentException("API-entry contract requires SDK >= " + requirement + "; caller proves " + guards.at(use));
-                    if (!patched.types.containsKey(target.owner) && !target.owner.startsWith("[")) {
+                    String owner = use.owner();
+                    boolean frameworkOwner = !patched.types.containsKey(owner) && !owner.startsWith("[");
+                    boolean frameworkTarget = !patched.types.containsKey(target.owner) && !target.owner.startsWith("[");
+                    if (frameworkOwner || frameworkTarget) {
                         framework++;
-                        Api api = platform.member(target, use.ref instanceof FieldReference);
-                        if (api == null) throw new IllegalArgumentException("SDK declaration has no API history: " + target.owner + "->" + target.key);
+                        // Inherited members still require the class named by the DEX reference.
+                        Api api = frameworkOwner ? platform.history.get(owner) : null;
+                        if (frameworkOwner && api == null) throw new IllegalArgumentException("SDK referenced class has no API history: " + owner);
+                        if (frameworkTarget) {
+                            Api declaration = platform.member(target, use.ref instanceof FieldReference);
+                            if (declaration == null) throw new IllegalArgumentException("SDK declaration has no API history: " + target.owner + "->" + target.key);
+                            api = api == null ? declaration : new Api(Math.max(api.since, declaration.since), Math.min(api.removed, declaration.removed));
+                        }
                         if (api.removed != Integer.MAX_VALUE) throw new IllegalArgumentException("SDK member removed at API " + api.removed);
                         if (api.since > floor) {
                             int proven = guards.at(use);
