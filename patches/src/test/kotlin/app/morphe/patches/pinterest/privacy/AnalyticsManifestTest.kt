@@ -11,10 +11,17 @@ import java.io.ByteArrayInputStream
 import javax.xml.parsers.DocumentBuilderFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.w3c.dom.Element
 
 class AnalyticsManifestTest {
+    @Test
+    fun `Firebase deactivation cannot execute before the full bytecode preflight succeeds`() {
+        assertTrue(disableAnalyticsPatch.dependencies.contains(disableFirebaseAnalyticsManifestPatch))
+        assertTrue(disableFirebaseAnalyticsManifestPatch.dependencies.contains(analyticsPreflightPatch))
+    }
+
     @Test
     fun `deactivation preserves Firebase push auth and all other component declarations`() {
         val document = parse("""

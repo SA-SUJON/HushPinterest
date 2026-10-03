@@ -17,10 +17,9 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
-import app.morphe.patches.pinterest.misc.extension.handleTargets
+import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireLocals
-import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -63,7 +62,14 @@ internal fun deactivateFirebaseAnalytics(document: Document) {
     entry.setAttribute("android:value", "true")
 }
 
+/** A dependency failure prevents the irreversible Firebase resource edit from running. */
+internal val analyticsPreflightPatch = bytecodePatch {
+    dependsOn(settingsPatch, pinterestExtensionPatch)
+    execute { analyticsPlan() }
+}
+
 internal val disableFirebaseAnalyticsManifestPatch = resourcePatch {
+    dependsOn(analyticsPreflightPatch)
     execute { document("AndroidManifest.xml").use(::deactivateFirebaseAnalytics) }
 }
 
@@ -81,54 +87,104 @@ val disableAnalyticsPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.pinterest())
 
     execute {
-        listOf("disableAnalytics", "analyticsTasks", "analyticsUploads").forEach(::requireStatusMethod)
-        val services = mutableListOf<Method>()
-        classDefForEach { owner ->
-            if (AccessFlags.INTERFACE.isSet(owner.accessFlags)) services += owner.methods.filter { it.telemetryPath() != null }
-        }
-        if (services.isEmpty()) throw PatchException("$PATCH: no annotated Pinterest telemetry service was found")
-
-        val completed = completedResponseFactories(services)
-        val wrappers = services.mapIndexed { index, method ->
-            method.identity() to addUploadWrapper(method, "hushUpload$index", completed.getValue(method.identity()))
-        }.toMap()
-        val counts = redirectPrivacyCalls(wrappers)
-        val covered = handleTargets(PATCH, "Pinterest telemetry endpoints", TELEMETRY_PATHS.toList()) { path ->
-            if (services.any { it.telemetryPath() == path && counts.getOrDefault(it.identity(), 0) > 0 }) null
-            else "no callable $path telemetry endpoint was found"
-        }
-
-        // AppsFlyer's transport keeps its package in both APKs. Only its own URL calls are changed.
-        val network = mapOf(
-            "Ljava/net/URL;->openConnection()Ljava/net/URLConnection;" to
-                "$ANALYTICS->openConnection(Ljava/net/URL;)Ljava/net/URLConnection;",
-        )
-        val sdkCalls = redirectPrivacyCalls(network) { it.startsWith("Lcom/appsflyer/") }.values.sum()
-        if (sdkCalls == 0) throw PatchException("$PATCH: AppsFlyer's URL transport wasn't found")
-        if (covered == TELEMETRY_PATHS.size) enableCapability("analyticsUploads")
-        hookAnalyticsTasks()
+        val plan = analyticsPlan()
+        val owner = mutableClassDefBy(ANALYTICS)
+        plan.wrappers.forEach { owner.methods.add(it.toMutable()) }
+        plan.edits.forEach { it.apply(this) }
+        enableCapability("analyticsUploads")
         enableCapability("analyticsTasks")
         enableStatus("disableAnalytics")
     }
 }
 
+private data class AnalyticsPlan(val wrappers: List<ImmutableMethod>, val edits: List<PrivacyMethodEdit>)
+
+/** All discovery and instruction assembly occurs on immutable input or detached method copies. */
+private fun BytecodePatchContext.analyticsPlan(): AnalyticsPlan {
+    val status = classDefBy(SETTINGS_STATUS)
+    for (name in listOf("disableAnalytics", "analyticsTasks", "analyticsUploads")) {
+        val method = status.methods.singleOrNull { it.name == name && it.parameterTypes.isEmpty() && it.returnType == "Z" }
+        if (!AccessFlags.PUBLIC.isSet(status.accessFlags) || method == null ||
+            !AccessFlags.PUBLIC.isSet(method.accessFlags) || !AccessFlags.STATIC.isSet(method.accessFlags) ||
+            AccessFlags.ABSTRACT.isSet(method.accessFlags) || AccessFlags.NATIVE.isSet(method.accessFlags) ||
+            (method.implementation?.registerCount ?: 0) < 1 || method.implementation?.instructions?.any() != true) {
+            throw PatchException("$PATCH: SettingsStatus.$name() is not a callable public static boolean build flag")
+        }
+    }
+    val extension = classDefBy(ANALYTICS)
+    for ((name, parameters, response) in listOf(
+        Triple("blockUpload", emptyList(), "Z"),
+        Triple("blockTask", listOf("Ljava/lang/Object;"), "Z"),
+        Triple("openConnection", listOf("Ljava/net/URL;"), "Ljava/net/URLConnection;"),
+    )) {
+        if (!AccessFlags.PUBLIC.isSet(extension.accessFlags) || extension.methods.count {
+                it.name == name && it.parameterTypes.map { p -> p.toString() } == parameters && it.returnType == response &&
+                    AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) && it.implementation != null
+            } != 1) throw PatchException("$PATCH: no callable Analytics.$name runtime hook")
+    }
+    val services = mutableListOf<Method>()
+    classDefForEach { owner ->
+        if (AccessFlags.INTERFACE.isSet(owner.accessFlags)) services += owner.methods.filter { it.telemetryPath() != null }
+    }
+    if (services.isEmpty()) throw PatchException("$PATCH: no annotated Pinterest telemetry service was found")
+    if (services.any { AccessFlags.STATIC.isSet(it.accessFlags) || !AccessFlags.PUBLIC.isSet(it.accessFlags) }) {
+        throw PatchException("$PATCH: telemetry services must be public instance methods")
+    }
+    val completed = completedResponseFactories(services)
+    val wrappers = services.mapIndexed { index, method ->
+        uploadWrapper(method, "hushUpload$index", completed.getValue(method.identity()))
+    }
+    if (wrappers.any { wrapper -> extension.methods.any { it.identity() == wrapper.identity() } }) {
+        throw PatchException("$PATCH: an analytics upload wrapper already exists")
+    }
+    val uploads = planPrivacyCalls(services.zip(wrappers).associate { (service, wrapper) -> service.identity() to wrapper.identity() })
+    val missing = TELEMETRY_PATHS.filter { path ->
+        services.none { it.telemetryPath() == path && uploads.counts.getOrDefault(it.identity(), 0) > 0 }
+    }
+    if (missing.isNotEmpty()) throw PatchException("$PATCH: no callable telemetry endpoints for ${missing.joinToString()}")
+    // AppsFlyer's transport keeps its package in both APKs. Only its own URL calls are changed.
+    val sdk = planPrivacyCalls(mapOf(
+        "Ljava/net/URL;->openConnection()Ljava/net/URLConnection;" to
+            "$ANALYTICS->openConnection(Ljava/net/URL;)Ljava/net/URLConnection;",
+    )) { it.startsWith("Lcom/appsflyer/") }
+    if (sdk.counts.values.sum() == 0) throw PatchException("$PATCH: AppsFlyer's URL transport wasn't found")
+    val edits = uploads.edits + sdk.edits + analyticsTaskEdit()
+    if (edits.map { it.original }.distinct().size != edits.size) {
+        throw PatchException("$PATCH: analytics hooks overlap in one method")
+    }
+    return AnalyticsPlan(wrappers.toList(), edits.toList())
+}
+
 /** Creates completed values with the vendor's own response types, so subscribers can clean up. */
-private fun BytecodePatchContext.completedResponseFactories(services: List<Method>): Map<String, String> {
+internal fun BytecodePatchContext.completedResponseFactories(services: List<Method>): Map<String, String> {
     val factories = mutableMapOf<String, String>()
     val bodies = mutableMapOf<String, String>()
     for (service in services) {
         val response = service.returnType
-        val reused = bodies[response]
+        if (!response.startsWith('L') || !response.endsWith(';')) {
+            throw PatchException("$PATCH: ${service.identity()} has no object response type")
+        }
+        val signature = service.genericSignature()
+        val json = if (response != "Ljava/lang/Object;" && service.telemetryPath() == "log/") {
+            signature.substringAfter("${response.removeSuffix(";")}<", "").substringBefore('>').also {
+                if (!it.startsWith("L") || !it.endsWith(';') || it.contains('<')) {
+                    throw PatchException("$PATCH: ${service.identity()} has no concrete JSON response type")
+                }
+                requireConstructor(it, emptyList())
+            }
+        } else null
+        // Validate each erased signature before reusing a body, including a cached Object result.
+        if (response == "Ljava/lang/Object;" && !signature.contains("${NETWORK_RESPONSE.removeSuffix(";")}<Lkotlin/Unit;>")) {
+            throw PatchException("$PATCH: ${service.identity()} isn't a coroutine returning NetworkResponse<Unit>")
+        }
+        val key = response + (json ?: "")
+        val reused = bodies[key]
         if (reused != null) {
             factories[service.identity()] = reused
             continue
         }
         val body = when {
             response == "Ljava/lang/Object;" -> {
-                val signature = service.genericSignature()
-                if (!signature.contains("${NETWORK_RESPONSE.removeSuffix(";")}<Lkotlin/Unit;>")) {
-                    throw PatchException("$PATCH: ${service.identity()} isn't a coroutine returning NetworkResponse<Unit>")
-                }
                 val success = mutableListOf<ClassDef>()
                 classDefForEach { owner ->
                     if (owner.superclass == NETWORK_RESPONSE && owner.methods.any { method ->
@@ -147,14 +203,9 @@ private fun BytecodePatchContext.completedResponseFactories(services: List<Metho
                 """
             }
             service.telemetryPath() == "log/" -> {
-                val signature = service.genericSignature()
-                val json = signature.substringAfter("${response.removeSuffix(";")}<", "").substringBefore('>')
-                if (!json.startsWith("L") || !json.endsWith(';') || json.contains('<')) {
-                    throw PatchException("$PATCH: ${service.identity()} has no concrete JSON response type")
-                }
-                requireConstructor(json, emptyList())
                 val factory = classDefBy(response).methods.singleOrNull { method ->
-                    AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Object;") &&
+                    AccessFlags.PUBLIC.isSet(method.accessFlags) && AccessFlags.STATIC.isSet(method.accessFlags) &&
+                        method.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Object;") &&
                         classDefByOrNull(method.returnType)?.superclass == response
                 } ?: throw PatchException("$PATCH: no unique Single.just factory in $response")
                 """
@@ -180,7 +231,7 @@ private fun BytecodePatchContext.completedResponseFactories(services: List<Metho
             }
         }
         val completed = body.trimIndent() + "\nreturn-object v0"
-        bodies[response] = completed
+        bodies[key] = completed
         factories[service.identity()] = completed
     }
     return factories
@@ -204,7 +255,7 @@ private fun BytecodePatchContext.requireConstructor(type: String, parameters: Li
 }
 
 /** A new static method takes the original receiver and parameters without changing their values. */
-private fun BytecodePatchContext.addUploadWrapper(original: MethodReference, name: String, blocked: String): String {
+private fun uploadWrapper(original: MethodReference, name: String, blocked: String): ImmutableMethod {
     val parameters = listOf(original.definingClass) + original.parameterTypes.map { it.toString() }
     val width = parameters.sumOf { if (it == "J" || it == "D") 2 else 1 }
     val wrapper = ImmutableMethod(
@@ -225,12 +276,11 @@ private fun BytecodePatchContext.addUploadWrapper(original: MethodReference, nam
             """,
         )
     }
-    mutableClassDefBy(ANALYTICS).methods.add(wrapper)
-    return wrapper.identity()
+    return ImmutableMethod.of(wrapper)
 }
 
 /** The scheduler owns a Runnable and the enum whose un-obfuscated labels identify startup tasks. */
-private fun BytecodePatchContext.hookAnalyticsTasks() {
+private fun BytecodePatchContext.analyticsTaskEdit(): PrivacyMethodEdit {
     val enums = mutableListOf<String>()
     classDefForEach { owner ->
         if (owner.superclass == "Ljava/lang/Enum;" && owner.fields.any { it.name == "TAG_APPSFLYER_INIT" } &&
@@ -242,7 +292,8 @@ private fun BytecodePatchContext.hookAnalyticsTasks() {
         if (owner.fields.none { it.type == "Ljava/lang/Runnable;" }) return@classDefForEach
         val tag = owner.instanceFields.singleOrNull { it.type == tagType } ?: return@classDefForEach
         for (method in owner.methods) {
-            if (method.returnType != "V" || method.parameterTypes.isNotEmpty() || method.name.startsWith('<')) continue
+            if (method.returnType != "V" || method.parameterTypes.isNotEmpty() || method.name.startsWith('<') ||
+                AccessFlags.STATIC.isSet(method.accessFlags)) continue
             if (method.implementation?.instructions?.mapNotNull { it.callReference() }?.any {
                     it.definingClass == "Ljava/util/Map;" && it.name == "put"
                 } == true) schedulers += method.identity() to tag.name
@@ -251,7 +302,7 @@ private fun BytecodePatchContext.hookAnalyticsTasks() {
     val (identity, tag) = schedulers.singleOrNull() ?: throw PatchException("$PATCH: no unique tagged startup scheduler")
     val owner = identity.substringBefore("->")
     val name = identity.substringAfter("->").substringBefore('(')
-    val method = mutableClassDefBy(owner).methods.single { it.name == name && it.parameterTypes.isEmpty() }
+    val method = ImmutableMethod.of(classDefBy(owner).methods.single { it.name == name && it.parameterTypes.isEmpty() }).toMutable()
     method.requireLocals(PATCH, 1)
     method.addInstructionsWithLabels(
         0,
@@ -264,4 +315,5 @@ private fun BytecodePatchContext.hookAnalyticsTasks() {
         """,
         ExternalLabel("hush_original_task", method.getInstruction(0)),
     )
+    return PrivacyMethodEdit(identity, ImmutableMethod.of(method))
 }

@@ -119,6 +119,7 @@ public class PausedHooksTest {
         PauseForTests.resume();
         for (BooleanSetting setting : settingsSwitches()) setting.resetToDefault();
         PatchFamily.capabilitiesForTests = null;
+        PatchFamily.inBuildForTests = null;
         ReleaseCheckForTests.forget();
         Utils.setActivity(null);
         HookStatus.clear();
@@ -147,6 +148,7 @@ public class PausedHooksTest {
     private static Map<BooleanSetting, List<Probe>> probes() {
         // Every hook is in this build, so the filter reads each family's switch.
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS);
         Map<BooleanSetting, List<Probe>> probes = new LinkedHashMap<>();
         // A promoted pin leaves the page, and an ad-only view stays hidden and sizeless.
         probes.put(Settings.HIDE_ADS, Arrays.asList(

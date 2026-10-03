@@ -23,6 +23,7 @@ import java.util.Set;
 import javax.net.ssl.HttpsURLConnection;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
+import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
@@ -39,7 +40,7 @@ public final class Analytics {
 
     private static boolean active() {
         try {
-            return Utils.settingsReady() && Settings.DISABLE_ANALYTICS.get();
+            return Utils.settingsReady() && PatchFamily.DISABLE_ANALYTICS.inBuild() && Settings.DISABLE_ANALYTICS.get();
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DISABLE_ANALYTICS, "switch read", failure);
             return false;

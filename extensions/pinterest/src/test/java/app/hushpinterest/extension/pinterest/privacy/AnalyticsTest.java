@@ -12,12 +12,16 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
+import java.util.Collections;
+import java.util.EnumSet;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +29,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import app.hushpinterest.extension.pinterest.settings.Settings;
+import app.hushpinterest.extension.pinterest.settings.PatchFamily;
+import app.hushpinterest.extension.pinterest.settings.PatchFamilyForTests;
 import app.hushpinterest.extension.shared.SettingsContextRule;
 import app.hushpinterest.extension.shared.settings.HushPinterestPause;
 import app.hushpinterest.extension.shared.settings.PauseForTests;
@@ -38,9 +44,15 @@ public class AnalyticsTest {
         TAG_WORKMANAGER_INIT, TAG_ADD_ACCOUNT, TAG_MAIN_ACTIVITY_START_SERVICES, TAG_TRACKING_REQUESTS
     }
 
-    @After public void restore() {
+    @Before public void installedBuild() throws ReflectiveOperationException {
+        installed(true);
+    }
+
+    @After public void restore() throws ReflectiveOperationException {
         PauseForTests.resume();
         Settings.DISABLE_ANALYTICS.resetToDefault();
+        PatchFamilyForTests.capabilities(null);
+        installed(null);
     }
 
     @Test public void blocksAnalyticsTasksAndPreservesAuthAndCoreTasks() {
@@ -81,6 +93,28 @@ public class AnalyticsTest {
         URLConnection restored = Analytics.openConnection(url);
         assertSame(handler.original, restored);
         assertEquals(1, handler.opened);
+    }
+
+    @Test public void retainedPartialHooksRemainInactiveUntilTheFamilyIsInstalled() throws Exception {
+        Settings.DISABLE_ANALYTICS.save(true);
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.ANALYTICS_TASKS,
+                PatchFamily.Capability.ANALYTICS_UPLOADS));
+        installed(false);
+        assertFalse(Analytics.blockUpload());
+        assertFalse(Analytics.blockTask(Task.TAG_APPSFLYER_INIT));
+        ProbeHandler handler = new ProbeHandler();
+        URL url = new URL(null, "https://appsflyer.example/event", handler);
+        URLConnection original = Analytics.openConnection(url);
+        assertSame(handler.original, original);
+        assertEquals(1, handler.opened);
+        installed(true);
+        assertTrue(Analytics.blockUpload());
+    }
+
+    private static void installed(Boolean present) throws ReflectiveOperationException {
+        Field field = PatchFamily.class.getDeclaredField("inBuildForTests");
+        field.setAccessible(true);
+        field.set(null, present == null ? null : present ? EnumSet.of(PatchFamily.DISABLE_ANALYTICS) : Collections.emptySet());
     }
 
     private static final class ProbeHandler extends URLStreamHandler {
