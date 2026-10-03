@@ -1,7 +1,7 @@
 ![HushPinterest. Keep the pins. Lose the ads.](assets/readme-hero.png)
 
 <p>
-  <img src="https://img.shields.io/badge/version-0.0.2-E60023" alt="Version 0.0.2">
+  <img src="https://img.shields.io/badge/version-0.0.1-E60023" alt="Version 0.0.1">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Pinterest-14.25.0-E60023" alt="Pinterest 14.25.0">
@@ -12,7 +12,7 @@
 
 HushPinterest is a Morphe patch bundle for Android that takes promoted pins out of Pinterest and can hide the pins Pinterest labels as AI. Every patch has its own switch, so you can turn one off without patching again.
 
-It's early. There's no release yet, and the patches haven't been tried on a signed-in phone. For now you'd have to build the bundle yourself (see [Building from source](#building-from-source)). Once 0.0.2 is out, Morphe Manager will be able to add this repo as a patch source and keep it updated.
+It's early. There's no release yet, and the patches haven't been tried on a signed-in phone. For now you'd have to build the bundle yourself (see [Building from source](#building-from-source)). Once 0.0.1 is out, Morphe Manager will be able to add this repo as a patch source and keep it updated.
 
 ## Which Pinterest
 
