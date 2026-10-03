@@ -34,6 +34,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.BadParcelableException;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.preference.Preference;
 import android.preference.SwitchPreference;
 
@@ -63,6 +66,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -110,9 +114,8 @@ public class SettingsBackupTest {
      */
     private static final Map<String, String> STAYS_OUT = Collections.singletonMap(
             "hushpinterest_check_releases",
-            "It puts the phone online, and the import preview gives only a count of the switches it "
-                    + "changes, so a file someone shared could turn it on unseen. It's switched on from the "
-                    + "phone's own screen.");
+            "It puts the phone online. A shared settings file mustn't opt this phone into a release "
+                    + "check, so it's switched on from the phone's own screen.");
 
     /** HushPinterest's own state and its diagnostics. None of them is ever in a file. */
     private static List<Setting<?>> neverInAFile() {
@@ -125,13 +128,16 @@ public class SettingsBackupTest {
 
     private static final String EXPORT_ROW = "action_export_settings";
     private static final String IMPORT_ROW = "action_import_settings";
+    private static final String UNDO_ROW = "action_undo_import";
     /** The app behind every file the tests pick. */
     private static final String AUTHORITY = "settings-test";
 
     @Before
     public void startClean() {
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.resetToDefault();
+        SettingsBackup.discardUndo();
         PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
+        PatchFamily.capabilitiesForTests = null;
         ShadowToast.reset();
         ShadowAlertDialog.reset();
         SettingsFileProvider.install(AUTHORITY);
@@ -153,7 +159,9 @@ public class SettingsBackupTest {
         BaseSettings.DEBUG.resetToDefault();
         BaseSettings.DEBUG_LOG_FILTERS.resetToDefault();
         PauseForTests.resume();
+        SettingsBackup.discardUndo();
         PatchFamily.inBuildForTests = null;
+        PatchFamily.capabilitiesForTests = null;
         AbstractPreferenceFragment.settingImportInProgress = false;
         HookStatus.clear();
         LogBufferManager.clearLogBuffer();
@@ -425,6 +433,270 @@ public class SettingsBackupTest {
         }
     }
 
+    // ---- Undo -------------------------------------------------------------------------------
+
+    @Test
+    public void undoRestoresEveryEarlierSwitchInOneCommitAndNeverExportsUndo() throws Exception {
+        Map<BooleanSetting, Boolean> before = new LinkedHashMap<>();
+        for (BooleanSetting setting : SettingsBackup.ALLOWLIST) before.put(setting, setting.savedValue());
+        JSONObject file = new JSONObject(SettingsBackup.create());
+        for (BooleanSetting setting : SettingsBackup.ALLOWLIST) {
+            file.getJSONObject("settings").put(setting.key, !setting.savedValue());
+        }
+        Counts counts = new Counts();
+        withStore(counting(Setting.preferences.preferences, counts, () -> false, false), () -> {
+            assertEquals(before.size(), SettingsBackup.apply(SettingsBackup.parse(file.toString())));
+            assertEquals(SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
+            assertEquals(new TreeSet<>(Arrays.asList("format", "schema", "settings")),
+                    names(new JSONObject(SettingsBackup.create())));
+            assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+            assertEquals(SettingsBackup.UndoState.NONE, SettingsBackup.undoState());
+            assertEquals(SettingsBackup.UndoResult.NOTHING, SettingsBackup.undo());
+            return null;
+        });
+        assertEquals("import and Undo each commit once", 2, counts.commits.get());
+        assertEquals(0, counts.applies.get());
+        for (Map.Entry<BooleanSetting, Boolean> entry : before.entrySet()) {
+            assertEquals(entry.getKey().key, entry.getValue(), entry.getKey().savedValue());
+        }
+    }
+
+    @Test
+    public void undoRowRestoresImmediatelyWithoutOpeningAnotherDialogOrPicker() throws Exception {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            Preference undo = page.findPreference(UNDO_ROW);
+            assertNotNull("the settings page needs the Undo row", undo);
+            assertFalse(undo.isEnabled());
+            deliver(activity, tap(activity, page, IMPORT_ROW), fileWith(Settings.HIDE_ADS, false));
+            shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertTrue(undo.isEnabled());
+            ShadowAlertDialog.reset();
+            click(undo);
+            settle();
+            assertNull("Undo opened another confirmation", ShadowAlertDialog.getLatestAlertDialog());
+            assertNull("Undo opened a picker", shadowOf(activity).getNextStartedActivityForResult());
+            assertEquals("Import undone. Your earlier switches are back.", ShadowToast.getTextOfLatestToast());
+            assertTrue(Settings.HIDE_ADS.savedValue());
+            assertTrue(((SwitchPreference) page.findPreference(Settings.HIDE_ADS.key)).isChecked());
+            assertFalse(undo.isEnabled());
+            assertFalse(AbstractPreferenceFragment.settingImportInProgress);
+        }
+    }
+
+    @Test
+    public void aLaterSavedEditExpiresUndoWithoutOverwritingTheEdit() throws Exception {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+            SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+            settle();
+            Preference undo = page.findPreference(UNDO_ROW);
+            assertNotNull(undo);
+            assertTrue(undo.isEnabled());
+            Settings.HIDE_AI_PINS.save(false);
+            settle();
+            assertFalse(undo.isEnabled());
+            assertEquals("Undo ended because a saved switch changed.", undo.getSummary().toString());
+            assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+            assertFalse(Settings.HIDE_ADS.savedValue());
+            assertFalse("Undo overwrote the later edit", Settings.HIDE_AI_PINS.savedValue());
+        }
+    }
+
+    @Test
+    public void undoRefusesAStoreOrLiveSwitchThatDiffersFromTheImportedSnapshot() throws Exception {
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+        SharedPreferences store = Setting.preferences.preferences;
+        try {
+            store.edit().putBoolean(Settings.HIDE_AI_PINS.key, false).commit();
+            assertTrue("the live value should still be unchanged", Settings.HIDE_AI_PINS.savedValue());
+            assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+            assertFalse(Settings.HIDE_ADS.savedValue());
+        } finally {
+            store.edit().remove(Settings.HIDE_AI_PINS.key).commit();
+        }
+        Settings.HIDE_ADS.save(true);
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+        Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
+        assertFalse("the store should still be unchanged", store.contains(Settings.HIDE_AI_PINS.key));
+        assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+        assertFalse("Undo overwrote the later live choice", Settings.HIDE_AI_PINS.savedValue());
+    }
+
+    @Test
+    public void pauseAndExcludedStateDoNotEnterTheImportOrUndoSnapshot() throws Exception {
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        JSONObject file = new JSONObject(fileWith(Settings.HIDE_ADS, false));
+        file.getJSONObject("settings").put(BaseSettings.PAUSED.key, false)
+                .put(BaseSettings.DEBUG.key, false).put(Settings.CHECK_FOR_RELEASES.key, false)
+                .put("account_token", "foreign-token").put("signing_key", "foreign-key")
+                .put("release_cache", "foreign-cache").put("log_buffer", "foreign-log");
+        SettingsBackup.apply(SettingsBackup.parse(file.toString()));
+        BaseSettings.DEBUG.save(true);
+        Settings.CHECK_FOR_RELEASES.save(true);
+        Setting.preferences.preferences.edit().putString("account_token", "kept-token")
+                .putString("signing_key", "kept-key").putString("release_cache", "kept-cache")
+                .putString("log_buffer", "kept-log").commit();
+        try {
+            assertEquals(SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
+            assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+            assertTrue(Settings.HIDE_ADS.savedValue());
+            assertFalse("Undo resumed a paused hook", Settings.HIDE_ADS.get());
+            assertTrue(BaseSettings.PAUSED.savedValue());
+            assertTrue(BaseSettings.DEBUG.savedValue());
+            assertTrue(Settings.CHECK_FOR_RELEASES.savedValue());
+            assertEquals("kept-token", store().get("account_token"));
+            assertEquals("kept-key", store().get("signing_key"));
+            assertEquals("kept-cache", store().get("release_cache"));
+            assertEquals("kept-log", store().get("log_buffer"));
+            JSONObject exported = new JSONObject(SettingsBackup.create()).getJSONObject("settings");
+            assertEquals(keys(SettingsBackup.ALLOWLIST), names(exported));
+            assertEquals(true, exported.get(Settings.HIDE_ADS.key));
+        } finally {
+            Setting.preferences.preferences.edit().remove("account_token").remove("signing_key")
+                    .remove("release_cache").remove("log_buffer").commit();
+        }
+    }
+
+    @Test
+    public void changingThePreferenceStoreDropsUndoWithoutRestoringAStoredSnapshot() throws Exception {
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+        SharedPreferences nextProcess = RuntimeEnvironment.getApplication()
+                .getSharedPreferences("settings-backup-next-process", Context.MODE_PRIVATE);
+        nextProcess.edit().clear().putBoolean(Settings.HIDE_ADS.key, false).commit();
+        withStore(nextProcess, () -> {
+            assertEquals(SettingsBackup.UndoState.NONE, SettingsBackup.undoState());
+            assertEquals(SettingsBackup.UndoResult.NOTHING, SettingsBackup.undo());
+            assertEquals(false, store().get(Settings.HIDE_ADS.key));
+            return null;
+        });
+        assertFalse(Settings.HIDE_ADS.savedValue());
+        assertEquals(SettingsBackup.UndoState.NONE, SettingsBackup.undoState());
+    }
+
+    @Test
+    public void aSecondImportKeepsOnlyItsOwnPriorSnapshotAndANoopDoesNotReplaceIt() throws Exception {
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_AI_PINS, false)));
+        assertEquals(0, SettingsBackup.apply(SettingsBackup.parse(SettingsBackup.create())));
+        assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+        assertFalse("Undo restored more than the last import", Settings.HIDE_ADS.savedValue());
+        assertTrue(Settings.HIDE_AI_PINS.savedValue());
+        assertEquals(SettingsBackup.UndoResult.NOTHING, SettingsBackup.undo());
+    }
+
+    @Test
+    public void unavailableFamiliesAndCapabilitiesAreNamedButKeepTheirSavedChoices() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS, PatchFamily.DOWNLOAD_PINS);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS);
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false,
+                Settings.DOWNLOAD_PINS, true, Settings.EXTERNAL_BROWSER, true));
+        String unavailable = "Saved choice only. This build doesn't include this control.";
+        assertEquals("3 switches will change.\n\nHide ads (On to Off)\n\nDownload pins (Off to On)\n"
+                + unavailable + "\n\nOpen links in your browser (Off to On)\n" + unavailable,
+                SettingsBackupPreference.previewMessage(snapshot));
+        assertEquals(3, SettingsBackup.apply(snapshot));
+        assertTrue(Settings.DOWNLOAD_PINS.savedValue());
+        assertTrue(Settings.EXTERNAL_BROWSER.savedValue());
+        assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+        assertFalse(Settings.DOWNLOAD_PINS.savedValue());
+        assertFalse(Settings.EXTERNAL_BROWSER.savedValue());
+    }
+
+    @Test
+    public void namedReviewUsesEachCatalogForNamesValuesAndUnavailableChoices() throws Exception {
+        PatchFamily.inBuildForTests = Collections.emptySet();
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false,
+                Settings.DOWNLOAD_PINS, true));
+        for (String language : new String[]{"de", "es", "in-rID", "pt-rBR", "tr"}) {
+            RuntimeEnvironment.setQualifiers("+" + language);
+            String message = SettingsBackupPreference.previewMessage(snapshot);
+            String off = L10n.t("Off");
+            String on = L10n.t("On");
+            assertFalse(language + " has an English name", message.contains("Hide ads ("));
+            assertTrue(language, message.contains(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Hide ads"), on, off)));
+            assertTrue(language, message.contains(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Download pins"), off, on)));
+            assertTrue(language, message.contains(L10n.t("Saved choice only. This build doesn't include this control.")));
+        }
+    }
+
+    @Test
+    public void aFailedUndoRollsBackAndKeepsItsImportedSnapshotForRetry() throws Exception {
+        try (FailingStore faults = FailingStore.install(FailingStore.Fault.NONE,
+                FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING, FailingStore.Fault.NONE);
+             ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+            AbstractPreferenceFragment.settingImportInProgress = true;
+            SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+            settle();
+            Map<String, ?> imported = store();
+            try {
+                SettingsBackup.undo();
+                fail("Undo accepted a failed commit");
+            } catch (SettingsBackup.ApplyFailed failed) {
+                assertTrue(failed.rolledBack);
+            }
+            settle();
+            assertEquals(imported, store());
+            assertFalse(Settings.HIDE_ADS.savedValue());
+            assertEquals(SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
+            assertTrue("the rollback callback expired Undo", page.findPreference(UNDO_ROW).isEnabled());
+            assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+            assertTrue(Settings.HIDE_ADS.savedValue());
+            assertEquals("import, failed Undo, rollback, retried Undo", 4, faults.editors.get());
+            AbstractPreferenceFragment.settingImportInProgress = false;
+        }
+    }
+
+    @Test
+    public void anUndoWhoseRollbackAlsoFailsExpiresAndReportsTheSurvivingValues() throws Exception {
+        try (FailingStore ignored = FailingStore.install(FailingStore.Fault.NONE,
+                FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING, FailingStore.Fault.LOST)) {
+            SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+            try {
+                SettingsBackup.undo();
+                fail("Undo accepted a failed rollback");
+            } catch (SettingsBackup.ApplyFailed failed) {
+                assertFalse(failed.rolledBack);
+            }
+            assertTrue("the live switch differs from the surviving default", Settings.HIDE_ADS.savedValue());
+            assertFalse(store().containsKey(Settings.HIDE_ADS.key));
+            assertEquals(SettingsBackup.UndoState.EXPIRED, SettingsBackup.undoState());
+            assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+        }
+    }
+
+    @Test
+    public void aFailedNewImportKeepsThePreviousUndoOnlyIfRollbackRestoresIt() throws Exception {
+        for (FailingStore.Fault rollback : new FailingStore.Fault[]{FailingStore.Fault.NONE, FailingStore.Fault.LOST}) {
+            SettingsBackup.discardUndo();
+            Settings.HIDE_ADS.resetToDefault();
+            Settings.HIDE_AI_PINS.resetToDefault();
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.NONE,
+                    FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING, rollback)) {
+                SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+                try {
+                    SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_AI_PINS, false)));
+                    fail("the second failed import succeeded");
+                } catch (SettingsBackup.ApplyFailed failed) {
+                    assertEquals(rollback == FailingStore.Fault.NONE, failed.rolledBack);
+                }
+                if (rollback == FailingStore.Fault.NONE) {
+                    assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+                    assertTrue(Settings.HIDE_ADS.savedValue());
+                    assertTrue(Settings.HIDE_AI_PINS.savedValue());
+                } else {
+                    assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+                    assertFalse(Settings.HIDE_ADS.savedValue());
+                    assertFalse(Settings.HIDE_AI_PINS.savedValue());
+                }
+            }
+        }
+    }
+
     // ---- Refusals ------------------------------------------------------------------------------
 
     @Test
@@ -588,17 +860,65 @@ public class SettingsBackupTest {
         Bundle state = read.toBundle();
         Bundle switches = state.getBundle("switches");
         switches.putBoolean(BaseSettings.PAUSED.key, true);
-        // A value of the wrong type is dropped, not coerced: the switch reads as if the file never named it.
-        switches.putString(Settings.HIDE_ADS.key, "false");
         SettingsBackup.Snapshot filtered = SettingsBackup.Snapshot.fromBundle(state);
-        Map<BooleanSetting, Boolean> expected = new LinkedHashMap<>(read.values);
-        expected.remove(Settings.HIDE_ADS);
-        assertEquals(expected, filtered.values);
+        assertNotNull(filtered);
+        assertEquals(read.values, filtered.values);
+        // A known value of the wrong type rejects the whole preview, rather than applying part.
+        switches.putString(Settings.HIDE_ADS.key, "false");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state));
         assertNull(SettingsBackup.Snapshot.fromBundle(null));
         assertNull(SettingsBackup.Snapshot.fromBundle(new Bundle()));
         Bundle negative = read.toBundle();
         negative.putInt("unknown", -1);
         assertNull(SettingsBackup.Snapshot.fromBundle(negative));
+    }
+
+    @Test
+    public void malformedRestoredPreviewsAndFilesDoNotChangeSwitchesOrReplaceUndo() throws Exception {
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+        Map<String, ?> before = store();
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(Settings.HIDE_AI_PINS, false));
+        Bundle wrongSwitches = snapshot.toBundle();
+        wrongSwitches.putString("switches", "false");
+        Bundle wrongCount = snapshot.toBundle();
+        wrongCount.putBoolean("unknown", false);
+        Bundle badKnownValue = snapshot.toBundle();
+        badKnownValue.getBundle("switches").putInt(Settings.HIDE_AI_PINS.key, 0);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+            ShadowAlertDialog.reset();
+            for (Bundle damaged : new Bundle[]{wrongSwitches, wrongCount, badKnownValue}) {
+                page.pendingImport = damaged;
+                SettingsBackupPreference.showPreview(page);
+                assertNull(page.pendingImport);
+                assertNull(ShadowAlertDialog.getLatestAlertDialog());
+                assertEquals(before, store());
+                assertEquals(SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
+            }
+        }
+        JSONObject wrongFile = new JSONObject(fileWith(Settings.HIDE_AI_PINS, false));
+        wrongFile.getJSONObject("settings").put(Settings.HIDE_ADS.key, "true");
+        assertEquals(SettingsBackup.Reason.VALUE, reasonFor(wrongFile.toString()));
+        assertEquals(before, store());
+        assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+        assertTrue(Settings.HIDE_ADS.savedValue());
+    }
+
+    @Test
+    public void anUnmarshalFailureRejectsTheWholeRestoredPreview() throws Exception {
+        Bundle bundle = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)).toBundle();
+        bundle.getBundle("switches").putParcelable(Settings.HIDE_AI_PINS.key, new UnreadableValue());
+        Parcel encoded = Parcel.obtain();
+        try {
+            encoded.writeBundle(bundle);
+            encoded.setDataPosition(0);
+            Bundle unreadable = encoded.readBundle(UnreadableValue.class.getClassLoader());
+            assertNull(SettingsBackup.Snapshot.fromBundle(unreadable));
+            assertTrue(Settings.HIDE_ADS.savedValue());
+            assertEquals(SettingsBackup.UndoState.NONE, SettingsBackup.undoState());
+        } finally {
+            encoded.recycle();
+        }
     }
 
     @Test
@@ -658,8 +978,12 @@ public class SettingsBackupTest {
             for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.save(!setting.savedValue());
             deliver(activity, tap(activity, page, IMPORT_ROW), new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8));
             AlertDialog preview = shownPreview();
-            assertEquals(SettingsBackup.ALLOWLIST.size() + " switches will change.",
-                    String.valueOf(shadowOf(preview).getMessage()));
+            String review = String.valueOf(shadowOf(preview).getMessage());
+            assertTrue(review.startsWith(SettingsBackup.ALLOWLIST.size() + " switches will change.\n\n"));
+            for (Map.Entry<BooleanSetting, Boolean> entry : exported.entrySet()) {
+                assertTrue(entry.getKey().key, review.contains(SettingsBackupPreference.switchName(entry.getKey())
+                        + " (" + (entry.getValue() ? "Off to On" : "On to Off") + ")"));
+            }
             preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             settle();
             for (Map.Entry<BooleanSetting, Boolean> entry : exported.entrySet()) {
@@ -689,7 +1013,7 @@ public class SettingsBackupTest {
     }
 
     @Test
-    public void importShowsHowManySwitchesChangeAndWritesThemOnImport() throws Exception {
+    public void importReviewsNamedOldAndNewValuesAndWritesThemOnImport() throws Exception {
         JSONObject file = new JSONObject(fileWith(Settings.HIDE_ADS, false,
                 Settings.HIDE_AI_PINS, false));
         file.getJSONObject("settings").put("later_switch", true);
@@ -707,7 +1031,8 @@ public class SettingsBackupTest {
             deliver(activity, started, file.toString());
             AlertDialog preview = shownPreview();
             assertEquals("Import settings", String.valueOf(shadowOf(preview).getTitle()));
-            assertEquals("2 switches will change.\n\n1 item in that file isn't a setting this version of "
+            assertEquals("2 switches will change.\n\nHide ads (On to Off)\n\nHide AI-labeled pins (On to Off)"
+                    + "\n\n1 item in that file isn't a setting this version of "
                     + "HushPinterest knows, so it'll be left out.", String.valueOf(shadowOf(preview).getMessage()));
             assertEquals("the preview wrote something", before, store());
             assertEquals("Import", String.valueOf(preview.getButton(AlertDialog.BUTTON_POSITIVE).getText()));
@@ -804,7 +1129,8 @@ public class SettingsBackupTest {
 
             deliver(rebuilt, started, file);
             AlertDialog preview = shownPreview();
-            assertEquals("1 switch will change.", String.valueOf(shadowOf(preview).getMessage()));
+            assertEquals("1 switch will change.\n\nHide AI-labeled pins (On to Off)",
+                    String.valueOf(shadowOf(preview).getMessage()));
             preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             settle();
             assertFalse(Settings.HIDE_AI_PINS.savedValue());
@@ -840,7 +1166,7 @@ public class SettingsBackupTest {
             deliver(controller.get(), tap(controller.get(), page, IMPORT_ROW), file);
             AlertDialog first = shownPreview();
             String message = String.valueOf(shadowOf(first).getMessage());
-            assertEquals("2 switches will change.", message);
+            assertEquals("2 switches will change.\n\nHide ads (On to Off)\n\nHide AI-labeled pins (On to Off)", message);
 
             controller.recreate();
             ShadowLooper.idleMainLooper();
@@ -1368,6 +1694,19 @@ public class SettingsBackupTest {
         final AtomicInteger edits = new AtomicInteger();
         final AtomicInteger commits = new AtomicInteger();
         final AtomicInteger applies = new AtomicInteger();
+    }
+
+    /** A valid parcel header whose payload cannot be restored. */
+    public static final class UnreadableValue implements Parcelable {
+        public static final Parcelable.Creator<UnreadableValue> CREATOR = new Parcelable.Creator<UnreadableValue>() {
+            @Override public UnreadableValue createFromParcel(Parcel source) {
+                throw new BadParcelableException("unreadable test payload");
+            }
+            @Override public UnreadableValue[] newArray(int size) { return new UnreadableValue[size]; }
+        };
+
+        @Override public int describeContents() { return 0; }
+        @Override public void writeToParcel(Parcel destination, int flags) { }
     }
 
     private interface Body<T> {

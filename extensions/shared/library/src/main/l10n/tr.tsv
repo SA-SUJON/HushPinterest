@@ -12,7 +12,6 @@ About	Hakkında
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 ve öncesi burada hangi bağlantıların açıldığını bildirmez. Bu uygulamanın ayarlarını açmak için dokunun, ardından Varsayılan olarak aç'a gidin.
 Back	Geri
 Cancel	İptal
-Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Pinterest app.	Bir ayar dosyası seç. İçe aktarmadan önce kaç anahtarın değişeceğini görürsün. İçe aktardıkların bu Pinterest uygulamasındaki tüm hesaplar için geçerli olur.
 Clear diagnostic data	Tanılama verilerini temizle
 Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kısa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Bağlantılar, kimlikler, çerezler ve oturum belirteçleri çıkarılır. Paylaşmadan önce başka özel bilgi olup olmadığına bak.
 Copy quick report	Hızlı raporu kopyala
@@ -288,3 +287,16 @@ Couldn't complete the save. Check your connection and chosen save location.	Kayd
 Couldn't write to the chosen save location. Check its access and available space.	Seçilen konuma yazılamadı. Erişimi ve kullanılabilir alanı kontrol edin.
 Couldn't download this pin. Check your connection and try again.	Bu Pin indirilemedi. Bağlantınızı kontrol edip tekrar deneyin.
 Couldn't prepare this pin for download. Open the pin again and try again.	Bu Pin indirmeye hazırlanamadı. Pin'i yeniden açıp tekrar deneyin.
+%1$s (%2$s to %3$s)	%1$s (%2$s yerine %3$s)
+Saved choice only. This build doesn't include this control.	Yalnızca kayıtlı seçim. Bu sürüm bu denetimi içermiyor.
+Undoing import	İçe aktarma geri alınıyor
+Import undone. Your earlier switches are back.	İçe aktarma geri alındı. Önceki anahtar ayarlarınız geri geldi.
+Undo ended because a saved switch changed.	Kayıtlı bir anahtar değiştiği için geri alma sona erdi.
+There's no import to undo.	Geri alınacak içe aktarma yok.
+Couldn't undo the import. Your imported switches are unchanged.	İçe aktarma geri alınamadı. İçe aktarılan anahtarlarınız değişmedi.
+Couldn't undo the import or restore the imported switches. Check the switches on this screen.	İçe aktarma geri alınamadı ve içe aktarılan anahtarlar geri yüklenemedi. Bu ekrandaki anahtarları kontrol edin.
+Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Son içe aktarmadan önceki anahtarları geri yükleyin. Bir anahtarı düzenlemek veya Pinterest'i yeniden başlatmak geri almayı sona erdirir.
+Undo import	İçe aktarmayı geri al
+Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Bir ayar dosyası seçin. İçe aktarmadan önce her anahtarın adını, eski ve yeni değerlerini inceleyin. Seçimleriniz bu Pinterest uygulamasındaki tüm hesaplara uygulanır.
+On	Açık
+Off	Kapalı

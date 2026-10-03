@@ -12,7 +12,6 @@ About	Sobre
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	O Android 11 e as versões anteriores não informam quais links abrem aqui. Toque para abrir as configurações deste app e depois Abrir por padrão.
 Back	Voltar
 Cancel	Cancelar
-Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Pinterest app.	Escolha um arquivo de configurações. Antes de importar qualquer coisa, você verá quantas opções serão alteradas. O que você importar vale para todas as contas deste app do Pinterest.
 Clear diagnostic data	Limpar dados de diagnóstico
 Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copie um relatório rápido ou salve o relatório completo em Download/Morphe. Links, IDs, cookies e tokens de login são omitidos. Verifique se há outros textos privados antes de compartilhar.
 Copy quick report	Copiar relatório rápido
@@ -285,3 +284,16 @@ Couldn't complete the save. Check your connection and chosen save location.	Não
 Couldn't write to the chosen save location. Check its access and available space.	Não foi possível gravar no local escolhido. Confira o acesso e o espaço disponível.
 Couldn't download this pin. Check your connection and try again.	Não foi possível baixar este Pin. Confira a conexão e tente de novo.
 Couldn't prepare this pin for download. Open the pin again and try again.	Não foi possível preparar este Pin para download. Abra o Pin de novo e tente outra vez.
+%1$s (%2$s to %3$s)	%1$s (de %2$s para %3$s)
+Saved choice only. This build doesn't include this control.	Apenas a escolha salva. Esta versão não inclui este controle.
+Undoing import	Desfazendo importação
+Import undone. Your earlier switches are back.	Importação desfeita. Seus ajustes anteriores foram restaurados.
+Undo ended because a saved switch changed.	Não é mais possível desfazer porque um ajuste salvo mudou.
+There's no import to undo.	Não há importação para desfazer.
+Couldn't undo the import. Your imported switches are unchanged.	Não foi possível desfazer a importação. Seus ajustes importados não mudaram.
+Couldn't undo the import or restore the imported switches. Check the switches on this screen.	Não foi possível desfazer a importação nem restaurar os ajustes importados. Confira os ajustes nesta tela.
+Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Restaure os ajustes anteriores à última importação. Alterar um ajuste ou reiniciar o Pinterest encerra a opção de desfazer.
+Undo import	Desfazer importação
+Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Escolha um arquivo de configurações. Confira o nome e os valores antigos e novos de cada ajuste antes de importar. Suas escolhas valem para todas as contas neste app do Pinterest.
+On	Ativado
+Off	Desativado

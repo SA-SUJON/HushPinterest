@@ -343,11 +343,13 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                 L10n.t("Export settings"),
                 L10n.t("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and "
                         + "Debug logging aren't included, and neither is the release check.")), SettingsIcons.EXPORT));
-        // The preview gives a count of the switches, not each switch by name.
         hushpinterest.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.IMPORT,
                 L10n.t("Import settings"),
-                L10n.t("Choose a settings file. Before anything is imported, you'll see how many switches it "
-                        + "changes. What you import applies to all the accounts in this Pinterest app.")), SettingsIcons.DOWNLOADS));
+                L10n.t("Choose a settings file. Review each switch's name and old and new values before importing. "
+                        + "Your choices apply to all accounts in this Pinterest app.")), SettingsIcons.DOWNLOADS));
+        hushpinterest.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.UNDO,
+                L10n.t("Undo import"),
+                L10n.t("There's no import to undo.")), SettingsIcons.UPDATES));
         // Debug logging also fills the exported report and turns on error toasts (Logger).
         hushpinterest.addPreference(mark(toggle(context, BaseSettings.DEBUG, L10n.t("Debug logging"),
                 L10n.t("Record patch activity and show errors for a bug report. Leave off during normal use.")), SettingsIcons.BUG));

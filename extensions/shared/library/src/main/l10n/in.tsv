@@ -12,7 +12,6 @@ About	Tentang
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 dan versi sebelumnya tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk membuka pengaturan aplikasi ini, lalu Buka secara default.
 Back	Kembali
 Cancel	Batal
-Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Pinterest app.	Pilih file pengaturan. Sebelum apa pun diimpor, Anda akan melihat berapa sakelar yang berubah. Yang Anda impor berlaku untuk semua akun di aplikasi Pinterest ini.
 Clear diagnostic data	Hapus data diagnostik
 Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
 Copy quick report	Salin laporan singkat
@@ -288,3 +287,16 @@ Couldn't complete the save. Check your connection and chosen save location.	Peny
 Couldn't write to the chosen save location. Check its access and available space.	Tidak dapat menulis ke lokasi penyimpanan yang dipilih. Periksa akses dan ruang yang tersedia.
 Couldn't download this pin. Check your connection and try again.	Pin ini tidak dapat diunduh. Periksa koneksi dan coba lagi.
 Couldn't prepare this pin for download. Open the pin again and try again.	Pin ini tidak dapat disiapkan untuk diunduh. Buka Pin lagi dan coba kembali.
+%1$s (%2$s to %3$s)	%1$s (%2$s menjadi %3$s)
+Saved choice only. This build doesn't include this control.	Hanya pilihan tersimpan. Versi ini tidak menyertakan kontrol ini.
+Undoing import	Mengurungkan impor
+Import undone. Your earlier switches are back.	Impor diurungkan. Setelan sakelar sebelumnya dipulihkan.
+Undo ended because a saved switch changed.	Urungkan tidak lagi tersedia karena sakelar tersimpan berubah.
+There's no import to undo.	Tidak ada impor untuk diurungkan.
+Couldn't undo the import. Your imported switches are unchanged.	Tidak dapat mengurungkan impor. Sakelar yang diimpor tidak berubah.
+Couldn't undo the import or restore the imported switches. Check the switches on this screen.	Tidak dapat mengurungkan impor atau memulihkan sakelar yang diimpor. Periksa sakelar di layar ini.
+Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Pulihkan sakelar sebelum impor terakhir. Mengubah sakelar atau memulai ulang Pinterest mengakhiri Urungkan.
+Undo import	Urungkan impor
+Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Pilih file setelan. Tinjau nama serta nilai lama dan baru setiap sakelar sebelum mengimpor. Pilihan berlaku untuk semua akun di aplikasi Pinterest ini.
+On	Aktif
+Off	Nonaktif

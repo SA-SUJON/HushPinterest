@@ -12,7 +12,6 @@ About	Info
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 und älter melden nicht, welche Links sich hier öffnen. Tippe, um die Einstellungen dieser App zu öffnen, dann auf „Standardmäßig öffnen“.
 Back	Zurück
 Cancel	Abbrechen
-Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Pinterest app.	Wähle eine Einstellungsdatei. Vor dem Import siehst du, wie viele Schalter sie ändert. Was du importierst, gilt für alle Konten in dieser Pinterest-App.
 Clear diagnostic data	Diagnosedaten löschen
 Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kopiere einen Kurzbericht oder speichere den vollständigen Bericht unter Download/Morphe. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Prüfe ihn vor dem Teilen auf andere private Angaben.
 Copy quick report	Kurzbericht kopieren
@@ -288,3 +287,16 @@ Couldn't complete the save. Check your connection and chosen save location.	Der 
 Couldn't write to the chosen save location. Check its access and available space.	Am gewählten Speicherort konnte nicht geschrieben werden. Prüfe den Zugriff und den freien Speicherplatz.
 Couldn't download this pin. Check your connection and try again.	Dieser Pin konnte nicht heruntergeladen werden. Prüfe deine Verbindung und versuch es erneut.
 Couldn't prepare this pin for download. Open the pin again and try again.	Dieser Pin konnte nicht für den Download vorbereitet werden. Öffne ihn erneut und versuch es noch einmal.
+%1$s (%2$s to %3$s)	%1$s (%2$s zu %3$s)
+Saved choice only. This build doesn't include this control.	Nur gespeicherte Auswahl. Dieser Build enthält diesen Schalter nicht.
+Undoing import	Import wird rückgängig gemacht
+Import undone. Your earlier switches are back.	Import rückgängig gemacht. Deine früheren Schalter sind wiederhergestellt.
+Undo ended because a saved switch changed.	Rückgängig ist nicht mehr möglich, weil ein gespeicherter Schalter geändert wurde.
+There's no import to undo.	Es gibt keinen Import zum Rückgängigmachen.
+Couldn't undo the import. Your imported switches are unchanged.	Der Import konnte nicht rückgängig gemacht werden. Die importierten Schalter sind unverändert.
+Couldn't undo the import or restore the imported switches. Check the switches on this screen.	Der Import konnte weder rückgängig gemacht noch die importierten Schalter wiederhergestellt werden. Prüfe die Schalter auf diesem Bildschirm.
+Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Stellt die Schalter vor dem letzten Import wieder her. Das Ändern eines Schalters oder ein Neustart von Pinterest beendet diese Möglichkeit.
+Undo import	Import rückgängig machen
+Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Wähle eine Einstellungsdatei. Prüfe vor dem Import den Namen und die alten und neuen Werte jedes Schalters. Deine Auswahl gilt für alle Konten in dieser Pinterest-App.
+On	An
+Off	Aus

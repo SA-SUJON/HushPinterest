@@ -103,6 +103,12 @@ Supplied media details shows dimensions and a type from Pinterest's metadata and
   <img src="assets/screenshots/settings-download-history.png" width="240" alt="Download history with Refresh and Back">
 </p>
 
+Import settings shows each switch's name and its old and new values before applying the file. Undo import restores the previous switches once. Editing a saved switch or restarting Pinterest ends Undo. The file contains allowed settings, including choices whose patches aren't installed. It doesn't contain accounts, media, signing keys, logs or temporary state.
+
+<p>
+  <img src="assets/screenshots/settings-import-preview.png" width="240" alt="Settings import review naming the switch and its old and new values">
+</p>
+
 The release check compares your Pinterest version with every version a release explicitly supports. Updates also has links to the release notes and installation steps. Those links don't download anything automatically.
 
 ## Opening Pinterest links

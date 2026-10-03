@@ -14,7 +14,9 @@
  *
  * Modified for Hushfacebook (Facebook), 2026: two rows, Export settings and Import settings, on the
  * framework preference page inside Hushfacebook's settings dialog; an import is read and shown as a
- * preview of how many switches it changes before anything is written; no Reset or Undo.
+ * preview of named switch changes before anything is written, with one-step Undo after import.
+ * Modified for HushPinterest (Pinterest), 2026: named before/after review and a nonmodal one-step
+ * Undo row that expires when a later saved-switch edit would be overwritten.
  */
 package app.hushpinterest.extension.pinterest.settings;
 
@@ -24,6 +26,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -43,26 +46,30 @@ import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.Utils;
+import app.hushpinterest.extension.shared.settings.BooleanSetting;
+import app.hushpinterest.extension.shared.settings.Setting;
 import app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment;
+import app.hushpinterest.extension.shared.settings.preference.ImmediateAction;
 import app.hushpinterest.extension.shared.settings.preference.LogBufferManager;
 
 /**
- * Export settings and Import settings.
+ * Export settings, Import settings and Undo import.
  *
- * <p>Both open Android's file picker from the settings page. The picker is an activity of its
+ * <p>Export and Import open Android's file picker from the settings page. The picker is an activity of its
  * own, so Android may rebuild Pinterest's activity behind it, and the settings dialog and its page
  * with it. The result still reaches the page: Android hands it to the fragment the request came
  * from by the name the framework gave it, and a rebuilt page is given the same one. So nothing
  * about a request is kept on the page. Its code says which it was, and the file's address comes
  * with the result.
  *
- * <p>An import reads the file first and shows how many switches it changes. Nothing is written
+ * <p>An import reads the file first and shows each saved-switch change by name. Nothing is written
  * until the person says so, and then everything is written in one commit. The preview is kept in
  * the page's saved state, so a rotation or a trip away from Pinterest brings it back.
  *
@@ -72,9 +79,10 @@ import app.hushpinterest.extension.shared.settings.preference.LogBufferManager;
  * a file that won't import isn't called saved.
  */
 @SuppressWarnings("deprecation") // Framework preferences are what the shared settings page builds on.
-public class SettingsBackupPreference extends Preference {
+public class SettingsBackupPreference extends Preference implements ImmediateAction {
     static final int EXPORT = 7311;
     static final int IMPORT = 7312;
+    static final int UNDO = 7313;
 
     /** What a settings file is saved as. */
     static final String MIME_TYPE = "application/json";
@@ -138,6 +146,15 @@ public class SettingsBackupPreference extends Preference {
      */
     private static WeakReference<HushPinterestPreferenceFragment> latestPage = new WeakReference<>(null);
 
+    @Nullable private static SharedPreferences observedStore;
+    private static final SharedPreferences.OnSharedPreferenceChangeListener undoListener = (store, key) -> {
+        if (key != null && SettingsBackup.ALLOWLIST.stream().noneMatch(setting -> setting.key.equals(key))) return;
+        Utils.runOnMainThread(() -> {
+            // The write and its possible rollback finish before their final state is reviewed.
+            if (OWNER.get() == null) setRowsBusy(0, null);
+        });
+    };
+
     private final int rowAction;
     private final CharSequence restingSummary;
     /** The line this row shows while it's the one running, else null. */
@@ -149,20 +166,40 @@ public class SettingsBackupPreference extends Preference {
         super(context);
         rowAction = action;
         restingSummary = summary;
-        setKey(action == EXPORT ? "action_export_settings" : "action_import_settings");
+        switch (action) {
+            case EXPORT: setKey("action_export_settings"); break;
+            case IMPORT: setKey("action_import_settings"); break;
+            case UNDO: setKey("action_undo_import"); break;
+            default: throw new IllegalArgumentException("Unknown backup action");
+        }
         setPersistent(false);
         setTitle(title);
         setSummary(summary);
         setOnPreferenceClickListener(preference -> {
             // Rows are out of reach while a run is going, so this is only the race between a tap
             // and that.
-            if (OWNER.get() == null && !stillStalled()) pickFile(page, action);
+            if (OWNER.get() == null && !stillStalled()) {
+                if (action == UNDO) undo();
+                else pickFile(page, action);
+            }
             return true;
         });
         latestPage = new WeakReference<>(page);
         ROWS.add(new WeakReference<>(this));
+        observeUndo();
         int running = runningAction;
         if (running != 0) showBusy(running, runningLine);
+        else showResting();
+    }
+
+    @Override public boolean actsOnTap() { return rowAction == UNDO; }
+
+    private static void observeUndo() {
+        SharedPreferences current = Setting.preferences.preferences;
+        if (observedStore == current) return;
+        if (observedStore != null) observedStore.unregisterOnSharedPreferenceChangeListener(undoListener);
+        observedStore = current;
+        current.registerOnSharedPreferenceChangeListener(undoListener);
     }
 
     /** A readable, sortable name for the file, stamped in UTC like the diagnostic report. */
@@ -342,7 +379,71 @@ public class SettingsBackupPreference extends Preference {
         shown.dismiss();
     }
 
-    /** How many switches the waiting file changes, and what's in it that this build doesn't know. */
+    /** Named saved-value changes, including switches whose patch isn't installed in this build. */
+    static String previewMessage(SettingsBackup.Snapshot snapshot) {
+        synchronized (Setting.class) {
+            Map<Setting<?>, Object> changes = snapshot.changes();
+            int switches = changes.size();
+            StringBuilder message = new StringBuilder(switches == 0
+                    ? L10n.t("Your switches already match that file, so nothing will change.")
+                    : L10n.quantity(switches, "%1$d switch will change.", "%1$d switches will change.", switches));
+            for (Map.Entry<Setting<?>, Object> entry : changes.entrySet()) {
+                BooleanSetting setting = (BooleanSetting) entry.getKey();
+                message.append("\n\n").append(L10n.f("%1$s (%2$s to %3$s)", switchName(setting),
+                        switchValue(setting.savedValue()), switchValue((Boolean) entry.getValue())));
+                if (!available(setting)) {
+                    message.append('\n').append(L10n.t("Saved choice only. This build doesn't include this control."));
+                }
+            }
+            if (snapshot.unknown > 0) {
+                message.append("\n\n").append(L10n.quantity(snapshot.unknown,
+                        "%1$d item in that file isn't a setting this version of HushPinterest knows, so it'll be left out.",
+                        "%1$d items in that file aren't settings this version of HushPinterest knows, so they'll be left out.",
+                        snapshot.unknown));
+            }
+            return message.toString();
+        }
+    }
+
+    private static String switchValue(boolean value) {
+        return value ? L10n.t("On") : L10n.t("Off");
+    }
+
+    static String switchName(BooleanSetting setting) {
+        switch (setting.key) {
+            case "hushpinterest_hide_ads": return L10n.t("Hide ads");
+            case "hushpinterest_hide_ai_pins": return L10n.t("Hide AI-labeled pins");
+            case "hushpinterest_hide_shopping": return L10n.t("Hide shopping and product pins");
+            case "hushpinterest_disable_analytics": return L10n.t("Disable analytics");
+            case "hushpinterest_strip_link_tracking": return L10n.t("Strip link tracking");
+            case "hushpinterest_download_pins": return L10n.t("Download pins");
+            case "hushpinterest_external_browser": return L10n.t("Open links in your browser");
+            case "hushpinterest_system_share": return L10n.t("System share sheet");
+            case "hushpinterest_hide_screenshot_share": return L10n.t("No screenshot share menu");
+            case "hushpinterest_hide_search_history": return L10n.t("Hide search history");
+            case "hushpinterest_hide_nav_create": return L10n.t("Hide Create button");
+            case "hushpinterest_hide_nav_notifications": return L10n.t("Hide Notifications button");
+            case "hushpinterest_hide_header_buttons": return L10n.t("Hide header buttons");
+            case "hushpinterest_hide_pin_menu_collage": return L10n.t("Hide collage menu items");
+            case "hushpinterest_hide_pin_menu_visual_search": return L10n.t("Hide Search image menu item");
+            case "hushpinterest_hide_pin_menu_pin_boost": return L10n.t("Hide Promote pin menu item");
+            case "hushpinterest_hide_comments": return L10n.t("Hide comments");
+            case "hushpinterest_quiet_email_reminder": return L10n.t("Quiet email reminders");
+            case "hushpinterest_disable_update_nag": return L10n.t("Disable update nag");
+            default: throw new IllegalArgumentException("Unlisted backup switch");
+        }
+    }
+
+    private static boolean available(BooleanSetting setting) {
+        for (PatchFamily family : PatchFamily.values()) {
+            if (family.switches.contains(setting)) {
+                return family.inBuild() && !family.installedCapabilities().isEmpty();
+            }
+        }
+        return false;
+    }
+
+    /** The existing import review; no second confirmation follows it. */
     static void showPreview(HushPinterestPreferenceFragment page) {
         if (page.importPreview != null) return;
         SettingsBackup.Snapshot snapshot = SettingsBackup.Snapshot.fromBundle(page.pendingImport);
@@ -352,18 +453,9 @@ public class SettingsBackupPreference extends Preference {
             return;
         }
         int switches = snapshot.switchChanges();
-        String message = switches == 0
-                ? L10n.t("Your switches already match that file, so nothing will change.")
-                : L10n.quantity(switches, "%1$d switch will change.", "%1$d switches will change.", switches);
-        if (snapshot.unknown > 0) {
-            message += "\n\n" + L10n.quantity(snapshot.unknown,
-                    "%1$d item in that file isn't a setting this version of HushPinterest knows, so it'll be left out.",
-                    "%1$d items in that file aren't settings this version of HushPinterest knows, so they'll be left out.",
-                    snapshot.unknown);
-        }
         AlertDialog.Builder builder = new AlertDialog.Builder(HushPinterestPreferenceFragment.themed(activity))
                 .setTitle(L10n.t("Import settings"))
-                .setMessage(message)
+                .setMessage(previewMessage(snapshot))
                 .setOnCancelListener(dialog -> answered(page));
         if (switches == 0) {
             builder.setPositiveButton(L10n.t("OK"), (dialog, which) -> answered(page));
@@ -393,12 +485,10 @@ public class SettingsBackupPreference extends Preference {
         AbstractPreferenceFragment.settingImportInProgress = true;
         boolean accepted = false;
         try {
-            // Counted before the write, which makes every change match the store.
-            String done = importedMessage(snapshot.switchChanges());
             accepted = Utils.runOnBackgroundThread(() -> {
                 try {
-                    SettingsBackup.apply(snapshot);
-                    Utils.showToastLong(done);
+                    int changed = SettingsBackup.apply(snapshot);
+                    Utils.showToastLong(importedMessage(changed));
                 } catch (SettingsBackup.ApplyFailed failure) {
                     Logger.printInfo(() -> "Settings import failed: " + failure.getMessage()
                             + (failure.rolledBack ? ", rolled back" : ", not rolled back"));
@@ -430,6 +520,45 @@ public class SettingsBackupPreference extends Preference {
     static String importedMessage(int switches) {
         return switches == 0 ? L10n.t("Settings imported.") : L10n.quantity(switches,
                 "Settings imported. %1$d switch changed.", "Settings imported. %1$d switches changed.", switches);
+    }
+
+    /** Restoring an import is an immediate row action with the same atomic write/recovery path. */
+    private static void undo() {
+        Run run = start(UNDO, L10n.t("Undoing import"));
+        if (run == null) return;
+        AbstractPreferenceFragment.settingImportInProgress = true;
+        boolean accepted = false;
+        try {
+            accepted = Utils.runOnBackgroundThread(() -> {
+                try {
+                    switch (SettingsBackup.undo()) {
+                        case UNDONE: Utils.showToastLong(L10n.t("Import undone. Your earlier switches are back.")); break;
+                        case EXPIRED: Utils.showToastLong(L10n.t("Undo ended because a saved switch changed.")); break;
+                        case NOTHING: Utils.showToastLong(L10n.t("There's no import to undo.")); break;
+                    }
+                } catch (SettingsBackup.ApplyFailed failure) {
+                    Logger.printInfo(() -> "Settings import undo failed: " + failure.getMessage()
+                            + (failure.rolledBack ? ", rolled back" : ", not rolled back"));
+                    Utils.showToastLong(failure.rolledBack
+                            ? L10n.t("Couldn't undo the import. Your imported switches are unchanged.")
+                            : L10n.t("Couldn't undo the import or restore the imported switches. Check the switches on this screen."));
+                } finally {
+                    Utils.runOnMainThread(() -> {
+                        AbstractPreferenceFragment.settingImportInProgress = false;
+                        finish(run);
+                        HushPinterestPreferenceFragment current = latestPage.get();
+                        if (current != null && current.isAdded()) current.refreshSwitches();
+                    });
+                }
+            });
+        } catch (RuntimeException error) {
+            Logger.printInfo(() -> "Settings import undo didn't start: " + error.getClass().getSimpleName());
+        } finally {
+            if (!accepted) {
+                AbstractPreferenceFragment.settingImportInProgress = false;
+                notStarted(run);
+            }
+        }
     }
 
     @Nullable
@@ -520,7 +649,7 @@ public class SettingsBackupPreference extends Preference {
     }
 
     /**
-     * Takes both rows out of reach while one of them runs and puts the running line on the one
+     * Takes the backup rows out of reach while one of them runs and puts the running line on the one
      * acting. With a zero action and no line, they come back with their own summaries.
      */
     static void setRowsBusy(int action, @Nullable String line) {
@@ -543,8 +672,20 @@ public class SettingsBackupPreference extends Preference {
 
     private void showResting() {
         busyLine = null;
-        setEnabled(true);
-        setSummary(restingSummary);
+        if (rowAction != UNDO) {
+            setEnabled(true);
+            setSummary(restingSummary);
+            return;
+        }
+        SettingsBackup.UndoState state = SettingsBackup.undoState();
+        setEnabled(state == SettingsBackup.UndoState.AVAILABLE);
+        switch (state) {
+            case AVAILABLE:
+                setSummary(L10n.t("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo."));
+                break;
+            case EXPIRED: setSummary(L10n.t("Undo ended because a saved switch changed.")); break;
+            case NONE: setSummary(restingSummary); break;
+        }
     }
 
     @Override

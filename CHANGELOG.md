@@ -10,6 +10,8 @@ Nothing has been released yet. This is the work toward 0.0.2.
 * **Save recovery:** Android 9 records pending save locations before writing. After an interruption, Pending saves explains what to check without resuming or deleting files. Offered recovery access is released when safe, including after a completed save.
 * **Media details:** Pin actions can show supplied dimensions and media type without inspecting files or guessing addresses. Recognized unsupported media gets an explanatory row. Download and storage refusals explain what failed.
 
+* **Settings import:** Review names and old/new values before applying allowed switches. Undo restores the previous snapshot once, and expires after a later saved edit or restart. Failed imports still roll back atomically.
+
 * **Development installs:** Device helpers now require an exclusive serial lease and verify the device identity. Installs refuse different signing keys and downgrades without removing apps, clearing accounts or granting every permission. Child checks keep caller-owned leases.
 * **Patch outputs:** Concurrent device builds keep separate workspaces and return their verified APK paths. Explicit output collisions are refused. Failed patch reports and early verification errors clean their own generated files.
 * **Analytics:** All response factories and hook sites are checked before the Firebase manifest edit. Malformed generic responses and missing late targets fail without changing analytics code. Runtime controls also check whether the patch was installed.

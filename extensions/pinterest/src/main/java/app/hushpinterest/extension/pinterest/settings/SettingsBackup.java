@@ -15,10 +15,13 @@
  * Modified for Hushfacebook (Facebook), 2026: an exact list of the switches in place of every
  * setting, no Feature Gate Lab, reset, undo or journal, an import read into a preview before
  * anything is written, and a refusal of its own for a name given twice.
+ * Modified for HushPinterest (Pinterest), 2026: one-step import undo that keeps only the current
+ * allowlisted switches and refuses to overwrite a later edit.
  */
 package app.hushpinterest.extension.pinterest.settings;
 
 import android.os.Bundle;
+import android.content.SharedPreferences;
 
 import androidx.annotation.Nullable;
 
@@ -155,7 +158,14 @@ public final class SettingsBackup {
         final int unknown;
 
         Snapshot(Map<BooleanSetting, Boolean> values, int unknown) {
-            this.values = Collections.unmodifiableMap(values);
+            if (unknown < 0 || !ALLOWLIST.containsAll(values.keySet()) || values.containsValue(null)) {
+                throw new IllegalArgumentException("Invalid settings snapshot");
+            }
+            Map<BooleanSetting, Boolean> ordered = new LinkedHashMap<>();
+            for (BooleanSetting setting : ALLOWLIST) {
+                if (values.containsKey(setting)) ordered.put(setting, values.get(setting));
+            }
+            this.values = Collections.unmodifiableMap(ordered);
             this.unknown = unknown;
         }
 
@@ -198,15 +208,106 @@ public final class SettingsBackup {
         @SuppressWarnings("deprecation") // Bundle.get is how a value's type is checked below API 33.
         static Snapshot fromBundle(@Nullable Bundle state) {
             if (state == null) return null;
-            Bundle switches = state.getBundle(SWITCHES);
-            int unknown = state.getInt(UNKNOWN, -1);
-            if (switches == null || unknown < 0) return null;
-            Map<BooleanSetting, Boolean> values = new LinkedHashMap<>();
-            for (BooleanSetting setting : ALLOWLIST) {
-                Object value = switches.get(setting.key);
-                if (value instanceof Boolean) values.put(setting, (Boolean) value);
+            try {
+                Object switchState = state.get(SWITCHES);
+                Object unknownState = state.get(UNKNOWN);
+                if (!(switchState instanceof Bundle) || !(unknownState instanceof Integer)
+                        || (Integer) unknownState < 0) return null;
+                Bundle switches = (Bundle) switchState;
+                int unknown = (Integer) unknownState;
+                Map<BooleanSetting, Boolean> values = new LinkedHashMap<>();
+                for (BooleanSetting setting : ALLOWLIST) {
+                    if (!switches.containsKey(setting.key)) continue;
+                    Object value = switches.get(setting.key);
+                    if (!(value instanceof Boolean)) return null;
+                    values.put(setting, (Boolean) value);
+                }
+                return new Snapshot(values, unknown);
+            } catch (RuntimeException unreadable) {
+                // A saved Bundle may fail to unmarshal. Never apply the readable portion of it.
+                return null;
             }
-            return new Snapshot(values, unknown);
+        }
+    }
+
+    enum UndoState { NONE, AVAILABLE, EXPIRED }
+    enum UndoResult { UNDONE, NOTHING, EXPIRED }
+
+    /** Temporary process state. Neither snapshot is written to a file or a preference. */
+    private static final class Undo {
+        final Snapshot before;
+        final Snapshot after;
+        final SharedPreferences store;
+
+        Undo(Snapshot before, Snapshot after) {
+            this.before = before;
+            this.after = after;
+            store = Setting.preferences.preferences;
+        }
+    }
+
+    // Read and written under the same lock as Setting.save/saveAll.
+    @Nullable private static Undo pendingUndo;
+    private static boolean undoExpired;
+
+    private static Snapshot current() {
+        Map<BooleanSetting, Boolean> values = new LinkedHashMap<>();
+        for (BooleanSetting setting : ALLOWLIST) values.put(setting, setting.savedValue());
+        return new Snapshot(values, 0);
+    }
+
+    /** Later changes to excluded state, such as Pause or Debug, never invalidate this snapshot. */
+    static UndoState undoState() {
+        synchronized (Setting.class) {
+            if (pendingUndo != null) {
+                if (pendingUndo.store != Setting.preferences.preferences) {
+                    discardUndo();
+                } else if (!matches(pendingUndo.after)) {
+                    pendingUndo = null;
+                    undoExpired = true;
+                }
+            }
+            return pendingUndo != null ? UndoState.AVAILABLE
+                    : undoExpired ? UndoState.EXPIRED : UndoState.NONE;
+        }
+    }
+
+    private static boolean matches(Snapshot snapshot) {
+        try {
+            for (Map.Entry<BooleanSetting, Boolean> entry : snapshot.values.entrySet()) {
+                BooleanSetting setting = entry.getKey();
+                boolean stored = Setting.preferences.preferences.getBoolean(setting.key, setting.defaultValue);
+                if (stored != entry.getValue() || !entry.getValue().equals(setting.savedValue())) return false;
+            }
+            return true;
+        } catch (RuntimeException unreadable) {
+            return false;
+        }
+    }
+
+    static void discardUndo() {
+        synchronized (Setting.class) {
+            pendingUndo = null;
+            undoExpired = false;
+        }
+    }
+
+    /** Restores one import, provided no subsequent saved-switch edit would be overwritten. */
+    static UndoResult undo() throws ApplyFailed {
+        synchronized (Setting.class) {
+            UndoState state = undoState();
+            if (state != UndoState.AVAILABLE) {
+                return state == UndoState.EXPIRED ? UndoResult.EXPIRED : UndoResult.NOTHING;
+            }
+            try {
+                write(pendingUndo.before.changes());
+            } catch (ApplyFailed failed) {
+                // A recovered failure can be retried. A partial recovery can't safely be undone.
+                undoState();
+                throw failed;
+            }
+            discardUndo();
+            return UndoResult.UNDONE;
         }
     }
 
@@ -337,11 +438,20 @@ public final class SettingsBackup {
      *                     worked for every one of them.
      */
     static int apply(Snapshot snapshot) throws ApplyFailed {
-        Map<Setting<?>, Object> changes = snapshot.changes();
-        if (changes.isEmpty()) return 0;
+        synchronized (Setting.class) {
+            Map<Setting<?>, Object> changes = snapshot.changes();
+            if (changes.isEmpty()) return 0;
+            Snapshot before = current();
+            write(changes);
+            pendingUndo = new Undo(before, current());
+            undoExpired = false;
+            return changes.size();
+        }
+    }
+
+    private static void write(Map<Setting<?>, Object> changes) throws ApplyFailed {
         try {
             Setting.saveAll(changes);
-            return changes.size();
         } catch (Setting.BatchFailed failed) {
             throw new ApplyFailed(failed.restored, failed);
         } catch (IOException | RuntimeException refused) {
