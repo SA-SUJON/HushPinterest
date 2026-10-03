@@ -5,7 +5,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Pinterest-14.25.0-E60023" alt="Pinterest 14.25.0">
-  <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.32.0%2B-8A2BE2" alt="For Morphe Manager 1.32.0 or newer">
+  <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.33.0%2B-8A2BE2" alt="For Morphe Manager 1.33.0 or newer">
 </p>
 
 # <img src="assets/icon.png" width="36" alt=""> HushPinterest
@@ -22,7 +22,7 @@ Other versions may patch, but each patch looks for code by what it does in 14.25
 
 ## Install
 
-1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.32.0 or newer.
+1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.33.0 or newer.
 2. Build the bundle (below) and add the `.mpp` to Morphe Manager as a local patch source.
 3. Pick the Pinterest 14.25.0 APK, keep the default patch selection or change it, and patch.
 
