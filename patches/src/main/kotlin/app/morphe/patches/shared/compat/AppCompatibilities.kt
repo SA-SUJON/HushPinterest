@@ -41,19 +41,22 @@ internal object AppCompatibilities {
     const val PINTEREST_SIGNER_SHA256 = "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
 
     /** The newest Pinterest build every patch here was applied to and read against. */
-    const val PINTEREST_TARGET_VERSION = "14.25.0"
+    const val PINTEREST_TARGET_VERSION = "14.38.0"
 
     /**
      * The version code of the universal [PINTEREST_TARGET_VERSION] APK. It carries every ABI, so
      * the one code stands for arm64-v8a too.
      */
-    const val PINTEREST_TARGET_VERSION_CODE = 14258020
+    const val PINTEREST_TARGET_VERSION_CODE = 14388010
+
+    /** Pinterest's own floor on this build, Android 10. */
+    const val PINTEREST_TARGET_MIN_SDK = 29
 
     /**
-     * HushPinterest's floor, Android 9. It's Pinterest's own floor for this build too, and the
-     * extension's settings screen and diagnostics use Android 9 APIs.
+     * HushPinterest's floor, Android 9, which 14.25.0 keeps. It's Pinterest's own floor for that
+     * build too, and the extension's settings screen and diagnostics use Android 9 APIs.
      */
-    const val PINTEREST_TARGET_MIN_SDK = 28
+    const val PINTEREST_FLOOR_MIN_SDK = 28
 
     fun pinterest(): Array<Compatibility> = arrayOf(
         Compatibility(
@@ -67,6 +70,11 @@ internal object AppCompatibilities {
                     version = PINTEREST_TARGET_VERSION,
                     versionCodes = mapOf(SupportedAbi.ARM64_V8A to PINTEREST_TARGET_VERSION_CODE),
                     minSdk = PINTEREST_TARGET_MIN_SDK,
+                ),
+                AppTarget(
+                    version = "14.25.0",
+                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to 14258020),
+                    minSdk = PINTEREST_FLOOR_MIN_SDK,
                 ),
             ),
         ),

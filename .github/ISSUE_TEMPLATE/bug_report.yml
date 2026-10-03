@@ -17,7 +17,7 @@ body:
     attributes:
       label: HushPinterest and Pinterest versions
       description: Long-press the Pinterest icon and tap HushPinterest, or open Pinterest's App info page and tap Additional settings in the app. Then open More settings, then About, and copy the Version line.
-      placeholder: HushPinterest 0.0.2 on Pinterest 14.25.0
+      placeholder: HushPinterest 0.0.2 on Pinterest 14.38.0
     validations:
       required: true
   - type: input
@@ -25,7 +25,7 @@ body:
     attributes:
       label: Which Pinterest file did you patch?
       description: Where it came from, such as APKMirror's universal APK, and its version code if you know it. Most bugs on a build that should work come from a different build of the same version.
-      placeholder: APKMirror universal APK, 14.25.0 (14258020)
+      placeholder: APKMirror universal APK, 14.38.0 (14388010)
   - type: dropdown
     id: manager
     attributes:

@@ -37,7 +37,7 @@ private const val ADS = "$EXTENSION_PACKAGE/ads/Ads;"
  * on, so it stays folded away however often Pinterest shows it again (the closeup's floating ad bar
  * shows itself on scroll). A build that renamed all four still gets the list filter, with a warning.
  *
- * Found by reading 14.25.0 (2026-10-02).
+ * Found by reading 14.25.0 (2026-10-02). The four views keep their names in 14.38.0.
  */
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(

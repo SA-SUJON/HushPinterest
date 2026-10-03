@@ -15,6 +15,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
+          "14.38.0",
           "14.25.0"
         ]
       },
@@ -28,6 +29,13 @@
             "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
           ],
           "targets": [
+            {
+              "version": "14.38.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14388010
+              }
+            },
             {
               "version": "14.25.0",
               "experimental": false,
@@ -51,6 +59,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
+          "14.38.0",
           "14.25.0"
         ]
       },
@@ -64,6 +73,13 @@
             "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
           ],
           "targets": [
+            {
+              "version": "14.38.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14388010
+              }
+            },
             {
               "version": "14.25.0",
               "experimental": false,
@@ -87,6 +103,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
+          "14.38.0",
           "14.25.0"
         ]
       },
@@ -100,6 +117,13 @@
             "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
           ],
           "targets": [
+            {
+              "version": "14.38.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14388010
+              }
+            },
             {
               "version": "14.25.0",
               "experimental": false,

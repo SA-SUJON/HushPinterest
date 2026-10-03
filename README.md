@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/version-0.0.2-E60023" alt="Version 0.0.2">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
-  <img src="https://img.shields.io/badge/Pinterest-14.25.0-E60023" alt="Pinterest 14.25.0">
+  <img src="https://img.shields.io/badge/Pinterest-14.38.0-E60023" alt="Pinterest 14.38.0">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.33.0%2B-8A2BE2" alt="For Morphe Manager 1.33.0 or newer">
 </p>
 
@@ -16,15 +16,15 @@ It's early. There's no release yet, and the patches haven't been tried on a sign
 
 ## Which Pinterest
 
-HushPinterest targets Pinterest **14.25.0**, version code 14258020 (`com.pinterest`). Use the universal APK, the single file that holds every screen density and processor type. APKMirror lists it as the "nodpi" variant. A split bundle (`.apkm`, `.xapk`) works too if Morphe Manager can merge it.
+HushPinterest targets Pinterest **14.38.0**, version code 14388010 (`com.pinterest`), which needs Android 10. On Android 9, use **14.25.0** (version code 14258020) instead. It patches the same way. Use the universal APK, the single file that holds every screen density and processor type. APKMirror lists it as the "nodpi" variant. A split bundle (`.apkm`, `.xapk`) works too if Morphe Manager can merge it.
 
-Other versions may patch, but each patch looks for code by what it does in 14.25.0, and Pinterest renames almost everything in every build. If a patch can't find its spot it says so and stops, rather than patching the wrong place.
+Other versions may patch, but each patch looks for code by what it does in those two builds, and Pinterest renames almost everything in every build. If a patch can't find its spot it says so and stops, rather than patching the wrong place.
 
 ## Install
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.33.0 or newer.
 2. Build the bundle (below) and add the `.mpp` to Morphe Manager as a local patch source.
-3. Pick the Pinterest 14.25.0 APK, keep the default patch selection or change it, and patch.
+3. Pick the Pinterest 14.38.0 APK (14.25.0 on Android 9), keep the default patch selection or change it, and patch.
 
 A patched Pinterest can't install over the stock one, because Android only accepts an update signed with the same key. Uninstall the stock Pinterest first. Your boards and pins live on Pinterest's servers, so signing in again brings them back.
 
@@ -80,7 +80,7 @@ Open an [issue](https://github.com/SysAdminDoc/HushPinterest/issues) and say wha
 | [SysAdminDoc/HushTelegram](https://github.com/SysAdminDoc/HushTelegram) at `8c54a1d` | The Gradle build, the shared extension library with its settings screen, diagnostics, pause and backup, the bytecode helpers, and the checks that apply every patch to a real APK before a release. Most of that came to HushTelegram from [HushThreads](https://github.com/SysAdminDoc/HushThreads) and [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook). |
 | [Morphe](https://github.com/MorpheApp) and [ReVanced](https://gitlab.com/ReVanced/revanced-patches) | The patcher and the patch template. Everything above grew from their code. |
 
-The Pinterest patches were written for this project by reading Pinterest 14.25.0 itself. Every source file says where it came from in its header, and [provenance.json](provenance.json) maps each file to the project and commit it came from, with its license. The [source ledger](sources/pinterest-sources.json) lists the other Pinterest patch projects that were reviewed, what each one does and why nothing was copied from it.
+The Pinterest patches were written for this project by reading Pinterest 14.25.0 itself, and checked again against 14.38.0. Every source file says where it came from in its header, and [provenance.json](provenance.json) maps each file to the project and commit it came from, with its license. The [source ledger](sources/pinterest-sources.json) lists the other Pinterest patch projects that were reviewed, what each one does and why nothing was copied from it.
 
 ## Building from source
 

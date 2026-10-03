@@ -12,3 +12,4 @@ Nothing has been released yet. This is the work toward 0.0.2.
 * **Pinterest:** HushPinterest settings opens from a long-press on Pinterest's icon or from Pinterest's App info page, with a switch for every patch, Pause, diagnostics and a settings backup.
 * **Tooling:** The project starts from HushTelegram's build, shared extension library and release checks, retargeted at Pinterest 14.25.0 (version code 14258020). Every file carried over names HushTelegram in its header and in provenance.json. The catalog now lists the three Pinterest patches.
 * **Tooling:** The bundle is built with Morphe patcher 1.15.0, so it needs Morphe Manager 1.33.0 or newer. Older Managers would refuse it and ask to be updated.
+* **Pinterest:** Pinterest 14.38.0 is the new target, and 14.25.0 still patches for phones on Android 9. Every patch was checked against both builds.

@@ -74,7 +74,7 @@ class AppCompatibilitiesMatchFixturesTest {
         val targets = AppCompatibilities.pinterest().single().targets
         assertEquals(
             "declared versions, newest first",
-            listOf(AppCompatibilities.PINTEREST_TARGET_VERSION),
+            listOf(AppCompatibilities.PINTEREST_TARGET_VERSION, "14.25.0"),
             targets.map { it.version },
         )
         var checked = 0
