@@ -21,7 +21,11 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.os.Build;
+import android.os.Environment;
 import android.graphics.Rect;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.RippleDrawable;
@@ -48,6 +52,8 @@ import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowToast;
 
 import java.util.EnumSet;
+import java.io.File;
+import java.io.FileOutputStream;
 
 import app.hushpinterest.extension.shared.SettingsContextRule;
 import app.hushpinterest.extension.shared.Utils;
@@ -111,6 +117,34 @@ public class ReportChoicesTest {
         ShadowLooper.idleMainLooper();
         assertFalse("the dialog stayed open", dialog.isShowing());
         assertEquals("Diagnostic report copied to the clipboard.", ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test @Config(sdk = {28, 29, 30})
+    public void saveChoiceAndPreferenceNameTheWritersDirectory() throws Exception {
+        SettingsDialog settings = SettingsL10nTest.show(activity());
+        Preference export = SettingsL10nTest.pageOf(settings).findPreference("action_export_diagnostic_report");
+        String directory = Build.VERSION.SDK_INT < 29
+                ? new java.io.File(activity().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "Morphe").getAbsolutePath()
+                : Environment.DIRECTORY_DOWNLOADS + "/Morphe";
+        String isolated = app.hushpinterest.extension.shared.L10n.isolate(directory);
+        assertNotNull("no export row", export);
+        assertTrue(export.getSummary().toString(), export.getSummary().toString().contains(isolated));
+        export.getOnPreferenceClickListener().onPreferenceClick(export);
+        ShadowLooper.idleMainLooper();
+        AlertDialog dialog = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+        assertNotNull("the export row opened no dialog", dialog);
+        ChoiceCards.Card save = (ChoiceCards.Card) dialog.getListView().getChildAt(1);
+        assertEquals("Save the full report in " + isolated + ".", save.detail.getText().toString());
+        assertNull(whyNotWhole(dialog));
+        View decor = dialog.getWindow().getDecorView();
+        Bitmap image = Bitmap.createBitmap(decor.getWidth(), decor.getHeight(), Bitmap.Config.ARGB_8888);
+        File folder = new File("build/reports/settings-design");
+        assertTrue(folder.isDirectory() || folder.mkdirs());
+        try (FileOutputStream output = new FileOutputStream(new File(folder,
+                "diagnostic-destination-api" + Build.VERSION.SDK_INT + ".png"))) {
+            decor.draw(new Canvas(image));
+            assertTrue(image.compress(Bitmap.CompressFormat.PNG, 100, output));
+        } finally { image.recycle(); }
     }
 
     /**
@@ -225,7 +259,7 @@ public class ReportChoicesTest {
     }
 
     private Activity activity() {
-        if (controller == null) controller = Robolectric.buildActivity(Activity.class).setup();
+        if (controller == null) controller = Robolectric.buildActivity(Activity.class).setup().visible();
         return controller.get();
     }
 

@@ -13,7 +13,6 @@ Android 11 and older don't say which links open here. Tap to open this app's set
 Back	Atrás
 Cancel	Cancelar
 Clear diagnostic data	Borrar datos de diagnóstico
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido o guarda el completo en Download/Morphe. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa si queda otro texto privado antes de compartirlo.
 Copy quick report	Copiar informe rápido
 Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	No se pudo importar la configuración ni restaurar la que tenías. Revisa los interruptores de esta pantalla.
 Couldn't import the settings. Nothing was changed.	No se pudo importar la configuración. No se cambió nada.
@@ -100,7 +99,6 @@ Record patch activity and show errors for a bug report. Leave off during normal 
 You paused HushPinterest.	Pausaste HushPinterest.
 Your switches already match that file, so nothing will change.	Tus interruptores ya coinciden con ese archivo, así que no cambiará nada.
 Copy a short report to the clipboard.	Copia un informe breve en el portapapeles.
-Save the full report in Download/Morphe.	Guarda el informe completo en Download/Morphe.
 Settings imported.	Configuración importada.
 No app on this phone can open the link. The address is %1$s.	Ninguna app de este teléfono puede abrir el enlace. La dirección es %1$s.
 Pause, backup and diagnostics	Pausa, copia de seguridad y diagnóstico
@@ -300,3 +298,7 @@ Undo import	Deshacer importación
 Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Elige un archivo de ajustes. Revisa el nombre y los valores anteriores y nuevos de cada ajuste antes de importar. Tus elecciones se aplican a todas las cuentas de esta app de Pinterest.
 On	Activado
 Off	Desactivado
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido o guarda el completo en %1$s. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa si contiene otros datos privados antes de compartirlo.
+Save the full report in %1$s.	Guarda el informe completo en %1$s.
+Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido. El almacenamiento de informes no está disponible ahora. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa otros datos privados antes de compartirlo.
+Report storage is unavailable right now. You can still copy a quick report.	El almacenamiento de informes no está disponible ahora. Aún puedes copiar un informe rápido.

@@ -13,7 +13,6 @@ Android 11 and older don't say which links open here. Tap to open this app's set
 Back	Zurück
 Cancel	Abbrechen
 Clear diagnostic data	Diagnosedaten löschen
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kopiere einen Kurzbericht oder speichere den vollständigen Bericht unter Download/Morphe. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Prüfe ihn vor dem Teilen auf andere private Angaben.
 Copy quick report	Kurzbericht kopieren
 Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Die Einstellungen ließen sich nicht importieren, und deine vorherigen ließen sich nicht wiederherstellen. Prüfe die Schalter auf diesem Bildschirm.
 Couldn't import the settings. Nothing was changed.	Die Einstellungen ließen sich nicht importieren. Es wurde nichts geändert.
@@ -100,7 +99,6 @@ Record patch activity and show errors for a bug report. Leave off during normal 
 You paused HushPinterest.	Du hast HushPinterest pausiert.
 Your switches already match that file, so nothing will change.	Deine Schalter entsprechen bereits dieser Datei, es ändert sich also nichts.
 Copy a short report to the clipboard.	Kurzen Bericht in die Zwischenablage kopieren.
-Save the full report in Download/Morphe.	Vollständigen Bericht unter Download/Morphe speichern.
 Settings imported.	Einstellungen importiert.
 No app on this phone can open the link. The address is %1$s.	Keine App auf diesem Handy kann den Link öffnen. Die Adresse ist %1$s.
 Pause, backup and diagnostics	Pause, Sicherung und Diagnose
@@ -300,3 +298,7 @@ Undo import	Import rückgängig machen
 Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Wähle eine Einstellungsdatei. Prüfe vor dem Import den Namen und die alten und neuen Werte jedes Schalters. Deine Auswahl gilt für alle Konten in dieser Pinterest-App.
 On	An
 Off	Aus
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kopiere einen Kurzbericht oder speichere den vollständigen Bericht unter %1$s. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Prüfe ihn vor dem Teilen auf andere private Texte.
+Save the full report in %1$s.	Speichere den vollständigen Bericht unter %1$s.
+Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kopiere einen Kurzbericht. Berichtsspeicher ist derzeit nicht verfügbar. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Prüfe ihn vor dem Teilen auf andere private Texte.
+Report storage is unavailable right now. You can still copy a quick report.	Berichtsspeicher ist derzeit nicht verfügbar. Du kannst weiterhin einen Kurzbericht kopieren.

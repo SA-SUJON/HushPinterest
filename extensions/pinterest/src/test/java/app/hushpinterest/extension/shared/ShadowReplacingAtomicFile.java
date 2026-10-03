@@ -38,7 +38,7 @@ import java.nio.file.StandardCopyOption;
 public class ShadowReplacingAtomicFile {
     @RealObject private AtomicFile realObject;
 
-    @Implementation
+    @Implementation(minSdk = 30)
     protected void finishWrite(FileOutputStream output) {
         if (output == null) return;
         try {

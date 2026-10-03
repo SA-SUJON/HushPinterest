@@ -33,6 +33,7 @@ public class ExportDiagnosticReportPreference extends Preference {
         // A key so the settings search can index this row. Nothing in the settings
         // framework treats it as a setting: a key with no Setting behind it is skipped.
         setKey("action_export_diagnostic_report");
+        setSummary(destinationSummary());
         setOnPreferenceClickListener(pref -> {
             DialogInterface.OnClickListener choose = (dialog, which) -> {
                 if (which == 0) LogBufferManager.exportToClipboard();
@@ -63,6 +64,26 @@ public class ExportDiagnosticReportPreference extends Preference {
     /** The dialog's title, in the phone's language. A bundle may override these four. */
     protected CharSequence dialogTitle() {
         return L10n.t(getContext(), "Export diagnostic report");
+    }
+
+    /** The same destination as the writer, with the report's privacy reminder. */
+    public CharSequence destinationSummary() {
+        String directory = LogBufferManager.fileExportDirectory(getContext());
+        if (directory == null) {
+            return L10n.t(getContext(), "Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies "
+                    + "and sign-in tokens are left out. Check it for other private text before you share it.");
+        }
+        return L10n.f(getContext(), "Copy a quick report or save the full one to %1$s. Links, IDs, cookies "
+                + "and sign-in tokens are left out. Check it for other private text before you share it.",
+                L10n.isolate(directory));
+    }
+
+    /** The full-file choice's description for a bundle that draws its own rows. */
+    public CharSequence fullReportSummary() {
+        String directory = LogBufferManager.fileExportDirectory(getContext());
+        return directory == null
+                ? L10n.t(getContext(), "Report storage is unavailable right now. You can still copy a quick report.")
+                : L10n.f(getContext(), "Save the full report in %1$s.", L10n.isolate(directory));
     }
 
     /** The two choices, quick copy first, full file second. */

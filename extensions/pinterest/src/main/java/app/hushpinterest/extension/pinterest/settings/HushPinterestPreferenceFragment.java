@@ -357,8 +357,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         // resources that Pinterest's APK doesn't have, and untitled they showed as blank rows.
         ExportDiagnosticReportPreference export = new ExportRow(context);
         export.setTitle(L10n.t("Export diagnostic report"));
-        export.setSummary(L10n.t("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies "
-                + "and sign-in tokens are left out. Check it for other private text before you share it."));
+        export.setSummary(export.destinationSummary());
         hushpinterest.addPreference(mark(export, SettingsIcons.LICENSE));
         ClearLogBufferPreference clear = new ClearRow(context);
         clear.setTitle(L10n.t("Clear diagnostic data"));
@@ -834,7 +833,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     new CharSequence[]{L10n.t(getContext(), "Copy quick report"),
                             L10n.t(getContext(), "Save full report")},
                     new CharSequence[]{L10n.t(getContext(), "Copy a short report to the clipboard."),
-                            L10n.t(getContext(), "Save the full report in Download/Morphe.")});
+                            fullReportSummary()});
         }
 
         /**

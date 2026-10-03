@@ -13,7 +13,6 @@ Android 11 and older don't say which links open here. Tap to open this app's set
 Back	Kembali
 Cancel	Batal
 Clear diagnostic data	Hapus data diagnostik
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
 Copy quick report	Salin laporan singkat
 Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Pengaturan tidak dapat diimpor, dan pengaturan sebelumnya tidak dapat dikembalikan. Periksa sakelar di layar ini.
 Couldn't import the settings. Nothing was changed.	Pengaturan tidak dapat diimpor. Tidak ada yang diubah.
@@ -100,7 +99,6 @@ Record patch activity and show errors for a bug report. Leave off during normal 
 You paused HushPinterest.	Anda menjeda HushPinterest.
 Your switches already match that file, so nothing will change.	Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.
 Copy a short report to the clipboard.	Salin laporan singkat ke papan klip.
-Save the full report in Download/Morphe.	Simpan laporan lengkap di Download/Morphe.
 Settings imported.	Pengaturan diimpor.
 No app on this phone can open the link. The address is %1$s.	Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.
 Pause, backup and diagnostics	Jeda, cadangan, dan diagnostik
@@ -300,3 +298,7 @@ Undo import	Urungkan impor
 Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Pilih file setelan. Tinjau nama serta nilai lama dan baru setiap sakelar sebelum mengimpor. Pilihan berlaku untuk semua akun di aplikasi Pinterest ini.
 On	Aktif
 Off	Nonaktif
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap ke %1$s. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.
+Save the full report in %1$s.	Simpan laporan lengkap di %1$s.
+Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat. Penyimpanan laporan saat ini tidak tersedia. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.
+Report storage is unavailable right now. You can still copy a quick report.	Penyimpanan laporan saat ini tidak tersedia. Anda masih dapat menyalin laporan singkat.

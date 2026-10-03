@@ -13,7 +13,6 @@ Android 11 and older don't say which links open here. Tap to open this app's set
 Back	Geri
 Cancel	İptal
 Clear diagnostic data	Tanılama verilerini temizle
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kısa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Bağlantılar, kimlikler, çerezler ve oturum belirteçleri çıkarılır. Paylaşmadan önce başka özel bilgi olup olmadığına bak.
 Copy quick report	Hızlı raporu kopyala
 Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Ayarlar içe aktarılamadı ve önceki ayarların geri yüklenemedi. Bu ekrandaki anahtarları kontrol et.
 Couldn't import the settings. Nothing was changed.	Ayarlar içe aktarılamadı. Hiçbir şey değiştirilmedi.
@@ -100,7 +99,6 @@ Record patch activity and show errors for a bug report. Leave off during normal 
 You paused HushPinterest.	HushPinterest'u duraklattın.
 Your switches already match that file, so nothing will change.	Anahtarların zaten o dosyayla aynı, bu yüzden hiçbir şey değişmeyecek.
 Copy a short report to the clipboard.	Kısa raporu panoya kopyalar.
-Save the full report in Download/Morphe.	Tam raporu Download/Morphe konumuna kaydeder.
 Settings imported.	Ayarlar içe aktarıldı.
 No app on this phone can open the link. The address is %1$s.	Bu telefondaki hiçbir uygulama bağlantıyı açamıyor. Adres: %1$s.
 Pause, backup and diagnostics	Duraklatma, yedekleme ve tanılama
@@ -300,3 +298,7 @@ Undo import	İçe aktarmayı geri al
 Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Bir ayar dosyası seçin. İçe aktarmadan önce her anahtarın adını, eski ve yeni değerlerini inceleyin. Seçimleriniz bu Pinterest uygulamasındaki tüm hesaplara uygulanır.
 On	Açık
 Off	Kapalı
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Hızlı bir rapor kopyalayın veya tam raporu %1$s konumuna kaydedin. Bağlantılar, kimlikler, çerezler ve giriş belirteçleri dışarıda bırakılır. Paylaşmadan önce diğer özel metinleri kontrol edin.
+Save the full report in %1$s.	Tam raporu %1$s konumuna kaydedin.
+Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Hızlı bir rapor kopyalayın. Rapor depolama şu anda kullanılamıyor. Bağlantılar, kimlikler, çerezler ve giriş belirteçleri dışarıda bırakılır. Paylaşmadan önce diğer özel metinleri kontrol edin.
+Report storage is unavailable right now. You can still copy a quick report.	Rapor depolama şu anda kullanılamıyor. Yine de hızlı bir rapor kopyalayabilirsiniz.

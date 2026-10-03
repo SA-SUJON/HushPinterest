@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(590);
+        Map<String, String> table = new HashMap<>(594);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -159,8 +159,10 @@ public final class L10nTranslations {
                 "Schlie\u00dfen");
         table.put("Completed",
                 "Abgeschlossen");
-        table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Kopiere einen Kurzbericht oder speichere den vollst\u00e4ndigen Bericht unter Download/Morphe. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Pr\u00fcfe ihn vor dem Teilen auf andere private Angaben.");
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Kopiere einen Kurzbericht oder speichere den vollst\u00e4ndigen Bericht unter %1$s. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Pr\u00fcfe ihn vor dem Teilen auf andere private Texte.");
+        table.put("Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Kopiere einen Kurzbericht. Berichtsspeicher ist derzeit nicht verf\u00fcgbar. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Pr\u00fcfe ihn vor dem Teilen auf andere private Texte.");
         table.put("Copy a short report to the clipboard.",
                 "Kurzen Bericht in die Zwischenablage kopieren.");
         table.put("Copy quick report",
@@ -175,11 +177,11 @@ public final class L10nTranslations {
                 "Dieser Pin konnte nicht heruntergeladen werden. Pr\u00fcfe deine Verbindung und versuch es erneut.");
         table.put("Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.",
                 "Die Einstellungen lie\u00dfen sich nicht importieren, und deine vorherigen lie\u00dfen sich nicht wiederherstellen. Pr\u00fcfe die Schalter auf diesem Bildschirm.");
-        table.put("Couldn't import the settings. Nothing was changed.",
-                "Die Einstellungen lie\u00dfen sich nicht importieren. Es wurde nichts ge\u00e4ndert.");
     }
 
     private static void fillDe1(Map<String, String> table) {
+        table.put("Couldn't import the settings. Nothing was changed.",
+                "Die Einstellungen lie\u00dfen sich nicht importieren. Es wurde nichts ge\u00e4ndert.");
         table.put("Couldn't open Downloads.",
                 "Downloads konnten nicht ge\u00f6ffnet werden.");
         table.put("Couldn't open a save location. Try again from the pin.",
@@ -298,11 +300,11 @@ public final class L10nTranslations {
                 "Collage-Men\u00fceintr\u00e4ge ausblenden");
         table.put("Hide comments",
                 "Kommentare ausblenden");
-        table.put("Hide header buttons",
-                "Kopfzeilenschaltfl\u00e4chen ausblenden");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("Hide header buttons",
+                "Kopfzeilenschaltfl\u00e4chen ausblenden");
         table.put("Hide navigation buttons",
                 "Navigationsschaltfl\u00e4chen ausblenden");
         table.put("Hide search history",
@@ -421,11 +423,11 @@ public final class L10nTranslations {
                 "Pin %s");
         table.put("Pin actions",
                 "Pin-Aktionen");
-        table.put("Pin saved.",
-                "Pin gespeichert.");
     }
 
     private static void fillDe3(Map<String, String> table) {
+        table.put("Pin saved.",
+                "Pin gespeichert.");
         table.put("Pin saved. Check Pending saves if its history remains.",
                 "Pin gespeichert. Pr\u00fcfe Ausstehende Speichervorg\u00e4nge, falls der Verlaufseintrag bleibt.");
         table.put("Pins that Pinterest labels as made or changed with AI leave the same lists. AI images without Pinterest's label still show.",
@@ -468,6 +470,8 @@ public final class L10nTranslations {
                 "Entfernt bekannte Tracking-Parameter aus kopierten und geteilten Links. Kurzlinks bleiben unver\u00e4ndert.");
         table.put("Removes this history entry. Files and active downloads are kept.",
                 "Entfernt diesen Verlaufseintrag. Dateien und laufende Downloads bleiben erhalten.");
+        table.put("Report storage is unavailable right now. You can still copy a quick report.",
+                "Berichtsspeicher ist derzeit nicht verf\u00fcgbar. Du kannst weiterhin einen Kurzbericht kopieren.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Stellt die Schalter vor dem letzten Import wieder her. Das \u00c4ndern eines Schalters oder ein Neustart von Pinterest beendet diese M\u00f6glichkeit.");
         table.put("Resume",
@@ -488,8 +492,8 @@ public final class L10nTranslations {
                 "Der Speicherverlauf ist voll. Entferne einen alten Eintrag, bevor du einen weiteren Pin speicherst.");
         table.put("Save history removed. The file was kept.",
                 "Speicherverlauf entfernt. Die Datei wurde behalten.");
-        table.put("Save the full report in Download/Morphe.",
-                "Vollst\u00e4ndigen Bericht unter Download/Morphe speichern.");
+        table.put("Save the full report in %1$s.",
+                "Speichere den vollst\u00e4ndigen Bericht unter %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Speichert deine Schalter in einer Datei. Sie gelten f\u00fcr alle Konten in dieser Pinterest-App. Pause und Debug-Protokollierung sind nicht enthalten, die Suche nach neuen Versionen auch nicht.");
         table.put("Saved choice only. This build doesn't include this control.",
@@ -542,13 +546,13 @@ public final class L10nTranslations {
                 "Bereitgestellte H\u00f6he: %s");
         table.put("Supplied media details",
                 "Bereitgestellte Mediendetails");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Supplied width: %s",
                 "Bereitgestellte Breite: %s");
         table.put("Supported links",
                 "Unterst\u00fctzte Links");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("System share sheet",
                 "Systemmen\u00fc zum Teilen");
         table.put("Tap to turn it back on.",
@@ -662,7 +666,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(590);
+        Map<String, String> table = new HashMap<>(594);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -774,8 +778,10 @@ public final class L10nTranslations {
                 "Cerrar");
         table.put("Completed",
                 "Completado");
-        table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Copia un informe r\u00e1pido o guarda el completo en Download/Morphe. Se omiten enlaces, ID, cookies y tokens de inicio de sesi\u00f3n. Revisa si queda otro texto privado antes de compartirlo.");
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Copia un informe r\u00e1pido o guarda el completo en %1$s. Se omiten enlaces, ID, cookies y tokens de inicio de sesi\u00f3n. Revisa si contiene otros datos privados antes de compartirlo.");
+        table.put("Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Copia un informe r\u00e1pido. El almacenamiento de informes no est\u00e1 disponible ahora. Se omiten enlaces, ID, cookies y tokens de inicio de sesi\u00f3n. Revisa otros datos privados antes de compartirlo.");
         table.put("Copy a short report to the clipboard.",
                 "Copia un informe breve en el portapapeles.");
         table.put("Copy quick report",
@@ -790,11 +796,11 @@ public final class L10nTranslations {
                 "No se pudo descargar este Pin. Revisa la conexi\u00f3n e int\u00e9ntalo de nuevo.");
         table.put("Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.",
                 "No se pudo importar la configuraci\u00f3n ni restaurar la que ten\u00edas. Revisa los interruptores de esta pantalla.");
-        table.put("Couldn't import the settings. Nothing was changed.",
-                "No se pudo importar la configuraci\u00f3n. No se cambi\u00f3 nada.");
     }
 
     private static void fillEs1(Map<String, String> table) {
+        table.put("Couldn't import the settings. Nothing was changed.",
+                "No se pudo importar la configuraci\u00f3n. No se cambi\u00f3 nada.");
         table.put("Couldn't open Downloads.",
                 "No se pudo abrir Descargas.");
         table.put("Couldn't open a save location. Try again from the pin.",
@@ -913,11 +919,11 @@ public final class L10nTranslations {
                 "Ocultar opciones de collage");
         table.put("Hide comments",
                 "Ocultar comentarios");
-        table.put("Hide header buttons",
-                "Ocultar botones del encabezado");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("Hide header buttons",
+                "Ocultar botones del encabezado");
         table.put("Hide navigation buttons",
                 "Ocultar botones de navegaci\u00f3n");
         table.put("Hide search history",
@@ -1036,11 +1042,11 @@ public final class L10nTranslations {
                 "Pin %s");
         table.put("Pin actions",
                 "Acciones del pin");
-        table.put("Pin saved.",
-                "Pin guardado.");
     }
 
     private static void fillEs3(Map<String, String> table) {
+        table.put("Pin saved.",
+                "Pin guardado.");
         table.put("Pin saved. Check Pending saves if its history remains.",
                 "Pin guardado. Revisa Guardados pendientes si a\u00fan aparece en el historial.");
         table.put("Pins that Pinterest labels as made or changed with AI leave the same lists. AI images without Pinterest's label still show.",
@@ -1083,6 +1089,8 @@ public final class L10nTranslations {
                 "Quita par\u00e1metros de rastreo conocidos de los enlaces copiados y compartidos. Los enlaces cortos quedan como los cre\u00f3 Pinterest.");
         table.put("Removes this history entry. Files and active downloads are kept.",
                 "Elimina esta entrada del historial. Se conservan los archivos y las descargas activas.");
+        table.put("Report storage is unavailable right now. You can still copy a quick report.",
+                "El almacenamiento de informes no est\u00e1 disponible ahora. A\u00fan puedes copiar un informe r\u00e1pido.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Restaura los ajustes anteriores a la \u00faltima importaci\u00f3n. Cambiar un ajuste o reiniciar Pinterest termina la opci\u00f3n de deshacer.");
         table.put("Resume",
@@ -1103,8 +1111,8 @@ public final class L10nTranslations {
                 "El historial de guardados est\u00e1 lleno. Quita una entrada antigua antes de guardar otro Pin.");
         table.put("Save history removed. The file was kept.",
                 "Se quit\u00f3 el historial del guardado. Se conserv\u00f3 el archivo.");
-        table.put("Save the full report in Download/Morphe.",
-                "Guarda el informe completo en Download/Morphe.");
+        table.put("Save the full report in %1$s.",
+                "Guarda el informe completo en %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Guarda tus interruptores en un archivo. Cubren todas las cuentas de esta app de Pinterest. La pausa y el Registro de depuraci\u00f3n no se incluyen, y la b\u00fasqueda de nuevas versiones tampoco.");
         table.put("Saved choice only. This build doesn't include this control.",
@@ -1157,13 +1165,13 @@ public final class L10nTranslations {
                 "Alto proporcionado: %s");
         table.put("Supplied media details",
                 "Detalles del contenido proporcionado");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Supplied width: %s",
                 "Ancho proporcionado: %s");
         table.put("Supported links",
                 "Enlaces compatibles");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("System share sheet",
                 "Men\u00fa de compartir del sistema");
         table.put("Tap to turn it back on.",
@@ -1277,7 +1285,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(590);
+        Map<String, String> table = new HashMap<>(594);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1389,8 +1397,10 @@ public final class L10nTranslations {
                 "Tutup");
         table.put("Completed",
                 "Selesai");
-        table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.");
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Salin laporan singkat atau simpan laporan lengkap ke %1$s. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.");
+        table.put("Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Salin laporan singkat. Penyimpanan laporan saat ini tidak tersedia. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.");
         table.put("Copy a short report to the clipboard.",
                 "Salin laporan singkat ke papan klip.");
         table.put("Copy quick report",
@@ -1405,11 +1415,11 @@ public final class L10nTranslations {
                 "Pin ini tidak dapat diunduh. Periksa koneksi dan coba lagi.");
         table.put("Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.",
                 "Pengaturan tidak dapat diimpor, dan pengaturan sebelumnya tidak dapat dikembalikan. Periksa sakelar di layar ini.");
-        table.put("Couldn't import the settings. Nothing was changed.",
-                "Pengaturan tidak dapat diimpor. Tidak ada yang diubah.");
     }
 
     private static void fillIn1(Map<String, String> table) {
+        table.put("Couldn't import the settings. Nothing was changed.",
+                "Pengaturan tidak dapat diimpor. Tidak ada yang diubah.");
         table.put("Couldn't open Downloads.",
                 "Tidak dapat membuka Unduhan.");
         table.put("Couldn't open a save location. Try again from the pin.",
@@ -1528,11 +1538,11 @@ public final class L10nTranslations {
                 "Sembunyikan opsi kolase");
         table.put("Hide comments",
                 "Sembunyikan komentar");
-        table.put("Hide header buttons",
-                "Sembunyikan tombol header");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("Hide header buttons",
+                "Sembunyikan tombol header");
         table.put("Hide navigation buttons",
                 "Sembunyikan tombol navigasi");
         table.put("Hide search history",
@@ -1651,11 +1661,11 @@ public final class L10nTranslations {
                 "Pin %s");
         table.put("Pin actions",
                 "Tindakan Pin");
-        table.put("Pin saved.",
-                "Pin disimpan.");
     }
 
     private static void fillIn3(Map<String, String> table) {
+        table.put("Pin saved.",
+                "Pin disimpan.");
         table.put("Pin saved. Check Pending saves if its history remains.",
                 "Pin disimpan. Periksa Penyimpanan tertunda jika riwayatnya masih ada.");
         table.put("Pins that Pinterest labels as made or changed with AI leave the same lists. AI images without Pinterest's label still show.",
@@ -1698,6 +1708,8 @@ public final class L10nTranslations {
                 "Menghapus parameter pelacakan yang dikenal dari tautan yang disalin dan dibagikan. Tautan pendek tetap seperti yang dibuat Pinterest.");
         table.put("Removes this history entry. Files and active downloads are kept.",
                 "Menghapus entri riwayat ini. File dan unduhan aktif tetap disimpan.");
+        table.put("Report storage is unavailable right now. You can still copy a quick report.",
+                "Penyimpanan laporan saat ini tidak tersedia. Anda masih dapat menyalin laporan singkat.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Pulihkan sakelar sebelum impor terakhir. Mengubah sakelar atau memulai ulang Pinterest mengakhiri Urungkan.");
         table.put("Resume",
@@ -1718,8 +1730,8 @@ public final class L10nTranslations {
                 "Riwayat penyimpanan penuh. Hapus entri lama sebelum menyimpan Pin lain.");
         table.put("Save history removed. The file was kept.",
                 "Riwayat penyimpanan dihapus. File tetap disimpan.");
-        table.put("Save the full report in Download/Morphe.",
-                "Simpan laporan lengkap di Download/Morphe.");
+        table.put("Save the full report in %1$s.",
+                "Simpan laporan lengkap di %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Simpan sakelar Anda ke sebuah file. Sakelar ini mencakup semua akun di aplikasi Pinterest ini. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.");
         table.put("Saved choice only. This build doesn't include this control.",
@@ -1772,13 +1784,13 @@ public final class L10nTranslations {
                 "Tinggi yang diberikan: %s");
         table.put("Supplied media details",
                 "Detail media yang diberikan");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Supplied width: %s",
                 "Lebar yang diberikan: %s");
         table.put("Supported links",
                 "Tautan yang didukung");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("System share sheet",
                 "Menu berbagi sistem");
         table.put("Tap to turn it back on.",
@@ -1892,7 +1904,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(590);
+        Map<String, String> table = new HashMap<>(594);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2004,8 +2016,10 @@ public final class L10nTranslations {
                 "Fechar");
         table.put("Completed",
                 "Conclu\u00eddo");
-        table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Copie um relat\u00f3rio r\u00e1pido ou salve o relat\u00f3rio completo em Download/Morphe. Links, IDs, cookies e tokens de login s\u00e3o omitidos. Verifique se h\u00e1 outros textos privados antes de compartilhar.");
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Copie um relat\u00f3rio r\u00e1pido ou salve o completo em %1$s. Links, IDs, cookies e tokens de login s\u00e3o omitidos. Confira outros textos privados antes de compartilhar.");
+        table.put("Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Copie um relat\u00f3rio r\u00e1pido. O armazenamento de relat\u00f3rios est\u00e1 indispon\u00edvel agora. Links, IDs, cookies e tokens de login s\u00e3o omitidos. Confira outros textos privados antes de compartilhar.");
         table.put("Copy a short report to the clipboard.",
                 "Copie um relat\u00f3rio curto para a \u00e1rea de transfer\u00eancia.");
         table.put("Copy quick report",
@@ -2020,11 +2034,11 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel baixar este Pin. Confira a conex\u00e3o e tente de novo.");
         table.put("Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.",
                 "N\u00e3o foi poss\u00edvel importar as configura\u00e7\u00f5es nem restaurar as que voc\u00ea tinha. Confira as op\u00e7\u00f5es nesta tela.");
-        table.put("Couldn't import the settings. Nothing was changed.",
-                "N\u00e3o foi poss\u00edvel importar as configura\u00e7\u00f5es. Nada foi alterado.");
     }
 
     private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Couldn't import the settings. Nothing was changed.",
+                "N\u00e3o foi poss\u00edvel importar as configura\u00e7\u00f5es. Nada foi alterado.");
         table.put("Couldn't open Downloads.",
                 "N\u00e3o foi poss\u00edvel abrir Downloads.");
         table.put("Couldn't open a save location. Try again from the pin.",
@@ -2143,11 +2157,11 @@ public final class L10nTranslations {
                 "Ocultar op\u00e7\u00f5es de colagem");
         table.put("Hide comments",
                 "Ocultar coment\u00e1rios");
-        table.put("Hide header buttons",
-                "Ocultar bot\u00f5es do cabe\u00e7alho");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Hide header buttons",
+                "Ocultar bot\u00f5es do cabe\u00e7alho");
         table.put("Hide navigation buttons",
                 "Ocultar bot\u00f5es de navega\u00e7\u00e3o");
         table.put("Hide search history",
@@ -2266,11 +2280,11 @@ public final class L10nTranslations {
                 "Pin %s");
         table.put("Pin actions",
                 "A\u00e7\u00f5es do Pin");
-        table.put("Pin saved.",
-                "Pin salvo.");
     }
 
     private static void fillPt_rBR3(Map<String, String> table) {
+        table.put("Pin saved.",
+                "Pin salvo.");
         table.put("Pin saved. Check Pending saves if its history remains.",
                 "Pin salvo. Confira Salvamentos pendentes se o hist\u00f3rico ainda aparecer.");
         table.put("Pins that Pinterest labels as made or changed with AI leave the same lists. AI images without Pinterest's label still show.",
@@ -2313,6 +2327,8 @@ public final class L10nTranslations {
                 "Remove par\u00e2metros de rastreamento conhecidos dos links copiados e compartilhados. Os links curtos permanecem como o Pinterest os criou.");
         table.put("Removes this history entry. Files and active downloads are kept.",
                 "Remove esta entrada do hist\u00f3rico. Os arquivos e downloads ativos s\u00e3o mantidos.");
+        table.put("Report storage is unavailable right now. You can still copy a quick report.",
+                "O armazenamento de relat\u00f3rios est\u00e1 indispon\u00edvel agora. Voc\u00ea ainda pode copiar um relat\u00f3rio r\u00e1pido.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Restaure os ajustes anteriores \u00e0 \u00faltima importa\u00e7\u00e3o. Alterar um ajuste ou reiniciar o Pinterest encerra a op\u00e7\u00e3o de desfazer.");
         table.put("Resume",
@@ -2333,8 +2349,8 @@ public final class L10nTranslations {
                 "O hist\u00f3rico de salvamentos est\u00e1 cheio. Remova uma entrada antiga antes de salvar outro Pin.");
         table.put("Save history removed. The file was kept.",
                 "Hist\u00f3rico do salvamento removido. O arquivo foi mantido.");
-        table.put("Save the full report in Download/Morphe.",
-                "Salve o relat\u00f3rio completo em Download/Morphe.");
+        table.put("Save the full report in %1$s.",
+                "Salve o relat\u00f3rio completo em %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Salve suas op\u00e7\u00f5es em um arquivo. Elas valem para todas as contas deste app do Pinterest. Pausa e Registro de depura\u00e7\u00e3o n\u00e3o s\u00e3o inclu\u00eddos, nem a verifica\u00e7\u00e3o de novas vers\u00f5es.");
         table.put("Saved choice only. This build doesn't include this control.",
@@ -2387,13 +2403,13 @@ public final class L10nTranslations {
                 "Altura fornecida: %s");
         table.put("Supplied media details",
                 "Detalhes da m\u00eddia fornecida");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Supplied width: %s",
                 "Largura fornecida: %s");
         table.put("Supported links",
                 "Links compat\u00edveis");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("System share sheet",
                 "Menu de compartilhamento do sistema");
         table.put("Tap to turn it back on.",
@@ -2507,7 +2523,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(590);
+        Map<String, String> table = new HashMap<>(594);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2619,8 +2635,10 @@ public final class L10nTranslations {
                 "Kapat");
         table.put("Completed",
                 "Tamamland\u0131");
-        table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "K\u0131sa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Ba\u011flant\u0131lar, kimlikler, \u00e7erezler ve oturum belirte\u00e7leri \u00e7\u0131kar\u0131l\u0131r. Payla\u015fmadan \u00f6nce ba\u015fka \u00f6zel bilgi olup olmad\u0131\u011f\u0131na bak.");
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "H\u0131zl\u0131 bir rapor kopyalay\u0131n veya tam raporu %1$s konumuna kaydedin. Ba\u011flant\u0131lar, kimlikler, \u00e7erezler ve giri\u015f belirte\u00e7leri d\u0131\u015far\u0131da b\u0131rak\u0131l\u0131r. Payla\u015fmadan \u00f6nce di\u011fer \u00f6zel metinleri kontrol edin.");
+        table.put("Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "H\u0131zl\u0131 bir rapor kopyalay\u0131n. Rapor depolama \u015fu anda kullan\u0131lam\u0131yor. Ba\u011flant\u0131lar, kimlikler, \u00e7erezler ve giri\u015f belirte\u00e7leri d\u0131\u015far\u0131da b\u0131rak\u0131l\u0131r. Payla\u015fmadan \u00f6nce di\u011fer \u00f6zel metinleri kontrol edin.");
         table.put("Copy a short report to the clipboard.",
                 "K\u0131sa raporu panoya kopyalar.");
         table.put("Copy quick report",
@@ -2635,11 +2653,11 @@ public final class L10nTranslations {
                 "Bu Pin indirilemedi. Ba\u011flant\u0131n\u0131z\u0131 kontrol edip tekrar deneyin.");
         table.put("Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.",
                 "Ayarlar i\u00e7e aktar\u0131lamad\u0131 ve \u00f6nceki ayarlar\u0131n geri y\u00fcklenemedi. Bu ekrandaki anahtarlar\u0131 kontrol et.");
-        table.put("Couldn't import the settings. Nothing was changed.",
-                "Ayarlar i\u00e7e aktar\u0131lamad\u0131. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
     }
 
     private static void fillTr1(Map<String, String> table) {
+        table.put("Couldn't import the settings. Nothing was changed.",
+                "Ayarlar i\u00e7e aktar\u0131lamad\u0131. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("Couldn't open Downloads.",
                 "\u0130ndirilenler a\u00e7\u0131lamad\u0131.");
         table.put("Couldn't open a save location. Try again from the pin.",
@@ -2758,11 +2776,11 @@ public final class L10nTranslations {
                 "Kolaj men\u00fc \u00f6\u011felerini gizle");
         table.put("Hide comments",
                 "Yorumlar\u0131 gizle");
-        table.put("Hide header buttons",
-                "Ba\u015fl\u0131k d\u00fc\u011fmelerini gizle");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("Hide header buttons",
+                "Ba\u015fl\u0131k d\u00fc\u011fmelerini gizle");
         table.put("Hide navigation buttons",
                 "Gezinme d\u00fc\u011fmelerini gizle");
         table.put("Hide search history",
@@ -2881,11 +2899,11 @@ public final class L10nTranslations {
                 "Pin %s");
         table.put("Pin actions",
                 "Pin i\u015flemleri");
-        table.put("Pin saved.",
-                "Pin kaydedildi.");
     }
 
     private static void fillTr3(Map<String, String> table) {
+        table.put("Pin saved.",
+                "Pin kaydedildi.");
         table.put("Pin saved. Check Pending saves if its history remains.",
                 "Pin kaydedildi. Ge\u00e7mi\u015f kayd\u0131 kal\u0131rsa Bekleyen kaydetmeler b\u00f6l\u00fcm\u00fcn\u00fc kontrol edin.");
         table.put("Pins that Pinterest labels as made or changed with AI leave the same lists. AI images without Pinterest's label still show.",
@@ -2928,6 +2946,8 @@ public final class L10nTranslations {
                 "Kopyalanan ve payla\u015f\u0131lan ba\u011flant\u0131lardan bilinen takip parametrelerini kald\u0131r\u0131r. K\u0131sa ba\u011flant\u0131lar Pinterest taraf\u0131ndan olu\u015fturuldu\u011fu gibi kal\u0131r.");
         table.put("Removes this history entry. Files and active downloads are kept.",
                 "Bu ge\u00e7mi\u015f kayd\u0131n\u0131 kald\u0131r\u0131r. Dosyalar ve etkin indirmeler korunur.");
+        table.put("Report storage is unavailable right now. You can still copy a quick report.",
+                "Rapor depolama \u015fu anda kullan\u0131lam\u0131yor. Yine de h\u0131zl\u0131 bir rapor kopyalayabilirsiniz.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Son i\u00e7e aktarmadan \u00f6nceki anahtarlar\u0131 geri y\u00fckleyin. Bir anahtar\u0131 d\u00fczenlemek veya Pinterest'i yeniden ba\u015flatmak geri almay\u0131 sona erdirir.");
         table.put("Resume",
@@ -2948,8 +2968,8 @@ public final class L10nTranslations {
                 "Kaydetme ge\u00e7mi\u015fi dolu. Ba\u015fka bir Pin kaydetmeden \u00f6nce eski bir kayd\u0131 kald\u0131r\u0131n.");
         table.put("Save history removed. The file was kept.",
                 "Kaydetme ge\u00e7mi\u015fi kald\u0131r\u0131ld\u0131. Dosya korundu.");
-        table.put("Save the full report in Download/Morphe.",
-                "Tam raporu Download/Morphe konumuna kaydeder.");
+        table.put("Save the full report in %1$s.",
+                "Tam raporu %1$s konumuna kaydedin.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Anahtarlar\u0131n\u0131 bir dosyaya kaydet. Anahtarlar bu Pinterest uygulamas\u0131ndaki t\u00fcm hesaplar i\u00e7in ge\u00e7erlidir. Duraklatma ve Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc dahil edilmez, s\u00fcr\u00fcm denetimi de edilmez.");
         table.put("Saved choice only. This build doesn't include this control.",
@@ -3002,13 +3022,13 @@ public final class L10nTranslations {
                 "Sa\u011flanan y\u00fckseklik: %s");
         table.put("Supplied media details",
                 "Sa\u011flanan medya ayr\u0131nt\u0131lar\u0131");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Supplied width: %s",
                 "Sa\u011flanan geni\u015flik: %s");
         table.put("Supported links",
                 "Desteklenen ba\u011flant\u0131lar");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("System share sheet",
                 "Sistem payla\u015f\u0131m men\u00fcs\u00fc");
         table.put("Tap to turn it back on.",

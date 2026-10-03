@@ -12,6 +12,8 @@ Nothing has been released yet. This is the work toward 0.0.2.
 
 * **Settings import:** Review names and old/new values before applying allowed switches. Undo restores the previous snapshot once, and expires after a later saved edit or restart. Failed imports still roll back atomically.
 
+* **Diagnostic exports:** Summaries and successful-save feedback now show the real destination on Android 9 and newer versions. Unavailable storage keeps Copy quick report available. Redaction and export bounds remain enforced.
+
 * **Development installs:** Device helpers now require an exclusive serial lease and verify the device identity. Installs refuse different signing keys and downgrades without removing apps, clearing accounts or granting every permission. Child checks keep caller-owned leases.
 * **Patch outputs:** Concurrent device builds keep separate workspaces and return their verified APK paths. Explicit output collisions are refused. Failed patch reports and early verification errors clean their own generated files.
 * **Analytics:** All response factories and hook sites are checked before the Firebase manifest edit. Malformed generic responses and missing late targets fail without changing analytics code. Runtime controls also check whether the patch was installed.

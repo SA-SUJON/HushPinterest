@@ -238,6 +238,16 @@ public final class LogBufferManager {
         }
     }
 
+    /** The writer's folder, or null when Android 9's app storage is unavailable. */
+    public static String fileExportDirectory(Context context) {
+        if (context == null) return null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return Environment.DIRECTORY_DOWNLOADS + "/Morphe";
+        }
+        File downloads = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        return downloads == null ? null : new File(downloads, "Morphe").getAbsolutePath();
+    }
+
     static String writeToFile(Context context, String exportText) throws Exception {
         if (context == null) throw new IOException("Application context unavailable");
         String fileName = "morphe-diagnostics-" + fileTimestamp() + "-"
@@ -247,8 +257,7 @@ public final class LogBufferManager {
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
         values.put(MediaStore.MediaColumns.MIME_TYPE, "text/plain");
-        values.put(MediaStore.MediaColumns.RELATIVE_PATH,
-                Environment.DIRECTORY_DOWNLOADS + "/Morphe");
+        values.put(MediaStore.MediaColumns.RELATIVE_PATH, fileExportDirectory(context));
         values.put(MediaStore.MediaColumns.IS_PENDING, 1);
         Uri pendingUri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
         if (pendingUri == null) throw new IOException("Could not create report file");
@@ -256,13 +265,13 @@ public final class LogBufferManager {
             try (OutputStream output = resolver.openOutputStream(pendingUri, "w")) {
                 writeText(output, exportText);
             }
-            String savedName = providerDisplayName(resolver, pendingUri);
+            String savedLocation = providerLocation(resolver, pendingUri);
             values.clear();
             values.put(MediaStore.MediaColumns.IS_PENDING, 0);
             if (resolver.update(pendingUri, values, null, null) != 1) {
                 throw new IOException("Could not publish report file");
             }
-            return Environment.DIRECTORY_DOWNLOADS + "/Morphe/" + savedName;
+            return savedLocation;
         } catch (Exception error) {
             deleteIncomplete(resolver, pendingUri, error);
             throw error;
@@ -275,9 +284,9 @@ public final class LogBufferManager {
      * on shared storage instead, which a file manager or a computer can open without one.
      */
     private static String writeToAppFolder(Context context, String fileName, String exportText) throws IOException {
-        File downloads = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-        if (downloads == null) throw new IOException("Shared storage is unavailable");
-        File folder = new File(downloads, "Morphe");
+        String directory = fileExportDirectory(context);
+        if (directory == null) throw new IOException("Shared storage is unavailable");
+        File folder = new File(directory);
         if (!folder.isDirectory() && !folder.mkdirs()) throw new IOException("Could not create report folder");
         File report = new File(folder, fileName);
         try (OutputStream output = new FileOutputStream(report)) {
@@ -291,15 +300,20 @@ public final class LogBufferManager {
         return report.getAbsolutePath();
     }
 
-    private static String providerDisplayName(ContentResolver resolver, Uri uri) throws IOException {
+    private static String providerLocation(ContentResolver resolver, Uri uri) throws IOException {
         try (Cursor cursor = resolver.query(uri,
-                new String[]{MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null)) {
+                new String[]{MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.RELATIVE_PATH},
+                null, null, null)) {
             if (cursor == null || !cursor.moveToFirst()) throw new IOException("Could not read saved report name");
             int column = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
             if (column < 0) throw new IOException("Saved report name is unavailable");
             String name = cursor.getString(column);
             if (name == null || name.isEmpty()) throw new IOException("Saved report name is empty");
-            return name;
+            int folderColumn = cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH);
+            if (folderColumn < 0) throw new IOException("Saved report folder is unavailable");
+            String folder = cursor.getString(folderColumn);
+            if (folder == null || folder.isEmpty()) throw new IOException("Saved report folder is empty");
+            return folder + (folder.endsWith("/") ? "" : "/") + name;
         }
     }
 
