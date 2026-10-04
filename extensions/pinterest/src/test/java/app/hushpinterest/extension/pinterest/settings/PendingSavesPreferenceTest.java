@@ -197,7 +197,7 @@ public class PendingSavesPreferenceTest {
         controller.get().getFragmentManager().beginTransaction().replace(android.R.id.content, settings).commit();
         controller.get().getFragmentManager().executePendingTransactions();
         assertTrue(settings.findPreference("action_pending_saves") instanceof PendingSavesPreference);
-        assertNull(settings.findPreference("action_download_history"));
+        assertNotNull(settings.findPreference("action_download_history"));
     }
 
     private void store(String text) {

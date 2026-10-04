@@ -55,7 +55,7 @@ There are 17 patches so far.
 |---|---|
 | `Disable analytics` | Stops Pinterest's usage-event and performance uploads and AppsFlyer tracking. A switch and Pause restore those runtime paths. Firebase Analytics is disabled in the manifest and stays disabled until you patch again without this patch. Sign-in, pin requests and Firebase push components are preserved. |
 | `Disable update nag` | Stops Pinterest's in-app Play Store update prompts. You can still update Pinterest yourself. |
-| `Download pins` | Adds Download pin to the pin menu for original images and the highest-resolution MP4 Pinterest supplies. Saves in Downloads on Android 10 or newer, or asks for a save location on Android 9. Turn it off in HushPinterest settings at any time. |
+| `Download pins` | Downloads a pin or selected visible grid pins using original images and the highest-resolution MP4 Pinterest supplies. Saves in Downloads on Android 10 or newer, or asks for a save location on Android 9. Turn it off in HushPinterest settings at any time. |
 | `Filter pin menu` | Adds separate switches for collage, visual-search and Promote pin menu entries. Download, share and copy-link actions remain available. |
 | `Hide AI-labeled pins` | Removes pins that Pinterest labels as made or changed with AI from the home feed, search, related pins and boards. AI images without Pinterest's label still show. |
 | `Hide ads` | Removes promoted pins from the home feed, search, related pins and boards, and hides Pinterest's ad-only panels. Turn it off in HushPinterest settings at any time. |
@@ -97,9 +97,18 @@ Shopping filters and the new pin actions and interface controls start off. Creat
 
 Download pins adds a Download row only when Pinterest supplies an original image or a direct MP4. It uses the highest resolution MP4 supplied for a video. Android 10 and newer save through Downloads. On Android 9, choose where to save the file. Streaming playlists aren't saved as videos.
 
+From a pin menu in a feed, search or board grid, Download visible pins lets you select up to 32 pins already on screen. Nothing is selected automatically. It uses each pin's supplied media and shows queued, saved, skipped, unsupported and failed counts. Stop selection leaves started downloads alone. Android 9 asks for one save location at a time. Unstarted selections end when Pinterest closes.
+
+<p>
+  <img src="assets/screenshots/download-visible-pins.png" width="240" alt="Visible pins offered for selection with every checkbox initially empty">
+  <img src="assets/screenshots/download-selection-history.png" width="240" alt="Download history showing one completed video and one unsupported pin">
+</p>
+
 Android 9 saves have a five-minute limit and a 256 MiB size limit. Empty or incomplete responses fail. If a save might have finished despite a storage error, HushPinterest keeps the file and asks you to check your chosen location. Pause stops new requests, and a save that's already running finishes on its own.
 
 On Android 10 and newer, Download history in Pin actions checks the requests HushPinterest started. It shows Android's current status after Pinterest restarts, when a result arrives and when you tap Refresh. A failed request offers Retry only when Android still supplies a supported media address. Otherwise, reopen the pin. Removing a history entry keeps the downloaded file. Use system Downloads to cancel a request that's still running.
+
+Download history also records results from visible-pin selections, including skipped or unsupported pins and Android 9 saves. It keeps the 32 most recent entries without storing media addresses. These local results don't claim to be Android download requests.
 
 On Android 9, Pending saves lists interrupted file picker saves. HushPinterest records the chosen location before writing and keeps only the recovery access Android offered. If a save's completion is uncertain, check that location yourself before saving again. HushPinterest leaves the file as it is during recovery. Removing the entry releases only its owned recovery access.
 

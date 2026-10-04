@@ -175,9 +175,11 @@ public final class DownloadHistoryPreference extends DialogPreference {
                     list.setVisibility(jobs.isEmpty() ? View.GONE : View.VISIBLE);
                     message.setText(L10n.t(getContext(), found == null ? "Couldn't check Downloads. Try again."
                             : jobs.isEmpty() ? Build.VERSION.SDK_INT < 29
-                                ? "Android 9 uses the file picker. Its saved files aren't tracked here."
+                                ? "Android 9 uses the file picker. Results from visible-pin selections appear here."
                                 : "No HushPinterest downloads in this history."
-                            : "Only the 32 most recent HushPinterest requests are listed. Manage active downloads in Downloads."));
+                            : jobs.stream().anyMatch(job -> job.id < 0)
+                                ? "Only the 32 most recent downloads and selection results are listed. Saved files are kept."
+                                : "Only the 32 most recent HushPinterest requests are listed. Manage active downloads in Downloads."));
                 } catch (RuntimeException failure) {
                     HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "show native download history", failure);
                     jobs = Collections.emptyList();

@@ -173,7 +173,6 @@ Analytics uploads	Pengiriman data analitik
 Strip link tracking	Hapus pelacakan tautan
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Menghapus parameter pelacakan yang dikenal dari tautan yang disalin dan dibagikan. Tautan pendek tetap seperti yang dibuat Pinterest.
 Download pins	Unduh Pin
-Adds Download to the pin menu. Saves original images and available videos.	Menambahkan Unduh ke menu Pin. Menyimpan gambar asli dan video yang tersedia.
 Open links in your browser	Buka tautan di browser Anda
 Open pin Visit links and profile websites in your browser.	Buka tautan Kunjungi Pin dan situs web profil di browser Anda.
 System share sheet	Menu berbagi sistem
@@ -234,7 +233,6 @@ Check recent downloads started by HushPinterest.	Periksa unduhan terbaru yang di
 Checking download history...	Memeriksa riwayat unduhan...
 Only the 32 most recent HushPinterest requests are listed. Manage active downloads in Downloads.	Hanya 32 permintaan HushPinterest terbaru yang ditampilkan. Kelola unduhan aktif di Unduhan.
 No HushPinterest downloads in this history.	Tidak ada unduhan HushPinterest dalam riwayat ini.
-Android 9 uses the file picker. Its saved files aren't tracked here.	Android 9 menggunakan pemilih file. File yang disimpan tidak dilacak di sini.
 Pin %s	Pin %s
 Retry download	Coba unduh lagi
 Starts a new download. Android manages it.	Memulai unduhan baru. Android mengelolanya.
@@ -331,3 +329,22 @@ An accepted upgrade signed with the same key keeps the app's data. A build with 
 Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.	Ekspor data Pinterest terpisah dari Ekspor pengaturan. Halaman bantuan Pinterest menjelaskan cara meminta data pribadi dari akun yang sudah Anda gunakan.
 Pinterest data export help	Bantuan ekspor data Pinterest
 Couldn't open the setup guide. Try again.	Panduan penyiapan tidak dapat dibuka. Coba lagi.
+Download visible pins	Unduh Pin yang terlihat
+A pin selection is still being saved.	Pilihan Pin masih disimpan.
+No visible pins are available. Open a pin menu from the grid and try again.	Tidak ada Pin terlihat yang tersedia. Buka menu Pin dari kisi lalu coba lagi.
+Select visible pins (up to %d)	Pilih Pin yang terlihat (maksimal %d)
+Queue selected	Antrekan pilihan
+Couldn't open the pin selection. Try again from the grid.	Tidak dapat membuka pilihan Pin. Coba lagi dari kisi.
+Stop selection	Hentikan pilihan
+Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Dalam antrean: %d\nTersimpan: %d\nDilewati: %d\nTidak didukung: %d\nGagal: %d
+Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Menghentikan pilihan tidak membatalkan unduhan yang sudah dimulai. Pilihan yang belum dimulai berakhir saat Pinterest ditutup.
+History could not be saved for %d results. Check Downloads or your chosen files.	Riwayat untuk %d hasil tidak dapat disimpan. Periksa Unduhan atau file yang Anda pilih.
+Saved	Tersimpan
+Skipped	Dilewati
+Unsupported	Tidak didukung
+Saved to the location you chose.	Disimpan ke lokasi yang Anda pilih.
+No download was queued. The selection was stopped, canceled or unavailable.	Tidak ada unduhan yang diantrekan. Pilihan dihentikan, dibatalkan, atau tidak tersedia.
+Pinterest didn't supply supported media for this pin.	Pinterest tidak menyediakan media yang didukung untuk Pin ini.
+Download a pin or select visible grid pins. Saves supplied original images and videos.	Unduh satu Pin atau pilih Pin yang terlihat di kisi. Menyimpan gambar asli dan video yang disediakan.
+Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 memakai pemilih file. Hasil pilihan Pin yang terlihat muncul di sini.
+Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Hanya 32 unduhan dan hasil pilihan terbaru yang ditampilkan. File yang tersimpan tetap disimpan.

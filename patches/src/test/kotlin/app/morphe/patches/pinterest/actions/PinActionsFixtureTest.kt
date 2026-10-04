@@ -40,7 +40,7 @@ class PinActionsFixtureTest {
             }
             val menu = context.mutableClassDefBy(PIN_MENU)
             assertTrue(build.name, menu.methods.map { it.name }.containsAll(
-                listOf("hushDownloadPin", "hushDownloadMenu", "hushDismissDownload"),
+                listOf("hushDownloadPin", "hushDownloadMenu", "hushDownloadOrigin", "hushDownloadCloseup", "hushDismissDownload"),
             ))
             val create = menu.methods.single { it.name == "createModalView" }
             val instructions = create.implementation!!.instructions.toList()
@@ -50,9 +50,17 @@ class PinActionsFixtureTest {
             assertTrue("${build.name} menu hook", attach > 0)
             assertEquals("${build.name} hook must follow native layout assignment", Opcode.IPUT_OBJECT, instructions[attach - 1].opcode)
             val downloads = context.mutableClassDefBy("$EXTENSION_PACKAGE/actions/PinDownloads;")
+            val closeup = menu.methods.single { it.name == "hushDownloadCloseup" }.implementation!!.instructions.toList()
+            assertEquals(listOf(Opcode.IGET_BOOLEAN, Opcode.RETURN), closeup.map { it.opcode })
+            assertTrue(references(closeup).any { it.endsWith("->isPinCloseup:Z") })
             val row = downloads.methods.single { it.name == "menuRow" }.implementation!!.instructions.toList()
             assertTrue("${build.name} native Download icon", references(row).any { "->DOWNLOAD:" in it })
             assertTrue("${build.name} native row factory", references(row).any { it.endsWith(")Landroid/widget/RelativeLayout;") })
+            val cell = downloads.methods.single { it.name == "cellPin" }.implementation!!.instructions.toList()
+            assertEquals("${build.name} typed cell guard", Opcode.INSTANCE_OF, cell.first().opcode)
+            assertEquals("${build.name} typed model getters", 2, cell.count { it.opcode == Opcode.INVOKE_INTERFACE })
+            assertTrue(references(cell).any { it.contains("->getInternalCell()") })
+            assertTrue(references(cell).any { it.endsWith("->getPin()${menu.fields.single { field -> field.name == "pin" }.type}") })
             assertTrue("${build.name} native presenter dismissal", references(menu.methods.single { it.name == "hushDismissDownload" }
                 .implementation!!.instructions.toList()).any { "->" in it && it.endsWith("()V") })
             for ((owner, helper, expected) in listOf(
@@ -82,6 +90,16 @@ class PinActionsFixtureTest {
         assertFalse(classes.flatMap { context.mutableClassDefByOrNull(it.type)?.methods ?: emptyList() }.any { method ->
             references(method.implementation?.instructions?.toList() ?: emptyList()).any { "/ExternalBrowser;->" in it }
         })
+    }
+
+    @Test
+    fun `missing typed grid interface refuses downloads before host changes`() {
+        val build = Fixtures.declaredBuilds().first()
+        val classes = read(build).filterNot { owner -> owner.methods.any { it.name == "getInternalCell" } }
+        val context = PatchContexts.of(ExtensionDex.classes() + classes)
+        assertThrows(PatchException::class.java) { downloadPinsPatch.execute(context) }
+        assertFalse(context.mutableClassDefBy(PIN_MENU).methods.any { it.name.startsWith("hushDownload") })
+        assertFlag(context, "downloadPins", 0)
     }
 
     @Test
@@ -140,7 +158,9 @@ class PinActionsFixtureTest {
                 if (visit) dispatchers++
                 if (share) choosers++
                 if (shareFragment) potentialShareFragments += owner
-                if (owner.type == PIN_MENU || visit || share || profile) wanted[owner.type] = ImmutableClassDef.of(owner)
+                val grid = com.android.tools.smali.dexlib2.AccessFlags.INTERFACE.isSet(owner.accessFlags) &&
+                    owner.methods.any { it.name == "getInternalCell" || it.name == "getPin" && it.returnType.startsWith("Lcom/pinterest/api/model/") }
+                if (owner.type == PIN_MENU || visit || share || profile || grid) wanted[owner.type] = ImmutableClassDef.of(owner)
             }
         }
         potentialShareFragments.filter { owner ->

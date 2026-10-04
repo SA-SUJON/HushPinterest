@@ -2979,7 +2979,40 @@ public class DexDiff {
             String downloads = BASE + "actions/PinDownloads;";
             bridge(downloads + "->menuPin(Ljava/lang/Object;)Ljava/lang/Object;", PIN_MENU, "hushDownloadPin", "()Ljava/lang/Object;");
             bridge(downloads + "->menuView(Ljava/lang/Object;)Landroid/view/ViewGroup;", PIN_MENU, "hushDownloadMenu", "()Landroid/view/ViewGroup;");
+            bridge(downloads + "->menuOrigin(Ljava/lang/Object;)Landroid/view/View;", PIN_MENU, "hushDownloadOrigin", "()Landroid/view/View;");
+            bridge(downloads + "->menuCloseup(Ljava/lang/Object;)Z", PIN_MENU, "hushDownloadCloseup", "()Z");
             bridge(downloads + "->dismissMenu(Ljava/lang/Object;)V", PIN_MENU, "hushDismissDownload", "()V");
+            Method cellPin = actual(downloads + "->cellPin(Landroid/view/View;)Ljava/lang/Object;");
+            if (cellPin != null && menu != null) {
+                String pinType = "";
+                for (Field field : menu.getFields()) if (field.getName().equals("pin")) pinType = field.getType();
+                List<Method> cells = new ArrayList<>();
+                for (ClassDef owner : clean.classes.values()) if (AccessFlags.INTERFACE.isSet(owner.getAccessFlags())) {
+                    boolean pinSetter = false;
+                    for (Method method : owner.getMethods()) if (method.getName().equals("setPin") && descriptor(method).equals("(" + pinType + "I)V")) pinSetter = true;
+                    if (pinSetter) for (Method method : owner.getMethods()) if (method.getName().equals("getInternalCell") && method.getParameterTypes().isEmpty()) cells.add(method);
+                }
+                Method cell = unique(cells, "typed pin grid cell interface");
+                List<Instruction> body = instructions(cellPin);
+                List<Opcode> expected = List.of(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.INVOKE_INTERFACE,
+                        Opcode.MOVE_RESULT_OBJECT, Opcode.IF_EQZ, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT,
+                        Opcode.RETURN_OBJECT, Opcode.CONST_4, Opcode.RETURN_OBJECT);
+                if (cell == null || !body.stream().map(Instruction::getOpcode).toList().equals(expected)) fail("download grid getter has no typed bounded cell contract");
+                else {
+                    int input = parameter(cellPin, 0), result = firstRegister(body.get(0));
+                    Layout code = new Layout(cellPin.getImplementation());
+                    if (!cell.getDefiningClass().equals(String.valueOf(reference(body.get(0))))
+                            || !cell.getDefiningClass().equals(String.valueOf(reference(body.get(2))))
+                            || ((TwoRegisterInstruction) body.get(0)).getRegisterB() != input || firstRegister(body.get(2)) != input
+                            || !cell.toString().equals(String.valueOf(reference(body.get(3)))) || !arguments(body.get(3)).equals(List.of(input))
+                            || !(cell.getReturnType() + "->getPin()" + pinType).equals(String.valueOf(reference(body.get(6))))
+                            || !arguments(body.get(6)).equals(List.of(result)) || ((NarrowLiteralInstruction) body.get(9)).getNarrowLiteral() != 0)
+                        fail("download grid getter reads an unrelated model or cell");
+                    for (int at : List.of(1, 4, 5, 7, 8, 9, 10)) if (firstRegister(body.get(at)) != result) fail("download grid getter loses its pin register");
+                    for (int at : List.of(1, 5)) if (code.addresses.get(at) + ((OffsetInstruction) body.get(at)).getCodeOffset() != code.addresses.get(9))
+                        fail("download grid getter lost its absent-cell fallback");
+                }
+            }
             Method row = actual(downloads + "->menuRow(Landroid/view/ViewGroup;Ljava/lang/String;)Landroid/view/View;");
             ClassDef layout = menuLayout();
             if (row != null && layout != null) {
@@ -3010,7 +3043,7 @@ public class DexDiff {
                     if (!arguments(body.get(2)).equals(args)) fail("download row factory receives the wrong icon or title");
                 }
             }
-            for (String name : List.of("hushDownloadPin", "hushDownloadMenu", "hushDismissDownload")) {
+            for (String name : List.of("hushDownloadPin", "hushDownloadMenu", "hushDownloadOrigin", "hushDownloadCloseup", "hushDismissDownload")) {
                 List<Method> bridges = new ArrayList<>();
                 ClassDef owner = patched.classes.get(PIN_MENU);
                 if (owner != null) for (Method method : owner.getMethods()) if (method.getName().equals(name)) bridges.add(method);
@@ -3019,15 +3052,16 @@ public class DexDiff {
                 else {
                     List<Instruction> body = instructions(bridges.get(0));
                     if (body.isEmpty()) { fail("download native bridge " + name + " has no instructions"); continue; }
-                    if (body.isEmpty() || body.get(0).getOpcode() != Opcode.IGET_OBJECT || !(reference(body.get(0)) instanceof FieldReference)
+                    if (body.get(0).getOpcode() != (name.equals("hushDownloadCloseup") ? Opcode.IGET_BOOLEAN : Opcode.IGET_OBJECT) || !(reference(body.get(0)) instanceof FieldReference)
                             || !((FieldReference) reference(body.get(0))).getDefiningClass().equals(PIN_MENU)) fail("download native bridge " + name + " reads no menu field");
                     else {
-                        String expectedField = name.equals("hushDownloadPin") ? "pin" : name.equals("hushDownloadMenu") ? "modalView" : "presenter";
+                        String expectedField = name.equals("hushDownloadPin") ? "pin" : name.equals("hushDownloadMenu") ? "modalView"
+                                : name.equals("hushDownloadOrigin") ? "originView" : name.equals("hushDownloadCloseup") ? "isPinCloseup" : "presenter";
                         if (!((FieldReference) reference(body.get(0))).getName().equals(expectedField)
                                 || ((TwoRegisterInstruction) body.get(0)).getRegisterB() != parameter(bridges.get(0), -1))
                             fail("download native bridge " + name + " reads the wrong receiver or field");
                     }
-                    if (!name.equals("hushDismissDownload") && (body.size() != 2 || body.get(1).getOpcode() != Opcode.RETURN_OBJECT
+                    if (!name.equals("hushDismissDownload") && (body.size() != 2 || body.get(1).getOpcode() != (name.equals("hushDownloadCloseup") ? Opcode.RETURN : Opcode.RETURN_OBJECT)
                             || firstRegister(body.get(0)) != firstRegister(body.get(1)))) fail("download native getter " + name + " is not a field read and return");
                     if (name.equals("hushDismissDownload")) {
                         FieldReference presenter = reference(body.get(0)) instanceof FieldReference ? (FieldReference) reference(body.get(0)) : null;

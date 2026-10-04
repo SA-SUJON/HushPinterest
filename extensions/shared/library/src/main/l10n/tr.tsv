@@ -173,7 +173,6 @@ Analytics uploads	Analiz veri gönderimi
 Strip link tracking	Bağlantı takibini kaldır
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Kopyalanan ve paylaşılan bağlantılardan bilinen takip parametrelerini kaldırır. Kısa bağlantılar Pinterest tarafından oluşturulduğu gibi kalır.
 Download pins	Pinleri indir
-Adds Download to the pin menu. Saves original images and available videos.	Pin menüsüne İndir seçeneğini ekler. Orijinal görüntüleri ve mevcut videoları kaydeder.
 Open links in your browser	Bağlantıları tarayıcında aç
 Open pin Visit links and profile websites in your browser.	Pinlerin Ziyaret et bağlantılarını ve profil web sitelerini tarayıcında aç.
 System share sheet	Sistem paylaşım menüsü
@@ -234,7 +233,6 @@ Check recent downloads started by HushPinterest.	HushPinterest'in başlattığı
 Checking download history...	İndirme geçmişi kontrol ediliyor...
 Only the 32 most recent HushPinterest requests are listed. Manage active downloads in Downloads.	Yalnızca HushPinterest'in son 32 isteği listelenir. Etkin indirmeleri İndirilenler'de yönetin.
 No HushPinterest downloads in this history.	Bu geçmişte HushPinterest indirmesi yok.
-Android 9 uses the file picker. Its saved files aren't tracked here.	Android 9 dosya seçiciyi kullanır. Kaydettiği dosyalar burada izlenmez.
 Pin %s	Pin %s
 Retry download	İndirmeyi yeniden dene
 Starts a new download. Android manages it.	Yeni bir indirme başlatır. Android bunu yönetir.
@@ -331,3 +329,22 @@ An accepted upgrade signed with the same key keeps the app's data. A build with 
 Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.	Pinterest'in veri dışa aktarımı, Ayarları dışa aktar işleminden ayrıdır. Pinterest'in yardım sayfası, zaten kullandığınız hesaptan kişisel verilerinizi nasıl talep edeceğinizi açıklar.
 Pinterest data export help	Pinterest veri dışa aktarım yardımı
 Couldn't open the setup guide. Try again.	Kurulum rehberi açılamadı. Tekrar deneyin.
+Download visible pins	Görünen Pinleri indir
+A pin selection is still being saved.	Bir Pin seçimi hâlâ kaydediliyor.
+No visible pins are available. Open a pin menu from the grid and try again.	Görünür Pin bulunamadı. Izgaradan bir Pin menüsü açıp tekrar deneyin.
+Select visible pins (up to %d)	Görünen Pinleri seç (en fazla %d)
+Queue selected	Seçilenleri sıraya al
+Couldn't open the pin selection. Try again from the grid.	Pin seçimi açılamadı. Izgaradan tekrar deneyin.
+Stop selection	Seçimi durdur
+Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Sırada: %d\nKaydedilen: %d\nAtlanan: %d\nDesteklenmeyen: %d\nBaşarısız: %d
+Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Durdurmak başlamış indirmeleri korur. Başlamamış seçimler Pinterest kapandığında sona erer.
+History could not be saved for %d results. Check Downloads or your chosen files.	%d sonuç için geçmiş kaydedilemedi. İndirilenleri veya seçtiğiniz dosyaları kontrol edin.
+Saved	Kaydedildi
+Skipped	Atlandı
+Unsupported	Desteklenmiyor
+Saved to the location you chose.	Seçtiğiniz konuma kaydedildi.
+No download was queued. The selection was stopped, canceled or unavailable.	İndirme sıraya alınmadı. Seçim durduruldu, iptal edildi veya kullanılamıyordu.
+Pinterest didn't supply supported media for this pin.	Pinterest bu Pin için desteklenen bir medya sağlamadı.
+Download a pin or select visible grid pins. Saves supplied original images and videos.	Bir Pin indirin veya ızgarada görünen Pinleri seçin. Sağlanan özgün görselleri ve videoları kaydeder.
+Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 dosya seçiciyi kullanır. Görünen Pin seçimlerinin sonuçları burada görünür.
+Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Yalnızca en son 32 indirme ve seçim sonucu listelenir. Kaydedilen dosyalar korunur.

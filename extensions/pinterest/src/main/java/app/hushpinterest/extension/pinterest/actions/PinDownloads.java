@@ -25,6 +25,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import javax.net.ssl.SSLException;
 
@@ -49,6 +50,13 @@ public final class PinDownloads {
 
     /** Rewritten to return Pinterest's native overflow menu layout. */
     private static ViewGroup menuView(Object controller) { return null; }
+
+    private static View menuOrigin(Object controller) { return null; }
+
+    private static boolean menuCloseup(Object controller) { return true; }
+
+    /** Rewritten to read only the typed pin model held by a native grid cell. */
+    static Object cellPin(View cell) { return null; }
 
     /** Rewritten to call the native row factory with Pinterest's Download icon. */
     private static View menuRow(ViewGroup layout, String title) { return null; }
@@ -86,6 +94,20 @@ public final class PinDownloads {
                 }
             });
             layout.addView(row, 0);
+            ViewGroup grid = menuCloseup(controller) ? null : GridDownloads.grid(menuOrigin(controller), pin);
+            if (grid != null) {
+                String batchTitle = L10n.t("Download visible pins");
+                View batch = menuRow(layout, batchTitle);
+                if (batch != null) {
+                    batch.setFocusable(true);
+                    batch.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+                    batch.setContentDescription(batchTitle);
+                    batch.setOnClickListener(ignored -> {
+                        if (active() && GridDownloads.grid(grid, pin) == grid && GridDownloads.show(grid)) dismissMenu(controller);
+                    });
+                    layout.addView(batch, 1);
+                }
+            }
             if (supported) {
                 String detailsTitle = L10n.t("Supplied media details");
                 View details = menuRow(layout, detailsTitle);
@@ -138,13 +160,25 @@ public final class PinDownloads {
     }
 
     static boolean start(Object pin, Context context) {
-        if (!active()) return false;
+        return start(pin, context, null);
+    }
+
+    enum Result { QUEUED, QUEUED_UNTRACKED, SAVED, SKIPPED, UNSUPPORTED, FAILED }
+
+    /** The callback reports the actual native enqueue or terminal picker outcome, not worker submission. */
+    static boolean start(Object pin, Context context, Consumer<Result> listener) {
+        AtomicBoolean reported = new AtomicBoolean();
+        Consumer<Result> after = listener == null ? null : result -> {
+            if (reported.compareAndSet(false, true)) listener.accept(result);
+        };
+        if (!active()) { report(after, Result.SKIPPED); return false; }
         try {
             PinMedia.Resolution media = PinMedia.resolve(pin);
-            if (media == null || context == null) return false;
+            if (media == null || context == null) { report(after, Result.SKIPPED); return false; }
             PinMedia.Source source = media.source;
             if (source == null) {
-                Utils.showToastLong(refusalMessage(media.refusal));
+                if (after == null) Utils.showToastLong(refusalMessage(media.refusal));
+                report(after, Result.UNSUPPORTED);
                 return false;
             }
             String id = media.id;
@@ -152,7 +186,7 @@ public final class PinDownloads {
             Context app = context.getApplicationContext();
             if (Build.VERSION.SDK_INT >= 29) {
                 boolean queued = Utils.runOnBackgroundThread(() -> {
-                    if (!active()) return;
+                    if (!active()) { report(after, Result.SKIPPED); return; }
                     try {
                         DownloadManager manager = (DownloadManager) app.getSystemService(Context.DOWNLOAD_SERVICE);
                         if (manager == null) throw new IllegalStateException("Download service unavailable");
@@ -160,23 +194,30 @@ public final class PinDownloads {
                         if (request < 0) throw new IllegalStateException("Download service rejected pin");
                         boolean tracked = DownloadLedger.record(app, request, id);
                         HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin queued in Downloads");
-                        Utils.showToastLong(L10n.t(tracked ? "Download started. Check Downloads."
+                        report(after, tracked ? Result.QUEUED : Result.QUEUED_UNTRACKED);
+                        if (after == null) Utils.showToastLong(L10n.t(tracked ? "Download started. Check Downloads."
                                 : "Download started, but its history couldn't be saved. Check Downloads."));
                     } catch (Throwable failure) {
                         failed("queue pin download", failure);
+                        report(after, Result.FAILED);
                     }
                 });
-                if (!queued) failed("queue pin download", new IllegalStateException("Worker unavailable"));
+                if (!queued) {
+                    failed("queue pin download", new IllegalStateException("Worker unavailable"));
+                    report(after, Result.FAILED);
+                }
                 return queued;
             }
             Activity activity = Utils.getActivity();
             if (activity == null || activity.isFinishing() || activity.isDestroyed() ||
                     activity.getFragmentManager().isStateSaved()) {
                 failed("open save location", new IllegalStateException("Activity unavailable"));
+                report(after, Result.SKIPPED);
                 return false;
             }
             if (activity.getFragmentManager().findFragmentByTag(SAVE_TAG) != null || !SAVING.compareAndSet(false, true)) {
                 Utils.showToastLong(L10n.t("Another pin is being saved. Try again when it's finished."));
+                report(after, Result.SKIPPED);
                 return false;
             }
             Bundle args = new Bundle();
@@ -185,6 +226,7 @@ public final class PinDownloads {
             args.putString("suffix", source.suffix);
             args.putString("name", fileName);
             SaveFragment fragment = new SaveFragment();
+            fragment.after = after;
             fragment.setArguments(args);
             try {
                 activity.getFragmentManager().beginTransaction().add(fragment, SAVE_TAG).commitNow();
@@ -195,8 +237,13 @@ public final class PinDownloads {
             }
         } catch (Throwable failure) {
             failed("start pin download", failure);
+            report(after, Result.FAILED);
             return false;
         }
+    }
+
+    private static void report(Consumer<Result> after, Result result) {
+        if (after != null) Utils.runOnMainThread(() -> after.accept(result));
     }
 
     static DownloadManager.Request request(PinMedia.Source source, String fileName) {
@@ -287,9 +334,11 @@ public final class PinDownloads {
         private static final int SAVE = 48122;
         private boolean launched;
         private boolean transferring;
+        private Consumer<Result> after;
 
         @Override public void onCreate(Bundle saved) {
             super.onCreate(saved);
+            setRetainInstance(true);
             launched = saved != null && saved.getBoolean("launched");
             SAVING.set(true);
         }
@@ -301,7 +350,10 @@ public final class PinDownloads {
 
         @Override public void onDestroy() {
             Activity activity = getActivity();
-            if (!transferring && (isRemoving() || (activity != null && activity.isFinishing()))) SAVING.set(false);
+            if (!transferring && (isRemoving() || (activity != null && activity.isFinishing()))) {
+                SAVING.set(false);
+                report(after, Result.SKIPPED);
+            }
             super.onDestroy();
         }
 
@@ -316,7 +368,9 @@ public final class PinDownloads {
                         .setType(getArguments().getString("mime"))
                         .putExtra(Intent.EXTRA_TITLE, getArguments().getString("name")), SAVE);
             } catch (Throwable failure) {
-                finish();
+                SAVING.set(false);
+                remove();
+                report(after, Result.FAILED);
                 failed("open save location", failure);
             }
         }
@@ -335,6 +389,7 @@ public final class PinDownloads {
             if (!active()) {
                 discardDocument(app, destination);
                 remove();
+                report(after, Result.SKIPPED);
                 return;
             }
             PinMedia.Source source = new PinMedia.Source(args.getString("url"), args.getString("mime"), args.getString("suffix"));
@@ -342,9 +397,11 @@ public final class PinDownloads {
             try {
                 boolean queued = Utils.runOnBackgroundThread(() -> {
                     PendingSaveJournal.Ticket ticket = null;
+                    Result outcome = Result.FAILED;
                     try {
                         if (!active()) {
                             removeDocument(app, destination);
+                            outcome = Result.SKIPPED;
                             return;
                         }
                         try {
@@ -357,6 +414,7 @@ public final class PinDownloads {
                             return;
                         }
                         PinTransfer.save(app, destination, source.url);
+                        outcome = Result.SAVED;
                         HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin saved to chosen document");
                         Utils.showToastLong(PendingSaveJournal.completed(app, ticket)
                                 ? L10n.t("Pin saved.")
@@ -366,6 +424,7 @@ public final class PinDownloads {
                     } finally {
                         PendingSaveJournal.interrupted(app, ticket);
                         SAVING.set(false);
+                        report(after, outcome);
                     }
                 });
                 // Removing the fragment doesn't revoke the provider grant; the worker uses this URI.
@@ -373,11 +432,13 @@ public final class PinDownloads {
                 if (!queued) {
                     discardDocument(app, destination);
                     failed("save pin document", new IllegalStateException("Worker unavailable"));
+                    report(after, Result.FAILED);
                 }
             } catch (Throwable failure) {
                 discardDocument(app, destination);
                 remove();
                 failed("save pin document", failure);
+                report(after, Result.FAILED);
             }
         }
 
@@ -388,6 +449,7 @@ public final class PinDownloads {
         private void finish() {
             SAVING.set(false);
             remove();
+            report(after, Result.SKIPPED);
         }
     }
 }

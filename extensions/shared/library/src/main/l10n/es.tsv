@@ -173,7 +173,6 @@ Analytics uploads	Envíos de estadísticas
 Strip link tracking	Quitar rastreo de enlaces
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Quita parámetros de rastreo conocidos de los enlaces copiados y compartidos. Los enlaces cortos quedan como los creó Pinterest.
 Download pins	Descargar pines
-Adds Download to the pin menu. Saves original images and available videos.	Añade Descargar al menú del pin. Guarda imágenes originales y vídeos disponibles.
 Open links in your browser	Abrir enlaces en tu navegador
 Open pin Visit links and profile websites in your browser.	Abre enlaces de Visitar de los pines y sitios web de perfiles en tu navegador.
 System share sheet	Menú de compartir del sistema
@@ -234,7 +233,6 @@ Check recent downloads started by HushPinterest.	Consulta las descargas reciente
 Checking download history...	Consultando el historial de descargas...
 Only the 32 most recent HushPinterest requests are listed. Manage active downloads in Downloads.	Solo se muestran las 32 solicitudes más recientes de HushPinterest. Gestiona las descargas activas en Descargas.
 No HushPinterest downloads in this history.	No hay descargas de HushPinterest en este historial.
-Android 9 uses the file picker. Its saved files aren't tracked here.	Android 9 usa el selector de archivos. Los archivos guardados allí no se registran aquí.
 Pin %s	Pin %s
 Retry download	Reintentar descarga
 Starts a new download. Android manages it.	Inicia una descarga nueva. Android la gestiona.
@@ -331,3 +329,22 @@ An accepted upgrade signed with the same key keeps the app's data. A build with 
 Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.	La exportación de datos de Pinterest es independiente de Exportar ajustes. La página de ayuda de Pinterest explica cómo solicitar tus datos personales de la cuenta que ya utilizas.
 Pinterest data export help	Ayuda de Pinterest para exportar datos
 Couldn't open the setup guide. Try again.	No se pudo abrir la guía de configuración. Inténtalo de nuevo.
+Download visible pins	Descargar pines visibles
+A pin selection is still being saved.	Aún se está guardando una selección de pines.
+No visible pins are available. Open a pin menu from the grid and try again.	No hay pines visibles disponibles. Abre el menú de un pin en la cuadrícula e inténtalo de nuevo.
+Select visible pins (up to %d)	Seleccionar pines visibles (hasta %d)
+Queue selected	Poner selección en cola
+Couldn't open the pin selection. Try again from the grid.	No se pudo abrir la selección de pines. Inténtalo de nuevo desde la cuadrícula.
+Stop selection	Detener selección
+Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	En cola: %d\nGuardados: %d\nOmitidos: %d\nNo compatibles: %d\nFallidos: %d
+Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Detener conserva las descargas iniciadas. Las selecciones sin iniciar terminan al cerrar Pinterest.
+History could not be saved for %d results. Check Downloads or your chosen files.	No se pudo guardar el historial de %d resultados. Revisa Descargas o los archivos elegidos.
+Saved	Guardado
+Skipped	Omitido
+Unsupported	No compatible
+Saved to the location you chose.	Guardado en la ubicación elegida.
+No download was queued. The selection was stopped, canceled or unavailable.	No se puso ninguna descarga en cola. La selección se detuvo, se canceló o no estaba disponible.
+Pinterest didn't supply supported media for this pin.	Pinterest no proporcionó contenido compatible para este pin.
+Download a pin or select visible grid pins. Saves supplied original images and videos.	Descarga un pin o selecciona pines visibles de la cuadrícula. Guarda imágenes originales y videos proporcionados.
+Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 usa el selector de archivos. Aquí aparecen los resultados de las selecciones de pines visibles.
+Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Solo se muestran las 32 descargas y resultados de selección más recientes. Se conservan los archivos guardados.

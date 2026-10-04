@@ -147,7 +147,7 @@ public class DownloadHistoryPreferenceTest {
 
     @Test @Config(sdk = 28) public void androidNineExplainsWhyPickerFilesAreAbsent() throws Exception {
         AlertDialog dialog = open();
-        assertEquals(text("Android 9 uses the file picker. Its saved files aren't tracked here."), message(dialog));
+        assertEquals(text("Android 9 uses the file picker. Results from visible-pin selections appear here."), message(dialog));
         assertEquals(View.GONE, jobs(dialog).getVisibility());
         assertUsable(dialog);
     }

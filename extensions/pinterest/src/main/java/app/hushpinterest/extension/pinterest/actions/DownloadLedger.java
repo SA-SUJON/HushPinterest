@@ -50,9 +50,10 @@ public final class DownloadLedger {
         preferences = app.getSharedPreferences(STORE, Context.MODE_PRIVATE);
     }
 
-    public enum State { QUEUED, RUNNING, PAUSED, FAILED, COMPLETED, MISSING, UNAVAILABLE }
+    public enum State { QUEUED, RUNNING, PAUSED, FAILED, COMPLETED, MISSING, UNAVAILABLE, SAVED, SKIPPED, UNSUPPORTED }
 
     public static final class Job {
+        // Negative keys identify local outcomes, never DownloadManager requests.
         public final long id;
         public final String pinId;
         public final long createdAt;
@@ -86,11 +87,17 @@ public final class DownloadLedger {
                 case FAILED: return L10n.t("Failed");
                 case COMPLETED: return L10n.t("Completed");
                 case MISSING: return L10n.t("Missing");
+                case SAVED: return L10n.t("Saved");
+                case SKIPPED: return L10n.t("Skipped");
+                case UNSUPPORTED: return L10n.t("Unsupported");
                 default: return L10n.t("Unavailable");
             }
         }
 
         public String reasonText() {
+            if (state == State.SAVED) return L10n.t("Saved to the location you chose.");
+            if (state == State.SKIPPED) return L10n.t("No download was queued. The selection was stopped, canceled or unavailable.");
+            if (state == State.UNSUPPORTED) return L10n.t("Pinterest didn't supply supported media for this pin.");
             if (state == State.PAUSED) {
                 switch (reason) {
                     case DownloadManager.PAUSED_WAITING_TO_RETRY: return L10n.t("Android will retry the download.");
@@ -135,6 +142,29 @@ public final class DownloadLedger {
             return true;
         } catch (RuntimeException failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "record native download", failure);
+            return false;
+        }
+    }
+
+    /** Records a terminal batch outcome without inventing a native download ID or retaining its URL. */
+    static boolean recordResult(Context context, String pinId, State state) {
+        if (context == null || !Utils.isMainProcess() || pinId == null || !pinId.matches("[0-9]{1,30}") ||
+                !(state == State.SAVED || state == State.SKIPPED || state == State.UNSUPPORTED || state == State.FAILED)) return false;
+        try {
+            DownloadLedger ledger = new DownloadLedger(context);
+            synchronized (LOCK) {
+                List<Job> jobs = ledger.load();
+                long key = -Math.max(2, System.currentTimeMillis());
+                for (Job job : jobs) if (job.id <= key) key = job.id - 1;
+                if (key >= -1) throw new IllegalStateException("Local history keys exhausted");
+                jobs.add(0, new Job(key, pinId, System.currentTimeMillis(), state, 0, null));
+                if (jobs.size() > LIMIT) jobs.subList(LIMIT, jobs.size()).clear();
+                ledger.store(jobs);
+                ledger.publish(jobs);
+            }
+            return true;
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "record batch outcome", failure);
             return false;
         }
     }
@@ -274,13 +304,13 @@ public final class DownloadLedger {
 
     private List<Job> query(List<Job> owned) {
         if (owned.isEmpty()) return Collections.emptyList();
-        long[] ids = new long[owned.size()];
+        long[] ids = owned.stream().filter(job -> job.id >= 0).mapToLong(job -> job.id).toArray();
         Map<Long, Job> results = new LinkedHashMap<>();
         for (int i = 0; i < owned.size(); i++) {
             Job job = owned.get(i);
-            ids[i] = job.id;
-            results.put(job.id, job.with(State.MISSING, 0, null));
+            results.put(job.id, job.id < 0 ? job : job.with(State.MISSING, 0, null));
         }
+        if (ids.length == 0) return Collections.unmodifiableList(new ArrayList<>(results.values()));
         try (Cursor cursor = manager().query(new DownloadManager.Query().setFilterById(ids))) {
             if (cursor == null) throw new IllegalStateException("Download query unavailable");
             int idColumn = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_ID);
@@ -291,7 +321,7 @@ public final class DownloadLedger {
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(idColumn);
                 Job job = results.get(id);
-                if (job == null) continue;
+                if (job == null || job.id < 0) continue;
                 State state = state(cursor.getInt(statusColumn));
                 int reason = state == State.PAUSED || state == State.FAILED ? cursor.getInt(reasonColumn) : 0;
                 PinMedia.Source source = null;
@@ -310,7 +340,7 @@ public final class DownloadLedger {
         } catch (RuntimeException failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "query native download history", failure);
             List<Job> unavailable = new ArrayList<>();
-            for (Job job : owned) unavailable.add(job.with(State.UNAVAILABLE, 0, null));
+            for (Job job : owned) unavailable.add(job.id < 0 ? job : job.with(State.UNAVAILABLE, 0, null));
             return Collections.unmodifiableList(unavailable);
         }
     }
@@ -334,17 +364,20 @@ public final class DownloadLedger {
         if (text == null || text.length() > 4096) return jobs;
         for (String line : text.split("\n")) {
             String[] fields = line.split(",", -1);
-            if (fields.length != 3 || !fields[0].matches("[0-9]{1,19}") ||
+            boolean local = fields.length == 4 && fields[0].matches("-[0-9]{1,19}");
+            if ((!local && (fields.length != 3 || !fields[0].matches("[0-9]{1,19}"))) ||
                     !fields[1].matches("[0-9]{1,30}") || !fields[2].matches("[0-9]{1,19}")) continue;
             try {
                 long id = Long.parseLong(fields[0]);
                 long time = Long.parseLong(fields[2]);
                 if (time <= 0) continue;
+                State state = local ? State.valueOf(fields[3]) : State.UNAVAILABLE;
+                if (local && (id >= -1 || !(state == State.SAVED || state == State.SKIPPED || state == State.UNSUPPORTED || state == State.FAILED))) continue;
                 boolean duplicate = false;
                 for (Job job : jobs) if (job.id == id) { duplicate = true; break; }
-                if (!duplicate) jobs.add(new Job(id, fields[1], time, State.UNAVAILABLE, 0, null));
+                if (!duplicate) jobs.add(new Job(id, fields[1], time, state, 0, null));
                 if (jobs.size() == LIMIT) break;
-            } catch (NumberFormatException invalid) {
+            } catch (IllegalArgumentException invalid) {
                 // Invalid private metadata cannot become an ID to query.
             }
         }
@@ -353,7 +386,11 @@ public final class DownloadLedger {
 
     private void store(List<Job> jobs) {
         StringBuilder text = new StringBuilder();
-        for (Job job : jobs) text.append(job.id).append(',').append(job.pinId).append(',').append(job.createdAt).append('\n');
+        for (Job job : jobs) {
+            text.append(job.id).append(',').append(job.pinId).append(',').append(job.createdAt);
+            if (job.id < 0) text.append(',').append(job.state.name());
+            text.append('\n');
+        }
         if (!preferences.edit().putString(RECORDS, text.toString()).commit()) {
             throw new IllegalStateException("Download history write failed");
         }

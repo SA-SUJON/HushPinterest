@@ -9,6 +9,7 @@ package app.morphe.patches.pinterest.actions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
@@ -33,7 +34,7 @@ private const val DOWNLOADS = "$EXTENSION_PACKAGE/actions/PinDownloads;"
 @Suppress("unused")
 val downloadPinsPatch = bytecodePatch(
     name = PATCH,
-    description = "Adds Download pin to the pin menu for original images and the highest-resolution MP4 Pinterest supplies. " +
+    description = "Downloads a pin or selected visible grid pins using original images and the highest-resolution MP4 Pinterest supplies. " +
         "Saves in Downloads on Android 10 or newer, or asks for a save location on Android 9. " +
         "Turn it off in HushPinterest settings at any time.",
     default = false,
@@ -50,6 +51,21 @@ val downloadPinsPatch = bytecodePatch(
             ?: throw PatchException("$PATCH: no native menu layout field")
         val presenterField = menu.fields.singleOrNull { it.name == "presenter" }
             ?: throw PatchException("$PATCH: no native menu presenter field")
+        val originField = menu.fields.singleOrNull { it.name == "originView" && it.type == "Landroid/view/View;" }
+            ?: throw PatchException("$PATCH: no native grid origin view")
+        val closeupField = menu.fields.singleOrNull { it.name == "isPinCloseup" && it.type == "Z" }
+            ?: throw PatchException("$PATCH: no native closeup flag")
+        val cell = Fingerprint(
+            name = "getInternalCell", parameters = emptyList(),
+            custom = { method, owner -> AccessFlags.INTERFACE.isSet(owner.accessFlags) &&
+                owner.methods.any { it.name == "setPin" && it.parameterTypes.map(CharSequence::toString) == listOf(pin, "I") } &&
+                method.returnType.startsWith("L") },
+        ).methodOrNull ?: throw PatchException("$PATCH: no unique pin grid cell interface")
+        val internalCell = classDefByOrNull(cell.returnType)
+            ?: throw PatchException("$PATCH: no internal pin cell interface")
+        val getter = internalCell.methods.singleOrNull { it.name == "getPin" && it.parameterTypes.isEmpty() && it.returnType == pin }
+            ?.takeIf { AccessFlags.INTERFACE.isSet(internalCell.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) }
+            ?: throw PatchException("$PATCH: no typed grid pin getter")
         val create = menu.methods.singleOrNull { it.name == "createModalView" && it.implementation != null }
             ?: throw PatchException("$PATCH: no single native menu creation method")
         val assignment = create.implementation!!.instructions.withIndex().filter { (_, instruction) ->
@@ -77,10 +93,10 @@ val downloadPinsPatch = bytecodePatch(
                     Opcode.NEW_INSTANCE, Opcode.CONST_4, Opcode.INVOKE_DIRECT, Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID,
                 )
         } ?: throw PatchException("$PATCH: no unique native presenter dismissal event")
-        val bridgeNames = listOf("hushDownloadPin", "hushDownloadMenu", "hushDismissDownload")
+        val bridgeNames = listOf("hushDownloadPin", "hushDownloadMenu", "hushDownloadOrigin", "hushDownloadCloseup", "hushDismissDownload")
         if (menu.methods.any { it.name in bridgeNames }) throw PatchException("$PATCH: download bridges already exist")
         // Resolve every host dependency and verify all stubs before changing host code.
-        for (name in listOf("menuPin", "menuView", "menuRow", "dismissMenu")) {
+        for (name in listOf("menuPin", "menuView", "menuRow", "menuOrigin", "menuCloseup", "cellPin", "dismissMenu")) {
             if (mutableClassDefBy(DOWNLOADS).methods.count { it.name == name && AccessFlags.STATIC.isSet(it.accessFlags) } != 1) {
                 throw PatchException("$PATCH: missing extension stub $name")
             }
@@ -99,6 +115,14 @@ val downloadPinsPatch = bytecodePatch(
             iget-object v0, p0, $PIN_MENU->${viewField.name}:${viewField.type}
             return-object v0
         """)
+        bridge("hushDownloadOrigin", "Landroid/view/View;", 2, """
+            iget-object v0, p0, $PIN_MENU->${originField.name}:${originField.type}
+            return-object v0
+        """)
+        bridge("hushDownloadCloseup", "Z", 2, """
+            iget-boolean v0, p0, $PIN_MENU->${closeupField.name}:Z
+            return v0
+        """)
         bridge("hushDismissDownload", "V", 2, """
             iget-object v0, p0, $PIN_MENU->${presenterField.name}:${presenterField.type}
             if-eqz v0, :hush_dismissed
@@ -116,6 +140,32 @@ val downloadPinsPatch = bytecodePatch(
             check-cast p0, $PIN_MENU
             invoke-virtual { p0 }, $PIN_MENU->hushDownloadMenu()Landroid/view/ViewGroup;
             move-result-object v0
+            return-object v0
+        """)
+        writeStub(DOWNLOADS, "menuOrigin", 2, """
+            check-cast p0, $PIN_MENU
+            invoke-virtual { p0 }, $PIN_MENU->hushDownloadOrigin()Landroid/view/View;
+            move-result-object v0
+            return-object v0
+        """)
+        writeStub(DOWNLOADS, "menuCloseup", 2, """
+            check-cast p0, $PIN_MENU
+            invoke-virtual { p0 }, $PIN_MENU->hushDownloadCloseup()Z
+            move-result v0
+            return v0
+        """)
+        writeStub(DOWNLOADS, "cellPin", 2, """
+            instance-of v0, p0, ${cell.definingClass}
+            if-eqz v0, :no_pin
+            check-cast p0, ${cell.definingClass}
+            invoke-interface { p0 }, ${cell.definingClass}->${cell.name}()${cell.returnType}
+            move-result-object v0
+            if-eqz v0, :no_pin
+            invoke-interface { v0 }, ${getter.definingClass}->${getter.name}()$pin
+            move-result-object v0
+            return-object v0
+            :no_pin
+            const/4 v0, 0x0
             return-object v0
         """)
         writeStub(DOWNLOADS, "dismissMenu", 1, """

@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Downloads:** Choose up to 32 visible pins from a grid menu. Each selection uses Pinterest's supplied media, reports its queue or save result and appears in Download history. Android 9 opens one save picker at a time. Stopping leaves downloads already started alone.
+
 * **Tooling:** Disabled-path checks now follow copied object references and long/double register pairs, including overlapping moves, null aliases and NaN comparisons.
 
 * **Tooling:** First installs now handle Android's empty package-path response safely by confirming that the package is absent. Existing signer and downgrade checks still apply.
