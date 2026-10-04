@@ -70,6 +70,9 @@ public final class ControlFlowFixture {
         for (Opcode opcode : List.of(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)) {
             check("null-" + opcode.name, 4, List.of(), List.of(move(opcode, 1, 0)), Opcode.IF_EQZ, 1, -1, true);
             check("alias-" + opcode.name, 4, List.of("Ljava/lang/Object;"), List.of(move(opcode, 1, 3)), Opcode.IF_EQ, 1, 3, true);
+            check("uninitialized-object-" + opcode.name, 4, List.of(), List.of(move(opcode, 1, 2)), Opcode.IF_EQ, 1, 2, null);
+            check("nonzero-object-source-" + opcode.name, 4, List.of(), List.of(
+                    new ImmutableInstruction11n(Opcode.CONST_4, 2, 1), move(opcode, 1, 2)), Opcode.IF_EQ, 1, 2, null);
         }
         check("distinct-unknown-references", 4, List.of("Ljava/lang/Object;", "Ljava/lang/Object;"), List.of(), Opcode.IF_EQ, 2, 3, null);
         check("overwritten-alias", 4, List.of("Ljava/lang/Object;", "Ljava/lang/Object;"),
@@ -77,6 +80,13 @@ public final class ControlFlowFixture {
         check("non-null-string", 4, List.of(), List.of(new ImmutableInstruction21c(Opcode.CONST_STRING, 1,
                 new ImmutableStringReference("value")), move(Opcode.MOVE_OBJECT, 2, 1)), Opcode.IF_EQZ, 2, -1, false);
         for (Opcode opcode : List.of(Opcode.MOVE_WIDE, Opcode.MOVE_WIDE_FROM16, Opcode.MOVE_WIDE_16)) {
+            scalar("uninitialized-wide-" + opcode.name, List.of(move(opcode, 1, 6), move(opcode, 3, 1),
+                    new ImmutableInstruction23x(Opcode.CMP_LONG, 0, 1, 3)), Opcode.IF_EQZ, null);
+            scalar("copy-clobbered-wide-" + opcode.name, List.of(constant(1, 100),
+                    new ImmutableInstruction11n(Opcode.CONST_4, 2, 0), move(opcode, 3, 1), move(opcode, 5, 3),
+                    new ImmutableInstruction23x(Opcode.CMP_LONG, 0, 3, 5)), Opcode.IF_EQZ, null);
+            scalar("copy-high-half-" + opcode.name, List.of(constant(1, 100), move(opcode, 3, 2), move(opcode, 5, 3),
+                    new ImmutableInstruction23x(Opcode.CMP_LONG, 0, 3, 5)), Opcode.IF_EQZ, null);
             for (long value : List.of(0x123456789abcdef0L, Long.MIN_VALUE, -1L)) {
                 scalar("wide-" + opcode.name + value, List.of(constant(1, value), move(opcode, 3, 1),
                         new ImmutableInstruction23x(Opcode.CMP_LONG, 0, 1, 3)), Opcode.IF_EQZ, true);
@@ -129,6 +139,47 @@ public final class ControlFlowFixture {
                 new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1),
                 new ImmutableInstruction22b(Opcode.ADD_INT_LIT8, 5, 5, 1), new ImmutableInstruction21t(Opcode.IF_GTZ, 5, -7)),
                 Opcode.IF_EQ, 1, 2, null);
+        List<Instruction> changing = List.of(move(Opcode.MOVE_OBJECT, 1, 7),
+                new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0,
+                        new ImmutableMethodReference("Lfixture/Loop;", "more", List.of(), "Z")),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 7),
+                new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0,
+                        new ImmutableMethodReference("Lfixture/Objects;", "next", List.of(), "Ljava/lang/Object;")),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1),
+                new ImmutableInstruction10t(Opcode.GOTO, -10), move(Opcode.MOVE_OBJECT, 2, 1));
+        check("copy-widened-object", 8, List.of("Ljava/lang/Object;"), changing, Opcode.IF_EQ, 1, 2, true);
+        List<Instruction> changingWide = List.of(move(Opcode.MOVE_WIDE, 1, 6),
+                new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0,
+                        new ImmutableMethodReference("Lfixture/Loop;", "more", List.of(), "Z")),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 7),
+                new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0,
+                        new ImmutableMethodReference("Lfixture/Values;", "next", List.of(), "J")),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_WIDE, 1),
+                new ImmutableInstruction10t(Opcode.GOTO, -10), move(Opcode.MOVE_WIDE, 3, 1),
+                new ImmutableInstruction23x(Opcode.CMP_LONG, 0, 1, 3));
+        check("copy-widened-wide", 8, List.of("J"), changingWide, Opcode.IF_EQZ, 0, -1, true);
+        // Independent widened values must not share identity just because their markers match.
+        for (boolean objects : List.of(true, false)) {
+            Opcode copy = objects ? Opcode.MOVE_OBJECT : Opcode.MOVE_WIDE;
+            Opcode result = objects ? Opcode.MOVE_RESULT_OBJECT : Opcode.MOVE_RESULT_WIDE;
+            String type = objects ? "Ljava/lang/Object;" : "J";
+            List<Instruction> independent = new ArrayList<>(List.of(move(copy, 1, objects ? 9 : 8), move(copy, 3, objects ? 9 : 8),
+                    new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0,
+                            new ImmutableMethodReference("Lfixture/Loop;", "more", List.of(), "Z")),
+                    new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                    new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 11),
+                    new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0,
+                            new ImmutableMethodReference("Lfixture/Values;", "next", List.of(), type)),
+                    new ImmutableInstruction11x(result, 1),
+                    new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0,
+                            new ImmutableMethodReference("Lfixture/Values;", "next", List.of(), type)),
+                    new ImmutableInstruction11x(result, 3), new ImmutableInstruction10t(Opcode.GOTO, -14)));
+            if (!objects) independent.add(new ImmutableInstruction23x(Opcode.CMP_LONG, 0, 1, 3));
+            check("independent-widened-" + type, 10, List.of(type), independent,
+                    objects ? Opcode.IF_EQ : Opcode.IF_EQZ, objects ? 1 : 0, objects ? 3 : -1, null);
+        }
         System.out.println("[scripts] " + cases + " disabled-path object/wide cases passed");
     }
 }

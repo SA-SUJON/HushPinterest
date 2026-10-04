@@ -2,19 +2,23 @@
 
 Every HushPinterest release, newest first.
 
-## Unreleased
+## 0.0.4 (2026-10-03)
 
-* **Downloads:** Choose up to 32 visible pins from a grid menu. Each selection uses Pinterest's supplied media, reports its queue or save result and appears in Download history. Android 9 opens one save picker at a time. Stopping leaves downloads already started alone.
+Unreleased source changes. The published release remains 0.0.3.
+
+* **Pinterest:** Choose up to 32 visible pins from a grid menu. Each selection uses Pinterest's supplied media, reports its queue or save result and appears in Download history. Android 9 opens one save picker at a time. Stopping leaves downloads already started alone.
+
+* **Tooling:** Invalid object and wide-register copies stay unknown during disabled-path checks. Initialized values retain their type when loops merge, so valid copies keep their identity without inventing equality between unrelated values.
 
 * **Tooling:** Disabled-path checks now follow copied object references and long/double register pairs, including overlapping moves, null aliases and NaN comparisons.
 
 * **Tooling:** First installs now handle Android's empty package-path response safely by confirming that the package is absent. Existing signer and downgrade checks still apply.
 
-* **Links:** Profile header and About website buttons can now open the Android browser chooser. Pinterest, account and sign-in links keep their native path, as do all links while the switch is off or HushPinterest is paused.
+* **Pinterest:** Profile header and About website buttons can now open the Android browser chooser. Pinterest, account and sign-in links keep their native path, as do all links while the switch is off or HushPinterest is paused.
 
-* **Diagnostics:** Pin-menu reports count recognized optional rows and their visibility decisions without collecting row text or recording unknown entries.
+* **Pinterest:** Pin-menu reports count recognized optional rows and their visibility decisions without collecting row text or recording unknown entries.
 
-* **Diagnostics:** Reports now show local push readiness, including notification permission, delegation and messaging component state. They keep live delivery unverified and omit private component names and unknown delegate packages.
+* **Pinterest:** Reports now show local push readiness, including notification permission, delegation and messaging component state. They keep live delivery unverified and omit private component names and unknown delegate packages.
 
 * **Tooling:** The script contract tests run to the end under Windows PowerShell 5.1 as well as PowerShell 7.
 

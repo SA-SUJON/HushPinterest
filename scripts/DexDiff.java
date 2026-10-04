@@ -2100,7 +2100,21 @@ public class DexDiff {
                     // A changing loop value becomes unknown once and stays unknown. Stable booleans survive.
                     Map<Integer, Object> joined = new HashMap<>(previous == null ? state.values : previous);
                     Map<Integer, Object> incoming = state.values;
-                    joined.entrySet().removeIf(entry -> !entry.getValue().equals(incoming.get(entry.getKey())));
+                    joined.entrySet().removeIf(entry -> {
+                        Object before = entry.getValue(), after = incoming.get(entry.getKey());
+                        if (before.equals(after)) return false;
+                        if ((before instanceof ObjectValue || Integer.valueOf(0).equals(before))
+                                && (after instanceof ObjectValue || Integer.valueOf(0).equals(after))) {
+                            entry.setValue(new ObjectValue(-1, before instanceof ObjectValue a && a.nonNull
+                                    && after instanceof ObjectValue b && b.nonNull));
+                            return false;
+                        }
+                        if (before instanceof WideValue && after instanceof WideValue) {
+                            entry.setValue(new WideValue(null, -1));
+                            return false;
+                        }
+                        return true;
+                    });
                     Map<Integer, Object> values = Map.copyOf(joined);
                     loops.put(point, values);
                     state = new ControlState(state.at, values, state.controlled);
@@ -2112,14 +2126,29 @@ public class DexDiff {
                 if (controlled) reached.set(at);
                 Map<Integer, Object> values = state.values;
                 if (i.getOpcode().setsRegister()) {
+                    // A widened value is initialized but has no stable identity. Give a copied
+                    // source a fresh identity before clobbering overlapping destinations.
+                    if (i instanceof TwoRegisterInstruction copy) {
+                        int source = copy.getRegisterB();
+                        Object value = values.get(source), replacement = null;
+                        if (i.getOpcode().name.startsWith("move-object") && value instanceof ObjectValue object && object.alias < 0)
+                            replacement = new ObjectValue(nextAlias(values), object.nonNull);
+                        if (i.getOpcode().name.startsWith("move-wide") && wide(values, source) instanceof WideValue wide
+                                && wide.bits == null && wide.alias < 0)
+                            replacement = new WideValue(null, nextAlias(values));
+                        if (replacement != null) {
+                            values = new HashMap<>(values);
+                            values.put(source, replacement);
+                        }
+                    }
                     int destination = valueRegister(i);
                     Map<Integer, Object> written = new HashMap<>(values);
                     forget(written, destination);
                     if (i.getOpcode().setsWideRegister()) {
                         forget(written, destination + 1);
                         WideValue value = wideValue(i, values);
-                        if (value == null) value = new WideValue(null, nextAlias(values));
-                        if (destination >= 0 && destination + 1 < registers) {
+                        if (value == null && !i.getOpcode().name.startsWith("move-wide")) value = new WideValue(null, nextAlias(values));
+                        if (value != null && destination >= 0 && destination + 1 < registers) {
                             written.put(destination, value);
                             written.put(destination + 1, new HighHalf(destination));
                         }
@@ -2127,11 +2156,9 @@ public class DexDiff {
                     else if (copiesConflict(i.getOpcode())) {
                         int sourceRegister = ((TwoRegisterInstruction) i).getRegisterB();
                         Object source = values.get(sourceRegister);
-                        if (source == null && i.getOpcode().name.startsWith("move-object")) {
-                            source = new ObjectValue(nextAlias(values), false);
-                            written.put(sourceRegister, source);
-                        }
-                        if (source != null && !(source instanceof WideValue) && !(source instanceof HighHalf)) written.put(destination, source);
+                        boolean objectMove = i.getOpcode().name.startsWith("move-object");
+                        if (objectMove ? source instanceof ObjectValue || Integer.valueOf(0).equals(source)
+                                : source instanceof Integer) written.put(destination, source);
                     } else if (i instanceof NarrowLiteralInstruction && i.getOpcode().name.startsWith("const"))
                         written.put(destination, ((NarrowLiteralInstruction) i).getNarrowLiteral());
                     else if (i.getOpcode() == Opcode.CHECK_CAST) {
@@ -2211,7 +2238,8 @@ public class DexDiff {
                 ThreeRegisterInstruction comparison = (ThreeRegisterInstruction) i;
                 WideValue first = wide(values, comparison.getRegisterB()), second = wide(values, comparison.getRegisterC());
                 if (first == null || second == null) return null;
-                if (i.getOpcode() == Opcode.CMP_LONG && first.equals(second)) return 0;
+                if (i.getOpcode() == Opcode.CMP_LONG && (comparison.getRegisterB() == comparison.getRegisterC()
+                        || first.equals(second) && (first.bits != null || first.alias >= 0))) return 0;
                 if (first.bits == null || second.bits == null) return null;
                 if (i.getOpcode() == Opcode.CMP_LONG) return Long.compare(first.bits, second.bits);
                 double a = Double.longBitsToDouble(first.bits), b = Double.longBitsToDouble(second.bits);
@@ -2269,7 +2297,9 @@ public class DexDiff {
             Object secondValue = i instanceof TwoRegisterInstruction ? values.get(((TwoRegisterInstruction) i).getRegisterB()) : Integer.valueOf(0);
             if (i.getOpcode() == Opcode.IF_EQ || i.getOpcode() == Opcode.IF_EQZ || i.getOpcode() == Opcode.IF_NE || i.getOpcode() == Opcode.IF_NEZ) {
                 Boolean equal = null;
-                if (firstValue instanceof ObjectValue first && secondValue instanceof ObjectValue second && first.alias == second.alias) equal = true;
+                if (firstValue instanceof ObjectValue first && secondValue instanceof ObjectValue second
+                        && (first.alias >= 0 && first.alias == second.alias || i instanceof TwoRegisterInstruction pair
+                        && pair.getRegisterA() == pair.getRegisterB())) equal = true;
                 else if (firstValue instanceof ObjectValue first && first.nonNull && Integer.valueOf(0).equals(secondValue)
                         || secondValue instanceof ObjectValue second && second.nonNull && Integer.valueOf(0).equals(firstValue)) equal = false;
                 if (equal != null) return (i.getOpcode() == Opcode.IF_EQ || i.getOpcode() == Opcode.IF_EQZ) == equal;
