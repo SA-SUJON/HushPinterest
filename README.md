@@ -152,6 +152,8 @@ Shared pin links use `www.pinterest.com`. Downloads use media addresses Pinteres
 
 Android 9 saves full diagnostic reports in this app's external `files/Download/Morphe` folder. Android 10 and newer use shared `Download/Morphe`. The summary and save result show the actual destination, or explain when storage is unavailable. Reports remain bounded and redact links, IDs and sign-in secrets.
 
+Reports include local push checks for notification permission, notification blocking, delegation, messaging components and the Firebase Analytics manifest flag. These checks don't send a test notification or prove that Pinterest can deliver one. An absent delegate is optional, and unknown delegate packages are redacted.
+
 Open an [issue](https://github.com/SysAdminDoc/HushPinterest/issues) and say what you did and what you saw. It helps a lot to attach a diagnostic report. In HushPinterest's settings, tap Export diagnostic report, then Copy quick report or Save full report. The report carries Pinterest's version, your Android version and what each patch did. HushPinterest takes out the account, pin and board ids it recognizes, but give it a read before you share it. Nothing is sent anywhere unless you paste or attach it yourself.
 
 ## Where the patches come from

@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Diagnostics:** Reports now show local push readiness, including notification permission, delegation and messaging component state. They keep live delivery unverified and omit private component names and unknown delegate packages.
+
 * **Tooling:** The script contract tests run to the end under Windows PowerShell 5.1 as well as PowerShell 7.
 
 ## 0.0.3 (2026-10-03)

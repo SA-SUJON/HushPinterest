@@ -115,6 +115,8 @@ public class SupportReportTest {
         assertTrue("no HushPinterest version: " + report, report.contains("\nmorphe: "));
         assertTrue("Debug logging's state is missing: " + report, report.contains("\ndebug_logging: off\n"));
         assertTrue("no patch list: " + report, report.contains("\n[PATCHES]\n"));
+        assertTrue("no local push checks: " + report, report.contains("\n[PUSH READINESS]\n"));
+        assertTrue(report, report.contains("live delivery not proven"));
         assertTrue(report, report.contains("\nHide ads: on (hushpinterest_hide_ads=on)\n"));
         assertFalse("events without Debug logging: " + report, report.contains("[SELECTED EVENTS]"));
     }
