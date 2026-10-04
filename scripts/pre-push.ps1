@@ -549,6 +549,7 @@ try {
     }).Count -gt 0
     $injectedRegisterVerifierPaths = @(
         'scripts/BadDexFixture.java',
+        'scripts/ControlFlowFixture.java',
         'scripts/DexDiff.java',
         'scripts/FeatureDexFixture.java',
         'scripts/HostReferences.java',

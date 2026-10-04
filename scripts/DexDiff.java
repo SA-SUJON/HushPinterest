@@ -2005,6 +2005,8 @@ public class DexDiff {
     /** Executable successors, including switch cases and only the handlers an instruction can reach. */
     private static final class FeatureFlow {
         final Layout layout;
+        final int registers;
+        final Map<Integer, Object> parameters = new HashMap<>();
         final List<List<Integer>> normal = new ArrayList<>();
         final List<List<Integer>> handlers = new ArrayList<>();
         final Map<Integer, Integer> indexAt = new HashMap<>();
@@ -2012,6 +2014,20 @@ public class DexDiff {
 
         FeatureFlow(Method m) {
             layout = new Layout(m.getImplementation());
+            registers = m.getImplementation().getRegisterCount();
+            int parameter = registers;
+            List<? extends CharSequence> types = m.getParameterTypes();
+            for (int n = types.size() - 1; n >= 0; n--) {
+                String type = types.get(n).toString();
+                boolean wide = type.equals("J") || type.equals("D");
+                parameter -= wide ? 2 : 1;
+                if (parameter < 0) break; // Structural validation reports malformed parameter layouts.
+                if (wide) {
+                    parameters.put(parameter, new WideValue(null, parameter));
+                    parameters.put(parameter + 1, new HighHalf(parameter));
+                } else if (type.startsWith("L") || type.startsWith("[")) parameters.put(parameter, new ObjectValue(parameter, false));
+            }
+            if (!AccessFlags.STATIC.isSet(m.getAccessFlags()) && parameter > 0) parameters.put(parameter - 1, new ObjectValue(parameter - 1, true));
             for (int at = 0; at < layout.instructions.size(); at++) indexAt.put(layout.addresses.get(at), at);
             for (int at = 0; at < layout.instructions.size(); at++) {
                 Instruction i = layout.instructions.get(at);
@@ -2056,7 +2072,10 @@ public class DexDiff {
             return reached;
         }
 
-        private record ControlState(int at, Map<Integer, Integer> values, boolean controlled) {}
+        private record ObjectValue(int alias, boolean nonNull) {}
+        private record WideValue(Long bits, int alias) {}
+        private record HighHalf(int low) {}
+        private record ControlState(int at, Map<Integer, Object> values, boolean controlled) {}
         private record ControlPoint(int at, boolean controlled) {}
 
         static int valueRegister(Instruction i) { return ((OneRegisterInstruction) i).getRegisterA(); }
@@ -2070,19 +2089,19 @@ public class DexDiff {
                 return reachable(call + 1, false);
             BitSet reached = new BitSet();
             Set<ControlState> seen = new HashSet<>();
-            Map<ControlPoint, Map<Integer, Integer>> loops = new HashMap<>();
+            Map<ControlPoint, Map<Integer, Object>> loops = new HashMap<>();
             Deque<ControlState> work = new ArrayDeque<>();
-            work.add(new ControlState(0, Map.of(), false));
+            work.add(new ControlState(0, Map.copyOf(parameters), false));
             while (!work.isEmpty()) {
                 ControlState state = work.poll();
                 if (loopEntries.get(state.at)) {
                     ControlPoint point = new ControlPoint(state.at, state.controlled);
-                    Map<Integer, Integer> previous = loops.get(point);
+                    Map<Integer, Object> previous = loops.get(point);
                     // A changing loop value becomes unknown once and stays unknown. Stable booleans survive.
-                    Map<Integer, Integer> joined = new HashMap<>(previous == null ? state.values : previous);
-                    Map<Integer, Integer> incoming = state.values;
+                    Map<Integer, Object> joined = new HashMap<>(previous == null ? state.values : previous);
+                    Map<Integer, Object> incoming = state.values;
                     joined.entrySet().removeIf(entry -> !entry.getValue().equals(incoming.get(entry.getKey())));
-                    Map<Integer, Integer> values = Map.copyOf(joined);
+                    Map<Integer, Object> values = Map.copyOf(joined);
                     loops.put(point, values);
                     state = new ControlState(state.at, values, state.controlled);
                 }
@@ -2091,18 +2110,36 @@ public class DexDiff {
                 Instruction i = body.get(at);
                 boolean controlled = state.controlled || at == call + 1;
                 if (controlled) reached.set(at);
-                Map<Integer, Integer> values = state.values;
+                Map<Integer, Object> values = state.values;
                 if (i.getOpcode().setsRegister()) {
                     int destination = valueRegister(i);
-                    Map<Integer, Integer> written = new HashMap<>(values);
-                    written.remove(destination);
-                    if (i.getOpcode().setsWideRegister()) written.remove(destination + 1);
-                    else if (at == call + 1) written.put(destination, 0);
+                    Map<Integer, Object> written = new HashMap<>(values);
+                    forget(written, destination);
+                    if (i.getOpcode().setsWideRegister()) {
+                        forget(written, destination + 1);
+                        WideValue value = wideValue(i, values);
+                        if (value == null) value = new WideValue(null, nextAlias(values));
+                        if (destination >= 0 && destination + 1 < registers) {
+                            written.put(destination, value);
+                            written.put(destination + 1, new HighHalf(destination));
+                        }
+                    } else if (at == call + 1) written.put(destination, 0);
                     else if (copiesConflict(i.getOpcode())) {
-                        Integer source = values.get(((TwoRegisterInstruction) i).getRegisterB());
-                        if (source != null) written.put(destination, source);
+                        int sourceRegister = ((TwoRegisterInstruction) i).getRegisterB();
+                        Object source = values.get(sourceRegister);
+                        if (source == null && i.getOpcode().name.startsWith("move-object")) {
+                            source = new ObjectValue(nextAlias(values), false);
+                            written.put(sourceRegister, source);
+                        }
+                        if (source != null && !(source instanceof WideValue) && !(source instanceof HighHalf)) written.put(destination, source);
                     } else if (i instanceof NarrowLiteralInstruction && i.getOpcode().name.startsWith("const"))
                         written.put(destination, ((NarrowLiteralInstruction) i).getNarrowLiteral());
+                    else if (i.getOpcode() == Opcode.CHECK_CAST) {
+                        if (values.containsKey(destination)) written.put(destination, values.get(destination));
+                    } else if (i.getOpcode().name.contains("object") || i.getOpcode() == Opcode.NEW_INSTANCE
+                            || i.getOpcode() == Opcode.NEW_ARRAY || i.getOpcode() == Opcode.CONST_STRING
+                            || i.getOpcode() == Opcode.CONST_STRING_JUMBO || i.getOpcode() == Opcode.CONST_CLASS)
+                        written.put(destination, new ObjectValue(nextAlias(values), i.getOpcode().name.startsWith("new-") || i.getOpcode().name.startsWith("const-")));
                     else {
                         Integer value = integerValue(i, values);
                         if (value != null) written.put(destination, value);
@@ -2115,11 +2152,11 @@ public class DexDiff {
                 Boolean taken = branchTaken(i, values);
                 if (taken != null) chosen = taken
                         ? indexAt.getOrDefault(layout.addresses.get(at) + ((OffsetInstruction) i).getCodeOffset(), -1) : at + 1;
-                else if ((i.getOpcode() == Opcode.PACKED_SWITCH || i.getOpcode() == Opcode.SPARSE_SWITCH) && values.containsKey(valueRegister(i))) {
+                else if ((i.getOpcode() == Opcode.PACKED_SWITCH || i.getOpcode() == Opcode.SPARSE_SWITCH) && integer(values.get(valueRegister(i))) != null) {
                     chosen = at + 1;
                     Instruction payload = layout.byAddress.get(layout.addresses.get(at) + ((OffsetInstruction) i).getCodeOffset());
                     if (payload instanceof SwitchPayload) for (SwitchElement element : ((SwitchPayload) payload).getSwitchElements())
-                        if (element.getKey() == values.get(valueRegister(i))) chosen = indexAt.getOrDefault(layout.addresses.get(at) + element.getOffset(), -1);
+                        if (element.getKey() == integer(values.get(valueRegister(i)))) chosen = indexAt.getOrDefault(layout.addresses.get(at) + element.getOffset(), -1);
                 }
                 for (int next : normal.get(at)) if (chosen == null || chosen == next)
                     work.add(new ControlState(next, values, controlled));
@@ -2127,16 +2164,62 @@ public class DexDiff {
             return reached;
         }
 
-        static Integer integerRight(Instruction i, Map<Integer, Integer> values) {
+        /** Alias numbers name equal values within one state, never object allocation sites across iterations. */
+        static int nextAlias(Map<Integer, Object> values) {
+            Set<Integer> used = new HashSet<>();
+            for (Object value : values.values()) {
+                if (value instanceof ObjectValue object) used.add(object.alias);
+                if (value instanceof WideValue wide && wide.bits == null) used.add(wide.alias);
+            }
+            int next = 0;
+            while (used.contains(next)) next++;
+            return next;
+        }
+
+        static void forget(Map<Integer, Object> values, int register) {
+            Object old = values.remove(register);
+            if (old instanceof WideValue) values.remove(register + 1);
+            if (old instanceof HighHalf high) values.remove(high.low);
+        }
+
+        static WideValue wide(Map<Integer, Object> values, int register) {
+            return values.get(register) instanceof WideValue value && new HighHalf(register).equals(values.get(register + 1)) ? value : null;
+        }
+
+        static WideValue wideValue(Instruction i, Map<Integer, Object> values) {
+            if (i.getOpcode().name.startsWith("const-wide")) return new WideValue(((WideLiteralInstruction) i).getWideLiteral(), -1);
+            if (i instanceof TwoRegisterInstruction pair) {
+                if (i.getOpcode().name.startsWith("move-wide")) return wide(values, pair.getRegisterB());
+                Integer source = integer(values.get(pair.getRegisterB()));
+                if (source != null && i.getOpcode() == Opcode.INT_TO_LONG) return new WideValue(source.longValue(), -1);
+                if (source != null && i.getOpcode() == Opcode.INT_TO_DOUBLE) return new WideValue(Double.doubleToRawLongBits(source.doubleValue()), -1);
+            }
+            return null;
+        }
+
+        static Integer integer(Object value) { return value instanceof Integer scalar ? scalar : null; }
+
+        static Integer integerRight(Instruction i, Map<Integer, Object> values) {
             if (i instanceof NarrowLiteralInstruction) return ((NarrowLiteralInstruction) i).getNarrowLiteral();
-            if (i instanceof ThreeRegisterInstruction) return values.get(((ThreeRegisterInstruction) i).getRegisterC());
-            return i instanceof TwoRegisterInstruction ? values.get(((TwoRegisterInstruction) i).getRegisterB()) : null;
+            if (i instanceof ThreeRegisterInstruction) return integer(values.get(((ThreeRegisterInstruction) i).getRegisterC()));
+            return i instanceof TwoRegisterInstruction ? integer(values.get(((TwoRegisterInstruction) i).getRegisterB())) : null;
         }
 
         /** Exact 32-bit scalar operations. Unsupported writes and unknown operands discard the destination. */
-        static Integer integerValue(Instruction i, Map<Integer, Integer> values) {
+        static Integer integerValue(Instruction i, Map<Integer, Object> values) {
+            if (i.getOpcode() == Opcode.CMP_LONG || i.getOpcode() == Opcode.CMPL_DOUBLE || i.getOpcode() == Opcode.CMPG_DOUBLE) {
+                ThreeRegisterInstruction comparison = (ThreeRegisterInstruction) i;
+                WideValue first = wide(values, comparison.getRegisterB()), second = wide(values, comparison.getRegisterC());
+                if (first == null || second == null) return null;
+                if (i.getOpcode() == Opcode.CMP_LONG && first.equals(second)) return 0;
+                if (first.bits == null || second.bits == null) return null;
+                if (i.getOpcode() == Opcode.CMP_LONG) return Long.compare(first.bits, second.bits);
+                double a = Double.longBitsToDouble(first.bits), b = Double.longBitsToDouble(second.bits);
+                if (Double.isNaN(a) || Double.isNaN(b)) return i.getOpcode() == Opcode.CMPL_DOUBLE ? -1 : 1;
+                return a == b ? 0 : a < b ? -1 : 1;
+            }
             if (i instanceof TwoRegisterInstruction) {
-                Integer source = values.get(((TwoRegisterInstruction) i).getRegisterB());
+                Integer source = integer(values.get(((TwoRegisterInstruction) i).getRegisterB()));
                 if (source != null) switch (i.getOpcode()) {
                     case NEG_INT: return -source;
                     case NOT_INT: return ~source;
@@ -2152,7 +2235,7 @@ public class DexDiff {
             else if (i instanceof TwoRegisterInstruction && i instanceof NarrowLiteralInstruction)
                 leftRegister = ((TwoRegisterInstruction) i).getRegisterB();
             else return null;
-            Integer first = values.get(leftRegister);
+            Integer first = integer(values.get(leftRegister));
             Integer second = integerRight(i, values);
             String operation = i.getOpcode().name.split("/", 2)[0];
             if (operation.equals("and-int") && (Integer.valueOf(0).equals(first) || Integer.valueOf(0).equals(second))) return 0;
@@ -2180,10 +2263,18 @@ public class DexDiff {
             };
         }
 
-        static Boolean branchTaken(Instruction i, Map<Integer, Integer> values) {
+        static Boolean branchTaken(Instruction i, Map<Integer, Object> values) {
             if (!i.getOpcode().name.startsWith("if-")) return null;
-            Integer first = values.get(valueRegister(i));
-            Integer second = i instanceof TwoRegisterInstruction ? values.get(((TwoRegisterInstruction) i).getRegisterB()) : Integer.valueOf(0);
+            Object firstValue = values.get(valueRegister(i));
+            Object secondValue = i instanceof TwoRegisterInstruction ? values.get(((TwoRegisterInstruction) i).getRegisterB()) : Integer.valueOf(0);
+            if (i.getOpcode() == Opcode.IF_EQ || i.getOpcode() == Opcode.IF_EQZ || i.getOpcode() == Opcode.IF_NE || i.getOpcode() == Opcode.IF_NEZ) {
+                Boolean equal = null;
+                if (firstValue instanceof ObjectValue first && secondValue instanceof ObjectValue second && first.alias == second.alias) equal = true;
+                else if (firstValue instanceof ObjectValue first && first.nonNull && Integer.valueOf(0).equals(secondValue)
+                        || secondValue instanceof ObjectValue second && second.nonNull && Integer.valueOf(0).equals(firstValue)) equal = false;
+                if (equal != null) return (i.getOpcode() == Opcode.IF_EQ || i.getOpcode() == Opcode.IF_EQZ) == equal;
+            }
+            Integer first = integer(firstValue), second = integer(secondValue);
             if (first == null || second == null) return null;
             int compared = Integer.compare(first, second);
             return switch (i.getOpcode()) {

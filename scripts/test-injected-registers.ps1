@@ -536,9 +536,11 @@ try {
     $classes = Join-Path $caseRoot 'classes'
     Invoke-Checked -Program $javac -Arguments @('-encoding', 'UTF-8', '-cp', $DesktopJar, '-d', $classes,
         (Join-Path $PSScriptRoot 'DexDiff.java'), (Join-Path $PSScriptRoot 'BadDexFixture.java'),
-        (Join-Path $PSScriptRoot 'FeatureDexFixture.java')) `
+        (Join-Path $PSScriptRoot 'FeatureDexFixture.java'), (Join-Path $PSScriptRoot 'ControlFlowFixture.java')) `
         -Description 'javac for DexDiff and its fixtures'
     $classPath = $DesktopJar + [System.IO.Path]::PathSeparator + $classes
+    Invoke-Checked -Program $Java -Arguments @('-Xmx256m', '-cp', $classPath, 'ControlFlowFixture') `
+        -Description 'ControlFlowFixture object and wide disabled paths'
     $dexDir = Join-Path $caseRoot 'dex'
     Invoke-Checked -Program $Java -Arguments @('-cp', $classPath, 'BadDexFixture', $dexDir) `
         -Description 'BadDexFixture'

@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Tooling:** Disabled-path checks now follow copied object references and long/double register pairs, including overlapping moves, null aliases and NaN comparisons.
+
 * **Tooling:** First installs now handle Android's empty package-path response safely by confirming that the package is absent. Existing signer and downgrade checks still apply.
 
 * **Links:** Profile header and About website buttons can now open the Android browser chooser. Pinterest, account and sign-in links keep their native path, as do all links while the switch is off or HushPinterest is paused.
