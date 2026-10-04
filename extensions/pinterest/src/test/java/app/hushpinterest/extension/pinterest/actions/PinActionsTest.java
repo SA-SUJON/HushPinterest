@@ -128,6 +128,54 @@ public class PinActionsTest {
         assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
     }
 
+    @Test public void profileWebsitesAlwaysUseBrowserChooserAndKeepExactUrl() {
+        ResolveInfo browser = new ResolveInfo();
+        browser.activityInfo = new ActivityInfo();
+        browser.activityInfo.packageName = "com.example.browser";
+        browser.activityInfo.name = "com.example.browser.BrowserActivity";
+        browser.activityInfo.exported = true;
+        Shadows.shadowOf(activity.getPackageManager()).addResolveInfoForIntent(
+                new Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com/")).addCategory(Intent.CATEGORY_BROWSABLE), browser);
+        for (String url : new String[]{"https://creator.example/portfolio?ref=kept#art", "http://creator.example/about",
+                "https://creator.example./portfolio", "https://creator.example/100%25-natural"}) {
+            assertTrue(url, ExternalBrowser.openProfile(url));
+            Intent chooser = Shadows.shadowOf(activity).getNextStartedActivity();
+            assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
+            Intent target = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+            assertEquals("com.example.browser", target.getPackage());
+            assertEquals(url, target.getDataString());
+            assertTrue(target.hasCategory(Intent.CATEGORY_BROWSABLE));
+        }
+        for (String url : new String[]{"https://pinterest.com/creator", "https://www.pinterest.co.uk/user/",
+                "https://pin.it/short", "https://pin.it./short", "pinterest://user/123", "intent://website", "https://example.org/sign-in",
+                "https://example.org/sign_in", "https://example.org/log%20in", "https://example.org/sign/in",
+                "https://example.org/signin", "https://accounts.google.com/", "https://example.org/oauth2/authorize",
+                "https://myaccount.google.com/", "https://example.org/logout", "https://example.org/?code=abc123&state=xyz789",
+                "https://example.org/?code=abc123", "https://example.org/?error=access_denied",
+                "https://example.org/#code=abc123&state=xyz789", "https://example.org/?%63ode=abc123&state=xyz789",
+                "https://example.org/my/account", "https://example.org/?client_id=123", "https://example.org/#/login",
+                "https://example.org/%6cogin", "https://example.org/%256cogin", "https://user:secret@example.org/"}) {
+            assertFalse(url, ExternalBrowser.openProfile(url));
+        }
+        Settings.EXTERNAL_BROWSER.save(false);
+        assertFalse(ExternalBrowser.openProfile("https://creator.example/"));
+        Settings.EXTERNAL_BROWSER.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse(ExternalBrowser.openProfile("https://creator.example/"));
+        PauseForTests.resume();
+        PatchFamilyForTests.capabilities(EnumSet.noneOf(PatchFamily.Capability.class));
+        assertFalse(ExternalBrowser.openProfile("https://creator.example/"));
+        assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
+    }
+
+    @Test public void profileWithoutBrowserOrActivityAndColdSettingsKeepNativeNavigation() {
+        assertFalse(ExternalBrowser.openProfile("https://creator.example/"));
+        SettingsContextRule.withoutContext(() -> assertFalse(ExternalBrowser.openProfile("https://creator.example/")));
+        Utils.setActivity(null);
+        assertFalse(ExternalBrowser.openProfile("https://creator.example/"));
+        assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
+    }
+
     @Test public void pauseAndColdStartPreserveEveryNativeAction() {
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
         assertFalse(SystemShare.open(pin, Source.PIN));

@@ -6,6 +6,7 @@ import com.android.tools.smali.dexlib2.iface.Method;
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction;
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef;
 import com.android.tools.smali.dexlib2.immutable.ImmutableDexFile;
+import com.android.tools.smali.dexlib2.immutable.ImmutableField;
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod;
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation;
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter;
@@ -25,6 +26,7 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction32x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference;
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference;
 import com.android.tools.smali.dexlib2.writer.pool.DexPool;
 
@@ -98,7 +100,54 @@ public final class FeatureDexFixture {
     }
 
     private static ClassDef type(String owner, List<Method> methods) {
-        return new ImmutableClassDef(owner, AccessFlags.PUBLIC.getValue(), OBJECT, List.of(), null, Set.of(), List.of(), methods);
+        var fields = owner.equals("Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;")
+                ? List.of(new ImmutableField(owner, "pin", "Lcom/pinterest/api/model/FixturePin;", AccessFlags.PUBLIC.getValue(), null, Set.of(), Set.of()))
+                : List.<ImmutableField>of();
+        return new ImmutableClassDef(owner, AccessFlags.PUBLIC.getValue(), OBJECT, List.of(), null, Set.of(), fields, methods);
+    }
+
+    private static void profileWebsites(Map<String, List<Method>> classes, String variant) {
+        String browser = BASE + "actions/ExternalBrowser;", user = "Lcom/pinterest/api/model/FixtureUser;";
+        String pin = "Lcom/pinterest/api/model/FixturePin;", nav = "Lcom/pinterest/navigation/Navigation;";
+        classes.put("Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;", List.of());
+        List<Instruction> visit = new ArrayList<>();
+        if (!variant.equals("clean")) {
+            visit.add(invoke(Opcode.INVOKE_STATIC, ref(browser, "open", "Z", STRING, OBJECT), 1, 2));
+            visit.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
+            visit.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 3)); visit.add(end());
+        }
+        visit.add(literal("android_client_tracking_params_consistency", 0)); visit.add(literal("_url", 0)); visit.add(end());
+        classes.put("Lfixture/Visit;", List.of(method("Lfixture/Visit;", "visit", VOID, true, 3, visit, STRING, pin)));
+        for (String name : List.of("Header", "About")) {
+            String owner = "Lfixture/" + name + ";";
+            List<Instruction> body = new ArrayList<>();
+            if (name.equals("Header")) {
+                body.add(literal("website_link", 0));
+                body.add(new ImmutableInstruction21c(Opcode.SGET_OBJECT, 0,
+                        new ImmutableFieldReference("Lfixture/Events;", "BUSINESS_PROFILE_WEBSITE_LINK", OBJECT)));
+            }
+            body.add(new ImmutableInstruction11n(Opcode.CONST_4, 1, 0));
+            body.add(invoke(Opcode.INVOKE_VIRTUAL, ref(user, "website", STRING), 1));
+            body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 2));
+            body.add(new ImmutableInstruction11n(Opcode.CONST_4, 3, 0));
+            if (!variant.equals("clean") && !variant.equals("missing-" + name.toLowerCase())) {
+                for (int n = 0; n < (variant.equals("duplicate") ? 2 : 1); n++) {
+                    body.add(invoke(Opcode.INVOKE_STATIC, ref(browser, "openProfile", "Z", STRING), variant.equals("wrong-argument") ? 3 : 2));
+                    body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
+                    body.add(new ImmutableInstruction21t(variant.equals("bad-fallback") ? Opcode.IF_NEZ : Opcode.IF_EQZ, 0, 3));
+                    body.add(end());
+                }
+            }
+            body.add(invoke(Opcode.INVOKE_STATIC, ref(nav, "website", "Lcom/pinterest/navigation/NavigationImpl;",
+                    "Lcom/pinterest/framework/screens/ScreenLocation;", STRING), 3, 2));
+            body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 4)); body.add(end());
+            classes.put(owner, List.of(method(owner, "onClick", VOID, false, 7, body, "Landroid/view/View;")));
+        }
+        if (!variant.equals("clean")) {
+            List<Instruction> controls = List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 0));
+            classes.put(browser, List.of(method(browser, "open", "Z", true, 3, controls, STRING, OBJECT),
+                    method(browser, "openProfile", "Z", true, 2, controls, STRING)));
+        }
     }
 
     private static Instruction end() { return new ImmutableInstruction10x(Opcode.RETURN_VOID); }
@@ -467,6 +516,16 @@ public final class FeatureDexFixture {
                 List.of("HushPinterest settings", "Hide imaginary pins"), StandardCharsets.UTF_8);
         write(root, "feature-no-status", new LinkedHashMap<>(settings), true);
         write(root, "feature-nonboolean-status", new LinkedHashMap<>(settings), true);
+        Map<String, List<Method>> profileClean = new LinkedHashMap<>(clean);
+        profileWebsites(profileClean, "clean");
+        write(root, "feature-profile-clean", profileClean, false);
+        for (String variant : List.of("good", "missing-header", "missing-about", "duplicate", "wrong-argument", "bad-fallback")) {
+            reset(); enable("externalBrowser");
+            Map<String, List<Method>> profile = new LinkedHashMap<>(settings);
+            profileWebsites(profile, variant);
+            write(root, "feature-profile-" + variant, profile, true, "externalBrowser");
+        }
+        reset();
         write(root, "feature-status-copy", new LinkedHashMap<>(Map.of(STATUS, settings.get(STATUS))), false);
         for (String family : FAMILIES.keySet()) {
             reset(); enable(family);

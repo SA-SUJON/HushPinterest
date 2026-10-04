@@ -435,6 +435,8 @@ public final class L10nTranslations {
                 "Links im Browser \u00f6ffnen");
         table.put("Open pin",
                 "Pin \u00f6ffnen");
+        table.put("Open pin Visit links and profile websites in your browser.",
+                "\u00d6ffnet Besuchen-Links von Pins und Profil-Websites in deinem Browser.");
         table.put("Open pin link",
                 "Pin-Link \u00f6ffnen");
         table.put("Open the installation steps on GitHub.",
@@ -545,11 +547,11 @@ public final class L10nTranslations {
                 "Speichere den vollst\u00e4ndigen Bericht unter %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Speichert deine Schalter in einer Datei. Sie gelten f\u00fcr alle Konten in dieser Pinterest-App. Pause und Debug-Protokollierung sind nicht enthalten, die Suche nach neuen Versionen auch nicht.");
-        table.put("Saved choice only. This build doesn't include this control.",
-                "Nur gespeicherte Auswahl. Dieser Build enth\u00e4lt diesen Schalter nicht.");
     }
 
     private static void fillDe4(Map<String, String> table) {
+        table.put("Saved choice only. This build doesn't include this control.",
+                "Nur gespeicherte Auswahl. Dieser Build enth\u00e4lt diesen Schalter nicht.");
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Gespeichert. Starte Pinterest neu, um diese \u00c4nderung zu \u00fcbernehmen.");
         table.put("Saving",
@@ -668,11 +670,11 @@ public final class L10nTranslations {
                 "Dieser Build deckt %1$s ab. Fehlende Abdeckung: %2$s.");
         table.put("This build has no coverage for %1$s.",
                 "Dieser Build deckt %1$s nicht ab.");
-        table.put("This phone has no file picker, so there's no way to choose a file here.",
-                "Dieses Handy hat keine Dateiauswahl, hier l\u00e4sst sich also keine Datei w\u00e4hlen.");
     }
 
     private static void fillDe5(Map<String, String> table) {
+        table.put("This phone has no file picker, so there's no way to choose a file here.",
+                "Dieses Handy hat keine Dateiauswahl, hier l\u00e4sst sich also keine Datei w\u00e4hlen.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
                 "Diese Anfrage kann nicht erneut versucht werden. Pr\u00fcfe Downloads oder \u00f6ffne den Pin erneut.");
         table.put("This save is still running. Try again when it's finished.",
@@ -705,8 +707,6 @@ public final class L10nTranslations {
                 "Verwende die E-Mail-Adresse deines bestehenden Pinterest-Kontos und ein Pinterest-Passwort. Die Anmeldung mit Google wird mit dem ge\u00e4nderten Signaturschl\u00fcssel dieses Builds nicht unterst\u00fctzt. Pinterest bietet keine Anmeldung mit Facebook mehr an. Push-Benachrichtigungen wurden noch nicht \u00fcberpr\u00fcft.");
         table.put("Version",
                 "Version");
-        table.put("Visit opens a web link in your browser.",
-                "Besuchen \u00f6ffnet einen Weblink in deinem Browser.");
         table.put("Waiting for Wi-Fi.",
                 "Wartet auf WLAN.");
         table.put("Waiting for a network connection.",
@@ -1116,6 +1116,8 @@ public final class L10nTranslations {
                 "Abrir enlaces en tu navegador");
         table.put("Open pin",
                 "Abrir pin");
+        table.put("Open pin Visit links and profile websites in your browser.",
+                "Abre enlaces de Visitar de los pines y sitios web de perfiles en tu navegador.");
         table.put("Open pin link",
                 "Abrir enlace del pin");
         table.put("Open the installation steps on GitHub.",
@@ -1226,11 +1228,11 @@ public final class L10nTranslations {
                 "Guarda el informe completo en %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Guarda tus interruptores en un archivo. Cubren todas las cuentas de esta app de Pinterest. La pausa y el Registro de depuraci\u00f3n no se incluyen, y la b\u00fasqueda de nuevas versiones tampoco.");
-        table.put("Saved choice only. This build doesn't include this control.",
-                "Solo se guarda la elecci\u00f3n. Esta versi\u00f3n no incluye este control.");
     }
 
     private static void fillEs4(Map<String, String> table) {
+        table.put("Saved choice only. This build doesn't include this control.",
+                "Solo se guarda la elecci\u00f3n. Esta versi\u00f3n no incluye este control.");
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Guardado. Reinicia Pinterest para aplicar este cambio.");
         table.put("Saving",
@@ -1349,11 +1351,11 @@ public final class L10nTranslations {
                 "Esta versi\u00f3n cubre %1$s. Falta cobertura de %2$s.");
         table.put("This build has no coverage for %1$s.",
                 "Esta versi\u00f3n no cubre %1$s.");
-        table.put("This phone has no file picker, so there's no way to choose a file here.",
-                "Este tel\u00e9fono no tiene selector de archivos, as\u00ed que aqu\u00ed no hay forma de elegir un archivo.");
     }
 
     private static void fillEs5(Map<String, String> table) {
+        table.put("This phone has no file picker, so there's no way to choose a file here.",
+                "Este tel\u00e9fono no tiene selector de archivos, as\u00ed que aqu\u00ed no hay forma de elegir un archivo.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
                 "Esta solicitud no puede repetirse. Revisa Descargas o abre el pin de nuevo.");
         table.put("This save is still running. Try again when it's finished.",
@@ -1386,8 +1388,6 @@ public final class L10nTranslations {
                 "Usa el correo vinculado a tu cuenta actual de Pinterest y una contrase\u00f1a de Pinterest. Esta compilaci\u00f3n con una nueva clave de firma no admite el inicio de sesi\u00f3n con Google. Pinterest ya no ofrece el inicio de sesi\u00f3n con Facebook. Las notificaciones push a\u00fan no se han verificado.");
         table.put("Version",
                 "Versi\u00f3n");
-        table.put("Visit opens a web link in your browser.",
-                "Visitar abre el enlace web en tu navegador.");
         table.put("Waiting for Wi-Fi.",
                 "Esperando Wi-Fi.");
         table.put("Waiting for a network connection.",
@@ -1797,6 +1797,8 @@ public final class L10nTranslations {
                 "Buka tautan di browser Anda");
         table.put("Open pin",
                 "Buka pin");
+        table.put("Open pin Visit links and profile websites in your browser.",
+                "Buka tautan Kunjungi Pin dan situs web profil di browser Anda.");
         table.put("Open pin link",
                 "Buka tautan Pin");
         table.put("Open the installation steps on GitHub.",
@@ -1907,11 +1909,11 @@ public final class L10nTranslations {
                 "Simpan laporan lengkap di %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Simpan sakelar Anda ke sebuah file. Sakelar ini mencakup semua akun di aplikasi Pinterest ini. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.");
-        table.put("Saved choice only. This build doesn't include this control.",
-                "Hanya pilihan tersimpan. Versi ini tidak menyertakan kontrol ini.");
     }
 
     private static void fillIn4(Map<String, String> table) {
+        table.put("Saved choice only. This build doesn't include this control.",
+                "Hanya pilihan tersimpan. Versi ini tidak menyertakan kontrol ini.");
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Tersimpan. Mulai ulang Pinterest untuk menerapkan perubahan ini.");
         table.put("Saving",
@@ -2030,11 +2032,11 @@ public final class L10nTranslations {
                 "Versi ini mencakup %1$s. Cakupan yang belum tersedia: %2$s.");
         table.put("This build has no coverage for %1$s.",
                 "Versi ini tidak mencakup %1$s.");
-        table.put("This phone has no file picker, so there's no way to choose a file here.",
-                "Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.");
     }
 
     private static void fillIn5(Map<String, String> table) {
+        table.put("This phone has no file picker, so there's no way to choose a file here.",
+                "Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
                 "Permintaan ini tidak dapat dicoba lagi. Periksa Unduhan atau buka pin lagi.");
         table.put("This save is still running. Try again when it's finished.",
@@ -2067,8 +2069,6 @@ public final class L10nTranslations {
                 "Gunakan email yang terhubung ke akun Pinterest Anda yang sudah ada dan kata sandi Pinterest. Masuk dengan Google tidak didukung dengan kunci penandatanganan yang berubah pada build ini. Pinterest tidak lagi menyediakan login dengan Facebook. Notifikasi push belum diverifikasi.");
         table.put("Version",
                 "Versi");
-        table.put("Visit opens a web link in your browser.",
-                "Kunjungi membuka tautan web di browser Anda.");
         table.put("Waiting for Wi-Fi.",
                 "Menunggu Wi-Fi.");
         table.put("Waiting for a network connection.",
@@ -2478,6 +2478,8 @@ public final class L10nTranslations {
                 "Abrir links no seu navegador");
         table.put("Open pin",
                 "Abrir pin");
+        table.put("Open pin Visit links and profile websites in your browser.",
+                "Abra links de Visitar dos Pins e sites de perfis no seu navegador.");
         table.put("Open pin link",
                 "Abrir link do Pin");
         table.put("Open the installation steps on GitHub.",
@@ -2588,11 +2590,11 @@ public final class L10nTranslations {
                 "Salve o relat\u00f3rio completo em %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Salve suas op\u00e7\u00f5es em um arquivo. Elas valem para todas as contas deste app do Pinterest. Pausa e Registro de depura\u00e7\u00e3o n\u00e3o s\u00e3o inclu\u00eddos, nem a verifica\u00e7\u00e3o de novas vers\u00f5es.");
-        table.put("Saved choice only. This build doesn't include this control.",
-                "Apenas a escolha salva. Esta vers\u00e3o n\u00e3o inclui este controle.");
     }
 
     private static void fillPt_rBR4(Map<String, String> table) {
+        table.put("Saved choice only. This build doesn't include this control.",
+                "Apenas a escolha salva. Esta vers\u00e3o n\u00e3o inclui este controle.");
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Salvo. Reinicie o Pinterest para aplicar esta altera\u00e7\u00e3o.");
         table.put("Saving",
@@ -2711,11 +2713,11 @@ public final class L10nTranslations {
                 "Esta vers\u00e3o cobre %1$s. Falta cobertura para %2$s.");
         table.put("This build has no coverage for %1$s.",
                 "Esta vers\u00e3o n\u00e3o cobre %1$s.");
-        table.put("This phone has no file picker, so there's no way to choose a file here.",
-                "Este dispositivo n\u00e3o tem seletor de arquivos, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel escolher um arquivo aqui.");
     }
 
     private static void fillPt_rBR5(Map<String, String> table) {
+        table.put("This phone has no file picker, so there's no way to choose a file here.",
+                "Este dispositivo n\u00e3o tem seletor de arquivos, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel escolher um arquivo aqui.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
                 "N\u00e3o \u00e9 poss\u00edvel repetir esta solicita\u00e7\u00e3o. Confira Downloads ou abra o pin novamente.");
         table.put("This save is still running. Try again when it's finished.",
@@ -2748,8 +2750,6 @@ public final class L10nTranslations {
                 "Use o e-mail vinculado \u00e0 sua conta existente do Pinterest e uma senha do Pinterest. O login com Google n\u00e3o \u00e9 compat\u00edvel com a nova chave de assinatura desta compila\u00e7\u00e3o. O Pinterest n\u00e3o oferece mais login com Facebook. As notifica\u00e7\u00f5es push ainda n\u00e3o foram verificadas.");
         table.put("Version",
                 "Vers\u00e3o");
-        table.put("Visit opens a web link in your browser.",
-                "Visitar abre o link da web no seu navegador.");
         table.put("Waiting for Wi-Fi.",
                 "Aguardando Wi-Fi.");
         table.put("Waiting for a network connection.",
@@ -3159,6 +3159,8 @@ public final class L10nTranslations {
                 "Ba\u011flant\u0131lar\u0131 taray\u0131c\u0131nda a\u00e7");
         table.put("Open pin",
                 "Pini a\u00e7");
+        table.put("Open pin Visit links and profile websites in your browser.",
+                "Pinlerin Ziyaret et ba\u011flant\u0131lar\u0131n\u0131 ve profil web sitelerini taray\u0131c\u0131nda a\u00e7.");
         table.put("Open pin link",
                 "Pin ba\u011flant\u0131s\u0131n\u0131 a\u00e7");
         table.put("Open the installation steps on GitHub.",
@@ -3269,11 +3271,11 @@ public final class L10nTranslations {
                 "Tam raporu %1$s konumuna kaydedin.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Anahtarlar\u0131n\u0131 bir dosyaya kaydet. Anahtarlar bu Pinterest uygulamas\u0131ndaki t\u00fcm hesaplar i\u00e7in ge\u00e7erlidir. Duraklatma ve Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc dahil edilmez, s\u00fcr\u00fcm denetimi de edilmez.");
-        table.put("Saved choice only. This build doesn't include this control.",
-                "Yaln\u0131zca kay\u0131tl\u0131 se\u00e7im. Bu s\u00fcr\u00fcm bu denetimi i\u00e7ermiyor.");
     }
 
     private static void fillTr4(Map<String, String> table) {
+        table.put("Saved choice only. This build doesn't include this control.",
+                "Yaln\u0131zca kay\u0131tl\u0131 se\u00e7im. Bu s\u00fcr\u00fcm bu denetimi i\u00e7ermiyor.");
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Kaydedildi. Bu de\u011fi\u015fikli\u011fi uygulamak i\u00e7in Pinterest'\u0131 yeniden ba\u015flat.");
         table.put("Saving",
@@ -3392,11 +3394,11 @@ public final class L10nTranslations {
                 "Bu derlemenin kapsam\u0131: %1$s. Eksik kapsam: %2$s.");
         table.put("This build has no coverage for %1$s.",
                 "Bu derleme %1$s i\u00e7in kapsam sa\u011flamaz.");
-        table.put("This phone has no file picker, so there's no way to choose a file here.",
-                "Bu telefonda dosya se\u00e7ici yok, bu y\u00fczden burada dosya se\u00e7menin bir yolu yok.");
     }
 
     private static void fillTr5(Map<String, String> table) {
+        table.put("This phone has no file picker, so there's no way to choose a file here.",
+                "Bu telefonda dosya se\u00e7ici yok, bu y\u00fczden burada dosya se\u00e7menin bir yolu yok.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
                 "Bu istek yeniden denenemiyor. \u0130ndirilenler'i kontrol edin veya pini yeniden a\u00e7\u0131n.");
         table.put("This save is still running. Try again when it's finished.",
@@ -3429,8 +3431,6 @@ public final class L10nTranslations {
                 "Mevcut Pinterest hesab\u0131n\u0131za ba\u011fl\u0131 e-posta adresini ve bir Pinterest parolas\u0131n\u0131 kullan\u0131n. Bu derlemenin de\u011fi\u015fen imzalama anahtar\u0131yla Google ile giri\u015f desteklenmiyor. Pinterest art\u0131k Facebook ile giri\u015f sunmuyor. Anl\u0131k bildirimler hen\u00fcz do\u011frulanmad\u0131.");
         table.put("Version",
                 "S\u00fcr\u00fcm");
-        table.put("Visit opens a web link in your browser.",
-                "Ziyaret et, web ba\u011flant\u0131s\u0131n\u0131 taray\u0131c\u0131nda a\u00e7ar.");
         table.put("Waiting for Wi-Fi.",
                 "Wi-Fi bekleniyor.");
         table.put("Waiting for a network connection.",

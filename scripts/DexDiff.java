@@ -2573,6 +2573,39 @@ public class DexDiff {
         }
 
         boolean simpleGuard(Contract c, String hook, String selector) {
+            if (selector.equals("profileWebsite")) {
+                List<Method> headers = new ArrayList<>();
+                for (Method m : clean.holding("website_link")) if (m.getName().equals("onClick")
+                        && descriptor(m).equals("(Landroid/view/View;)V") && fieldNames(m).contains("BUSINESS_PROFILE_WEBSITE_LINK")) headers.add(m);
+                Method header = unique(headers, "profile website header");
+                if (header == null) return false;
+                Set<String> navigation = new HashSet<>(), getters = new HashSet<>();
+                for (Instruction i : instructions(header)) if (reference(i) instanceof MethodReference) {
+                    MethodReference r = (MethodReference) reference(i);
+                    if (r.getDefiningClass().equals("Lcom/pinterest/navigation/Navigation;") && descriptor(r).equals(
+                            "(Lcom/pinterest/framework/screens/ScreenLocation;Ljava/lang/String;)Lcom/pinterest/navigation/NavigationImpl;")) navigation.add(r.toString());
+                    if (r.getDefiningClass().startsWith("Lcom/pinterest/api/model/") && descriptor(r).equals("()Ljava/lang/String;")) getters.add(r.toString());
+                }
+                if (navigation.size() != 1 || getters.size() != 1) { fail("profile website anchors changed"); return false; }
+                String nav = navigation.iterator().next(), getter = getters.iterator().next();
+                List<Method> websites = new ArrayList<>();
+                for (Method m : clean.methods.values()) if (m.getName().equals("onClick") && descriptor(m).equals("(Landroid/view/View;)V")
+                        && instructions(m).stream().anyMatch(i -> nav.equals(String.valueOf(reference(i))))
+                        && instructions(m).stream().anyMatch(i -> getter.equals(String.valueOf(reference(i))))) websites.add(m);
+                if (websites.size() != 2 || !websites.contains(header)) { fail("profile website handlers are missing or ambiguous"); return false; }
+                for (Method original : websites) {
+                    List<Instruction> body = instructions(original);
+                    List<Integer> sites = new ArrayList<>();
+                    for (int at = 0; at < body.size(); at++) if (nav.equals(String.valueOf(reference(body.get(at))))) sites.add(at);
+                    if (sites.size() != 1) { fail("profile navigation call is ambiguous in " + original); continue; }
+                    int at = sites.get(0);
+                    List<Integer> args = arguments(body.get(at));
+                    Method patchedMethod = actual(original);
+                    if (args.size() != 2) fail("profile navigation arguments changed");
+                    else if (patchedMethod != null) guard(patchedMethod, hook, at, List.of(args.get(1)), 0, false, false);
+                }
+                return true;
+            }
             List<Method> targets = new ArrayList<>();
             int before = 0;
             if (selector.equals("share")) {

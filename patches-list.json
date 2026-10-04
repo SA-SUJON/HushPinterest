@@ -579,7 +579,7 @@
     },
     {
       "name": "Open links in your browser",
-      "description": "Opens a pin's Visit link in your web browser. Pinterest links and sign-in keep their usual behavior. Turn it off in HushPinterest settings at any time.",
+      "description": "Opens pin Visit links and profile websites in your web browser. Pinterest links and sign-in keep their usual behavior. Turn it off in HushPinterest settings at any time.",
       "category": "Interface",
       "use": false,
       "dependencies": [

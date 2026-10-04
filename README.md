@@ -66,7 +66,7 @@ There are 17 patches so far.
 | `Hide shopping and product pins` | Hides shoppable pins, shopping stories and featured board placements. Off by default. Turn it on in HushPinterest settings when you want a feed without shopping. |
 | `HushPinterest settings` | Adds HushPinterest settings to Pinterest. Long-press Pinterest's launcher icon, or open Additional settings in the app on Pinterest's App info page, to turn features on or off, pause HushPinterest, save your switches to a file or load them, and export diagnostics. The licenses are there too. |
 | `No screenshot share menu` | Stops Pinterest's screenshot observer from opening sharing suggestions. Screenshots still work normally. |
-| `Open links in your browser` | Opens a pin's Visit link in your web browser. Pinterest links and sign-in keep their usual behavior. Turn it off in HushPinterest settings at any time. |
+| `Open links in your browser` | Opens pin Visit links and profile websites in your web browser. Pinterest links and sign-in keep their usual behavior. Turn it off in HushPinterest settings at any time. |
 | `Quiet email reminders` | Dismisses the optional confirm-your-email reminder. Account verification and sign-in checks still apply. |
 | `Strip link tracking` | Removes known tracking parameters from URLs shared or copied from Pinterest. Keeps the destination, other parameters and opaque pin.it links. Turn it off or pause HushPinterest to share the original URLs. |
 | `System share sheet` | Uses Android's share sheet when sharing a pin link. Screenshot and download actions keep their usual behavior. Turn it off in HushPinterest settings at any time. |
@@ -119,6 +119,7 @@ Interface summaries now say which controls change and when. Bottom-bar and heade
 
 <p>
   <img src="assets/screenshots/settings-interface.png" width="240" alt="Interface controls describing their effects and refresh boundaries">
+  <img src="assets/screenshots/settings-links.png" width="240" alt="Browser routing for pin Visit links and profile websites">
 </p>
 
 On Android 10 and newer, HushPinterest checks the supplied HTTPS media address before passing it to Android's Downloads service, which [follows any redirects itself](https://github.com/aosp-mirror/platform_packages_providers_downloadprovider/blob/master/src/com/android/providers/downloads/DownloadThread.java). Android 9 file picker saves check the initial address and every redirect. Each must be a supported public HTTPS Pinterest media address.

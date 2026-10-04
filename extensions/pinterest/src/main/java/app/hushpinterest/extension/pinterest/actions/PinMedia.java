@@ -56,7 +56,7 @@ final class PinMedia {
     }
 
     static boolean pinterestUri(URI uri) {
-        String host = uri.getHost().toLowerCase(java.util.Locale.ROOT);
+        String host = uri.getHost().toLowerCase(java.util.Locale.ROOT).replaceFirst("\\.$", "");
         return host.equals("pin.it") || host.endsWith(".pin.it") ||
                 host.matches("(?:[a-z0-9-]+\\.)*pinterest\\.[a-z.]+");
     }

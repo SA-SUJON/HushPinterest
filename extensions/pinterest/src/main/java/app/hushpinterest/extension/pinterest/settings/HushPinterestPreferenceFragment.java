@@ -316,7 +316,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         // here only for the addresses selected on the app's Open by default page.
         PreferenceCategory links = category(screen, L10n.t("Links"));
         patchToggle(links, context, build, PatchFamily.EXTERNAL_BROWSER, Settings.EXTERNAL_BROWSER,
-                L10n.t("Open links in your browser"), L10n.t("Visit opens a web link in your browser."), SettingsIcons.LINKS);
+                L10n.t("Open links in your browser"), L10n.t("Open pin Visit links and profile websites in your browser."), SettingsIcons.LINKS);
         links.addPreference(mark(supportedLinksRow(context), SettingsIcons.LINKS));
         // An explanation, not a control: the info mark says so, as it does for Version on About.
         links.addPreference(mark(info(context, L10n.t("Selecting links by hand"),

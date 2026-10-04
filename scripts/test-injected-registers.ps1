@@ -630,6 +630,12 @@ try {
         'feature-guard-unreachable-control' = $false
         'feature-guard-interior-good' = $true
         'feature-guard-interior-bad' = $false
+        'feature-profile-good' = $true
+        'feature-profile-missing-header' = $false
+        'feature-profile-missing-about' = $false
+        'feature-profile-duplicate' = $false
+        'feature-profile-wrong-argument' = $false
+        'feature-profile-bad-fallback' = $false
         'feature-feed-ads' = $true
         'feature-feed-ai' = $true
         'feature-feed-shopping' = $true
@@ -680,6 +686,7 @@ try {
     foreach ($entry in $featureCases.GetEnumerator()) {
         $name = $entry.Key
         $cleanName = if ($name -eq 'feature-links-partial') { 'feature-links-partial-clean' }
+            elseif ($name -like 'feature-profile-*') { 'feature-profile-clean' }
             elseif ($name -like 'feature-guard-interior-*') { 'feature-guard-interior-clean' }
             elseif ($name -eq 'feature-optional-unrelated') { 'feature-optional-unrelated-clean' }
             elseif ($name -eq 'feature-optional-absent') { 'feature-optional-clean' } else { 'feature-clean' }

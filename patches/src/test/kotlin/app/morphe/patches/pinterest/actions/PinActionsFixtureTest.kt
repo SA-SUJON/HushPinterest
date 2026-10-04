@@ -57,6 +57,7 @@ class PinActionsFixtureTest {
                 .implementation!!.instructions.toList()).any { "->" in it && it.endsWith("()V") })
             for ((owner, helper, expected) in listOf(
                 Triple("ExternalBrowser", "open(Ljava/lang/String;Ljava/lang/Object;)Z", 1),
+                Triple("ExternalBrowser", "openProfile(Ljava/lang/String;)Z", 2),
                 Triple("SystemShare", "open(Ljava/lang/Object;Ljava/lang/Object;)Z", 1),
                 Triple("SystemShare", "openSendable(Ljava/lang/Object;Ljava/lang/Object;)Z", 1),
             )) {
@@ -67,6 +68,20 @@ class PinActionsFixtureTest {
                 assertEquals("${build.name} $owner $helper handler count", expected, calls)
             }
         }
+    }
+
+    @Test
+    fun `missing profile website binding refuses browser capability before host changes`() {
+        val classes = read(Fixtures.declaredBuilds().first())
+        val context = PatchContexts.of(ExtensionDex.classes() + classes.filterNot { owner ->
+            owner.methods.any { "websiteUrlView" in it.strings() }
+        })
+        assertThrows(PatchException::class.java) { externalBrowserPatch.execute(context) }
+        assertFlag(context, "externalBrowser", 0)
+        assertFlag(context, "visitLinks", 0)
+        assertFalse(classes.flatMap { context.mutableClassDefByOrNull(it.type)?.methods ?: emptyList() }.any { method ->
+            references(method.implementation?.instructions?.toList() ?: emptyList()).any { "/ExternalBrowser;->" in it }
+        })
     }
 
     @Test
@@ -98,6 +113,12 @@ class PinActionsFixtureTest {
         FixtureDex.forEach(build) { dex ->
             for (owner in dex.classes) {
                 val visit = owner.methods.any { it.strings().containsAll(setOf("_url", "android_client_tracking_params_consistency")) }
+                val profile = owner.methods.any { method ->
+                    "websiteUrlView" in method.strings() || method.name == "onClick" &&
+                        method.implementation?.instructions?.any {
+                            (it as? ReferenceInstruction)?.reference?.toString()?.startsWith("Lcom/pinterest/navigation/Navigation;->") == true
+                        } == true
+                }
                 val share = owner.methods.any { method ->
                     method.parameterTypes.size == 5 && method.parameterTypes[1].toString() == "I" &&
                         method.parameterTypes[3].toString() == "Z" && method.fields().map { it.name }.toSet().containsAll(
@@ -119,7 +140,7 @@ class PinActionsFixtureTest {
                 if (visit) dispatchers++
                 if (share) choosers++
                 if (shareFragment) potentialShareFragments += owner
-                if (owner.type == PIN_MENU || visit || share) wanted[owner.type] = ImmutableClassDef.of(owner)
+                if (owner.type == PIN_MENU || visit || share || profile) wanted[owner.type] = ImmutableClassDef.of(owner)
             }
         }
         potentialShareFragments.filter { owner ->
