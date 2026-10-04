@@ -18,11 +18,13 @@ $apk = Join-Path $work 'new.apk'
 [IO.File]::WriteAllBytes($apk, [byte[]](1, 2, 3))
 function New-SafetyAdb([bool]$Installed = $true, [string]$IdentitySerial = 'emulator-5998') {
     $state = [pscustomobject]@{ Calls = [Collections.Generic.List[string]]::new(); Marker = ''; Size = 3;
-        Avd = 'Fixture_API36'; Build = 'google/sdk/test' }
+        Avd = 'Fixture_API36'; Build = 'google/sdk/test'; PathReply = $null; InventoryReply = $null }
     $invoke = {
         param($Executable, [string[]]$Arguments)
         $line = $Arguments -join ' '
         $state.Calls.Add($line)
+        if ($line -like '* shell pm path com.pinterest' -and $null -ne $state.PathReply) { return $state.PathReply }
+        if ($line -like '* shell pm list packages -u com.pinterest' -and $null -ne $state.InventoryReply) { return $state.InventoryReply }
         $output = switch -Wildcard ($line) {
             '* get-state' { 'device' }
             '* get-serialno' { $IdentitySerial }
@@ -32,6 +34,7 @@ function New-SafetyAdb([bool]$Installed = $true, [string]$IdentitySerial = 'emul
             '* shell getprop ro.build.version.sdk' { '36' }
             '* shell getprop ro.product.cpu.abi' { 'x86_64' }
             '* shell pm path com.pinterest' { if ($Installed) { 'package:/data/app/base.apk' } }
+            '* shell pm list packages -u com.pinterest' { if ($Installed) { 'package:com.pinterest' } }
             '* pull *' { [IO.File]::WriteAllBytes($Arguments[4], [byte[]](1, 2, 3)); 'pulled' }
             '* install *' { 'Success' }
             '* push *' { 'pushed' }
@@ -104,8 +107,19 @@ try {
         -ChatIdentity safety-test -LeaseDirectory $work -AdbInvoker $wrongIdentity.Invoker } '*identity*'
     Assert-Safety (-not (Test-Path -LiteralPath $lease.Path)) 'Identity failure leaked an owned lease.'
 
-    foreach ($case in @('same', 'fresh', 'wrong-signer', 'downgrade', 'missing-signer', 'wrong-package')) {
-        $fake = New-SafetyAdb -Installed ($case -ne 'fresh')
+    foreach ($case in @('same', 'fresh', 'wrong-signer', 'downgrade', 'missing-signer', 'wrong-package',
+            'fresh-exit-one', 'fresh-prefix', 'path-error', 'path-error-text', 'inventory-error', 'inventory-malformed', 'inventory-existing')) {
+        $fresh = $case -in @('fresh', 'fresh-exit-one', 'fresh-prefix')
+        $fake = New-SafetyAdb -Installed (-not $fresh)
+        if ($case -in @('fresh-exit-one', 'fresh-prefix', 'path-error', 'path-error-text', 'inventory-error', 'inventory-malformed', 'inventory-existing')) {
+            $fake.State.PathReply = [pscustomobject]@{ ExitCode = if($case -eq 'path-error'){2}else{1};
+                Output = if($case -eq 'path-error-text'){@('Error: package manager unavailable')}else{@()} }
+            $fake.State.InventoryReply = [pscustomobject]@{ ExitCode = if($case -eq 'inventory-error'){1}else{0}; Output = @(switch ($case) {
+                'fresh-prefix' { 'package:com.pinterest.tools' }
+                'inventory-malformed' { 'Error: package manager unavailable' }
+                'inventory-existing' { 'package:com.pinterest' }
+            }) }
+        }
         $lease = Enter-HushDeviceLease -Adb fake -Serial emulator-5998 -Project HushPinterest `
             -ChatIdentity safety-test -LeaseDirectory $work -AdbInvoker $fake.Invoker
         $manifest = {
@@ -124,10 +138,14 @@ try {
             -PackageName com.pinterest -Aapt2 fake -Lease $lease -AdbInvoker $fake.Invoker `
             -ManifestReader $manifest -SignerReader $signers }
         try {
-            if ($case -in @('same', 'fresh')) { & $install }
+            if ($case -eq 'same' -or $fresh) { & $install }
             else { Assert-Refusal $install '*refused*' }
             $installs = @($fake.State.Calls | Where-Object { $_ -like '* install *' })
-            Assert-Safety ($installs.Count -eq [int]($case -in @('same', 'fresh'))) "$case installation count."
+            Assert-Safety ($installs.Count -eq [int]($case -eq 'same' -or $fresh)) "$case installation count."
+            if ($fresh) {
+                Assert-Safety (@($fake.State.Calls | Where-Object { $_ -like '* shell pm list packages -u com.pinterest' }).Count -eq 1) `
+                    "$case did not independently confirm package absence."
+            }
             Assert-Safety (-not ($fake.State.Calls -match 'uninstall|clear|install .* -g|install .* -d')) 'Account or permissions were modified.'
         } finally { Exit-HushDeviceLease $lease }
     }

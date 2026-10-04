@@ -40,8 +40,21 @@ function Install-HushAndroidApk {
         throw 'New APK package, version or signer evidence refused.'
     }
     $paths = Invoke-HushLeasedAdb -Adb $Adb -Lease $Lease -Invoker $AdbInvoker -Arguments @('shell', 'pm', 'path', $PackageName)
-    if ($paths.ExitCode -ne 0) { throw (Format-HushPinterestAdbFailure 'Installed package query refused' $paths) }
     $installed = @($paths.Output | Where-Object { $_ -like 'package:*' })
+    if ($installed.Count -eq 0 -and $paths.ExitCode -in @(0, 1) -and
+        @($paths.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count -eq 0) {
+        # Some Android builds return exit 1 for an absent package. Independently confirm absence,
+        # including packages retained with user data, before treating that answer as a first install.
+        $inventory = Invoke-HushLeasedAdb -Adb $Adb -Lease $Lease -Invoker $AdbInvoker `
+            -Arguments @('shell', 'pm', 'list', 'packages', '-u', $PackageName)
+        $entries = @($inventory.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        if ($inventory.ExitCode -ne 0 -or @($entries | Where-Object { $_ -notmatch '^package:[A-Za-z0-9_.]+$' }).Count -gt 0) {
+            throw (Format-HushPinterestAdbFailure 'Package inventory query refused' $inventory)
+        }
+        if ($entries -ccontains "package:$PackageName") { throw 'Installed package has no readable APK path. Install refused.' }
+    } elseif ($paths.ExitCode -ne 0 -or $installed.Count -eq 0) {
+        throw (Format-HushPinterestAdbFailure 'Installed package query refused' $paths)
+    }
     $local = Join-Path ([IO.Path]::GetTempPath()) ('hushpinterest-installed-' + [guid]::NewGuid().ToString('N') + '.apk')
     try {
         if ($installed.Count -gt 0) {
