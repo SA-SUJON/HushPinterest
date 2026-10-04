@@ -77,7 +77,18 @@ public final class InterfaceControls {
     /** The key comes from a matched native title resource, independently of the display language. */
     public static void pinMenuItem(View view, String resource) {
         try {
-            collapse(view, hidePinMenuItem(resource));
+            boolean hide = hidePinMenuItem(resource);
+            collapse(view, hide);
+            // Only these four patch-supplied constants can enter the census. Three possible
+            // outcomes per key fit within HookStatus's fixed sixteen-counter family limit.
+            if (view != null && ("overflow_menu_add_to_collage".equals(resource)
+                    || "overflow_menu_remix_collage".equals(resource)
+                    || "contextmenu_visual_search_image".equals(resource)
+                    || "overflow_menu_pin_boost".equals(resource))) {
+                String state = hide ? "hidden by fixed switch"
+                        : view.getVisibility() == View.VISIBLE ? "visible" : "not visible in native layout";
+                HookStatus.counted(FamilyNames.HIDE_PIN_MENU_ITEMS, resource + " " + state);
+            }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_PIN_MENU_ITEMS, "pin menu item", failure);
         }

@@ -154,6 +154,8 @@ Android 9 saves full diagnostic reports in this app's external `files/Download/M
 
 Reports include local push checks for notification permission, notification blocking, delegation, messaging components and the Firebase Analytics manifest flag. These checks don't send a test notification or prove that Pinterest can deliver one. An absent delegate is optional, and unknown delegate packages are redacted.
 
+When Filter pin menu is installed, reports count its four recognized optional rows and whether their switches hid them. They distinguish a visible row from one Pinterest already hid. Row text and unknown menu entries aren't recorded.
+
 Open an [issue](https://github.com/SysAdminDoc/HushPinterest/issues) and say what you did and what you saw. It helps a lot to attach a diagnostic report. In HushPinterest's settings, tap Export diagnostic report, then Copy quick report or Save full report. The report carries Pinterest's version, your Android version and what each patch did. HushPinterest takes out the account, pin and board ids it recognizes, but give it a read before you share it. Nothing is sent anywhere unless you paste or attach it yourself.
 
 ## Where the patches come from

@@ -12,6 +12,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -27,6 +28,7 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 import app.hushpinterest.extension.shared.settings.BooleanSetting;
 import app.hushpinterest.extension.shared.settings.HushPinterestPause;
 import app.hushpinterest.extension.shared.settings.PauseForTests;
+import app.hushpinterest.extension.shared.settings.preference.LogBufferManager;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -156,5 +158,68 @@ public class UiHooksTest {
         Settings.HIDE_PIN_MENU_COLLAGE.save(false);
         InterfaceControls.pinMenuItem(row, "overflow_menu_add_to_collage");
         assertEquals(View.VISIBLE, row.getVisibility());
+    }
+
+    @Test public void menuCensusRecordsFixedRowsAndPauseWithoutReadingTheirText() {
+        String[] keys = {"overflow_menu_add_to_collage", "overflow_menu_remix_collage",
+                "contextmenu_visual_search_image", "overflow_menu_pin_boost"};
+        for (String key : keys) {
+            TextView row = new TextView(RuntimeEnvironment.getApplication());
+            row.setText("private-person pin_id=987654321 https://private.example/token");
+            InterfaceControls.pinMenuItem(row, key);
+            assertEquals(View.VISIBLE, row.getVisibility());
+        }
+        Settings.HIDE_PIN_MENU_COLLAGE.save(true);
+        Settings.HIDE_PIN_MENU_VISUAL_SEARCH.save(true);
+        Settings.HIDE_PIN_MENU_PIN_BOOST.save(true);
+        for (String key : keys) {
+            View row = new View(RuntimeEnvironment.getApplication());
+            InterfaceControls.pinMenuItem(row, key);
+            assertEquals(View.GONE, row.getVisibility());
+            PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+            InterfaceControls.pinMenuItem(row, key);
+            assertEquals(View.VISIBLE, row.getVisibility());
+            PauseForTests.resume();
+        }
+        String report = LogBufferManager.buildExportText();
+        for (String key : keys) {
+            assertTrue(report, report.contains(key + " visible 2"));
+            assertTrue(report, report.contains(key + " hidden by fixed switch 1"));
+        }
+        assertFalse(report, report.contains("private-person"));
+        assertFalse(report, report.contains("987654321"));
+        assertFalse(report, report.contains("private.example"));
+    }
+
+    @Test public void menuCensusIgnoresEssentialAndUnknownRowsEvenWhenAllFiltersAreOn() {
+        Settings.HIDE_PIN_MENU_COLLAGE.save(true);
+        Settings.HIDE_PIN_MENU_VISUAL_SEARCH.save(true);
+        Settings.HIDE_PIN_MENU_PIN_BOOST.save(true);
+        String[] essential = {"save_to_device", "overflow_menu_share", "copy_link",
+                "grid_actions_report_pin", "save_pin"};
+        View row = new View(RuntimeEnvironment.getApplication());
+        for (String key : essential) {
+            InterfaceControls.pinMenuItem(row, key);
+            assertEquals(View.VISIBLE, row.getVisibility());
+        }
+        for (int i = 0; i < 1000; i++) InterfaceControls.pinMenuItem(row, "private_unknown_" + i);
+        InterfaceControls.pinMenuItem(row, null);
+        InterfaceControls.pinMenuItem(null, "overflow_menu_add_to_collage");
+        String report = LogBufferManager.buildExportText();
+        for (String key : essential) assertFalse(report, report.contains(key));
+        assertFalse(report, report.contains("private_unknown"));
+        assertFalse(report, report.contains("Counted:"));
+        assertEquals(View.VISIBLE, row.getVisibility());
+    }
+
+    @Test public void menuCensusDistinguishesNativeHiddenRowsFromFilterDecisions() {
+        View row = new View(RuntimeEnvironment.getApplication());
+        row.setVisibility(View.INVISIBLE);
+        InterfaceControls.pinMenuItem(row, "overflow_menu_add_to_collage");
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("overflow_menu_add_to_collage not visible in native layout 1"));
+        assertFalse(report, report.contains("overflow_menu_add_to_collage visible"));
+        assertFalse(report, report.contains("hidden by fixed switch"));
+        assertEquals(View.INVISIBLE, row.getVisibility());
     }
 }
