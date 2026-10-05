@@ -6,6 +6,10 @@ Every HushPinterest release, newest first.
 
 Unreleased source changes. The published release remains 0.0.3.
 
+* **Pinterest:** HushPinterest now builds on Morphe patcher 1.15.1, so it needs Morphe Manager 1.34.0 or newer. Manager 1.33.0 carries patcher 1.15.0 and asks for an update before it'll load the bundle.
+
+* **Tooling:** The fixture checks run on desktop CLI 1.18.1, which carries patcher 1.15.1. The patcher's new ARSCLib commit is pinned in the dependency verification metadata, with hashes matched against fresh downloads.
+
 * **Pinterest:** Choose up to 32 visible pins from a grid menu. Each selection uses Pinterest's supplied media, reports its queue or save result and appears in Download history. Android 9 opens one save picker at a time. Stopping leaves downloads already started alone.
 
 * **Tooling:** Invalid object and wide-register copies stay unknown during disabled-path checks. Initialized values retain their type when loops merge, so valid copies keep their identity without inventing equality between unrelated values.
