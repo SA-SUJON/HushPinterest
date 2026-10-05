@@ -10,6 +10,8 @@ Unreleased source changes. The published release remains 0.0.3.
 
 * **Pinterest:** System share sheet looks up how Pinterest closes its share sheet in each supported build, including 14.25.0 for Android 9, so the Share button at the top of a pin uses that build's own close step after handing the link to Android.
 
+* **Tooling:** The release receipt runs the resource table and injected code checks on every fixture it patches, the same ones as the patch verification script, including every class and member the injected code calls. Any finding stops the receipt.
+
 * **Tooling:** The fixture checks run on desktop CLI 1.18.1, which carries patcher 1.15.1. The patcher's new ARSCLib commit is pinned in the dependency verification metadata, with hashes matched against fresh downloads.
 
 * **Pinterest:** Choose up to 32 visible pins from a grid menu. Each selection uses Pinterest's supplied media, reports its queue or save result and appears in Download history. Android 9 opens one save picker at a time. Stopping leaves downloads already started alone.
