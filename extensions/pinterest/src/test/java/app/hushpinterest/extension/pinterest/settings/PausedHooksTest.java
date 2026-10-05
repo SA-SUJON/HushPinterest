@@ -93,7 +93,7 @@ public class PausedHooksTest {
     private static final String TRACKED_LINK = "https://www.pinterest.com/pin/123456/?utm_source=share&keep=1";
     private static final Map<String, Object> PIN = Map.of("id", "123456", "images", Map.of(
             "orig", Map.of("url", "https://i.pinimg.com/originals/pin.jpg")));
-    private enum Tab { CREATE, NOTIFICATIONS }
+    private enum Tab { CREATE, NOTIFICATIONS, SEARCH }
     private enum Source { PIN }
     private enum Task { TAG_APPSFLYER_INIT }
 
@@ -232,6 +232,7 @@ public class PausedHooksTest {
                 () -> UiHooks.searchHistoryMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC));
         probes.put(Settings.HIDE_NAV_CREATE, Collections.singletonList(() -> hidesNavigation(Tab.CREATE)));
         probes.put(Settings.HIDE_NAV_NOTIFICATIONS, Collections.singletonList(() -> hidesNavigation(Tab.NOTIFICATIONS)));
+        probes.put(Settings.HIDE_NAV_SEARCH, Collections.singletonList(() -> hidesNavigation(Tab.SEARCH)));
         probes.put(Settings.HIDE_HEADER_BUTTONS, Collections.singletonList(() -> {
             View header = namedView("end_container_icon_bt");
             InterfaceControls.headerButtons(header);

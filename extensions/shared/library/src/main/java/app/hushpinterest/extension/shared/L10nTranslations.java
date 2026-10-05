@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(704);
+        Map<String, String> table = new HashMap<>(708);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -324,6 +324,8 @@ public final class L10nTranslations {
                 "Benachrichtigungen-Schaltfl\u00e4che ausblenden");
         table.put("Hide Promote pin menu item",
                 "Pin bewerben ausblenden");
+        table.put("Hide Search button",
+                "Suche-Schaltfl\u00e4che ausblenden");
         table.put("Hide Search image menu item",
                 "Bild suchen ausblenden");
         table.put("Hide ads",
@@ -354,6 +356,8 @@ public final class L10nTranslations {
                 "Blendet Pin bewerben in neu erstellten Pin-Men\u00fcs aus. Ein vorhandenes Men\u00fc bleibt unver\u00e4ndert.");
         table.put("Hides Search image in newly created pin menus. An existing menu won't change.",
                 "Blendet Bild suchen in neu erstellten Pin-Men\u00fcs aus. Ein vorhandenes Men\u00fc bleibt unver\u00e4ndert.");
+        table.put("Hides Search in the bottom bar on its next layout.",
+                "Blendet Suche in der unteren Leiste bei der n\u00e4chsten Layout-Aktualisierung aus.");
         table.put("Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.",
                 "Blendet Kommentarbereiche und Vorschauen unter Pins bei der n\u00e4chsten Aktualisierung des Layouts oder der Sichtbarkeit aus. Wer kommentieren darf, \u00e4ndert sich nicht.");
         table.put("Hides new Play Store update prompts. An open prompt won't change.",
@@ -420,13 +424,13 @@ public final class L10nTranslations {
                 "Weitere Einstellungen");
         table.put("No HushPinterest downloads in this history.",
                 "Keine HushPinterest-Downloads in diesem Verlauf.");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("No HushPinterest release is out yet.",
                 "Es gibt noch keine Version von HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Keine App auf diesem Handy kann den Link \u00f6ffnen. Die Adresse ist %1$s.");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "Kein Download eingereiht. Die Auswahl wurde gestoppt, abgebrochen oder war nicht verf\u00fcgbar.");
         table.put("No matching settings",
@@ -543,13 +547,13 @@ public final class L10nTranslations {
                 "Autovervollst\u00e4ndigung der letzten Suchen");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Zeichnet Patch-Aktivit\u00e4t auf und zeigt Fehler f\u00fcr einen Fehlerbericht. Im Alltag ausgeschaltet lassen.");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Refresh",
                 "Aktualisieren");
         table.put("Release notes",
                 "Versionshinweise");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Remove from history",
                 "Aus Verlauf entfernen");
         table.put("Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.",
@@ -666,13 +670,13 @@ public final class L10nTranslations {
                 "Zum Wiedereinschalten tippen.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
                 "Diese Datei ist zu gro\u00df f\u00fcr eine Einstellungsdatei. Es wurde nichts ge\u00e4ndert.");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("That file isn't readable text, so it may have been damaged on the way. Nothing was changed.",
                 "Diese Datei ist kein lesbarer Text, sie wurde also wom\u00f6glich bei der \u00dcbertragung besch\u00e4digt. Es wurde nichts ge\u00e4ndert.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
                 "Diese Datei f\u00fchrt eine Einstellung zweimal auf, daher ist unklar, welcher Wert gilt. Es wurde nichts ge\u00e4ndert.");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Das ist keine HushPinterest-Einstellungsdatei. Es wurde nichts ge\u00e4ndert.");
         table.put("That settings file holds a value HushPinterest can't read. Nothing was changed.",
@@ -780,7 +784,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(704);
+        Map<String, String> table = new HashMap<>(708);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1057,6 +1061,8 @@ public final class L10nTranslations {
                 "Ocultar bot\u00f3n Notificaciones");
         table.put("Hide Promote pin menu item",
                 "Ocultar opci\u00f3n Promocionar pin");
+        table.put("Hide Search button",
+                "Ocultar bot\u00f3n Buscar");
         table.put("Hide Search image menu item",
                 "Ocultar opci\u00f3n Buscar imagen");
         table.put("Hide ads",
@@ -1087,6 +1093,8 @@ public final class L10nTranslations {
                 "Oculta Promocionar pin en los men\u00fas de pines reci\u00e9n creados. Un men\u00fa existente no cambia.");
         table.put("Hides Search image in newly created pin menus. An existing menu won't change.",
                 "Oculta Buscar imagen en los men\u00fas de pines reci\u00e9n creados. Un men\u00fa existente no cambia.");
+        table.put("Hides Search in the bottom bar on its next layout.",
+                "Oculta Buscar en la barra inferior cuando vuelva a actualizarse su dise\u00f1o.");
         table.put("Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.",
                 "Oculta los paneles y las vistas previas de comentarios bajo los pines en su pr\u00f3xima actualizaci\u00f3n de dise\u00f1o o visibilidad. No cambia qui\u00e9n puede comentar.");
         table.put("Hides new Play Store update prompts. An open prompt won't change.",
@@ -1153,13 +1161,13 @@ public final class L10nTranslations {
                 "M\u00e1s ajustes");
         table.put("No HushPinterest downloads in this history.",
                 "No hay descargas de HushPinterest en este historial.");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("No HushPinterest release is out yet.",
                 "Todav\u00eda no hay ninguna versi\u00f3n de HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Ninguna app de este tel\u00e9fono puede abrir el enlace. La direcci\u00f3n es %1$s.");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "No se puso ninguna descarga en cola. La selecci\u00f3n se detuvo, se cancel\u00f3 o no estaba disponible.");
         table.put("No matching settings",
@@ -1276,13 +1284,13 @@ public final class L10nTranslations {
                 "Autocompletado de b\u00fasquedas recientes");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Registra la actividad de los parches y muestra errores para un informe. D\u00e9jalo desactivado en el uso normal.");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Refresh",
                 "Actualizar");
         table.put("Release notes",
                 "Notas de la versi\u00f3n");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Remove from history",
                 "Eliminar del historial");
         table.put("Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.",
@@ -1399,13 +1407,13 @@ public final class L10nTranslations {
                 "Toca para volver a activarlo.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
                 "Ese archivo es demasiado grande para ser un archivo de configuraci\u00f3n. No se cambi\u00f3 nada.");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("That file isn't readable text, so it may have been damaged on the way. Nothing was changed.",
                 "Ese archivo no es texto legible, as\u00ed que puede haberse da\u00f1ado por el camino. No se cambi\u00f3 nada.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
                 "Ese archivo incluye un ajuste dos veces, as\u00ed que no se sabe qu\u00e9 valor usar. No se cambi\u00f3 nada.");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Eso no es un archivo de configuraci\u00f3n de HushPinterest. No se cambi\u00f3 nada.");
         table.put("That settings file holds a value HushPinterest can't read. Nothing was changed.",
@@ -1513,7 +1521,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(704);
+        Map<String, String> table = new HashMap<>(708);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1790,6 +1798,8 @@ public final class L10nTranslations {
                 "Sembunyikan tombol Notifikasi");
         table.put("Hide Promote pin menu item",
                 "Sembunyikan opsi Promosikan Pin");
+        table.put("Hide Search button",
+                "Sembunyikan tombol Cari");
         table.put("Hide Search image menu item",
                 "Sembunyikan opsi Cari gambar");
         table.put("Hide ads",
@@ -1820,6 +1830,8 @@ public final class L10nTranslations {
                 "Menyembunyikan Promosikan Pin di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.");
         table.put("Hides Search image in newly created pin menus. An existing menu won't change.",
                 "Menyembunyikan Cari gambar di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.");
+        table.put("Hides Search in the bottom bar on its next layout.",
+                "Menyembunyikan Cari di bilah bawah saat tata letaknya diperbarui berikutnya.");
         table.put("Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.",
                 "Menyembunyikan panel dan pratinjau komentar di bawah Pin saat tata letak atau visibilitasnya diperbarui berikutnya. Tidak mengubah siapa yang boleh berkomentar.");
         table.put("Hides new Play Store update prompts. An open prompt won't change.",
@@ -1886,13 +1898,13 @@ public final class L10nTranslations {
                 "Pengaturan lainnya");
         table.put("No HushPinterest downloads in this history.",
                 "Tidak ada unduhan HushPinterest dalam riwayat ini.");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("No HushPinterest release is out yet.",
                 "Belum ada rilis HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "Tidak ada unduhan yang diantrekan. Pilihan dihentikan, dibatalkan, atau tidak tersedia.");
         table.put("No matching settings",
@@ -2009,13 +2021,13 @@ public final class L10nTranslations {
                 "Pelengkapan otomatis pencarian terbaru");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Refresh",
                 "Muat ulang");
         table.put("Release notes",
                 "Catatan rilis");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Remove from history",
                 "Hapus dari riwayat");
         table.put("Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.",
@@ -2132,13 +2144,13 @@ public final class L10nTranslations {
                 "Ketuk untuk mengaktifkan HushPinterest lagi.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
                 "File itu terlalu besar untuk sebuah file pengaturan. Tidak ada yang diubah.");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("That file isn't readable text, so it may have been damaged on the way. Nothing was changed.",
                 "File itu bukan teks yang dapat dibaca, jadi mungkin rusak saat ditransfer. Tidak ada yang diubah.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
                 "File itu mencantumkan satu pengaturan dua kali, jadi tidak jelas nilai mana yang harus dipakai. Tidak ada yang diubah.");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Itu bukan file pengaturan HushPinterest. Tidak ada yang diubah.");
         table.put("That settings file holds a value HushPinterest can't read. Nothing was changed.",
@@ -2246,7 +2258,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(704);
+        Map<String, String> table = new HashMap<>(708);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2523,6 +2535,8 @@ public final class L10nTranslations {
                 "Ocultar bot\u00e3o Notifica\u00e7\u00f5es");
         table.put("Hide Promote pin menu item",
                 "Ocultar op\u00e7\u00e3o Promover Pin");
+        table.put("Hide Search button",
+                "Ocultar bot\u00e3o Pesquisar");
         table.put("Hide Search image menu item",
                 "Ocultar op\u00e7\u00e3o Buscar imagem");
         table.put("Hide ads",
@@ -2553,6 +2567,8 @@ public final class L10nTranslations {
                 "Oculta Promover Pin nos menus de Pin rec\u00e9m-criados. Um menu existente n\u00e3o muda.");
         table.put("Hides Search image in newly created pin menus. An existing menu won't change.",
                 "Oculta Buscar imagem nos menus de Pin rec\u00e9m-criados. Um menu existente n\u00e3o muda.");
+        table.put("Hides Search in the bottom bar on its next layout.",
+                "Oculta Pesquisar na barra inferior na pr\u00f3xima atualiza\u00e7\u00e3o de layout.");
         table.put("Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.",
                 "Oculta pain\u00e9is e pr\u00e9vias de coment\u00e1rios abaixo dos Pins na pr\u00f3xima atualiza\u00e7\u00e3o de layout ou visibilidade. N\u00e3o muda quem pode comentar.");
         table.put("Hides new Play Store update prompts. An open prompt won't change.",
@@ -2619,13 +2635,13 @@ public final class L10nTranslations {
                 "Mais configura\u00e7\u00f5es");
         table.put("No HushPinterest downloads in this history.",
                 "N\u00e3o h\u00e1 downloads do HushPinterest neste hist\u00f3rico.");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("No HushPinterest release is out yet.",
                 "Ainda n\u00e3o h\u00e1 nenhuma vers\u00e3o do HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Nenhum aplicativo neste dispositivo consegue abrir o link. O endere\u00e7o \u00e9 %1$s.");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "Nenhum download foi adicionado \u00e0 fila. A sele\u00e7\u00e3o foi parada, cancelada ou estava indispon\u00edvel.");
         table.put("No matching settings",
@@ -2742,13 +2758,13 @@ public final class L10nTranslations {
                 "Preenchimento autom\u00e1tico de pesquisas recentes");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Registra a atividade dos patches e mostra os erros para um relat\u00f3rio de problema. Mantenha desativado durante o uso normal.");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Refresh",
                 "Atualizar");
         table.put("Release notes",
                 "Notas da vers\u00e3o");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Remove from history",
                 "Remover do hist\u00f3rico");
         table.put("Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.",
@@ -2865,13 +2881,13 @@ public final class L10nTranslations {
                 "Toque para reativar.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
                 "Esse arquivo \u00e9 grande demais para ser um arquivo de configura\u00e7\u00f5es. Nada foi alterado.");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("That file isn't readable text, so it may have been damaged on the way. Nothing was changed.",
                 "Esse arquivo n\u00e3o cont\u00e9m texto leg\u00edvel, ent\u00e3o pode ter sido corrompido durante o processo. Nada foi alterado.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
                 "Esse arquivo cont\u00e9m uma configura\u00e7\u00e3o duplicada, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel saber qual valor usar. Nada foi alterado.");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Isso n\u00e3o \u00e9 um arquivo de configura\u00e7\u00f5es do HushPinterest. Nada foi alterado.");
         table.put("That settings file holds a value HushPinterest can't read. Nothing was changed.",
@@ -2979,7 +2995,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(704);
+        Map<String, String> table = new HashMap<>(708);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3256,6 +3272,8 @@ public final class L10nTranslations {
                 "Bildirimler d\u00fc\u011fmesini gizle");
         table.put("Hide Promote pin menu item",
                 "Pin tan\u0131t men\u00fc \u00f6\u011fesini gizle");
+        table.put("Hide Search button",
+                "Ara d\u00fc\u011fmesini gizle");
         table.put("Hide Search image menu item",
                 "G\u00f6rsel ara men\u00fc \u00f6\u011fesini gizle");
         table.put("Hide ads",
@@ -3286,6 +3304,8 @@ public final class L10nTranslations {
                 "Yeni olu\u015fturulan Pin men\u00fclerinde Pin tan\u0131t \u00f6\u011fesini gizler. Mevcut bir men\u00fc de\u011fi\u015fmez.");
         table.put("Hides Search image in newly created pin menus. An existing menu won't change.",
                 "Yeni olu\u015fturulan Pin men\u00fclerinde G\u00f6rsel ara \u00f6\u011fesini gizler. Mevcut bir men\u00fc de\u011fi\u015fmez.");
+        table.put("Hides Search in the bottom bar on its next layout.",
+                "Alt \u00e7ubuktaki Ara d\u00fc\u011fmesini sonraki d\u00fczen g\u00fcncellemesinde gizler.");
         table.put("Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.",
                 "Pinlerin alt\u0131ndaki yorum panellerini ve \u00f6nizlemelerini sonraki d\u00fczen veya g\u00f6r\u00fcn\u00fcrl\u00fck g\u00fcncellemesinde gizler. Kimlerin yorum yapabilece\u011fini de\u011fi\u015ftirmez.");
         table.put("Hides new Play Store update prompts. An open prompt won't change.",
@@ -3352,13 +3372,13 @@ public final class L10nTranslations {
                 "Di\u011fer ayarlar");
         table.put("No HushPinterest downloads in this history.",
                 "Bu ge\u00e7mi\u015fte HushPinterest indirmesi yok.");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("No HushPinterest release is out yet.",
                 "Hen\u00fcz bir HushPinterest s\u00fcr\u00fcm\u00fc yay\u0131nlanmad\u0131.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Bu telefondaki hi\u00e7bir uygulama ba\u011flant\u0131y\u0131 a\u00e7am\u0131yor. Adres: %1$s.");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "\u0130ndirme s\u0131raya al\u0131nmad\u0131. Se\u00e7im durduruldu, iptal edildi veya kullan\u0131lam\u0131yordu.");
         table.put("No matching settings",
@@ -3475,13 +3495,13 @@ public final class L10nTranslations {
                 "Son aramalarda otomatik tamamlama");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Hata raporu i\u00e7in yama etkinli\u011fini kaydeder ve hatalar\u0131 g\u00f6sterir. Normal kullan\u0131mda kapal\u0131 b\u0131rak\u0131n.");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Refresh",
                 "Yenile");
         table.put("Release notes",
                 "S\u00fcr\u00fcm notlar\u0131");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Remove from history",
                 "Ge\u00e7mi\u015ften kald\u0131r");
         table.put("Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.",
@@ -3598,13 +3618,13 @@ public final class L10nTranslations {
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
                 "Bu dosya bir ayar dosyas\u0131 olamayacak kadar b\u00fcy\u00fck. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("That file isn't readable text, so it may have been damaged on the way. Nothing was changed.",
                 "Bu dosya okunabilir bir metin de\u011fil, aktar\u0131m s\u0131ras\u0131nda hasar g\u00f6rm\u00fc\u015f olabilir. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
                 "Bu dosyada bir ayar iki kez ge\u00e7iyor, bu y\u00fczden hangi de\u011ferin kullan\u0131laca\u011f\u0131 belli de\u011fil. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Bu bir HushPinterest ayar dosyas\u0131 de\u011fil. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("That settings file holds a value HushPinterest can't read. Nothing was changed.",

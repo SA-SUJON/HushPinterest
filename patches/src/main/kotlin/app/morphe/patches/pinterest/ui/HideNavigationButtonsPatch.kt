@@ -27,7 +27,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 @Suppress("unused")
 val hideNavigationButtonsPatch = bytecodePatch(
     name = "Hide navigation buttons",
-    description = "Adds separate switches for the Create and Updates navigation buttons. Home, Search and Profile remain available.",
+    description = "Adds separate switches for the Create, Updates and Search navigation buttons. Home and Profile remain available.",
     default = false,
 ) {
     category("Interface")
@@ -42,7 +42,7 @@ val hideNavigationButtonsPatch = bytecodePatch(
         val tab = model.fields.filter { field ->
             val enum = classDefByOrNull(field.type)
             enum?.superclass == "Ljava/lang/Enum;" &&
-                enum.fields.map { it.name }.containsAll(listOf("HOME", "PROFILE", "CREATE", "NOTIFICATIONS"))
+                enum.fields.map { it.name }.containsAll(listOf("HOME", "PROFILE", "CREATE", "NOTIFICATIONS", "SEARCH"))
         }.one("Bottom navigation tab identity")
         val navigationType = methodsWithString("BottomNavBar tab insertion out of range").map { it.definingClass }
             .distinct().one("Bottom navigation view")

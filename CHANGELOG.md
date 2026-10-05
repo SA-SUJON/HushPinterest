@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 Unreleased source changes. The published release remains 0.0.3.
 
+* **Pinterest:** Hide navigation buttons has a third switch, Hide Search button, beside Create and Notifications. It starts off. Home and Profile always stay in the bottom bar.
+
 * **Pinterest:** With Download pins on, the pin menu has a Copy media link row under Download pin. It copies the address of the same original image or MP4 the download would save, read from the pin when you tap it, and it's only offered when Pinterest supplied one.
 
 * **Pinterest:** Hide ads now also keeps Google's mobile ads SDK from starting when Pinterest opens. Pinterest only starts it for accounts in its Google ads test, and with the SDK idle no Google ad is requested or shown. Turning Hide ads off or pausing HushPinterest lets it start again on the next launch.

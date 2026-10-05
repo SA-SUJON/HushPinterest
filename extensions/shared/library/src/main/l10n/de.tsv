@@ -185,6 +185,7 @@ Hide search history	Suchverlauf ausblenden
 Hide navigation buttons	Navigationsschaltflächen ausblenden
 Hide Create button	Erstellen-Schaltfläche ausblenden
 Hide Notifications button	Benachrichtigungen-Schaltfläche ausblenden
+Hide Search button	Suche-Schaltfläche ausblenden
 Hide header buttons	Kopfzeilenschaltflächen ausblenden
 Filter pin menu	Pin-Menü filtern
 Hide collage menu items	Collage-Menüeinträge ausblenden
@@ -308,6 +309,7 @@ Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still
 Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Blendet Zeilen und Karussells mit letzten Suchen bei der nächsten Aktualisierung des Layouts oder der Sichtbarkeit aus. Der Suchverlauf deines Kontos wird nicht gelöscht.
 Hides Create in the bottom bar on its next layout.	Blendet Erstellen in der unteren Leiste bei der nächsten Layout-Aktualisierung aus.
 Hides Notifications in the bottom bar on its next layout.	Blendet Benachrichtigungen in der unteren Leiste bei der nächsten Layout-Aktualisierung aus.
+Hides Search in the bottom bar on its next layout.	Blendet Suche in der unteren Leiste bei der nächsten Layout-Aktualisierung aus.
 Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Blendet die Symbole am Ende der Kopfleiste bei der nächsten Layout-Aktualisierung aus. Zurück, Textaktionen und Kontosteuerung bleiben verfügbar.
 Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Blendet Zur Collage hinzufügen und Collage remixen in neu erstellten Pin-Menüs aus. Ein vorhandenes Menü bleibt unverändert.
 Hides Search image in newly created pin menus. An existing menu won't change.	Blendet Bild suchen in neu erstellten Pin-Menüs aus. Ein vorhandenes Menü bleibt unverändert.

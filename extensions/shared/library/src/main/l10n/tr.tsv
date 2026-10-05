@@ -185,6 +185,7 @@ Hide search history	Arama geçmişini gizle
 Hide navigation buttons	Gezinme düğmelerini gizle
 Hide Create button	Oluştur düğmesini gizle
 Hide Notifications button	Bildirimler düğmesini gizle
+Hide Search button	Ara düğmesini gizle
 Hide header buttons	Başlık düğmelerini gizle
 Filter pin menu	Pin menüsünü filtrele
 Hide collage menu items	Kolaj menü öğelerini gizle
@@ -308,6 +309,7 @@ Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still
 Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Son arama satırlarını ve kaydırmalı listeleri sonraki düzen veya görünürlük güncellemesinde gizler. Hesabın arama geçmişini silmez.
 Hides Create in the bottom bar on its next layout.	Alt çubuktaki Oluştur düğmesini sonraki düzen güncellemesinde gizler.
 Hides Notifications in the bottom bar on its next layout.	Alt çubuktaki Bildirimler düğmesini sonraki düzen güncellemesinde gizler.
+Hides Search in the bottom bar on its next layout.	Alt çubuktaki Ara düğmesini sonraki düzen güncellemesinde gizler.
 Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Üst çubuğun sonundaki simgeleri sonraki düzen güncellemesinde gizler. Geri, metin işlemleri ve hesap kontrolleri kullanılabilir kalır.
 Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Yeni oluşturulan Pin menülerinde Kolaja ekle ve Kolajı remiksle öğelerini gizler. Mevcut bir menü değişmez.
 Hides Search image in newly created pin menus. An existing menu won't change.	Yeni oluşturulan Pin menülerinde Görsel ara öğesini gizler. Mevcut bir menü değişmez.

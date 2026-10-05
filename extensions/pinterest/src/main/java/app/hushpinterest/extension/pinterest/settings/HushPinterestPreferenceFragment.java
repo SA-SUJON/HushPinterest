@@ -294,6 +294,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hide Create button"), L10n.t("Hides Create in the bottom bar on its next layout."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_NOTIFICATIONS,
                     L10n.t("Hide Notifications button"), L10n.t("Hides Notifications in the bottom bar on its next layout."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_SEARCH,
+                    L10n.t("Hide Search button"), L10n.t("Hides Search in the bottom bar on its next layout."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_HEADER_BUTTONS, Settings.HIDE_HEADER_BUTTONS,
                     L10n.t("Hide header buttons"),
                     L10n.t("Hides trailing header icons on their next layout. Back, text actions and account controls stay available."), SettingsIcons.BLOCK);

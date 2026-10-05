@@ -64,7 +64,7 @@ There are 19 patches so far.
 | `Hide advertising ID` | Pinterest and the ad and tracking code inside it read an all-zero advertising ID with ad tracking limited, the same answer Android gives after you delete your ad ID. A switch and Pause hand back the real ID. |
 | `Hide comments` | Collapses comments panels and comment previews beneath pins. It doesn't change who can comment on your pins. |
 | `Hide header buttons` | Hides trailing header icon buttons. Back buttons, text actions and account controls remain available. |
-| `Hide navigation buttons` | Adds separate switches for the Create and Updates navigation buttons. Home, Search and Profile remain available. |
+| `Hide navigation buttons` | Adds separate switches for the Create, Updates and Search navigation buttons. Home and Profile remain available. |
 | `Hide save toasts` | Stops the pop-up Pinterest shows after you save a pin, such as "Saved to" your board or the suggestion to follow the pin's creator. The pin is still saved. |
 | `Hide search history` | Hides recent-search rows and carousels on this device. It doesn't delete your account's search history. |
 | `Hide shopping and product pins` | Hides shoppable pins, shopping stories and featured board placements. Off by default. Turn it on in HushPinterest settings when you want a feed without shopping. |

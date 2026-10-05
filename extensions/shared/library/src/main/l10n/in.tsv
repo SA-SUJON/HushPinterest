@@ -185,6 +185,7 @@ Hide search history	Sembunyikan riwayat pencarian
 Hide navigation buttons	Sembunyikan tombol navigasi
 Hide Create button	Sembunyikan tombol Buat
 Hide Notifications button	Sembunyikan tombol Notifikasi
+Hide Search button	Sembunyikan tombol Cari
 Hide header buttons	Sembunyikan tombol header
 Filter pin menu	Filter menu Pin
 Hide collage menu items	Sembunyikan opsi kolase
@@ -308,6 +309,7 @@ Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still
 Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Menyembunyikan baris dan karusel pencarian terbaru saat tata letak atau visibilitasnya diperbarui berikutnya. Riwayat pencarian akun tidak dihapus.
 Hides Create in the bottom bar on its next layout.	Menyembunyikan Buat di bilah bawah saat tata letaknya diperbarui berikutnya.
 Hides Notifications in the bottom bar on its next layout.	Menyembunyikan Notifikasi di bilah bawah saat tata letaknya diperbarui berikutnya.
+Hides Search in the bottom bar on its next layout.	Menyembunyikan Cari di bilah bawah saat tata letaknya diperbarui berikutnya.
 Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Menyembunyikan ikon di ujung bilah judul saat tata letaknya diperbarui berikutnya. Kembali, tindakan teks, dan kontrol akun tetap tersedia.
 Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Menyembunyikan Tambahkan ke kolase dan Remix kolase di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
 Hides Search image in newly created pin menus. An existing menu won't change.	Menyembunyikan Cari gambar di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.

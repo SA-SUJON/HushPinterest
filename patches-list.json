@@ -403,7 +403,7 @@
     },
     {
       "name": "Hide navigation buttons",
-      "description": "Adds separate switches for the Create and Updates navigation buttons. Home, Search and Profile remain available.",
+      "description": "Adds separate switches for the Create, Updates and Search navigation buttons. Home and Profile remain available.",
       "category": "Interface",
       "use": false,
       "dependencies": [

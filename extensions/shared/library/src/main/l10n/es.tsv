@@ -185,6 +185,7 @@ Hide search history	Ocultar historial de búsquedas
 Hide navigation buttons	Ocultar botones de navegación
 Hide Create button	Ocultar botón Crear
 Hide Notifications button	Ocultar botón Notificaciones
+Hide Search button	Ocultar botón Buscar
 Hide header buttons	Ocultar botones del encabezado
 Filter pin menu	Filtrar menú del pin
 Hide collage menu items	Ocultar opciones de collage
@@ -308,6 +309,7 @@ Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still
 Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Oculta las filas y los carruseles de búsquedas recientes en su próxima actualización de diseño o visibilidad. No elimina el historial de la cuenta.
 Hides Create in the bottom bar on its next layout.	Oculta Crear en la barra inferior cuando vuelva a actualizarse su diseño.
 Hides Notifications in the bottom bar on its next layout.	Oculta Notificaciones en la barra inferior cuando vuelva a actualizarse su diseño.
+Hides Search in the bottom bar on its next layout.	Oculta Buscar en la barra inferior cuando vuelva a actualizarse su diseño.
 Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Oculta los iconos al final de la cabecera en su próxima actualización de diseño. Volver, las acciones de texto y los controles de cuenta siguen disponibles.
 Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Oculta Añadir al collage y Remezclar collage en los menús de pines recién creados. Un menú existente no cambia.
 Hides Search image in newly created pin menus. An existing menu won't change.	Oculta Buscar imagen en los menús de pines recién creados. Un menú existente no cambia.
