@@ -170,6 +170,7 @@ public class PausedHooksTest {
                     return filtersOut(ad);
                 },
                 () -> Ads.adViewVisibility(View.VISIBLE) != View.VISIBLE,
+                Ads::skipGoogleAds,
                 () -> Ads.adViewMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC));
         // A pin Pinterest labels as AI-modified leaves the page.
         probes.put(Settings.HIDE_AI_PINS, Collections.singletonList(() -> {

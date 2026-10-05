@@ -28,7 +28,7 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # Guard mutations list one or more hook/selector pairs.
 # The clean APK supplies the callers. Final flags do not excuse missing, duplicated or misplaced calls.
 # Feed ownership is shared. Ad views and the Play Core update prompt can be absent in a supported target.
-family|hideAds|Hide ads|feedAds,adViews
+family|hideAds|Hide ads|feedAds,adViews,googleAds
 family|hideAiPins|Hide AI-labeled pins|feedAiPins
 family|hideShopping|Hide shopping and product pins|feedShopping
 family|disableAnalytics|Disable analytics|analyticsTasks,analyticsUploads
@@ -50,6 +50,7 @@ family|disableUpdateNag|Disable update nag|updateNag
 mutation|settings|settings|Lcom/pinterest/ReleaseHiltApplication;|Lcom/pinterest/activity/PinterestActivity;|Lapp/hushpinterest/extension/pinterest/settings/SettingsEntry;
 mutation|feedAds,feedAiPins,feedShopping|feed|Lapp/hushpinterest/extension/pinterest/ads/FeedFilter;->filter(Ljava/util/List;)Ljava/util/List;|, _items count:|PagedResponse(bookmark=|ModelListWithBookmark(models=
 mutation|adViews|views|Lapp/hushpinterest/extension/pinterest/ads/Ads;->adViewVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ads/Ads;->adViewMeasureSpec(I)I|Lcom/pinterest/featurelibrary/textads/TextAdView;,Lcom/pinterest/activity/pin/view/modules/LegacyPromotedCloseupActionButtonModule;,Lcom/pinterest/feature/pin/closeup/view/PromotedPinCloseupFloatingActionBarModule;,Lcom/pinterest/feature/board/detail/header/view/lego/BoardSponsoredCuratorView;
+mutation|googleAds|guard|Lapp/hushpinterest/extension/pinterest/ads/Ads;->skipGoogleAds()Z|googleAds
 mutation|analyticsTasks,analyticsUploads|analytics|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->blockTask(Ljava/lang/Object;)Z|Ljava/net/URL;->openConnection()Ljava/net/URLConnection;|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->openConnection(Ljava/net/URL;)Ljava/net/URLConnection;|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->blockUpload()Z|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->engageService(Ljava/lang/Object;)Ljava/lang/Object;
 mutation|linkTracking|links|Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->putStringExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;|Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->putTextExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;|Landroid/content/ClipData;->newPlainText(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->newPlainText(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;
 mutation|advertisingId|answers|Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;->getId()Ljava/lang/String;|Lapp/hushpinterest/extension/pinterest/privacy/AdvertisingId;->id(Ljava/lang/String;)Ljava/lang/String;|Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;->isLimitAdTrackingEnabled()Z|Lapp/hushpinterest/extension/pinterest/privacy/AdvertisingId;->limitTracking(Z)Z

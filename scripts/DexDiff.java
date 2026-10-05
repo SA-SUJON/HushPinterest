@@ -2774,6 +2774,15 @@ public class DexDiff {
                 for (String type : types) for (Method m : clean.classes.get(type).getMethods())
                     if (m.getName().equals("onCreate") && descriptor(m).equals("(Landroid/os/Bundle;)V")) targets.add(m);
                 before = 1;
+            } else if (selector.equals("googleAds")) {
+                for (Method m : clean.methods.values()) {
+                    if (m.getDefiningClass().startsWith(OWN) || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !descriptor(m).equals("()V")) continue;
+                    if (instructions(m).stream().anyMatch(i -> i.getOpcode() == Opcode.SGET_OBJECT && reference(i) instanceof FieldReference
+                            && ((FieldReference) reference(i)).getName().equals("GOOGLE_MOBILE_ADS")
+                            && ((FieldReference) reference(i)).getType().equals(((FieldReference) reference(i)).getDefiningClass()))) targets.add(m);
+                }
+                // A build without the launch step keeps the capability off, and the patch only warns.
+                if (targets.isEmpty()) return false;
             } else if (selector.equals("saveToast")) {
                 ClassDef container = clean.classes.get(TOAST_CONTAINER);
                 if (container != null) for (Method m : container.getMethods()) {

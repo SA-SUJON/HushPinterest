@@ -227,7 +227,7 @@
     },
     {
       "name": "Hide ads",
-      "description": "Removes promoted pins from the home feed, search, related pins and boards, and hides Pinterest's ad-only panels. Turn it off in HushPinterest settings at any time.",
+      "description": "Removes promoted pins from the home feed, search, related pins and boards, and hides Pinterest's ad-only panels. Google's ad SDK isn't started when Pinterest opens. Turn it off in HushPinterest settings at any time.",
       "category": "Ads",
       "use": true,
       "dependencies": [

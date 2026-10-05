@@ -567,6 +567,7 @@ public final class FeatureDexFixture {
                     : variant.equals("ads") ? new String[]{"hideAds"} : new String[]{"hideAds", "hideAiPins", "hideShopping"};
             for (String family : selected) enable(family);
             FLAGS.put("adViews", false);
+            FLAGS.put("googleAds", false);
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             feed(classes, variant);
             write(root, "feature-feed-" + variant, classes, true, selected);

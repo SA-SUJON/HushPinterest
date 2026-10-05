@@ -124,6 +124,7 @@ public enum PatchFamily {
     public enum Capability {
         FEED_ADS(HIDE_ADS, "feedAds", "promoted pins in lists"),
         AD_VIEWS(HIDE_ADS, "adViews", "ad-only views"),
+        GOOGLE_ADS(HIDE_ADS, "googleAds", "Google ad SDK start"),
         FEED_AI_PINS(HIDE_AI_PINS, "feedAiPins", "AI-labeled pins in lists"),
         FEED_SHOPPING(HIDE_SHOPPING, "feedShopping", "Hide shopping and product pins"),
         ANALYTICS_TASKS(DISABLE_ANALYTICS, "analyticsTasks", "Analytics launch tasks"),
