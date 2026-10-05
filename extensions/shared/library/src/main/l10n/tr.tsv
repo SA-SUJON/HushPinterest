@@ -263,6 +263,10 @@ Only unfinished saves are listed. Check your chosen location before saving again
 Pin saved. Check Pending saves if its history remains.	Pin kaydedildi. Geçmiş kaydı kalırsa Bekleyen kaydetmeler bölümünü kontrol edin.
 Download unavailable	İndirme kullanılamıyor
 Supplied media details	Sağlanan medya ayrıntıları
+Copy media link	Medya bağlantısını kopyala
+Media link	Medya bağlantısı
+Media link copied.	Medya bağlantısı kopyalandı.
+Couldn't copy the media link. Open the pin again and try again.	Medya bağlantısı kopyalanamadı. Pin'i yeniden açıp tekrar dene.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Bu ayrıntılar Pinterest'in sağladığı medya adresinden ve meta verilerden gelir. Dosya incelenmedi.
 Supplied width: %s	Sağlanan genişlik: %s
 Supplied height: %s	Sağlanan yükseklik: %s

@@ -263,6 +263,10 @@ Only unfinished saves are listed. Check your chosen location before saving again
 Pin saved. Check Pending saves if its history remains.	Pin gespeichert. Prüfe Ausstehende Speichervorgänge, falls der Verlaufseintrag bleibt.
 Download unavailable	Download nicht verfügbar
 Supplied media details	Bereitgestellte Mediendetails
+Copy media link	Medienlink kopieren
+Media link	Medienlink
+Media link copied.	Medienlink kopiert.
+Couldn't copy the media link. Open the pin again and try again.	Der Medienlink konnte nicht kopiert werden. Öffne den Pin erneut und versuche es noch einmal.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Diese Details stammen aus der Medien-URL und den von Pinterest bereitgestellten Metadaten. Die Datei wurde nicht untersucht.
 Supplied width: %s	Bereitgestellte Breite: %s
 Supplied height: %s	Bereitgestellte Höhe: %s

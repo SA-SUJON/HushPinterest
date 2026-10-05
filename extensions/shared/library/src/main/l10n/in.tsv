@@ -263,6 +263,10 @@ Only unfinished saves are listed. Check your chosen location before saving again
 Pin saved. Check Pending saves if its history remains.	Pin disimpan. Periksa Penyimpanan tertunda jika riwayatnya masih ada.
 Download unavailable	Unduhan tidak tersedia
 Supplied media details	Detail media yang diberikan
+Copy media link	Salin tautan media
+Media link	Tautan media
+Media link copied.	Tautan media disalin.
+Couldn't copy the media link. Open the pin again and try again.	Tautan media tidak dapat disalin. Buka Pin lagi dan coba lagi.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Detail ini berasal dari URL media dan metadata yang diberikan Pinterest. File belum diperiksa.
 Supplied width: %s	Lebar yang diberikan: %s
 Supplied height: %s	Tinggi yang diberikan: %s
