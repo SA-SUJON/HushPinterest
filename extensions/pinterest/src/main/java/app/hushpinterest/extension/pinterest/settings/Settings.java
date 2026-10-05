@@ -86,6 +86,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_quiet_email_reminder", FALSE);
     public static final BooleanSetting HIDE_SAVE_TOASTS =
             new BooleanSetting("hushpinterest_hide_save_toasts", FALSE);
+    public static final BooleanSetting ORIGINAL_IMAGES =
+            new BooleanSetting("hushpinterest_original_images", FALSE);
     public static final BooleanSetting DISABLE_UPDATE_NAG =
             new BooleanSetting("hushpinterest_disable_update_nag", FALSE);
 

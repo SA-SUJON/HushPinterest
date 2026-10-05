@@ -318,6 +318,8 @@ Hides comments panels and previews under pins on their next layout or visibility
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Menutup pengingat opsional konfirmasi email yang baru dibuat. Pengingat yang terbuka tidak berubah. Pemeriksaan verifikasi dan masuk tetap berlaku.
 Hide save toasts	Sembunyikan notifikasi simpan
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Menyimpan Pin tidak lagi memunculkan "Disimpan ke" papanmu atau saran untuk mengikuti pembuatnya. Pin tetap tersimpan.
+Original-quality images	Gambar kualitas asli
+Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Memilih gambar asli sebelum ukuran besar jika Pinterest menyediakannya. Memakai lebih banyak data. Gambar yang sudah tampil berubah saat dimuat ulang.
 Save media	Simpan media
 Recent searches autocomplete	Pelengkapan otomatis pencarian terbaru
 Activity alerts	Notifikasi aktivitas

@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(708);
+        Map<String, String> table = new HashMap<>(712);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -479,6 +479,8 @@ public final class L10nTranslations {
                 "\u201eUnterst\u00fctzte Links \u00f6ffnen\u201c ist f\u00fcr diese App in den Android-Einstellungen aus. Tippe, um es einzuschalten.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Optionale Hilfe zur Anmeldung, zu unterst\u00fctzten Links, zur Patch-Auswahl und zu Sicherungen.");
+        table.put("Original-quality images",
+                "Bilder in Originalqualit\u00e4t");
         table.put("Pause",
                 "Pausieren");
         table.put("Pause HushPinterest",
@@ -491,6 +493,8 @@ public final class L10nTranslations {
                 "Von Android pausiert.");
         table.put("Pending saves",
                 "Ausstehende Speichervorg\u00e4nge");
+        table.put("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.",
+                "W\u00e4hlt das Originalbild vor der gro\u00dfen Gr\u00f6\u00dfe, wenn Pinterest eines bereitstellt. Verbraucht mehr Daten. Bereits angezeigte Bilder \u00e4ndern sich, wenn sie neu geladen werden.");
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
@@ -543,13 +547,13 @@ public final class L10nTranslations {
                 "Lies die HushPinterest-Versionshinweise auf GitHub. Hier wird nichts heruntergeladen.");
         table.put("Reading the settings file",
                 "Einstellungsdatei wird gelesen");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Recent searches autocomplete",
                 "Autovervollst\u00e4ndigung der letzten Suchen");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Zeichnet Patch-Aktivit\u00e4t auf und zeigt Fehler f\u00fcr einen Fehlerbericht. Im Alltag ausgeschaltet lassen.");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Refresh",
                 "Aktualisieren");
         table.put("Release notes",
@@ -666,13 +670,13 @@ public final class L10nTranslations {
                 "Unterst\u00fctzte Links");
         table.put("System share sheet",
                 "Systemmen\u00fc zum Teilen");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Zum Wiedereinschalten tippen.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
                 "Diese Datei ist zu gro\u00df f\u00fcr eine Einstellungsdatei. Es wurde nichts ge\u00e4ndert.");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("That file isn't readable text, so it may have been damaged on the way. Nothing was changed.",
                 "Diese Datei ist kein lesbarer Text, sie wurde also wom\u00f6glich bei der \u00dcbertragung besch\u00e4digt. Es wurde nichts ge\u00e4ndert.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
@@ -784,7 +788,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(708);
+        Map<String, String> table = new HashMap<>(712);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1216,6 +1220,8 @@ public final class L10nTranslations {
                 "\u201cAbrir enlaces compatibles\u201d est\u00e1 desactivado para esta app en los ajustes de Android. Toca para activarlo.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Ayuda opcional para iniciar sesi\u00f3n, abrir enlaces compatibles, elegir parches y hacer copias de seguridad.");
+        table.put("Original-quality images",
+                "Im\u00e1genes en calidad original");
         table.put("Pause",
                 "Pausar");
         table.put("Pause HushPinterest",
@@ -1228,6 +1234,8 @@ public final class L10nTranslations {
                 "Android lo puso en pausa.");
         table.put("Pending saves",
                 "Guardados pendientes");
+        table.put("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.",
+                "Elige la imagen original antes del tama\u00f1o grande cuando Pinterest la proporciona. Usa m\u00e1s datos. Las im\u00e1genes que ya se ven cambian al volver a cargarse.");
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
@@ -1280,13 +1288,13 @@ public final class L10nTranslations {
                 "Lee las notas de las versiones de HushPinterest en GitHub. Aqu\u00ed no se descarga nada.");
         table.put("Reading the settings file",
                 "Leyendo el archivo de configuraci\u00f3n");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Recent searches autocomplete",
                 "Autocompletado de b\u00fasquedas recientes");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Registra la actividad de los parches y muestra errores para un informe. D\u00e9jalo desactivado en el uso normal.");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Refresh",
                 "Actualizar");
         table.put("Release notes",
@@ -1403,13 +1411,13 @@ public final class L10nTranslations {
                 "Enlaces compatibles");
         table.put("System share sheet",
                 "Men\u00fa de compartir del sistema");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Toca para volver a activarlo.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
                 "Ese archivo es demasiado grande para ser un archivo de configuraci\u00f3n. No se cambi\u00f3 nada.");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("That file isn't readable text, so it may have been damaged on the way. Nothing was changed.",
                 "Ese archivo no es texto legible, as\u00ed que puede haberse da\u00f1ado por el camino. No se cambi\u00f3 nada.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
@@ -1521,7 +1529,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(708);
+        Map<String, String> table = new HashMap<>(712);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1953,6 +1961,8 @@ public final class L10nTranslations {
                 "\u201cBuka link yang didukung\u201d nonaktif untuk aplikasi ini di pengaturan Android. Ketuk untuk mengaktifkannya.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Bantuan opsional untuk masuk, tautan yang didukung, pilihan patch, dan pencadangan.");
+        table.put("Original-quality images",
+                "Gambar kualitas asli");
         table.put("Pause",
                 "Jeda");
         table.put("Pause HushPinterest",
@@ -1965,6 +1975,8 @@ public final class L10nTranslations {
                 "Dijeda oleh Android.");
         table.put("Pending saves",
                 "Penyimpanan tertunda");
+        table.put("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.",
+                "Memilih gambar asli sebelum ukuran besar jika Pinterest menyediakannya. Memakai lebih banyak data. Gambar yang sudah tampil berubah saat dimuat ulang.");
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
@@ -2017,13 +2029,13 @@ public final class L10nTranslations {
                 "Baca rilis HushPinterest di GitHub. Tidak ada yang diunduh di sini.");
         table.put("Reading the settings file",
                 "Membaca file pengaturan");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Recent searches autocomplete",
                 "Pelengkapan otomatis pencarian terbaru");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Refresh",
                 "Muat ulang");
         table.put("Release notes",
@@ -2140,13 +2152,13 @@ public final class L10nTranslations {
                 "Tautan yang didukung");
         table.put("System share sheet",
                 "Menu berbagi sistem");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Ketuk untuk mengaktifkan HushPinterest lagi.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
                 "File itu terlalu besar untuk sebuah file pengaturan. Tidak ada yang diubah.");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("That file isn't readable text, so it may have been damaged on the way. Nothing was changed.",
                 "File itu bukan teks yang dapat dibaca, jadi mungkin rusak saat ditransfer. Tidak ada yang diubah.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
@@ -2258,7 +2270,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(708);
+        Map<String, String> table = new HashMap<>(712);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2690,6 +2702,8 @@ public final class L10nTranslations {
                 "\u201cAbrir links compat\u00edveis\u201d est\u00e1 desativado para este app nas configura\u00e7\u00f5es do Android. Toque para ativar.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Ajuda opcional para entrar, abrir links compat\u00edveis, escolher patches e fazer backups.");
+        table.put("Original-quality images",
+                "Imagens em qualidade original");
         table.put("Pause",
                 "Pausar");
         table.put("Pause HushPinterest",
@@ -2702,6 +2716,8 @@ public final class L10nTranslations {
                 "Pausado pelo Android.");
         table.put("Pending saves",
                 "Salvamentos pendentes");
+        table.put("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.",
+                "Escolhe a imagem original antes do tamanho grande quando o Pinterest a fornece. Usa mais dados. Imagens j\u00e1 exibidas mudam quando forem recarregadas.");
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
@@ -2754,13 +2770,13 @@ public final class L10nTranslations {
                 "Leia as vers\u00f5es do HushPinterest no GitHub. Nada \u00e9 baixado aqui.");
         table.put("Reading the settings file",
                 "Lendo o arquivo de configura\u00e7\u00f5es");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Recent searches autocomplete",
                 "Preenchimento autom\u00e1tico de pesquisas recentes");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Registra a atividade dos patches e mostra os erros para um relat\u00f3rio de problema. Mantenha desativado durante o uso normal.");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Refresh",
                 "Atualizar");
         table.put("Release notes",
@@ -2877,13 +2893,13 @@ public final class L10nTranslations {
                 "Links compat\u00edveis");
         table.put("System share sheet",
                 "Menu de compartilhamento do sistema");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Toque para reativar.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
                 "Esse arquivo \u00e9 grande demais para ser um arquivo de configura\u00e7\u00f5es. Nada foi alterado.");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("That file isn't readable text, so it may have been damaged on the way. Nothing was changed.",
                 "Esse arquivo n\u00e3o cont\u00e9m texto leg\u00edvel, ent\u00e3o pode ter sido corrompido durante o processo. Nada foi alterado.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
@@ -2995,7 +3011,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(708);
+        Map<String, String> table = new HashMap<>(712);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3427,6 +3443,8 @@ public final class L10nTranslations {
                 "\u201cDesteklenen ba\u011flant\u0131lar\u0131 a\u00e7\u201d Android ayarlar\u0131nda bu uygulama i\u00e7in kapal\u0131. A\u00e7mak i\u00e7in dokunun.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Giri\u015f, desteklenen ba\u011flant\u0131lar, yama se\u00e7imleri ve yedeklemeler i\u00e7in iste\u011fe ba\u011fl\u0131 yard\u0131m.");
+        table.put("Original-quality images",
+                "Orijinal kalitede g\u00f6rseller");
         table.put("Pause",
                 "Duraklat");
         table.put("Pause HushPinterest",
@@ -3439,6 +3457,8 @@ public final class L10nTranslations {
                 "Android taraf\u0131ndan duraklat\u0131ld\u0131.");
         table.put("Pending saves",
                 "Bekleyen kaydetmeler");
+        table.put("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.",
+                "Pinterest sa\u011flad\u0131\u011f\u0131nda b\u00fcy\u00fck boyut yerine orijinal g\u00f6rseli se\u00e7er. Daha fazla veri kullan\u0131r. Ekrandaki g\u00f6rseller yeniden y\u00fcklendi\u011finde de\u011fi\u015fir.");
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
@@ -3491,13 +3511,13 @@ public final class L10nTranslations {
                 "HushPinterest s\u00fcr\u00fcmlerini GitHub'da oku. Burada hi\u00e7bir \u015fey indirilmez.");
         table.put("Reading the settings file",
                 "Ayar dosyas\u0131 okunuyor");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Recent searches autocomplete",
                 "Son aramalarda otomatik tamamlama");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Hata raporu i\u00e7in yama etkinli\u011fini kaydeder ve hatalar\u0131 g\u00f6sterir. Normal kullan\u0131mda kapal\u0131 b\u0131rak\u0131n.");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Refresh",
                 "Yenile");
         table.put("Release notes",
@@ -3614,13 +3634,13 @@ public final class L10nTranslations {
                 "Desteklenen ba\u011flant\u0131lar");
         table.put("System share sheet",
                 "Sistem payla\u015f\u0131m men\u00fcs\u00fc");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
                 "Bu dosya bir ayar dosyas\u0131 olamayacak kadar b\u00fcy\u00fck. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("That file isn't readable text, so it may have been damaged on the way. Nothing was changed.",
                 "Bu dosya okunabilir bir metin de\u011fil, aktar\u0131m s\u0131ras\u0131nda hasar g\u00f6rm\u00fc\u015f olabilir. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",

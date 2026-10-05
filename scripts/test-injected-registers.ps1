@@ -597,7 +597,7 @@ try {
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
     $families = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('family|') } |
         ForEach-Object { $values = $_ -split '\|'; [pscustomobject]@{ Flag = $values[1]; Name = $values[2]; Caps = @($values[3] -split ',') } })
-    Assert-True ($families.Count -eq 18) 'Every one of the 18 installed families needs a compiled contract.'
+    Assert-True ($families.Count -eq 19) 'Every one of the 19 installed families needs a compiled contract.'
     $declaredFlags = @($families | ForEach-Object { $_.Flag; $_.Caps } | Sort-Object)
     $statusSource = Join-Path $Root 'extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsStatus.java'
     $sourceFlags = @([regex]::Matches([IO.File]::ReadAllText($statusSource), 'public static boolean ([A-Za-z0-9]+)\(\)') |

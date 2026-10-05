@@ -56,6 +56,11 @@ public final class UiHooks {
         return false;
     }
 
+    /** True has Pinterest's image model answer its original rendition first, where it has one. */
+    public static boolean originalImages() {
+        return enabled(FamilyNames.ORIGINAL_IMAGES, Settings.ORIGINAL_IMAGES);
+    }
+
     public static boolean disableUpdateNag() {
         return enabled(FamilyNames.DISABLE_UPDATE_NAG, Settings.DISABLE_UPDATE_NAG);
     }

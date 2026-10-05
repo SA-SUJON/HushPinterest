@@ -275,7 +275,7 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("settings", 3));
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("settings", 3));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3327,6 +3327,51 @@ public class DexDiff {
             capability(c.callee, covered.equals(paths) && sdk > 0 && crashes > 0 && engage && task != null);
         }
 
+        /**
+         * The image model's rendition chooser: behind the hook it answers the original rendition the
+         * model's description names, when there is one, and otherwise runs its own order unchanged.
+         */
+        void imageOrder(Contract c) {
+            String hook = c.strings.get(0);
+            List<Method> descriptions = new ArrayList<>();
+            for (Method m : clean.holding("Image(largeInternal=")) if (m.getName().equals("toString")) descriptions.add(m);
+            Method description = descriptions.isEmpty() ? null : unique(descriptions, "image model description");
+            boolean found = false;
+            if (description != null) {
+                Map<String, FieldReference> labels = new LinkedHashMap<>();
+                String label = null;
+                for (Instruction i : instructions(description)) {
+                    Reference r = reference(i);
+                    if (r instanceof StringReference) label = ((StringReference) r).getString();
+                    if (i.getOpcode() == Opcode.IGET_OBJECT && r instanceof FieldReference && label != null) { labels.put(label, (FieldReference) r); label = null; }
+                }
+                FieldReference large = labels.get("Image(largeInternal="), original = labels.get(", original=");
+                List<Method> choosers = new ArrayList<>();
+                if (large != null && original != null) for (Method m : clean.classes.get(description.getDefiningClass()).getMethods()) {
+                    if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getParameterTypes().isEmpty() || !m.getReturnType().equals(large.getType())) continue;
+                    Set<String> read = new HashSet<>();
+                    for (Instruction i : instructions(m)) if (reference(i) instanceof FieldReference) read.add(String.valueOf(reference(i)));
+                    if (labels.values().stream().allMatch(f -> read.contains(String.valueOf(f)))) choosers.add(m);
+                }
+                Method m = actual(unique(choosers, "image rendition chooser"));
+                List<Integer> sites = calls(m, hook, 1);
+                if (m != null && sites.size() == 1) {
+                    List<Instruction> body = instructions(m);
+                    Layout code = new Layout(m.getImplementation());
+                    boolean shaped = sites.get(0) == 0 && body.size() > 6 && arguments(body.get(0)).isEmpty()
+                            && body.get(1).getOpcode() == Opcode.MOVE_RESULT && body.get(2).getOpcode() == Opcode.IF_EQZ
+                            && body.get(3).getOpcode() == Opcode.IGET_OBJECT && String.valueOf(original).equals(String.valueOf(reference(body.get(3))))
+                            && ((TwoRegisterInstruction) body.get(3)).getRegisterB() == parameter(m, -1)
+                            && body.get(4).getOpcode() == Opcode.IF_EQZ && body.get(5).getOpcode() == Opcode.RETURN_OBJECT;
+                    for (int at = 2; shaped && at <= 5; at++) shaped = firstRegister(body.get(at)) == firstRegister(body.get(1));
+                    for (int at : List.of(2, 4)) shaped = shaped && code.addresses.get(at) + ((OffsetInstruction) body.get(at)).getCodeOffset() == code.addresses.get(6);
+                    if (!shaped) fail(hook + " does not answer the original rendition first, behind its switch, in " + m);
+                    else { remove(m, 0, 6); found = true; }
+                }
+            }
+            capability(c.callee, found);
+        }
+
         /** Getter and hook pairs: each value a getter returns goes through its hook first, in the same register. */
         void answers(Contract c) {
             Set<Opcode> exits = Set.of(Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_WIDE, Opcode.RETURN_VOID);
@@ -3567,6 +3612,7 @@ public class DexDiff {
                     case "links": links(c); break;
                     case "analytics": analytics(c); break;
                     case "answers": answers(c); break;
+                    case "imageOrder": imageOrder(c); break;
                     case "settings": settings(c); break;
                     default: fail("unknown mutation kind " + c.target);
                 }

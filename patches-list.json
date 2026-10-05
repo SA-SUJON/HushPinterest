@@ -711,6 +711,50 @@
       "options": []
     },
     {
+      "name": "Original-quality images",
+      "description": "Has Pinterest's image model pick the original image before its large size wherever Pinterest supplied one. Uses more data.",
+      "category": "Interface",
+      "use": false,
+      "dependencies": [
+        "BytecodePatch",
+        "HushPinterest settings"
+      ],
+      "compatiblePackages": {
+        "com.pinterest": [
+          "14.38.0",
+          "14.25.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pinterest",
+          "packageName": "com.pinterest",
+          "description": null,
+          "appIconColor": 15073315,
+          "signatures": [
+            "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
+          ],
+          "targets": [
+            {
+              "version": "14.38.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14388010
+              }
+            },
+            {
+              "version": "14.25.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14258020
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Quiet email reminders",
       "description": "Dismisses the optional confirm-your-email reminder. Account verification and sign-in checks still apply.",
       "category": "Interface",

@@ -318,6 +318,8 @@ Hides comments panels and previews under pins on their next layout or visibility
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Descarta los recordatorios opcionales de confirmación de correo recién creados. Un recordatorio abierto no cambia. Las comprobaciones de verificación e inicio de sesión siguen vigentes.
 Hide save toasts	Ocultar avisos al guardar
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Al guardar un Pin ya no aparece «Guardado en» tu tablero ni una sugerencia para seguir a quien lo creó. El Pin se guarda igual.
+Original-quality images	Imágenes en calidad original
+Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Elige la imagen original antes del tamaño grande cuando Pinterest la proporciona. Usa más datos. Las imágenes que ya se ven cambian al volver a cargarse.
 Save media	Guardar contenido multimedia
 Recent searches autocomplete	Autocompletado de búsquedas recientes
 Activity alerts	Avisos de actividad

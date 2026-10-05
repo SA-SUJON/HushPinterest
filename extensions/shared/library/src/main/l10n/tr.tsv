@@ -318,6 +318,8 @@ Hides comments panels and previews under pins on their next layout or visibility
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Yeni oluşturulan isteğe bağlı e-posta doğrulama hatırlatmalarını kapatır. Açık bir hatırlatma değişmez. Doğrulama ve oturum açma kontrolleri geçerliliğini korur.
 Hide save toasts	Kaydetme bildirimlerini gizle
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Bir Pin kaydettiğinde artık panona "Kaydedildi" uyarısı ya da oluşturan kişiyi takip etme önerisi çıkmaz. Pin yine kaydedilir.
+Original-quality images	Orijinal kalitede görseller
+Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Pinterest sağladığında büyük boyut yerine orijinal görseli seçer. Daha fazla veri kullanır. Ekrandaki görseller yeniden yüklendiğinde değişir.
 Save media	Medyayı kaydet
 Recent searches autocomplete	Son aramalarda otomatik tamamlama
 Activity alerts	Etkinlik uyarıları
