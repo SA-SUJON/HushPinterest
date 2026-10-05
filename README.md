@@ -51,7 +51,7 @@ Setup and backup guide in About is optional. It explains installed patches, runt
 
 ## Patches
 
-There are 17 patches so far.
+There are 18 patches so far.
 
 | Patch | What it does |
 |---|---|
@@ -61,6 +61,7 @@ There are 17 patches so far.
 | `Filter pin menu` | Adds separate switches for collage, visual-search and Promote pin menu entries. Download, share and copy-link actions remain available. |
 | `Hide AI-labeled pins` | Removes pins that Pinterest labels as made or changed with AI from the home feed, search, related pins and boards. AI images without Pinterest's label still show. |
 | `Hide ads` | Removes promoted pins from the home feed, search, related pins and boards, and hides Pinterest's ad-only panels. Turn it off in HushPinterest settings at any time. |
+| `Hide advertising ID` | Pinterest and the ad and tracking code inside it read an all-zero advertising ID with ad tracking limited, the same answer Android gives after you delete your ad ID. A switch and Pause hand back the real ID. |
 | `Hide comments` | Collapses comments panels and comment previews beneath pins. It doesn't change who can comment on your pins. |
 | `Hide header buttons` | Hides trailing header icon buttons. Back buttons, text actions and account controls remain available. |
 | `Hide navigation buttons` | Adds separate switches for the Create and Updates navigation buttons. Home, Search and Profile remain available. |
@@ -73,7 +74,7 @@ There are 17 patches so far.
 | `Strip link tracking` | Removes known tracking parameters from URLs shared or copied from Pinterest. Keeps the destination, other parameters and opaque pin.it links. Turn it off or pause HushPinterest to share the original URLs. |
 | `System share sheet` | Uses Android's share sheet when sharing a pin link. Screenshot and download actions keep their usual behavior. Turn it off in HushPinterest settings at any time. |
 
-Morphe Manager selects Hide ads, Disable analytics, Strip link tracking and the settings by default. Pick the other patches when you want them. The optional shopping, pin-action and interface switches start off. The settings patch is required by the feature patches.
+Morphe Manager selects Hide ads, Disable analytics, Strip link tracking, Hide advertising ID and the settings by default. Pick the other patches when you want them. The optional shopping, pin-action and interface switches start off. The settings patch is required by the feature patches.
 
 Switches change the runtime hooks without patching again. Reopen a screen to refresh controls that are already drawn. Pause makes those hooks follow Pinterest's original path. Startup tasks skipped by Disable analytics run again after a restart with its switch off or Pause on. That patch also changes a Firebase Analytics manifest flag when you patch. The flag stays disabled until you patch again without Disable analytics.
 
@@ -147,7 +148,7 @@ Manual selections were checked on Android 16. Links for pinterest.com, www.pinte
 
 HushPinterest doesn't collect anything and has no server. The release check stays off until you turn it on. Once it's on, HushPinterest asks `api.github.com` for its latest release at most once a day, when Pinterest starts, and again whenever you tap Check now. Download pins contacts Pinterest's media server when you tap Download. Browser and share actions open the destination you chose.
 
-Disable analytics stops the targeted Pinterest usage uploads and the AppsFlyer and Bugsnag transports. Pinterest's Google Engage client gets the same "service not found" answer it gets on a phone without Engage, so nothing is published to Google's recommendation surfaces. It leaves Firebase messaging and the sign-in components in place. Strip link tracking removes known tracking parameters from copied and shared links while keeping unknown parameters, signed links and opaque `pin.it` short links. Hide search history hides recent searches on this device. It doesn't delete Pinterest's server history.
+Disable analytics stops the targeted Pinterest usage uploads and the AppsFlyer and Bugsnag transports. Pinterest's Google Engage client gets the same "service not found" answer it gets on a phone without Engage, so nothing is published to Google's recommendation surfaces. It leaves Firebase messaging and the sign-in components in place. Strip link tracking removes known tracking parameters from copied and shared links while keeping unknown parameters, signed links and opaque `pin.it` short links. Hide advertising ID changes the answer Google's ad ID getters give inside Pinterest, so Pinterest's own requests and the bundled ad and analytics SDKs see zeros. It doesn't touch the ad ID other apps see. Hide search history hides recent searches on this device. It doesn't delete Pinterest's server history.
 
 Analytics hooks are checked before any Firebase manifest change. Local patch helpers refuse failed results even if the patching tool produced an APK. Runtime analytics controls stay inactive when that patch isn't installed.
 

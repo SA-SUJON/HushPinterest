@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 Unreleased source changes. The published release remains 0.0.3.
 
+* **Pinterest:** New Hide advertising ID patch, on by default. Pinterest and the ad and analytics code bundled in it read an all-zero ad ID with ad tracking limited, the answer Android gives after you delete your ad ID. Its switch is on the Privacy page, and turning it off or pausing HushPinterest hands back the real ID.
+
 * **Pinterest:** Disable analytics now also stops Bugsnag crash and session reports, and it keeps Pinterest from publishing recommendations to Google Engage (the Collections and similar Google surfaces). Engage gets the same "service not found" answer as a phone without it. The switch and Pause bring both back.
 
 * **Pinterest:** HushPinterest now builds on Morphe patcher 1.15.1, so it needs Morphe Manager 1.34.0 or newer. Manager 1.33.0 carries patcher 1.15.0 and asks for an update before it'll load the bundle.

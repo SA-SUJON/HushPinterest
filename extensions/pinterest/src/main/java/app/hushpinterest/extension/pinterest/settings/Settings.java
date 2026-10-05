@@ -54,6 +54,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_disable_analytics", TRUE);
     public static final BooleanSetting STRIP_LINK_TRACKING =
             new BooleanSetting("hushpinterest_strip_link_tracking", TRUE);
+    public static final BooleanSetting HIDE_ADVERTISING_ID =
+            new BooleanSetting("hushpinterest_hide_ad_id", TRUE);
     public static final BooleanSetting DOWNLOAD_PINS =
             new BooleanSetting("hushpinterest_download_pins", FALSE);
     public static final BooleanSetting EXTERNAL_BROWSER =

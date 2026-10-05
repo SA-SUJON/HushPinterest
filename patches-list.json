@@ -270,6 +270,50 @@
       "options": []
     },
     {
+      "name": "Hide advertising ID",
+      "description": "Pinterest and the ad and tracking code inside it read an all-zero advertising ID with ad tracking limited, the same answer Android gives after you delete your ad ID. A switch and Pause hand back the real ID.",
+      "category": "Privacy",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushPinterest settings"
+      ],
+      "compatiblePackages": {
+        "com.pinterest": [
+          "14.38.0",
+          "14.25.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pinterest",
+          "packageName": "com.pinterest",
+          "description": null,
+          "appIconColor": 15073315,
+          "signatures": [
+            "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
+          ],
+          "targets": [
+            {
+              "version": "14.38.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14388010
+              }
+            },
+            {
+              "version": "14.25.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14258020
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide comments",
       "description": "Collapses comments panels and comment previews beneath pins. It doesn't change who can comment on your pins.",
       "category": "Interface",

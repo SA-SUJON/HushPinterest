@@ -172,6 +172,8 @@ Analytics launch tasks	Analiz başlatma görevleri
 Analytics uploads	Analiz veri gönderimi
 Strip link tracking	Bağlantı takibini kaldır
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Kopyalanan ve paylaşılan bağlantılardan bilinen takip parametrelerini kaldırır. Kısa bağlantılar Pinterest tarafından oluşturulduğu gibi kalır.
+Hide advertising ID	Reklam kimliğini gizle
+Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest ve içindeki reklam ve takip kodu, reklam takibi sınırlı olarak tamamı sıfır bir reklam kimliği okur. Reklam kimliğini Android ayarlarından silmişsin gibi olur.
 Download pins	Pinleri indir
 Open links in your browser	Bağlantıları tarayıcında aç
 Open pin Visit links and profile websites in your browser.	Pinlerin Ziyaret et bağlantılarını ve profil web sitelerini tarayıcında aç.

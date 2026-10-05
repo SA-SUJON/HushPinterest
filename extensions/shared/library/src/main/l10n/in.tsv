@@ -172,6 +172,8 @@ Analytics launch tasks	Tugas awal analitik
 Analytics uploads	Pengiriman data analitik
 Strip link tracking	Hapus pelacakan tautan
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Menghapus parameter pelacakan yang dikenal dari tautan yang disalin dan dibagikan. Tautan pendek tetap seperti yang dibuat Pinterest.
+Hide advertising ID	Sembunyikan ID iklan
+Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest dan kode iklan serta pelacakan di dalamnya membaca ID iklan berisi nol semua dengan pelacakan iklan dibatasi, seolah kamu sudah menghapus ID iklan di setelan Android.
 Download pins	Unduh Pin
 Open links in your browser	Buka tautan di browser Anda
 Open pin Visit links and profile websites in your browser.	Buka tautan Kunjungi Pin dan situs web profil di browser Anda.

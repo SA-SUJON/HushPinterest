@@ -52,6 +52,7 @@ public enum PatchFamily {
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics",
             "Firebase Analytics collection is disabled", Settings.DISABLE_ANALYTICS),
     STRIP_LINK_TRACKING(FamilyNames.STRIP_LINK_TRACKING, "stripLinkTracking", null, Settings.STRIP_LINK_TRACKING),
+    HIDE_ADVERTISING_ID(FamilyNames.HIDE_ADVERTISING_ID, "hideAdvertisingId", null, Settings.HIDE_ADVERTISING_ID),
     DOWNLOAD_PINS(FamilyNames.DOWNLOAD_PINS, "downloadPins", null, Settings.DOWNLOAD_PINS),
     EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "externalBrowser", null, Settings.EXTERNAL_BROWSER),
     SYSTEM_SHARE(FamilyNames.SYSTEM_SHARE, "systemShare", null, Settings.SYSTEM_SHARE),
@@ -111,7 +112,8 @@ public enum PatchFamily {
 
     /** The families whose switches the Feed page holds. The page and its home row both read this. */
     static final Set<PatchFamily> FEED_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_AI_PINS, HIDE_SHOPPING));
-    static final Set<PatchFamily> PRIVACY_PAGE = Collections.unmodifiableSet(EnumSet.of(DISABLE_ANALYTICS, STRIP_LINK_TRACKING));
+    static final Set<PatchFamily> PRIVACY_PAGE = Collections.unmodifiableSet(EnumSet.of(DISABLE_ANALYTICS, STRIP_LINK_TRACKING,
+            HIDE_ADVERTISING_ID));
     static final Set<PatchFamily> ACTIONS_PAGE = Collections.unmodifiableSet(EnumSet.of(DOWNLOAD_PINS, SYSTEM_SHARE));
     static final Set<PatchFamily> INTERFACE_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SCREENSHOT_SHARE,
             HIDE_SEARCH_HISTORY, HIDE_NAVIGATION_BUTTONS, HIDE_HEADER_BUTTONS, HIDE_PIN_MENU_ITEMS,
@@ -126,6 +128,7 @@ public enum PatchFamily {
         ANALYTICS_TASKS(DISABLE_ANALYTICS, "analyticsTasks", "Analytics launch tasks"),
         ANALYTICS_UPLOADS(DISABLE_ANALYTICS, "analyticsUploads", "Analytics uploads"),
         LINK_TRACKING(STRIP_LINK_TRACKING, "linkTracking", "Strip link tracking"),
+        ADVERTISING_ID(HIDE_ADVERTISING_ID, "advertisingId", "Hide advertising ID"),
         PIN_DOWNLOADS(DOWNLOAD_PINS, "pinDownloads", "Download pins"),
         VISIT_LINKS(EXTERNAL_BROWSER, "visitLinks", "Open links in your browser"),
         PIN_SHARE(SYSTEM_SHARE, "pinShare", "System share sheet"),

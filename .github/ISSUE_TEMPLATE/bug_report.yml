@@ -66,7 +66,7 @@ body:
     id: selected_patches
     attributes:
       label: Which patches were in your build?
-      description: Hide ads, Disable analytics, Strip link tracking and the settings are selected by default. Other patches are only in your build if you picked them.
+      description: Hide ads, Disable analytics, Strip link tracking, Hide advertising ID and the settings are selected by default. Other patches are only in your build if you picked them.
       multiple: true
       options:
         - Disable analytics
@@ -75,6 +75,7 @@ body:
         - Filter pin menu
         - Hide AI-labeled pins
         - Hide ads
+        - Hide advertising ID
         - Hide comments
         - Hide header buttons
         - Hide navigation buttons

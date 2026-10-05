@@ -169,6 +169,8 @@ Analytics launch tasks	Inicialização dos serviços de análise
 Analytics uploads	Envios de análises
 Strip link tracking	Remover rastreamento de links
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Remove parâmetros de rastreamento conhecidos dos links copiados e compartilhados. Os links curtos permanecem como o Pinterest os criou.
+Hide advertising ID	Ocultar ID de publicidade
+Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	O Pinterest e o código de anúncios e rastreamento dentro dele leem um ID de publicidade todo em zeros, com o rastreamento de anúncios limitado, como se você tivesse apagado seu ID de publicidade nas configurações do Android.
 Download pins	Baixar Pins
 Open links in your browser	Abrir links no seu navegador
 Open pin Visit links and profile websites in your browser.	Abra links de Visitar dos Pins e sites de perfis no seu navegador.

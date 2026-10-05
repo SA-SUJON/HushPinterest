@@ -63,6 +63,7 @@ import app.hushpinterest.extension.pinterest.actions.SystemShare;
 import app.hushpinterest.extension.pinterest.ads.Ads;
 import app.hushpinterest.extension.pinterest.ads.FeedFilter;
 import app.hushpinterest.extension.pinterest.privacy.Analytics;
+import app.hushpinterest.extension.pinterest.privacy.AdvertisingId;
 import app.hushpinterest.extension.pinterest.privacy.LinkTracking;
 import app.hushpinterest.extension.pinterest.ui.InterfaceControls;
 import app.hushpinterest.extension.pinterest.ui.UiHooks;
@@ -148,7 +149,7 @@ public class PausedHooksTest {
     private static Map<BooleanSetting, List<Probe>> probes() {
         // Every hook is in this build, so the filter reads each family's switch.
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
-        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS);
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS, PatchFamily.HIDE_ADVERTISING_ID);
         Map<BooleanSetting, List<Probe>> probes = new LinkedHashMap<>();
         // A promoted pin leaves the page, and an ad-only view stays hidden and sizeless.
         probes.put(Settings.HIDE_ADS, Arrays.asList(
@@ -180,6 +181,9 @@ public class PausedHooksTest {
                         TRACKED_LINK).getCharSequenceExtra(Intent.EXTRA_TEXT)),
                 () -> !TRACKED_LINK.contentEquals(LinkTracking.newPlainText("Pin link", TRACKED_LINK)
                         .getItemAt(0).getText())));
+        probes.put(Settings.HIDE_ADVERTISING_ID, Arrays.asList(
+                () -> !"real".equals(AdvertisingId.id("real")),
+                () -> AdvertisingId.limitTracking(false)));
         probes.put(Settings.DOWNLOAD_PINS, Collections.singletonList(PausedHooksTest::queuesPinDownload));
         probes.put(Settings.EXTERNAL_BROWSER, Collections.singletonList(() -> withActivity(activity -> {
             ResolveInfo browser = new ResolveInfo();

@@ -275,7 +275,7 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("settings", 3));
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("settings", 3));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3261,6 +3261,37 @@ public class DexDiff {
             capability(c.callee, covered.equals(paths) && sdk > 0 && crashes > 0 && engage && task != null);
         }
 
+        /** Getter and hook pairs: each value a getter returns goes through its hook first, in the same register. */
+        void answers(Contract c) {
+            Set<Opcode> exits = Set.of(Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_WIDE, Opcode.RETURN_VOID);
+            boolean all = true;
+            for (int n = 0; n + 1 < c.strings.size(); n += 2) {
+                String getter = c.strings.get(n), hook = c.strings.get(n + 1);
+                Method old = clean.methods.get(getter);
+                if (old == null || old.getImplementation() == null) { fail(getter + " is absent from the clean target"); all = false; continue; }
+                List<Instruction> was = instructions(old);
+                List<Integer> returns = new ArrayList<>();
+                for (int at = 0; at < was.size(); at++) if (exits.contains(was.get(at).getOpcode())) returns.add(at);
+                Method m = actual(old);
+                List<Integer> sites = calls(m, hook, returns.size());
+                if (m == null || returns.isEmpty() || sites.size() != returns.size()) { all = false; continue; }
+                List<Instruction> body = instructions(m);
+                for (int k = 0; k < sites.size(); k++) {
+                    int at = sites.get(k);
+                    Instruction exit = was.get(returns.get(k));
+                    int register = firstRegister(exit);
+                    if (exit.getOpcode() == Opcode.RETURN_VOID || exit.getOpcode() == Opcode.RETURN_WIDE || at != returns.get(k) + 2 * k
+                            || at + 2 >= body.size() || !arguments(body.get(at)).equals(List.of(register))
+                            || !isMoveResult(body.get(at + 1).getOpcode()) || firstRegister(body.get(at + 1)) != register
+                            || body.get(at + 2).getOpcode() != exit.getOpcode() || firstRegister(body.get(at + 2)) != register) {
+                        fail(hook + " does not filter the answer before every return in " + m); all = false; continue;
+                    }
+                    remove(m, at, at + 2);
+                }
+            }
+            capability(c.callee, all);
+        }
+
         /** Engage's one client gateway: the service read, the pass-through hook, then the SDK's own null test. */
         boolean engageGateway(String hook) {
             List<Method> gateways = new ArrayList<>();
@@ -3469,6 +3500,7 @@ public class DexDiff {
                     case "comments": comments(c); break;
                     case "links": links(c); break;
                     case "analytics": analytics(c); break;
+                    case "answers": answers(c); break;
                     case "settings": settings(c); break;
                     default: fail("unknown mutation kind " + c.target);
                 }
