@@ -67,6 +67,7 @@ import app.hushpinterest.extension.pinterest.privacy.AdvertisingId;
 import app.hushpinterest.extension.pinterest.privacy.LinkTracking;
 import app.hushpinterest.extension.pinterest.ui.InterfaceControls;
 import app.hushpinterest.extension.pinterest.ui.UiHooks;
+import app.hushpinterest.extension.pinterest.ui.UiHooksForTests;
 import app.hushpinterest.extension.shared.SettingsContextRule;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
@@ -144,6 +145,16 @@ public class PausedHooksTest {
     private static boolean filtersOut(ProbePin marked) {
         List<Object> page = new ArrayList<>(Arrays.asList(marked, new ProbePin()));
         return FeedFilter.filter(page).size() != page.size();
+    }
+
+    /** A save toast reaching the container: true when the hook drops it. */
+    private static boolean dropsSaveToast() {
+        UiHooksForTests.saveToast(StringBuilder.class);
+        try {
+            return UiHooks.hideSaveToast(new StringBuilder());
+        } finally {
+            UiHooksForTests.saveToast(null);
+        }
     }
 
     private static Map<BooleanSetting, List<Probe>> probes() {
@@ -233,6 +244,7 @@ public class PausedHooksTest {
                 () -> UiHooks.commentsMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC,
                 () -> !UiHooks.commentsVisible(true)));
         probes.put(Settings.QUIET_EMAIL_REMINDER, Collections.singletonList(UiHooks::quietEmailReminder));
+        probes.put(Settings.HIDE_SAVE_TOASTS, Collections.singletonList(PausedHooksTest::dropsSaveToast));
         probes.put(Settings.DISABLE_UPDATE_NAG, Collections.singletonList(UiHooks::disableUpdateNag));
         return probes;
     }

@@ -309,6 +309,8 @@ Hides Search image in newly created pin menus. An existing menu won't change.	Ye
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Yeni oluşturulan Pin menülerinde Pin tanıt öğesini gizler. Mevcut bir menü değişmez.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Pinlerin altındaki yorum panellerini ve önizlemelerini sonraki düzen veya görünürlük güncellemesinde gizler. Kimlerin yorum yapabileceğini değiştirmez.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Yeni oluşturulan isteğe bağlı e-posta doğrulama hatırlatmalarını kapatır. Açık bir hatırlatma değişmez. Doğrulama ve oturum açma kontrolleri geçerliliğini korur.
+Hide save toasts	Kaydetme bildirimlerini gizle
+Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Bir Pin kaydettiğinde artık panona "Kaydedildi" uyarısı ya da oluşturan kişiyi takip etme önerisi çıkmaz. Pin yine kaydedilir.
 Save media	Medyayı kaydet
 Recent searches autocomplete	Son aramalarda otomatik tamamlama
 Activity alerts	Etkinlik uyarıları

@@ -2339,6 +2339,9 @@ public class DexDiff {
         static final String BASE = "Lapp/hushpinterest/extension/pinterest/";
         static final String STATUS = BASE + "settings/SettingsStatus;";
         static final String PIN_MENU = "Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;";
+        static final String TOAST_CONTAINER = "Lcom/pinterest/gestalt/toast/PinterestToastContainer;";
+        static final String TOAST_VIEW = "Lcom/pinterest/gestalt/toast/BaseGestaltToast;";
+        static final Set<String> SAVE_TOAST_STRINGS = Set.of("saved_to", "saved_onto_board_bold", "pinned", "pinned_multiple", "pinned_multiple_to_board");
         final FeatureIndex clean;
         final FeatureIndex patched;
         final List<String> findings = new ArrayList<>();
@@ -2771,6 +2774,16 @@ public class DexDiff {
                 for (String type : types) for (Method m : clean.classes.get(type).getMethods())
                     if (m.getName().equals("onCreate") && descriptor(m).equals("(Landroid/os/Bundle;)V")) targets.add(m);
                 before = 1;
+            } else if (selector.equals("saveToast")) {
+                ClassDef container = clean.classes.get(TOAST_CONTAINER);
+                if (container != null) for (Method m : container.getMethods()) {
+                    if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals("V") || m.getParameterTypes().size() != 1) continue;
+                    String model = m.getParameterTypes().get(0).toString();
+                    if (instructions(m).stream().anyMatch(i -> reference(i) instanceof MethodReference
+                            && ((MethodReference) reference(i)).getDefiningClass().equals(model)
+                            && descriptor((MethodReference) reference(i)).equals("(" + TOAST_CONTAINER + ")" + TOAST_VIEW))) targets.add(m);
+                }
+                if (targets.size() == 1) saveToastStub(targets.get(0).getParameterTypes().get(0).toString());
             } else { fail("unknown guard selector " + selector); return false; }
             Method original = unique(targets, c.callee);
             Method m = actual(original);
@@ -2778,6 +2791,7 @@ public class DexDiff {
                 List<Integer> args = List.of();
                 int prep = 0;
                 if (selector.equals("visit")) args = List.of(parameter(m, 0), parameter(m, 1));
+                if (selector.equals("saveToast")) args = List.of(parameter(m, 0));
                 if (selector.equals("share")) {
                     args = List.of(0, 1); prep = 2;
                     List<Instruction> body = instructions(m);
@@ -2797,6 +2811,49 @@ public class DexDiff {
                 guard(m, hook, before, args, prep, selector.equals("email"), selector.equals("update"));
             }
             return original != null;
+        }
+
+        /**
+         * The save toast stub: one instance check per concrete toast model that reads a save
+         * confirmation's text or names the follow suggestion, then false, then the shared true.
+         */
+        void saveToastStub(String model) {
+            Set<String> expected = new TreeSet<>();
+            for (ClassDef owner : clean.classes.values()) {
+                if (AccessFlags.ABSTRACT.isSet(owner.getAccessFlags()) || AccessFlags.INTERFACE.isSet(owner.getAccessFlags())
+                        || owner.getType().equals(model)) continue;
+                Set<String> seen = new HashSet<>();
+                boolean toast = false;
+                for (ClassDef cd = clean.classes.get(owner.getSuperclass()); cd != null && seen.add(cd.getType()); cd = clean.classes.get(cd.getSuperclass()))
+                    if (cd.getType().equals(model)) { toast = true; break; }
+                if (!toast) continue;
+                for (Method m : owner.getMethods()) for (Instruction i : instructions(m)) if (reference(i) instanceof FieldReference) {
+                    FieldReference f = (FieldReference) reference(i);
+                    if (f.getType().equals("I") && SAVE_TOAST_STRINGS.contains(f.getName())
+                            || f.getName().equals("FollowUpsellToast") && f.getType().equals(f.getDefiningClass())) expected.add(owner.getType());
+                }
+            }
+            Method stub = actual(BASE + "ui/UiHooks;->isSaveToast(Ljava/lang/Object;)Z");
+            if (stub == null) return;
+            List<Instruction> body = instructions(stub);
+            int n = (body.size() - 4) / 2, input = parameter(stub, 0);
+            List<String> named = new ArrayList<>();
+            boolean shaped = expected.size() > 0 && body.size() == 2 * expected.size() + 4;
+            Layout code = new Layout(stub.getImplementation());
+            for (int k = 0; shaped && k < n; k++) {
+                Instruction check = body.get(2 * k), branch = body.get(2 * k + 1);
+                shaped = check.getOpcode() == Opcode.INSTANCE_OF && ((TwoRegisterInstruction) check).getRegisterB() == input
+                        && branch.getOpcode() == Opcode.IF_NEZ && firstRegister(branch) == firstRegister(check)
+                        && code.addresses.get(2 * k + 1) + ((OffsetInstruction) branch).getCodeOffset() == code.addresses.get(2 * n + 2);
+                named.add(String.valueOf(reference(check)));
+            }
+            if (shaped) for (int k = 0; k < 2; k++) {
+                Instruction literal = body.get(2 * n + 2 * k), exit = body.get(2 * n + 2 * k + 1);
+                shaped &= literal.getOpcode() == Opcode.CONST_4 && ((NarrowLiteralInstruction) literal).getNarrowLiteral() == k
+                        && exit.getOpcode() == Opcode.RETURN && firstRegister(exit) == firstRegister(literal);
+            }
+            if (!shaped || !new TreeSet<>(named).equals(expected) || named.size() != expected.size())
+                fail("save toast stub names " + named + " instead of the save toast models " + expected);
         }
 
         boolean hasSendableShareSource(Method m) {

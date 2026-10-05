@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(690);
+        Map<String, String> table = new HashMap<>(694);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -332,6 +332,8 @@ public final class L10nTranslations {
                 "Kopfzeilenschaltfl\u00e4chen ausblenden");
         table.put("Hide navigation buttons",
                 "Navigationsschaltfl\u00e4chen ausblenden");
+        table.put("Hide save toasts",
+                "Merken-Hinweise ausblenden");
         table.put("Hide search history",
                 "Suchverlauf ausblenden");
         table.put("Hide shopping and product pins",
@@ -422,11 +424,11 @@ public final class L10nTranslations {
                 "Kein Teilen-Men\u00fc bei Screenshots");
         table.put("No visible pins are available. Open a pin menu from the grid and try again.",
                 "Keine sichtbaren Pins verf\u00fcgbar. \u00d6ffne ein Pin-Men\u00fc im Raster und versuche es erneut.");
-        table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
-                "Keine Webadresse von Pinterest ist f\u00fcr diese App ausgew\u00e4hlt, deshalb \u00f6ffnen sich ihre Links woanders. Tippe, um sie in den Android-Einstellungen auszuw\u00e4hlen.");
     }
 
     private static void fillDe3(Map<String, String> table) {
+        table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
+                "Keine Webadresse von Pinterest ist f\u00fcr diese App ausgew\u00e4hlt, deshalb \u00f6ffnen sich ihre Links woanders. Tippe, um sie in den Android-Einstellungen auszuw\u00e4hlen.");
         table.put("Not enough storage.",
                 "Nicht genug Speicherplatz.");
         table.put("OK",
@@ -545,11 +547,11 @@ public final class L10nTranslations {
                 "Berichtsspeicher ist derzeit nicht verf\u00fcgbar. Du kannst weiterhin einen Kurzbericht kopieren.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Stellt die Schalter vor dem letzten Import wieder her. Das \u00c4ndern eines Schalters oder ein Neustart von Pinterest beendet diese M\u00f6glichkeit.");
-        table.put("Resume",
-                "Fortsetzen");
     }
 
     private static void fillDe4(Map<String, String> table) {
+        table.put("Resume",
+                "Fortsetzen");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Setze HushPinterest fort und aktiviere Pins herunterladen, um es erneut zu versuchen.");
         table.put("Retry",
@@ -584,6 +586,8 @@ public final class L10nTranslations {
                 "Gespeichert. Starte Pinterest neu, um diese \u00c4nderung zu \u00fcbernehmen.");
         table.put("Saving",
                 "Wird gespeichert");
+        table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
+                "Beim Merken eines Pins erscheint kein \u201eGemerkt auf\u201c-Hinweis zu deiner Pinnwand und kein Vorschlag mehr, der Person zu folgen. Der Pin wird trotzdem gemerkt.");
         table.put("Saving the settings file",
                 "Einstellungsdatei wird gespeichert");
         table.put("Search settings",
@@ -666,13 +670,13 @@ public final class L10nTranslations {
                 "Diese Einstellungsdatei stammt aus einer neueren HushPinterest-Version als dieser. Es wurde nichts ge\u00e4ndert.");
         table.put("The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.",
                 "Die App, in der die Datei liegt, braucht zu lange, deshalb wartet HushPinterest nicht mehr. Es wurde nichts ge\u00e4ndert.");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("The app holding the last settings file still hasn't answered. Try again later.",
                 "Die App mit der letzten Einstellungsdatei hat noch immer nicht geantwortet. Versuche es sp\u00e4ter noch einmal.");
         table.put("The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.",
                 "Die App, in der die Einstellungsdatei liegt, braucht zu lange, deshalb wartet HushPinterest nicht mehr. Sie kann das Speichern noch abschlie\u00dfen, also pr\u00fcfe die Datei, bevor du dich darauf verl\u00e4sst.");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Der Diagnosebericht lie\u00df sich noch nicht speichern. Versuche es gleich noch einmal.");
         table.put("The diagnostic report couldn't be saved. Try again.",
@@ -766,7 +770,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(690);
+        Map<String, String> table = new HashMap<>(694);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1051,6 +1055,8 @@ public final class L10nTranslations {
                 "Ocultar botones del encabezado");
         table.put("Hide navigation buttons",
                 "Ocultar botones de navegaci\u00f3n");
+        table.put("Hide save toasts",
+                "Ocultar avisos al guardar");
         table.put("Hide search history",
                 "Ocultar historial de b\u00fasquedas");
         table.put("Hide shopping and product pins",
@@ -1141,11 +1147,11 @@ public final class L10nTranslations {
                 "Sin men\u00fa al hacer capturas");
         table.put("No visible pins are available. Open a pin menu from the grid and try again.",
                 "No hay pines visibles disponibles. Abre el men\u00fa de un pin en la cuadr\u00edcula e int\u00e9ntalo de nuevo.");
-        table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
-                "Ninguna direcci\u00f3n web de Pinterest est\u00e1 seleccionada para esta app, as\u00ed que sus enlaces se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.");
     }
 
     private static void fillEs3(Map<String, String> table) {
+        table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
+                "Ninguna direcci\u00f3n web de Pinterest est\u00e1 seleccionada para esta app, as\u00ed que sus enlaces se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.");
         table.put("Not enough storage.",
                 "No hay suficiente espacio.");
         table.put("OK",
@@ -1264,11 +1270,11 @@ public final class L10nTranslations {
                 "El almacenamiento de informes no est\u00e1 disponible ahora. A\u00fan puedes copiar un informe r\u00e1pido.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Restaura los ajustes anteriores a la \u00faltima importaci\u00f3n. Cambiar un ajuste o reiniciar Pinterest termina la opci\u00f3n de deshacer.");
-        table.put("Resume",
-                "Reanudar");
     }
 
     private static void fillEs4(Map<String, String> table) {
+        table.put("Resume",
+                "Reanudar");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Reanuda HushPinterest y activa Descargar pines para volver a intentarlo.");
         table.put("Retry",
@@ -1303,6 +1309,8 @@ public final class L10nTranslations {
                 "Guardado. Reinicia Pinterest para aplicar este cambio.");
         table.put("Saving",
                 "Guardando");
+        table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
+                "Al guardar un Pin ya no aparece \u00abGuardado en\u00bb tu tablero ni una sugerencia para seguir a quien lo cre\u00f3. El Pin se guarda igual.");
         table.put("Saving the settings file",
                 "Guardando el archivo de configuraci\u00f3n");
         table.put("Search settings",
@@ -1385,13 +1393,13 @@ public final class L10nTranslations {
                 "Ese archivo de configuraci\u00f3n lo escribi\u00f3 una versi\u00f3n de HushPinterest m\u00e1s reciente que esta. No se cambi\u00f3 nada.");
         table.put("The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.",
                 "La app que guarda ese archivo tarda demasiado, as\u00ed que HushPinterest dej\u00f3 de esperar. No se cambi\u00f3 nada.");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("The app holding the last settings file still hasn't answered. Try again later.",
                 "La app del \u00faltimo archivo de configuraci\u00f3n a\u00fan no ha respondido. Int\u00e9ntalo m\u00e1s tarde.");
         table.put("The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.",
                 "La app que guarda el archivo de configuraci\u00f3n tarda demasiado, as\u00ed que HushPinterest dej\u00f3 de esperar. Esa app a\u00fan puede terminar de guardarlo, as\u00ed que revisa el archivo antes de confiar en \u00e9l.");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Todav\u00eda no se pudo guardar el informe de diagn\u00f3stico. Int\u00e9ntalo de nuevo en un momento.");
         table.put("The diagnostic report couldn't be saved. Try again.",
@@ -1485,7 +1493,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(690);
+        Map<String, String> table = new HashMap<>(694);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1770,6 +1778,8 @@ public final class L10nTranslations {
                 "Sembunyikan tombol header");
         table.put("Hide navigation buttons",
                 "Sembunyikan tombol navigasi");
+        table.put("Hide save toasts",
+                "Sembunyikan notifikasi simpan");
         table.put("Hide search history",
                 "Sembunyikan riwayat pencarian");
         table.put("Hide shopping and product pins",
@@ -1860,11 +1870,11 @@ public final class L10nTranslations {
                 "Matikan menu berbagi tangkapan layar");
         table.put("No visible pins are available. Open a pin menu from the grid and try again.",
                 "Tidak ada Pin terlihat yang tersedia. Buka menu Pin dari kisi lalu coba lagi.");
-        table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
-                "Tidak ada alamat web Pinterest yang dipilih untuk aplikasi ini, jadi tautannya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.");
     }
 
     private static void fillIn3(Map<String, String> table) {
+        table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
+                "Tidak ada alamat web Pinterest yang dipilih untuk aplikasi ini, jadi tautannya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.");
         table.put("Not enough storage.",
                 "Ruang penyimpanan tidak cukup.");
         table.put("OK",
@@ -1983,11 +1993,11 @@ public final class L10nTranslations {
                 "Penyimpanan laporan saat ini tidak tersedia. Anda masih dapat menyalin laporan singkat.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Pulihkan sakelar sebelum impor terakhir. Mengubah sakelar atau memulai ulang Pinterest mengakhiri Urungkan.");
-        table.put("Resume",
-                "Lanjutkan");
     }
 
     private static void fillIn4(Map<String, String> table) {
+        table.put("Resume",
+                "Lanjutkan");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Lanjutkan HushPinterest dan aktifkan Unduh pin untuk mencoba lagi.");
         table.put("Retry",
@@ -2022,6 +2032,8 @@ public final class L10nTranslations {
                 "Tersimpan. Mulai ulang Pinterest untuk menerapkan perubahan ini.");
         table.put("Saving",
                 "Menyimpan");
+        table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
+                "Menyimpan Pin tidak lagi memunculkan \"Disimpan ke\" papanmu atau saran untuk mengikuti pembuatnya. Pin tetap tersimpan.");
         table.put("Saving the settings file",
                 "Menyimpan file pengaturan");
         table.put("Search settings",
@@ -2104,13 +2116,13 @@ public final class L10nTranslations {
                 "File pengaturan itu dibuat oleh versi HushPinterest yang lebih baru daripada versi ini. Tidak ada yang diubah.");
         table.put("The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.",
                 "Aplikasi yang menyimpan file itu terlalu lama, jadi HushPinterest berhenti menunggu. Tidak ada yang diubah.");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("The app holding the last settings file still hasn't answered. Try again later.",
                 "Aplikasi yang menyimpan file pengaturan terakhir masih belum merespons. Coba lagi nanti.");
         table.put("The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.",
                 "Aplikasi yang menyimpan file pengaturan terlalu lama, jadi HushPinterest berhenti menunggu. Aplikasi itu mungkin masih menyelesaikan penyimpanannya, jadi periksa file itu sebelum mengandalkannya.");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.");
         table.put("The diagnostic report couldn't be saved. Try again.",
@@ -2204,7 +2216,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(690);
+        Map<String, String> table = new HashMap<>(694);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2489,6 +2501,8 @@ public final class L10nTranslations {
                 "Ocultar bot\u00f5es do cabe\u00e7alho");
         table.put("Hide navigation buttons",
                 "Ocultar bot\u00f5es de navega\u00e7\u00e3o");
+        table.put("Hide save toasts",
+                "Ocultar avisos ao salvar");
         table.put("Hide search history",
                 "Ocultar hist\u00f3rico de pesquisa");
         table.put("Hide shopping and product pins",
@@ -2579,11 +2593,11 @@ public final class L10nTranslations {
                 "Sem menu ao tirar capturas de tela");
         table.put("No visible pins are available. Open a pin menu from the grid and try again.",
                 "Nenhum Pin vis\u00edvel dispon\u00edvel. Abra o menu de um Pin na grade e tente novamente.");
-        table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
-                "Nenhum endere\u00e7o web do Pinterest est\u00e1 selecionado para este app, ent\u00e3o os links deles abrem em outro lugar. Toque para selecion\u00e1-los nas configura\u00e7\u00f5es do Android.");
     }
 
     private static void fillPt_rBR3(Map<String, String> table) {
+        table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
+                "Nenhum endere\u00e7o web do Pinterest est\u00e1 selecionado para este app, ent\u00e3o os links deles abrem em outro lugar. Toque para selecion\u00e1-los nas configura\u00e7\u00f5es do Android.");
         table.put("Not enough storage.",
                 "Espa\u00e7o de armazenamento insuficiente.");
         table.put("OK",
@@ -2702,11 +2716,11 @@ public final class L10nTranslations {
                 "O armazenamento de relat\u00f3rios est\u00e1 indispon\u00edvel agora. Voc\u00ea ainda pode copiar um relat\u00f3rio r\u00e1pido.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Restaure os ajustes anteriores \u00e0 \u00faltima importa\u00e7\u00e3o. Alterar um ajuste ou reiniciar o Pinterest encerra a op\u00e7\u00e3o de desfazer.");
-        table.put("Resume",
-                "Retomar");
     }
 
     private static void fillPt_rBR4(Map<String, String> table) {
+        table.put("Resume",
+                "Retomar");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Retome o HushPinterest e ative Baixar pins para tentar novamente.");
         table.put("Retry",
@@ -2741,6 +2755,8 @@ public final class L10nTranslations {
                 "Salvo. Reinicie o Pinterest para aplicar esta altera\u00e7\u00e3o.");
         table.put("Saving",
                 "Salvando");
+        table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
+                "Salvar um Pin n\u00e3o mostra mais \"Salvo em\" sua pasta nem a sugest\u00e3o de seguir quem o criou. O Pin continua salvo.");
         table.put("Saving the settings file",
                 "Salvando o arquivo de configura\u00e7\u00f5es");
         table.put("Search settings",
@@ -2823,13 +2839,13 @@ public final class L10nTranslations {
                 "Esse arquivo de configura\u00e7\u00f5es foi criado por uma vers\u00e3o do HushPinterest mais nova que esta. Nada foi alterado.");
         table.put("The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.",
                 "O app que guarda esse arquivo est\u00e1 demorando demais, ent\u00e3o o HushPinterest parou de esperar. Nada foi alterado.");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("The app holding the last settings file still hasn't answered. Try again later.",
                 "O app do \u00faltimo arquivo de configura\u00e7\u00f5es ainda n\u00e3o respondeu. Tente de novo mais tarde.");
         table.put("The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.",
                 "O app que guarda o arquivo de configura\u00e7\u00f5es est\u00e1 demorando demais, ent\u00e3o o HushPinterest parou de esperar. Esse app ainda pode terminar de salv\u00e1-lo, ent\u00e3o confira o arquivo antes de confiar nele.");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "O relat\u00f3rio de diagn\u00f3stico ainda n\u00e3o p\u00f4de ser salvo. Tente de novo em instantes.");
         table.put("The diagnostic report couldn't be saved. Try again.",
@@ -2923,7 +2939,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(690);
+        Map<String, String> table = new HashMap<>(694);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3208,6 +3224,8 @@ public final class L10nTranslations {
                 "Ba\u015fl\u0131k d\u00fc\u011fmelerini gizle");
         table.put("Hide navigation buttons",
                 "Gezinme d\u00fc\u011fmelerini gizle");
+        table.put("Hide save toasts",
+                "Kaydetme bildirimlerini gizle");
         table.put("Hide search history",
                 "Arama ge\u00e7mi\u015fini gizle");
         table.put("Hide shopping and product pins",
@@ -3298,11 +3316,11 @@ public final class L10nTranslations {
                 "Ekran g\u00f6r\u00fcnt\u00fcs\u00fc payla\u015f\u0131m men\u00fcs\u00fcn\u00fc kapat");
         table.put("No visible pins are available. Open a pin menu from the grid and try again.",
                 "G\u00f6r\u00fcn\u00fcr Pin bulunamad\u0131. Izgaradan bir Pin men\u00fcs\u00fc a\u00e7\u0131p tekrar deneyin.");
-        table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
-                "Pinterest'\u0131n web adreslerinden hi\u00e7biri bu uygulama i\u00e7in se\u00e7ili de\u011fil, bu y\u00fczden ba\u011flant\u0131lar\u0131 ba\u015fka yerde a\u00e7\u0131l\u0131r. Android ayarlar\u0131nda se\u00e7mek i\u00e7in dokunun.");
     }
 
     private static void fillTr3(Map<String, String> table) {
+        table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
+                "Pinterest'\u0131n web adreslerinden hi\u00e7biri bu uygulama i\u00e7in se\u00e7ili de\u011fil, bu y\u00fczden ba\u011flant\u0131lar\u0131 ba\u015fka yerde a\u00e7\u0131l\u0131r. Android ayarlar\u0131nda se\u00e7mek i\u00e7in dokunun.");
         table.put("Not enough storage.",
                 "Yeterli depolama alan\u0131 yok.");
         table.put("OK",
@@ -3421,11 +3439,11 @@ public final class L10nTranslations {
                 "Rapor depolama \u015fu anda kullan\u0131lam\u0131yor. Yine de h\u0131zl\u0131 bir rapor kopyalayabilirsiniz.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Son i\u00e7e aktarmadan \u00f6nceki anahtarlar\u0131 geri y\u00fckleyin. Bir anahtar\u0131 d\u00fczenlemek veya Pinterest'i yeniden ba\u015flatmak geri almay\u0131 sona erdirir.");
-        table.put("Resume",
-                "Devam et");
     }
 
     private static void fillTr4(Map<String, String> table) {
+        table.put("Resume",
+                "Devam et");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Yeniden denemek i\u00e7in HushPinterest'i s\u00fcrd\u00fcr\u00fcn ve Pinleri indir'i a\u00e7\u0131n.");
         table.put("Retry",
@@ -3460,6 +3478,8 @@ public final class L10nTranslations {
                 "Kaydedildi. Bu de\u011fi\u015fikli\u011fi uygulamak i\u00e7in Pinterest'\u0131 yeniden ba\u015flat.");
         table.put("Saving",
                 "Kaydediliyor");
+        table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
+                "Bir Pin kaydetti\u011finde art\u0131k panona \"Kaydedildi\" uyar\u0131s\u0131 ya da olu\u015fturan ki\u015fiyi takip etme \u00f6nerisi \u00e7\u0131kmaz. Pin yine kaydedilir.");
         table.put("Saving the settings file",
                 "Ayar dosyas\u0131 kaydediliyor");
         table.put("Search settings",
@@ -3542,13 +3562,13 @@ public final class L10nTranslations {
                 "Bu ayar dosyas\u0131, HushPinterest'un bu s\u00fcr\u00fcm\u00fcnden daha yeni bir s\u00fcr\u00fcm\u00fcyle olu\u015fturulmu\u015f. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.",
                 "O dosyay\u0131 tutan uygulama \u00e7ok uzun s\u00fcr\u00fcyor, bu y\u00fczden HushPinterest beklemeyi b\u0131rakt\u0131. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("The app holding the last settings file still hasn't answered. Try again later.",
                 "Son ayar dosyas\u0131n\u0131 tutan uygulama h\u00e2l\u00e2 yan\u0131t vermedi. Daha sonra tekrar dene.");
         table.put("The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.",
                 "Ayar dosyas\u0131n\u0131 tutan uygulama \u00e7ok uzun s\u00fcr\u00fcyor, bu y\u00fczden HushPinterest beklemeyi b\u0131rakt\u0131. O uygulama kaydetmeyi yine de bitirebilir, bu y\u00fczden dosyaya g\u00fcvenmeden \u00f6nce onu kontrol et.");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Tan\u0131lama raporu hen\u00fcz kaydedilemedi. Birazdan tekrar dene.");
         table.put("The diagnostic report couldn't be saved. Try again.",

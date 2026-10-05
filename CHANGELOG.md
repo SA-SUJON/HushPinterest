@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 Unreleased source changes. The published release remains 0.0.3.
 
+* **Pinterest:** New Hide save toasts patch. Saving a pin no longer pops up "Saved to" your board or the suggestion to follow the pin's creator, and the pin still saves as usual. Pick the patch in Morphe Manager, then turn on its switch on the Interface page. Turning it off or pausing HushPinterest brings the pop-ups back.
+
 * **Pinterest:** New Hide advertising ID patch, on by default. Pinterest and the ad and analytics code bundled in it read an all-zero ad ID with ad tracking limited, the answer Android gives after you delete your ad ID. Its switch is on the Privacy page, and turning it off or pausing HushPinterest hands back the real ID.
 
 * **Pinterest:** Disable analytics now also stops Bugsnag crash and session reports, and it keeps Pinterest from publishing recommendations to Google Engage (the Collections and similar Google surfaces). Engage gets the same "service not found" answer as a phone without it. The switch and Pause bring both back.

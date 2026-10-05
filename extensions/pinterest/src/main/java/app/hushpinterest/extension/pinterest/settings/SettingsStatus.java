@@ -65,6 +65,8 @@ public final class SettingsStatus {
     public static boolean comments() { return false; }
     public static boolean quietEmailReminder() { return false; }
     public static boolean emailReminder() { return false; }
+    public static boolean hideSaveToasts() { return false; }
+    public static boolean saveToasts() { return false; }
     public static boolean disableUpdateNag() { return false; }
     public static boolean updateNag() { return false; }
 }

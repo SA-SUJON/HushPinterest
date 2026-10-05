@@ -79,6 +79,7 @@ body:
         - Hide comments
         - Hide header buttons
         - Hide navigation buttons
+        - Hide save toasts
         - Hide search history
         - Hide shopping and product pins
         - HushPinterest settings

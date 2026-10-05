@@ -306,6 +306,8 @@ Hides Search image in newly created pin menus. An existing menu won't change.	Oc
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Oculta Promover Pin nos menus de Pin recém-criados. Um menu existente não muda.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Oculta painéis e prévias de comentários abaixo dos Pins na próxima atualização de layout ou visibilidade. Não muda quem pode comentar.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Dispensa lembretes opcionais de confirmação de e-mail recém-criados. Um lembrete aberto não muda. As verificações de confirmação e login continuam valendo.
+Hide save toasts	Ocultar avisos ao salvar
+Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Salvar um Pin não mostra mais "Salvo em" sua pasta nem a sugestão de seguir quem o criou. O Pin continua salvo.
 Save media	Salvar mídia
 Recent searches autocomplete	Preenchimento automático de pesquisas recentes
 Activity alerts	Alertas de atividade

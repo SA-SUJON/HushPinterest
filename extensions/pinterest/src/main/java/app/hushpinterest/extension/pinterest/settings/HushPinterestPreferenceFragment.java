@@ -312,6 +312,9 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(ui, context, build, PatchFamily.QUIET_EMAIL_REMINDER, Settings.QUIET_EMAIL_REMINDER,
                     L10n.t("Quiet email reminders"),
                     L10n.t("Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply."), SettingsIcons.BELL);
+            patchToggle(ui, context, build, PatchFamily.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS,
+                    L10n.t("Hide save toasts"),
+                    L10n.t("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved."), SettingsIcons.BELL);
         }
 
         // In every build: a patched Pinterest isn't verified for its own links, so Android opens them

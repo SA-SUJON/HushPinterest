@@ -446,6 +446,50 @@
       "options": []
     },
     {
+      "name": "Hide save toasts",
+      "description": "Stops the pop-up Pinterest shows after you save a pin, such as \"Saved to\" your board or the suggestion to follow the pin's creator. The pin is still saved.",
+      "category": "Interface",
+      "use": false,
+      "dependencies": [
+        "BytecodePatch",
+        "HushPinterest settings"
+      ],
+      "compatiblePackages": {
+        "com.pinterest": [
+          "14.38.0",
+          "14.25.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pinterest",
+          "packageName": "com.pinterest",
+          "description": null,
+          "appIconColor": 15073315,
+          "signatures": [
+            "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
+          ],
+          "targets": [
+            {
+              "version": "14.38.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14388010
+              }
+            },
+            {
+              "version": "14.25.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14258020
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide search history",
       "description": "Hides recent-search rows and carousels on this device. It doesn't delete your account's search history.",
       "category": "Interface",

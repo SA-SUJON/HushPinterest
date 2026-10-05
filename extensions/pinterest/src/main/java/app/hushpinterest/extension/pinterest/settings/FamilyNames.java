@@ -41,6 +41,7 @@ public final class FamilyNames {
     public static final String HIDE_PIN_MENU_ITEMS = "Filter pin menu";
     public static final String HIDE_COMMENTS = "Hide comments";
     public static final String QUIET_EMAIL_REMINDER = "Quiet email reminders";
+    public static final String HIDE_SAVE_TOASTS = "Hide save toasts";
     public static final String DISABLE_UPDATE_NAG = "Disable update nag";
 
     private FamilyNames() {

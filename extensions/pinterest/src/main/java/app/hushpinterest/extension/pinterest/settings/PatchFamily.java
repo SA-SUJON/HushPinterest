@@ -65,6 +65,7 @@ public enum PatchFamily {
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST),
     HIDE_COMMENTS(FamilyNames.HIDE_COMMENTS, "hideComments", null, Settings.HIDE_COMMENTS),
     QUIET_EMAIL_REMINDER(FamilyNames.QUIET_EMAIL_REMINDER, "quietEmailReminder", null, Settings.QUIET_EMAIL_REMINDER),
+    HIDE_SAVE_TOASTS(FamilyNames.HIDE_SAVE_TOASTS, "hideSaveToasts", null, Settings.HIDE_SAVE_TOASTS),
     DISABLE_UPDATE_NAG(FamilyNames.DISABLE_UPDATE_NAG, "disableUpdateNag", null, Settings.DISABLE_UPDATE_NAG);
 
     /** The patch's name in Morphe Manager. */
@@ -117,7 +118,7 @@ public enum PatchFamily {
     static final Set<PatchFamily> ACTIONS_PAGE = Collections.unmodifiableSet(EnumSet.of(DOWNLOAD_PINS, SYSTEM_SHARE));
     static final Set<PatchFamily> INTERFACE_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SCREENSHOT_SHARE,
             HIDE_SEARCH_HISTORY, HIDE_NAVIGATION_BUTTONS, HIDE_HEADER_BUTTONS, HIDE_PIN_MENU_ITEMS,
-            HIDE_COMMENTS, QUIET_EMAIL_REMINDER));
+            HIDE_COMMENTS, QUIET_EMAIL_REMINDER, HIDE_SAVE_TOASTS));
 
     /** Each independent hook, its owning family and the flag set only after it was inserted. */
     public enum Capability {
@@ -139,6 +140,7 @@ public enum PatchFamily {
         PIN_MENU_ITEMS(HIDE_PIN_MENU_ITEMS, "pinMenuItems", "Filter pin menu"),
         COMMENTS(HIDE_COMMENTS, "comments", "Hide comments"),
         EMAIL_REMINDER(QUIET_EMAIL_REMINDER, "emailReminder", "Quiet email reminders"),
+        SAVE_TOASTS(HIDE_SAVE_TOASTS, "saveToasts", "Hide save toasts"),
         UPDATE_NAG(DISABLE_UPDATE_NAG, "updateNag", "Disable update nag");
 
         public final PatchFamily family;

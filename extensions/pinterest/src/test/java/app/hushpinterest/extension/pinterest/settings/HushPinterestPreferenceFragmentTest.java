@@ -101,6 +101,7 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_PIN_MENU_ITEMS, "Hide collage menu items");
         ROW_TITLES.put(PatchFamily.HIDE_COMMENTS, "Hide comments");
         ROW_TITLES.put(PatchFamily.QUIET_EMAIL_REMINDER, "Quiet email reminders");
+        ROW_TITLES.put(PatchFamily.HIDE_SAVE_TOASTS, "Hide save toasts");
         ROW_TITLES.put(PatchFamily.DISABLE_UPDATE_NAG, "Disable update nag");
     }
 

@@ -51,7 +51,7 @@ Setup and backup guide in About is optional. It explains installed patches, runt
 
 ## Patches
 
-There are 18 patches so far.
+There are 19 patches so far.
 
 | Patch | What it does |
 |---|---|
@@ -65,6 +65,7 @@ There are 18 patches so far.
 | `Hide comments` | Collapses comments panels and comment previews beneath pins. It doesn't change who can comment on your pins. |
 | `Hide header buttons` | Hides trailing header icon buttons. Back buttons, text actions and account controls remain available. |
 | `Hide navigation buttons` | Adds separate switches for the Create and Updates navigation buttons. Home, Search and Profile remain available. |
+| `Hide save toasts` | Stops the pop-up Pinterest shows after you save a pin, such as "Saved to" your board or the suggestion to follow the pin's creator. The pin is still saved. |
 | `Hide search history` | Hides recent-search rows and carousels on this device. It doesn't delete your account's search history. |
 | `Hide shopping and product pins` | Hides shoppable pins, shopping stories and featured board placements. Off by default. Turn it on in HushPinterest settings when you want a feed without shopping. |
 | `HushPinterest settings` | Adds HushPinterest settings to Pinterest. Long-press Pinterest's launcher icon, or open Additional settings in the app on Pinterest's App info page, to turn features on or off, pause HushPinterest, save your switches to a file or load them, and export diagnostics. The licenses are there too. |
