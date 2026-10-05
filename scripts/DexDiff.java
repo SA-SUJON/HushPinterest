@@ -275,7 +275,7 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 4), Map.entry("settings", 3));
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("settings", 3));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3228,6 +3228,9 @@ public class DexDiff {
             if (analytics != null) for (Method method : analytics.getMethods()) if (method.getName().startsWith("hushUpload") && !wrappers.contains(method.toString())) fail("analytics has an unrelated or duplicated wrapper " + method);
             int sdk = replacement(c.strings.get(1), c.strings.get(2), "Lcom/appsflyer/", true);
             if (sdk == 0) fail("analytics has no clean AppsFlyer transport");
+            int crashes = replacement(c.strings.get(1), c.strings.get(2), "Lcom/bugsnag/", false);
+            if (crashes == 0) fail("analytics has no clean Bugsnag transport");
+            boolean engage = engageGateway(c.strings.get(4));
             List<ClassDef> tags = new ArrayList<>();
             for (ClassDef cd : clean.classes.values()) {
                 Set<String> fields = new HashSet<>(); for (Field f : cd.getFields()) fields.add(f.getName());
@@ -3255,7 +3258,55 @@ public class DexDiff {
                         || ((TwoRegisterInstruction) body.get(0)).getRegisterB() != parameter(task, -1)) fail("analytics task guard reads the wrong task identity");
                 else guard(task, c.strings.get(0), 0, List.of(firstRegister(body.get(0))), 1, false, false);
             }
-            capability(c.callee, covered.equals(paths) && sdk > 0 && task != null);
+            capability(c.callee, covered.equals(paths) && sdk > 0 && crashes > 0 && engage && task != null);
+        }
+
+        /** Engage's one client gateway: the service read, the pass-through hook, then the SDK's own null test. */
+        boolean engageGateway(String hook) {
+            List<Method> gateways = new ArrayList<>();
+            for (ClassDef cd : clean.classesHolding("com.google.android.engage.BIND_APP_ENGAGE_SERVICE")) {
+                boolean client = false;
+                for (Method m : cd.getMethods()) if (m.getName().equals("<clinit>")
+                        && clean.holding("com.google.android.engage.BIND_APP_ENGAGE_SERVICE").contains(m)) client = true;
+                if (client) for (Method m : cd.getMethods()) if (engageTest(m) >= 0) gateways.add(m);
+            }
+            Method gateway = unique(gateways, "Google Engage service gateway");
+            Method m = actual(gateway);
+            List<Integer> sites = calls(m, hook, 1);
+            if (m == null || sites.size() != 1) return false;
+            int test = engageTest(gateway);
+            Instruction read = instructions(gateway).get(test - 1);
+            int register = firstRegister(read);
+            String type = ((FieldReference) reference(read)).getType();
+            List<Instruction> body = instructions(m);
+            int at = sites.get(0);
+            if (at != test || at + 3 >= body.size() || !arguments(body.get(at)).equals(List.of(register))
+                    || body.get(at + 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT || firstRegister(body.get(at + 1)) != register
+                    || body.get(at + 2).getOpcode() != Opcode.CHECK_CAST || firstRegister(body.get(at + 2)) != register
+                    || !type.equals(String.valueOf(reference(body.get(at + 2))))
+                    || body.get(at + 3).getOpcode() != Opcode.IF_NEZ || firstRegister(body.get(at + 3)) != register) {
+                fail(hook + " is not a service pass-through before Engage's null test in " + m); return false;
+            }
+            remove(m, at, at + 3);
+            return true;
+        }
+
+        /** The index of the null test that follows an instance read and precedes Engage's unavailable exception, or -1. */
+        int engageTest(Method m) {
+            if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || m.getImplementation() == null
+                    || !m.getReturnType().equals("Lcom/google/android/gms/tasks/Task;")) return -1;
+            List<Instruction> body = instructions(m);
+            int found = -1;
+            for (int at = 1; at + 1 < body.size(); at++) {
+                Instruction read = body.get(at - 1), test = body.get(at), refusal = body.get(at + 1);
+                if (read.getOpcode() != Opcode.IGET_OBJECT || ((TwoRegisterInstruction) read).getRegisterB() != parameter(m, -1)
+                        || test.getOpcode() != Opcode.IF_NEZ || firstRegister(test) != firstRegister(read)
+                        || refusal.getOpcode() != Opcode.NEW_INSTANCE
+                        || !"Lcom/google/android/engage/service/AppEngageException;".equals(String.valueOf(reference(refusal)))) continue;
+                if (found >= 0) return -1;
+                found = at;
+            }
+            return found;
         }
 
         void wrapperFallback(Method wrapper, Method endpoint, String hook) {
