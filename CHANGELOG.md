@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 Unreleased source changes. The published release remains 0.0.3.
 
+* **Pinterest:** Hide navigation buttons keeps a hidden tab hidden when Pinterest rebuilds it, such as Search after you close a pin.
+
 * **Pinterest:** Download history offers Set as wallpaper for a finished image download on Android 10 and newer. It opens Android's own Set as options for the saved file, and HushPinterest needs no wallpaper permission.
 
 * **Pinterest:** New optional Original-quality images patch. With its switch on, Pinterest's image model hands back the original image ahead of the large size wherever Pinterest supplied one. It uses more data, so the switch starts off.

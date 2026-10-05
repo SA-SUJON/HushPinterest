@@ -3000,8 +3000,35 @@ public class DexDiff {
                 }
                 remove(m, at - 1, at + 1);
             }
+            // A swapped-in tab view gets its ID in the replacement method and is bound there too.
+            List<Method> swaps = new ArrayList<>();
+            for (Method method : navigation.getMethods()) if (method.getImplementation() != null && method.getReturnType().equals("V")
+                    && method.getParameterTypes().size() == 2 && method.getParameterTypes().get(1).toString().equals("I")
+                    && !method.getParameterTypes().get(0).toString().equals(model.getType())
+                    && !namedCalls(method, "setId", "(I)V").isEmpty() && !namedCalls(method, "removeViewAt", "(I)V").isEmpty()) swaps.add(method);
+            Method r = actual(unique(swaps, "navigation tab replacement"));
+            List<Integer> swapSites = calls(r, c.strings.get(0), 1);
+            if (r != null && swapSites.size() == 1) {
+                int at = swapSites.get(0);
+                List<Instruction> body = instructions(r);
+                Reference getter = at < 3 ? null : reference(body.get(at - 2));
+                boolean shaped = at >= 3 && body.get(at - 2).getOpcode() == Opcode.INVOKE_INTERFACE
+                        && body.get(at - 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && methodNamed(body.get(at - 3), "setId", "(I)V")
+                        && getter instanceof MethodReference && ((MethodReference) getter).getParameterTypes().isEmpty()
+                        && ((MethodReference) getter).getDefiningClass().equals(r.getParameterTypes().get(0).toString())
+                        && identities.size() == 1 && ((MethodReference) getter).getReturnType().equals(identities.get(0).getType());
+                if (!shaped) fail("navigation replacement hook is not immediately after its ID and the replaced tab's identity");
+                else {
+                    List<Integer> nativeArgs = arguments(body.get(at - 3));
+                    int tab = ((OneRegisterInstruction) body.get(at - 1)).getRegisterA();
+                    if (!arguments(body.get(at - 2)).equals(List.of(parameter(r, 0))) || nativeArgs.isEmpty()
+                            || !arguments(body.get(at)).equals(List.of(nativeArgs.get(0), tab)))
+                        fail("navigation replacement hook reads a different view or tab");
+                }
+                remove(r, at - 2, at + 1);
+            }
             view(navigation.getType(), null, null, c.strings.get(1));
-            capability(c.callee, m != null && identities.size() == 1);
+            capability(c.callee, m != null && r != null && identities.size() == 1);
         }
 
         static boolean methodNamed(Instruction i, String name, String shape) {

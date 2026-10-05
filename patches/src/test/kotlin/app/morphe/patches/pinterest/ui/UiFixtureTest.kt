@@ -17,6 +17,8 @@ import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import java.io.File
 import org.junit.Assert.assertEquals
@@ -88,9 +90,18 @@ class UiFixtureTest {
                 owner.methods.any { "BottomNavBar tab insertion out of range" in it.strings() }
             }.type
             val nav = context.mutableClassDefBy(navType)
-            assertEquals(1, nav.methods.sumOf { method ->
+            val bound = nav.methods.filter { method ->
+                method.calls().any { it.definingClass == INTERFACE_CONTROLS && it.name == "bindNavigation" }
+            }
+            assertEquals("${build.name}: the tab binding and the tab replacement each bind once", 2, bound.sumOf { method ->
                 method.calls().count { it.definingClass == INTERFACE_CONTROLS && it.name == "bindNavigation" }
             })
+            val swap = bound.single { method -> method.calls().any { it.name == "removeViewAt" } }
+            val body = swap.instructions()
+            val hook = body.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "bindNavigation" }
+            assertEquals("${build.name}: the replacement binds right after the new view's ID", "setId",
+                ((body[hook - 3] as ReferenceInstruction).reference as MethodReference).name)
+            assertEquals(Opcode.INVOKE_INTERFACE, body[hook - 2].opcode)
             assertTrue(nav.methods.single { it.name == "onMeasure" }.calls().any {
                 it.definingClass == INTERFACE_CONTROLS && it.name == "refreshNavigation"
             })
