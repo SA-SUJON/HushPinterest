@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 Unreleased source changes. The published release remains 0.0.3.
 
+* **Tooling:** The source census is refreshed for 2026-10-05. It records oyasumi's newer Pinterest patches, six more forks, two false matches and the five indexes that now list HushPinterest. Still no outside Pinterest code is adopted.
+
 * **Pinterest:** Hide navigation buttons has a third switch, Hide Search button, beside Create and Notifications. It starts off. Home and Profile always stay in the bottom bar.
 
 * **Pinterest:** With Download pins on, the pin menu has a Copy media link row under Download pin. It copies the address of the same original image or MP4 the download would save, read from the pin when you tap it, and it's only offered when Pinterest supplied one.
