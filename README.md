@@ -14,8 +14,6 @@ HushPinterest is a Morphe patch bundle for Android that takes promoted pins out 
 
 The latest release is [v0.0.3](https://github.com/SysAdminDoc/HushPinterest/releases/tag/v0.0.3), with 17 patches. Add this repo to Morphe Manager as a patch source and it'll offer each new release when it comes out.
 
-The source version is **0.0.4**. It hasn't been released.
-
 ## Which Pinterest
 
 HushPinterest targets Pinterest **14.38.0**, version code 14388010 (`com.pinterest`), which needs Android 10. On Android 9, use **14.25.0** (version code 14258020) instead. It patches the same way. Use the universal APK, the single file that holds every screen density and processor type. APKMirror lists it as the "nodpi" variant. A split bundle (`.apkm`, `.xapk`) works too if Morphe Manager can merge it.
@@ -89,7 +87,7 @@ Long-press the Pinterest icon and tap HushPinterest. You can also open Pinterest
 <p>
   <img src="assets/screenshots/settings-home.png" width="240" alt="HushPinterest settings categories">
   <img src="assets/screenshots/settings-feed.png" width="240" alt="Feed controls for promoted, AI-labeled and shopping pins">
-  <img src="assets/screenshots/settings-privacy.png" width="240" alt="Analytics and link-tracking controls">
+  <img src="assets/screenshots/settings-privacy.png" width="240" alt="Analytics, link-tracking and advertising ID controls">
   <img src="assets/screenshots/settings-updates.png" width="240" alt="Release notes and update instructions in settings">
   <img src="assets/screenshots/settings-recovery.png" width="240" alt="Retry and Back if the settings screen can't open">
 </p>

@@ -2,9 +2,7 @@
 
 Every HushPinterest release, newest first.
 
-## 0.0.4 (2026-10-03)
-
-Unreleased source changes. The published release remains 0.0.3.
+## 0.0.4 (2026-10-05)
 
 * **Tooling:** A hook can no longer borrow a register that its own call still reads, and the patch checks refuse a hook call that passes one register twice unless Pinterest's own call already did.
 
