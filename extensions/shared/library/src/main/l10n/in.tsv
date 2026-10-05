@@ -241,6 +241,12 @@ Pin %s	Pin %s
 Retry download	Coba unduh lagi
 Starts a new download. Android manages it.	Memulai unduhan baru. Android mengelolanya.
 Open pin	Buka pin
+Set as wallpaper	Jadikan wallpaper
+Opens Android's Set as options for this saved image.	Membuka opsi Setel sebagai dari Android untuk gambar tersimpan ini.
+Set as	Setel sebagai
+Couldn't open Set as. Check Downloads for the saved file.	Setel sebagai tidak dapat dibuka. Cari file tersimpan di Download.
+This download isn't a finished image anymore. Check Downloads.	Unduhan ini bukan lagi gambar yang selesai. Periksa Download.
+Resume HushPinterest and turn on Download pins to use this.	Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk memakai ini.
 Remove from history	Hapus dari riwayat
 Removes this history entry. Files and active downloads are kept.	Menghapus entri riwayat ini. File dan unduhan aktif tetap disimpan.
 Open Downloads	Buka Unduhan

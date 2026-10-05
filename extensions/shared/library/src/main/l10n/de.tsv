@@ -241,6 +241,12 @@ Pin %s	Pin %s
 Retry download	Download erneut starten
 Starts a new download. Android manages it.	Startet einen neuen Download. Android verwaltet ihn.
 Open pin	Pin öffnen
+Set as wallpaper	Als Hintergrund festlegen
+Opens Android's Set as options for this saved image.	Öffnet Androids Optionen unter „Festlegen als“ für dieses gespeicherte Bild.
+Set as	Festlegen als
+Couldn't open Set as. Check Downloads for the saved file.	„Festlegen als“ konnte nicht geöffnet werden. Sieh in den Downloads nach der gespeicherten Datei.
+This download isn't a finished image anymore. Check Downloads.	Dieser Download ist kein fertiges Bild mehr. Sieh in den Downloads nach.
+Resume HushPinterest and turn on Download pins to use this.	Setze HushPinterest fort und schalte Pins herunterladen ein, um das zu verwenden.
 Remove from history	Aus Verlauf entfernen
 Removes this history entry. Files and active downloads are kept.	Entfernt diesen Verlaufseintrag. Dateien und laufende Downloads bleiben erhalten.
 Open Downloads	Downloads öffnen

@@ -47,13 +47,14 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(712);
+        Map<String, String> table = new HashMap<>(724);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
         fillDe3(table);
         fillDe4(table);
         fillDe5(table);
+        fillDe6(table);
         return table;
     }
 
@@ -199,6 +200,8 @@ public final class L10nTranslations {
                 "Die Einstellungen lie\u00dfen sich nicht importieren. Es wurde nichts ge\u00e4ndert.");
         table.put("Couldn't open Downloads.",
                 "Downloads konnten nicht ge\u00f6ffnet werden.");
+        table.put("Couldn't open Set as. Check Downloads for the saved file.",
+                "\u201eFestlegen als\u201c konnte nicht ge\u00f6ffnet werden. Sieh in den Downloads nach der gespeicherten Datei.");
         table.put("Couldn't open a save location. Try again from the pin.",
                 "Ein Speicherort konnte nicht ge\u00f6ffnet werden. Versuch es erneut vom Pin aus.");
         table.put("Couldn't open that file. Nothing was changed.",
@@ -299,11 +302,11 @@ public final class L10nTranslations {
                 "Pin-Men\u00fc filtern");
         table.put("Firebase Analytics collection is disabled",
                 "Die Datenerfassung von Firebase Analytics ist deaktiviert");
-        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
-                "Ab dem n\u00e4chsten Start verh\u00e4lt sich jeder Schalter au\u00dfer der Debug-Protokollierung, als w\u00e4re er aus. Was beim Patchen festgelegt wurde, bleibt aktiv, und deine Auswahl bleibt gespeichert.");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
+                "Ab dem n\u00e4chsten Start verh\u00e4lt sich jeder Schalter au\u00dfer der Debug-Protokollierung, als w\u00e4re er aus. Was beim Patchen festgelegt wurde, bleibt aktiv, und deine Auswahl bleibt gespeichert.");
         table.put("Full report saved to %1$s",
                 "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
@@ -422,11 +425,11 @@ public final class L10nTranslations {
                 "Nicht vorhanden");
         table.put("More settings",
                 "Weitere Einstellungen");
-        table.put("No HushPinterest downloads in this history.",
-                "Keine HushPinterest-Downloads in diesem Verlauf.");
     }
 
     private static void fillDe3(Map<String, String> table) {
+        table.put("No HushPinterest downloads in this history.",
+                "Keine HushPinterest-Downloads in diesem Verlauf.");
         table.put("No HushPinterest release is out yet.",
                 "Es gibt noch keine Version von HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -477,6 +480,8 @@ public final class L10nTranslations {
                 "\u00d6ffne den Pin erneut, um einen aktuellen Download-Link zu erhalten.");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201eUnterst\u00fctzte Links \u00f6ffnen\u201c ist f\u00fcr diese App in den Android-Einstellungen aus. Tippe, um es einzuschalten.");
+        table.put("Opens Android's Set as options for this saved image.",
+                "\u00d6ffnet Androids Optionen unter \u201eFestlegen als\u201c f\u00fcr dieses gespeicherte Bild.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Optionale Hilfe zur Anmeldung, zu unterst\u00fctzten Links, zur Patch-Auswahl und zu Sicherungen.");
         table.put("Original-quality images",
@@ -543,13 +548,13 @@ public final class L10nTranslations {
                 "E-Mail-Erinnerungen ausblenden");
         table.put("Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.",
                 "Eine neue Signatur kann die automatische Linkbest\u00e4tigung verhindern. Du kannst die Webadressen in Android unter \u201eStandardm\u00e4\u00dfig \u00f6ffnen\u201c ausw\u00e4hlen.");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
                 "Lies die HushPinterest-Versionshinweise auf GitHub. Hier wird nichts heruntergeladen.");
         table.put("Reading the settings file",
                 "Einstellungsdatei wird gelesen");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Recent searches autocomplete",
                 "Autovervollst\u00e4ndigung der letzten Suchen");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -572,6 +577,8 @@ public final class L10nTranslations {
                 "Fortsetzen");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Setze HushPinterest fort und aktiviere Pins herunterladen, um es erneut zu versuchen.");
+        table.put("Resume HushPinterest and turn on Download pins to use this.",
+                "Setze HushPinterest fort und schalte Pins herunterladen ein, um das zu verwenden.");
         table.put("Retry",
                 "Erneut versuchen");
         table.put("Retry download",
@@ -614,6 +621,10 @@ public final class L10nTranslations {
                 "Sichtbare Pins ausw\u00e4hlen (bis zu %d)");
         table.put("Selecting links by hand",
                 "Links von Hand ausw\u00e4hlen");
+        table.put("Set as",
+                "Festlegen als");
+        table.put("Set as wallpaper",
+                "Als Hintergrund festlegen");
         table.put("Set when you patched",
                 "Beim Patchen festgelegt");
         table.put("Settings couldn't open",
@@ -660,6 +671,9 @@ public final class L10nTranslations {
                 "Link-Tracking entfernen");
         table.put("Supplied URL type: %s",
                 "Typ laut bereitgestellter URL: %s");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("Supplied height: %s",
                 "Bereitgestellte H\u00f6he: %s");
         table.put("Supplied media details",
@@ -670,9 +684,6 @@ public final class L10nTranslations {
                 "Unterst\u00fctzte Links");
         table.put("System share sheet",
                 "Systemmen\u00fc zum Teilen");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Zum Wiedereinschalten tippen.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -731,6 +742,8 @@ public final class L10nTranslations {
                 "Dieser Build deckt %1$s ab. Fehlende Abdeckung: %2$s.");
         table.put("This build has no coverage for %1$s.",
                 "Dieser Build deckt %1$s nicht ab.");
+        table.put("This download isn't a finished image anymore. Check Downloads.",
+                "Dieser Download ist kein fertiges Bild mehr. Sieh in den Downloads nach.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Dieses Handy hat keine Dateiauswahl, hier l\u00e4sst sich also keine Datei w\u00e4hlen.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
@@ -781,6 +794,9 @@ public final class L10nTranslations {
                 "Deine Einstellungen sind aktiv.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Deine Schalter entsprechen bereits dieser Datei, es \u00e4ndert sich also nichts.");
+    }
+
+    private static void fillDe6(Map<String, String> table) {
         table.put("ad-only views",
                 "reine Werbeansichten");
         table.put("promoted pins in lists",
@@ -788,13 +804,14 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(712);
+        Map<String, String> table = new HashMap<>(724);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
         fillEs3(table);
         fillEs4(table);
         fillEs5(table);
+        fillEs6(table);
         return table;
     }
 
@@ -940,6 +957,8 @@ public final class L10nTranslations {
                 "No se pudo importar la configuraci\u00f3n. No se cambi\u00f3 nada.");
         table.put("Couldn't open Downloads.",
                 "No se pudo abrir Descargas.");
+        table.put("Couldn't open Set as. Check Downloads for the saved file.",
+                "No se pudo abrir Usar como. Busca el archivo guardado en Descargas.");
         table.put("Couldn't open a save location. Try again from the pin.",
                 "No se pudo abrir una ubicaci\u00f3n de guardado. Int\u00e9ntalo de nuevo desde el Pin.");
         table.put("Couldn't open that file. Nothing was changed.",
@@ -1040,11 +1059,11 @@ public final class L10nTranslations {
                 "Filtrar men\u00fa del pin");
         table.put("Firebase Analytics collection is disabled",
                 "La recopilaci\u00f3n de Firebase Analytics est\u00e1 desactivada");
-        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
-                "Desde el pr\u00f3ximo inicio, todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados. Lo que se aplic\u00f3 al parchear se mantiene, y tus preferencias quedan guardadas.");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
+                "Desde el pr\u00f3ximo inicio, todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados. Lo que se aplic\u00f3 al parchear se mantiene, y tus preferencias quedan guardadas.");
         table.put("Full report saved to %1$s",
                 "Informe completo guardado en %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
@@ -1163,11 +1182,11 @@ public final class L10nTranslations {
                 "No encontrado");
         table.put("More settings",
                 "M\u00e1s ajustes");
-        table.put("No HushPinterest downloads in this history.",
-                "No hay descargas de HushPinterest en este historial.");
     }
 
     private static void fillEs3(Map<String, String> table) {
+        table.put("No HushPinterest downloads in this history.",
+                "No hay descargas de HushPinterest en este historial.");
         table.put("No HushPinterest release is out yet.",
                 "Todav\u00eda no hay ninguna versi\u00f3n de HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -1218,6 +1237,8 @@ public final class L10nTranslations {
                 "Abre el pin de nuevo para obtener un enlace de descarga actualizado.");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cAbrir enlaces compatibles\u201d est\u00e1 desactivado para esta app en los ajustes de Android. Toca para activarlo.");
+        table.put("Opens Android's Set as options for this saved image.",
+                "Abre las opciones de Android para usar esta imagen guardada.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Ayuda opcional para iniciar sesi\u00f3n, abrir enlaces compatibles, elegir parches y hacer copias de seguridad.");
         table.put("Original-quality images",
@@ -1284,13 +1305,13 @@ public final class L10nTranslations {
                 "Ocultar recordatorios de correo");
         table.put("Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.",
                 "Una nueva firma puede impedir la verificaci\u00f3n autom\u00e1tica de enlaces. Puedes elegir las direcciones web en los ajustes de Android para abrir enlaces de forma predeterminada.");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
                 "Lee las notas de las versiones de HushPinterest en GitHub. Aqu\u00ed no se descarga nada.");
         table.put("Reading the settings file",
                 "Leyendo el archivo de configuraci\u00f3n");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Recent searches autocomplete",
                 "Autocompletado de b\u00fasquedas recientes");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -1313,6 +1334,8 @@ public final class L10nTranslations {
                 "Reanudar");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Reanuda HushPinterest y activa Descargar pines para volver a intentarlo.");
+        table.put("Resume HushPinterest and turn on Download pins to use this.",
+                "Reanuda HushPinterest y activa Descargar Pines para usar esto.");
         table.put("Retry",
                 "Reintentar");
         table.put("Retry download",
@@ -1355,6 +1378,10 @@ public final class L10nTranslations {
                 "Seleccionar pines visibles (hasta %d)");
         table.put("Selecting links by hand",
                 "Seleccionar enlaces a mano");
+        table.put("Set as",
+                "Usar como");
+        table.put("Set as wallpaper",
+                "Usar como fondo de pantalla");
         table.put("Set when you patched",
                 "Aplicado al parchear");
         table.put("Settings couldn't open",
@@ -1401,6 +1428,9 @@ public final class L10nTranslations {
                 "Quitar rastreo de enlaces");
         table.put("Supplied URL type: %s",
                 "Tipo seg\u00fan la URL proporcionada: %s");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("Supplied height: %s",
                 "Alto proporcionado: %s");
         table.put("Supplied media details",
@@ -1411,9 +1441,6 @@ public final class L10nTranslations {
                 "Enlaces compatibles");
         table.put("System share sheet",
                 "Men\u00fa de compartir del sistema");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Toca para volver a activarlo.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -1472,6 +1499,8 @@ public final class L10nTranslations {
                 "Esta versi\u00f3n cubre %1$s. Falta cobertura de %2$s.");
         table.put("This build has no coverage for %1$s.",
                 "Esta versi\u00f3n no cubre %1$s.");
+        table.put("This download isn't a finished image anymore. Check Downloads.",
+                "Esta descarga ya no es una imagen terminada. Revisa Descargas.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Este tel\u00e9fono no tiene selector de archivos, as\u00ed que aqu\u00ed no hay forma de elegir un archivo.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
@@ -1522,6 +1551,9 @@ public final class L10nTranslations {
                 "Tus controles est\u00e1n activos.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Tus interruptores ya coinciden con ese archivo, as\u00ed que no cambiar\u00e1 nada.");
+    }
+
+    private static void fillEs6(Map<String, String> table) {
         table.put("ad-only views",
                 "vistas solo de anuncios");
         table.put("promoted pins in lists",
@@ -1529,13 +1561,14 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(712);
+        Map<String, String> table = new HashMap<>(724);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
         fillIn3(table);
         fillIn4(table);
         fillIn5(table);
+        fillIn6(table);
         return table;
     }
 
@@ -1681,6 +1714,8 @@ public final class L10nTranslations {
                 "Pengaturan tidak dapat diimpor. Tidak ada yang diubah.");
         table.put("Couldn't open Downloads.",
                 "Tidak dapat membuka Unduhan.");
+        table.put("Couldn't open Set as. Check Downloads for the saved file.",
+                "Setel sebagai tidak dapat dibuka. Cari file tersimpan di Download.");
         table.put("Couldn't open a save location. Try again from the pin.",
                 "Lokasi penyimpanan tidak dapat dibuka. Coba lagi dari Pin.");
         table.put("Couldn't open that file. Nothing was changed.",
@@ -1781,11 +1816,11 @@ public final class L10nTranslations {
                 "Filter menu Pin");
         table.put("Firebase Analytics collection is disabled",
                 "Pengumpulan data Firebase Analytics dinonaktifkan");
-        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
-                "Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
+                "Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.");
         table.put("Full report saved to %1$s",
                 "Laporan lengkap disimpan ke %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
@@ -1904,11 +1939,11 @@ public final class L10nTranslations {
                 "Tidak ditemukan");
         table.put("More settings",
                 "Pengaturan lainnya");
-        table.put("No HushPinterest downloads in this history.",
-                "Tidak ada unduhan HushPinterest dalam riwayat ini.");
     }
 
     private static void fillIn3(Map<String, String> table) {
+        table.put("No HushPinterest downloads in this history.",
+                "Tidak ada unduhan HushPinterest dalam riwayat ini.");
         table.put("No HushPinterest release is out yet.",
                 "Belum ada rilis HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -1959,6 +1994,8 @@ public final class L10nTranslations {
                 "Buka pin lagi untuk mendapatkan tautan unduhan baru.");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cBuka link yang didukung\u201d nonaktif untuk aplikasi ini di pengaturan Android. Ketuk untuk mengaktifkannya.");
+        table.put("Opens Android's Set as options for this saved image.",
+                "Membuka opsi Setel sebagai dari Android untuk gambar tersimpan ini.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Bantuan opsional untuk masuk, tautan yang didukung, pilihan patch, dan pencadangan.");
         table.put("Original-quality images",
@@ -2025,13 +2062,13 @@ public final class L10nTranslations {
                 "Sembunyikan pengingat email");
         table.put("Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.",
                 "Penandatanganan ulang dapat mencegah verifikasi tautan otomatis. Anda dapat memilih alamat web di pengaturan Buka secara default di Android.");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
                 "Baca rilis HushPinterest di GitHub. Tidak ada yang diunduh di sini.");
         table.put("Reading the settings file",
                 "Membaca file pengaturan");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Recent searches autocomplete",
                 "Pelengkapan otomatis pencarian terbaru");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -2054,6 +2091,8 @@ public final class L10nTranslations {
                 "Lanjutkan");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Lanjutkan HushPinterest dan aktifkan Unduh pin untuk mencoba lagi.");
+        table.put("Resume HushPinterest and turn on Download pins to use this.",
+                "Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk memakai ini.");
         table.put("Retry",
                 "Coba lagi");
         table.put("Retry download",
@@ -2096,6 +2135,10 @@ public final class L10nTranslations {
                 "Pilih Pin yang terlihat (maksimal %d)");
         table.put("Selecting links by hand",
                 "Memilih tautan secara manual");
+        table.put("Set as",
+                "Setel sebagai");
+        table.put("Set as wallpaper",
+                "Jadikan wallpaper");
         table.put("Set when you patched",
                 "Diatur saat Anda menambal");
         table.put("Settings couldn't open",
@@ -2142,6 +2185,9 @@ public final class L10nTranslations {
                 "Hapus pelacakan tautan");
         table.put("Supplied URL type: %s",
                 "Jenis dari URL yang diberikan: %s");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("Supplied height: %s",
                 "Tinggi yang diberikan: %s");
         table.put("Supplied media details",
@@ -2152,9 +2198,6 @@ public final class L10nTranslations {
                 "Tautan yang didukung");
         table.put("System share sheet",
                 "Menu berbagi sistem");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Ketuk untuk mengaktifkan HushPinterest lagi.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -2213,6 +2256,8 @@ public final class L10nTranslations {
                 "Versi ini mencakup %1$s. Cakupan yang belum tersedia: %2$s.");
         table.put("This build has no coverage for %1$s.",
                 "Versi ini tidak mencakup %1$s.");
+        table.put("This download isn't a finished image anymore. Check Downloads.",
+                "Unduhan ini bukan lagi gambar yang selesai. Periksa Download.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
@@ -2263,6 +2308,9 @@ public final class L10nTranslations {
                 "Kontrol Anda aktif.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.");
+    }
+
+    private static void fillIn6(Map<String, String> table) {
         table.put("ad-only views",
                 "tampilan khusus iklan");
         table.put("promoted pins in lists",
@@ -2270,13 +2318,14 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(712);
+        Map<String, String> table = new HashMap<>(724);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
         fillPt_rBR3(table);
         fillPt_rBR4(table);
         fillPt_rBR5(table);
+        fillPt_rBR6(table);
         return table;
     }
 
@@ -2422,6 +2471,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel importar as configura\u00e7\u00f5es. Nada foi alterado.");
         table.put("Couldn't open Downloads.",
                 "N\u00e3o foi poss\u00edvel abrir Downloads.");
+        table.put("Couldn't open Set as. Check Downloads for the saved file.",
+                "N\u00e3o foi poss\u00edvel abrir Definir como. Procure o arquivo salvo em Downloads.");
         table.put("Couldn't open a save location. Try again from the pin.",
                 "N\u00e3o foi poss\u00edvel abrir um local para salvar. Tente de novo a partir do Pin.");
         table.put("Couldn't open that file. Nothing was changed.",
@@ -2522,11 +2573,11 @@ public final class L10nTranslations {
                 "Filtrar menu do Pin");
         table.put("Firebase Analytics collection is disabled",
                 "A coleta do Firebase Analytics est\u00e1 desativada");
-        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
-                "A partir da pr\u00f3xima abertura, todas as op\u00e7\u00f5es, menos o Registro de depura\u00e7\u00e3o, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo, e suas escolhas ficam salvas.");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
+                "A partir da pr\u00f3xima abertura, todas as op\u00e7\u00f5es, menos o Registro de depura\u00e7\u00e3o, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo, e suas escolhas ficam salvas.");
         table.put("Full report saved to %1$s",
                 "Relat\u00f3rio completo salvo em %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
@@ -2645,11 +2696,11 @@ public final class L10nTranslations {
                 "N\u00e3o encontrado");
         table.put("More settings",
                 "Mais configura\u00e7\u00f5es");
-        table.put("No HushPinterest downloads in this history.",
-                "N\u00e3o h\u00e1 downloads do HushPinterest neste hist\u00f3rico.");
     }
 
     private static void fillPt_rBR3(Map<String, String> table) {
+        table.put("No HushPinterest downloads in this history.",
+                "N\u00e3o h\u00e1 downloads do HushPinterest neste hist\u00f3rico.");
         table.put("No HushPinterest release is out yet.",
                 "Ainda n\u00e3o h\u00e1 nenhuma vers\u00e3o do HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -2700,6 +2751,8 @@ public final class L10nTranslations {
                 "Abra o pin novamente para obter um novo link de download.");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cAbrir links compat\u00edveis\u201d est\u00e1 desativado para este app nas configura\u00e7\u00f5es do Android. Toque para ativar.");
+        table.put("Opens Android's Set as options for this saved image.",
+                "Abre as op\u00e7\u00f5es Definir como do Android para esta imagem salva.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Ajuda opcional para entrar, abrir links compat\u00edveis, escolher patches e fazer backups.");
         table.put("Original-quality images",
@@ -2766,13 +2819,13 @@ public final class L10nTranslations {
                 "Ocultar lembretes de e-mail");
         table.put("Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.",
                 "Assinar novamente pode impedir a verifica\u00e7\u00e3o autom\u00e1tica de links. Voc\u00ea pode escolher os endere\u00e7os web nas configura\u00e7\u00f5es Abrir por padr\u00e3o do Android.");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
                 "Leia as vers\u00f5es do HushPinterest no GitHub. Nada \u00e9 baixado aqui.");
         table.put("Reading the settings file",
                 "Lendo o arquivo de configura\u00e7\u00f5es");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Recent searches autocomplete",
                 "Preenchimento autom\u00e1tico de pesquisas recentes");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -2795,6 +2848,8 @@ public final class L10nTranslations {
                 "Retomar");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Retome o HushPinterest e ative Baixar pins para tentar novamente.");
+        table.put("Resume HushPinterest and turn on Download pins to use this.",
+                "Retome o HushPinterest e ative Baixar Pins para usar isto.");
         table.put("Retry",
                 "Tentar novamente");
         table.put("Retry download",
@@ -2837,6 +2892,10 @@ public final class L10nTranslations {
                 "Selecionar Pins vis\u00edveis (at\u00e9 %d)");
         table.put("Selecting links by hand",
                 "Selecionar links manualmente");
+        table.put("Set as",
+                "Definir como");
+        table.put("Set as wallpaper",
+                "Definir como plano de fundo");
         table.put("Set when you patched",
                 "Definido ao aplicar os patches");
         table.put("Settings couldn't open",
@@ -2883,6 +2942,9 @@ public final class L10nTranslations {
                 "Remover rastreamento de links");
         table.put("Supplied URL type: %s",
                 "Tipo da URL fornecida: %s");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Supplied height: %s",
                 "Altura fornecida: %s");
         table.put("Supplied media details",
@@ -2893,9 +2955,6 @@ public final class L10nTranslations {
                 "Links compat\u00edveis");
         table.put("System share sheet",
                 "Menu de compartilhamento do sistema");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Toque para reativar.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -2954,6 +3013,8 @@ public final class L10nTranslations {
                 "Esta vers\u00e3o cobre %1$s. Falta cobertura para %2$s.");
         table.put("This build has no coverage for %1$s.",
                 "Esta vers\u00e3o n\u00e3o cobre %1$s.");
+        table.put("This download isn't a finished image anymore. Check Downloads.",
+                "Este download n\u00e3o \u00e9 mais uma imagem conclu\u00edda. Confira Downloads.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Este dispositivo n\u00e3o tem seletor de arquivos, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel escolher um arquivo aqui.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
@@ -3004,6 +3065,9 @@ public final class L10nTranslations {
                 "Seus controles est\u00e3o ativos.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Suas op\u00e7\u00f5es j\u00e1 correspondem \u00e0s desse arquivo, ent\u00e3o nada ser\u00e1 alterado.");
+    }
+
+    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("ad-only views",
                 "telas s\u00f3 de an\u00fancios");
         table.put("promoted pins in lists",
@@ -3011,13 +3075,14 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(712);
+        Map<String, String> table = new HashMap<>(724);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
         fillTr3(table);
         fillTr4(table);
         fillTr5(table);
+        fillTr6(table);
         return table;
     }
 
@@ -3163,6 +3228,8 @@ public final class L10nTranslations {
                 "Ayarlar i\u00e7e aktar\u0131lamad\u0131. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("Couldn't open Downloads.",
                 "\u0130ndirilenler a\u00e7\u0131lamad\u0131.");
+        table.put("Couldn't open Set as. Check Downloads for the saved file.",
+                "Farkl\u0131 ayarla a\u00e7\u0131lamad\u0131. Kay\u0131tl\u0131 dosya i\u00e7in \u0130ndirilenler'e bak.");
         table.put("Couldn't open a save location. Try again from the pin.",
                 "Kaydetme konumu a\u00e7\u0131lamad\u0131. Pin'den tekrar deneyin.");
         table.put("Couldn't open that file. Nothing was changed.",
@@ -3263,11 +3330,11 @@ public final class L10nTranslations {
                 "Pin men\u00fcs\u00fcn\u00fc filtrele");
         table.put("Firebase Analytics collection is disabled",
                 "Firebase Analytics veri toplama kapal\u0131");
-        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
-                "Sonraki a\u00e7\u0131l\u0131\u015ftan itibaren Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r. Yamalad\u0131\u011f\u0131nda ayarlananlar devrede kal\u0131r ve tercihlerin kay\u0131tl\u0131 kal\u0131r.");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
+                "Sonraki a\u00e7\u0131l\u0131\u015ftan itibaren Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r. Yamalad\u0131\u011f\u0131nda ayarlananlar devrede kal\u0131r ve tercihlerin kay\u0131tl\u0131 kal\u0131r.");
         table.put("Full report saved to %1$s",
                 "Tam rapor \u015furaya kaydedildi: %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
@@ -3386,11 +3453,11 @@ public final class L10nTranslations {
                 "Bulunamad\u0131");
         table.put("More settings",
                 "Di\u011fer ayarlar");
-        table.put("No HushPinterest downloads in this history.",
-                "Bu ge\u00e7mi\u015fte HushPinterest indirmesi yok.");
     }
 
     private static void fillTr3(Map<String, String> table) {
+        table.put("No HushPinterest downloads in this history.",
+                "Bu ge\u00e7mi\u015fte HushPinterest indirmesi yok.");
         table.put("No HushPinterest release is out yet.",
                 "Hen\u00fcz bir HushPinterest s\u00fcr\u00fcm\u00fc yay\u0131nlanmad\u0131.");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -3441,6 +3508,8 @@ public final class L10nTranslations {
                 "Yeni bir indirme ba\u011flant\u0131s\u0131 almak i\u00e7in pini yeniden a\u00e7\u0131n.");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cDesteklenen ba\u011flant\u0131lar\u0131 a\u00e7\u201d Android ayarlar\u0131nda bu uygulama i\u00e7in kapal\u0131. A\u00e7mak i\u00e7in dokunun.");
+        table.put("Opens Android's Set as options for this saved image.",
+                "Bu kay\u0131tl\u0131 g\u00f6rsel i\u00e7in Android'in Farkl\u0131 ayarla se\u00e7eneklerini a\u00e7ar.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Giri\u015f, desteklenen ba\u011flant\u0131lar, yama se\u00e7imleri ve yedeklemeler i\u00e7in iste\u011fe ba\u011fl\u0131 yard\u0131m.");
         table.put("Original-quality images",
@@ -3507,13 +3576,13 @@ public final class L10nTranslations {
                 "E-posta hat\u0131rlatmalar\u0131n\u0131 sustur");
         table.put("Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.",
                 "Yeniden imzalama, otomatik ba\u011flant\u0131 do\u011frulamas\u0131n\u0131 engelleyebilir. Web adreslerini Android'in Varsay\u0131lan olarak a\u00e7 ayarlar\u0131ndan se\u00e7ebilirsiniz.");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
                 "HushPinterest s\u00fcr\u00fcmlerini GitHub'da oku. Burada hi\u00e7bir \u015fey indirilmez.");
         table.put("Reading the settings file",
                 "Ayar dosyas\u0131 okunuyor");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Recent searches autocomplete",
                 "Son aramalarda otomatik tamamlama");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -3536,6 +3605,8 @@ public final class L10nTranslations {
                 "Devam et");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Yeniden denemek i\u00e7in HushPinterest'i s\u00fcrd\u00fcr\u00fcn ve Pinleri indir'i a\u00e7\u0131n.");
+        table.put("Resume HushPinterest and turn on Download pins to use this.",
+                "Bunu kullanmak i\u00e7in HushPinterest'i s\u00fcrd\u00fcr ve Pin indirmeyi a\u00e7.");
         table.put("Retry",
                 "Yeniden dene");
         table.put("Retry download",
@@ -3578,6 +3649,10 @@ public final class L10nTranslations {
                 "G\u00f6r\u00fcnen Pinleri se\u00e7 (en fazla %d)");
         table.put("Selecting links by hand",
                 "Ba\u011flant\u0131lar\u0131 elle se\u00e7me");
+        table.put("Set as",
+                "Farkl\u0131 ayarla");
+        table.put("Set as wallpaper",
+                "Duvar ka\u011f\u0131d\u0131 yap");
         table.put("Set when you patched",
                 "Yamalad\u0131\u011f\u0131nda ayarlananlar");
         table.put("Settings couldn't open",
@@ -3624,6 +3699,9 @@ public final class L10nTranslations {
                 "Ba\u011flant\u0131 takibini kald\u0131r");
         table.put("Supplied URL type: %s",
                 "Sa\u011flanan adrese g\u00f6re t\u00fcr: %s");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("Supplied height: %s",
                 "Sa\u011flanan y\u00fckseklik: %s");
         table.put("Supplied media details",
@@ -3634,9 +3712,6 @@ public final class L10nTranslations {
                 "Desteklenen ba\u011flant\u0131lar");
         table.put("System share sheet",
                 "Sistem payla\u015f\u0131m men\u00fcs\u00fc");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -3695,6 +3770,8 @@ public final class L10nTranslations {
                 "Bu derlemenin kapsam\u0131: %1$s. Eksik kapsam: %2$s.");
         table.put("This build has no coverage for %1$s.",
                 "Bu derleme %1$s i\u00e7in kapsam sa\u011flamaz.");
+        table.put("This download isn't a finished image anymore. Check Downloads.",
+                "Bu indirme art\u0131k tamamlanm\u0131\u015f bir g\u00f6rsel de\u011fil. \u0130ndirilenler'e bak.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Bu telefonda dosya se\u00e7ici yok, bu y\u00fczden burada dosya se\u00e7menin bir yolu yok.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
@@ -3745,6 +3822,9 @@ public final class L10nTranslations {
                 "Kontrolleriniz etkin.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Anahtarlar\u0131n zaten o dosyayla ayn\u0131, bu y\u00fczden hi\u00e7bir \u015fey de\u011fi\u015fmeyecek.");
+    }
+
+    private static void fillTr6(Map<String, String> table) {
         table.put("ad-only views",
                 "yaln\u0131zca reklam g\u00f6r\u00fcn\u00fcmleri");
         table.put("promoted pins in lists",

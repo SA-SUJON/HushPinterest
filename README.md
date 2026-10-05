@@ -111,7 +111,7 @@ From a pin menu in a feed, search or board grid, Download visible pins lets you 
 
 Android 9 saves have a five-minute limit and a 256 MiB size limit. Empty or incomplete responses fail. If a save might have finished despite a storage error, HushPinterest keeps the file and asks you to check your chosen location. Pause stops new requests, and a save that's already running finishes on its own.
 
-On Android 10 and newer, Download history in Pin actions checks the requests HushPinterest started. It shows Android's current status after Pinterest restarts, when a result arrives and when you tap Refresh. A failed request offers Retry only when Android still supplies a supported media address. Otherwise, reopen the pin. Removing a history entry keeps the downloaded file. Use system Downloads to cancel a request that's still running.
+On Android 10 and newer, Download history in Pin actions checks the requests HushPinterest started. It shows Android's current status after Pinterest restarts, when a result arrives and when you tap Refresh. A failed request offers Retry only when Android still supplies a supported media address. Otherwise, reopen the pin. A finished image offers Set as wallpaper, which opens Android's own Set as options for the saved file. Removing a history entry keeps the downloaded file. Use system Downloads to cancel a request that's still running.
 
 Download history also records results from visible-pin selections, including skipped or unsupported pins and Android 9 saves. It keeps the 32 most recent entries without storing media addresses. These local results don't claim to be Android download requests.
 

@@ -241,6 +241,12 @@ Pin %s	Pin %s
 Retry download	İndirmeyi yeniden dene
 Starts a new download. Android manages it.	Yeni bir indirme başlatır. Android bunu yönetir.
 Open pin	Pini aç
+Set as wallpaper	Duvar kağıdı yap
+Opens Android's Set as options for this saved image.	Bu kayıtlı görsel için Android'in Farklı ayarla seçeneklerini açar.
+Set as	Farklı ayarla
+Couldn't open Set as. Check Downloads for the saved file.	Farklı ayarla açılamadı. Kayıtlı dosya için İndirilenler'e bak.
+This download isn't a finished image anymore. Check Downloads.	Bu indirme artık tamamlanmış bir görsel değil. İndirilenler'e bak.
+Resume HushPinterest and turn on Download pins to use this.	Bunu kullanmak için HushPinterest'i sürdür ve Pin indirmeyi aç.
 Remove from history	Geçmişten kaldır
 Removes this history entry. Files and active downloads are kept.	Bu geçmiş kaydını kaldırır. Dosyalar ve etkin indirmeler korunur.
 Open Downloads	İndirilenler'i aç

@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 Unreleased source changes. The published release remains 0.0.3.
 
+* **Pinterest:** Download history offers Set as wallpaper for a finished image download on Android 10 and newer. It opens Android's own Set as options for the saved file, and HushPinterest needs no wallpaper permission.
+
 * **Pinterest:** New optional Original-quality images patch. With its switch on, Pinterest's image model hands back the original image ahead of the large size wherever Pinterest supplied one. It uses more data, so the switch starts off.
 
 * **Tooling:** The source census is refreshed for 2026-10-05. It records oyasumi's newer Pinterest patches, six more forks, two false matches and the five indexes that now list HushPinterest. Still no outside Pinterest code is adopted.

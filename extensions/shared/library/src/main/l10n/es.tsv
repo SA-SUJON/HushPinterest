@@ -241,6 +241,12 @@ Pin %s	Pin %s
 Retry download	Reintentar descarga
 Starts a new download. Android manages it.	Inicia una descarga nueva. Android la gestiona.
 Open pin	Abrir pin
+Set as wallpaper	Usar como fondo de pantalla
+Opens Android's Set as options for this saved image.	Abre las opciones de Android para usar esta imagen guardada.
+Set as	Usar como
+Couldn't open Set as. Check Downloads for the saved file.	No se pudo abrir Usar como. Busca el archivo guardado en Descargas.
+This download isn't a finished image anymore. Check Downloads.	Esta descarga ya no es una imagen terminada. Revisa Descargas.
+Resume HushPinterest and turn on Download pins to use this.	Reanuda HushPinterest y activa Descargar Pines para usar esto.
 Remove from history	Eliminar del historial
 Removes this history entry. Files and active downloads are kept.	Elimina esta entrada del historial. Se conservan los archivos y las descargas activas.
 Open Downloads	Abrir Descargas
