@@ -63,7 +63,7 @@ val hideNavigationButtonsPatch = bytecodePatch(
         if (bind.parameterRegisterNumber(0) > 15 || viewRegister > 15) {
             throw PatchException("Navigation tab binding registers no longer fit its field access")
         }
-        val scratch = bind.freeLocalsAt("Navigation tab binding", insertion, 1).single()
+        val scratch = bind.freeLocalsAt("Navigation tab binding", insertion, 1, reads = listOf(viewRegister)).single()
         // Pinterest also swaps a live tab for a freshly built view, as it does with Search when a pin
         // closeup returns. That view gets its ID here, never through the binding above.
         val replace = navigation.methods.filter { method ->
@@ -87,7 +87,7 @@ val hideNavigationButtonsPatch = bytecodePatch(
         if (replace.parameterRegisterNumber(0) > 15 || replacedView > 15) {
             throw PatchException("Navigation tab replacement registers no longer fit its interface call")
         }
-        val replacedScratch = replace.freeLocalsAt("Navigation tab replacement", replacedAt, 1).single()
+        val replacedScratch = replace.freeLocalsAt("Navigation tab replacement", replacedAt, 1, reads = listOf(replacedView)).single()
         requireOverride(navigation, "onMeasure", listOf("I", "I"))
         val parameter = bind.parameterRegister(0)
         bind.addInstructions(insertion, """

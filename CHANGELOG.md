@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 Unreleased source changes. The published release remains 0.0.3.
 
+* **Tooling:** A hook can no longer borrow a register that its own call still reads, and the patch checks refuse a hook call that passes one register twice unless Pinterest's own call already did.
+
 * **Pinterest:** Hide navigation buttons keeps a hidden tab hidden when Pinterest rebuilds it, such as Search after you close a pin.
 
 * **Pinterest:** Download history offers Set as wallpaper for a finished image download on Android 10 and newer. It opens Android's own Set as options for the saved file, and HushPinterest needs no wallpaper permission.

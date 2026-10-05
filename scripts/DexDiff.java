@@ -2523,6 +2523,10 @@ public class DexDiff {
                 Instruction i = instructions(m).get(at);
                 if (i.getOpcode() != Opcode.INVOKE_STATIC && i.getOpcode() != Opcode.INVOKE_STATIC_RANGE)
                     fail(hook + " is not invoked statically in " + m);
+                // One register passed twice means a scratch write replaced a value the hook still wanted,
+                // unless the hook took over a host call that already passed it twice.
+                if (new HashSet<>(arguments(i)).size() != arguments(i).size() && !carried(m, i))
+                    fail(hook + " passes one register twice in " + m);
             }
             Method callee = actual(hook);
             if (callee != null && (!AccessFlags.PUBLIC.isSet(callee.getAccessFlags())
@@ -2530,6 +2534,16 @@ public class DexDiff {
                     || !AccessFlags.PUBLIC.isSet(patched.classes.get(callee.getDefiningClass()).getAccessFlags()))) fail(hook + " is not a public static hook");
             if (featureControls) controls(callee, true);
             return sites;
+        }
+
+        boolean carried(Method m, Instruction hook) {
+            Method before = clean.methods.get(m.toString());
+            if (before == null || before.getImplementation() == null) return false;
+            List<? extends CharSequence> shape = ((MethodReference) reference(hook)).getParameterTypes();
+            for (Instruction i : instructions(before))
+                if (i.getOpcode().name().startsWith("INVOKE_STATIC") && reference(i) instanceof MethodReference host
+                        && host.getParameterTypes().equals(shape) && arguments(i).equals(arguments(hook))) return true;
+            return false;
         }
 
         void remove(Method m, int first, int end) {
@@ -2994,7 +3008,7 @@ public class DexDiff {
                 else {
                     TwoRegisterInstruction identity = (TwoRegisterInstruction) body.get(at - 1);
                     List<Integer> nativeArgs = arguments(body.get(at - 2));
-                    if (identity.getRegisterB() != parameter(m, 0) || nativeArgs.isEmpty()
+                    if (identity.getRegisterB() != parameter(m, 0) || nativeArgs.isEmpty() || identity.getRegisterA() == nativeArgs.get(0)
                             || !arguments(body.get(at)).equals(List.of(nativeArgs.get(0), identity.getRegisterA())))
                         fail("navigation hook reads a different view or model");
                 }
@@ -3021,7 +3035,7 @@ public class DexDiff {
                 else {
                     List<Integer> nativeArgs = arguments(body.get(at - 3));
                     int tab = ((OneRegisterInstruction) body.get(at - 1)).getRegisterA();
-                    if (!arguments(body.get(at - 2)).equals(List.of(parameter(r, 0))) || nativeArgs.isEmpty()
+                    if (!arguments(body.get(at - 2)).equals(List.of(parameter(r, 0))) || nativeArgs.isEmpty() || tab == nativeArgs.get(0)
                             || !arguments(body.get(at)).equals(List.of(nativeArgs.get(0), tab)))
                         fail("navigation replacement hook reads a different view or tab");
                 }
