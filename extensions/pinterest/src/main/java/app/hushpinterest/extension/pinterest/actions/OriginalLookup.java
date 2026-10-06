@@ -7,8 +7,6 @@
 package app.hushpinterest.extension.pinterest.actions;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URI;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
@@ -23,7 +21,7 @@ final class OriginalLookup {
     private OriginalLookup() {}
 
     /** Tests replace it so they never reach the network. */
-    static volatile PinTransfer.Connection connection = uri -> (HttpURLConnection) uri.toURL().openConnection();
+    static volatile PinTransfer.Connection connection = PinTransfer.NETWORK;
 
     /**
      * The original image behind a stand-in size when the media host has one, otherwise the
@@ -34,7 +32,7 @@ final class OriginalLookup {
         for (PinMedia.Source original : PinMedia.originals(standIn)) {
             if (suffix != null && !suffix.equals(original.suffix)) continue;
             try {
-                if (present(original)) {
+                if (PinTransfer.present(original, connection)) {
                     HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "original image found on media host");
                     return original;
                 }
@@ -46,22 +44,5 @@ final class OriginalLookup {
         }
         HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "largest supplied size used");
         return standIn;
-    }
-
-    private static boolean present(PinMedia.Source original) throws IOException {
-        HttpURLConnection head = connection.open(URI.create(original.url));
-        try {
-            head.setRequestMethod("HEAD");
-            head.setInstanceFollowRedirects(false);
-            head.setUseCaches(false);
-            head.setConnectTimeout(5000);
-            head.setReadTimeout(5000);
-            head.setRequestProperty("Accept-Encoding", "identity");
-            if (head.getResponseCode() != HttpURLConnection.HTTP_OK) return false;
-            String type = head.getContentType();
-            return type != null && type.split(";", 2)[0].trim().equalsIgnoreCase(original.mime);
-        } finally {
-            head.disconnect();
-        }
     }
 }
