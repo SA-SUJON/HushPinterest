@@ -327,7 +327,9 @@ Dismisses newly created optional confirm-email reminders. An open reminder won't
 Hide save toasts	Kaydetme bildirimlerini gizle
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Bir Pin kaydettiğinde artık panona "Kaydedildi" uyarısı ya da oluşturan kişiyi takip etme önerisi çıkmaz. Pin yine kaydedilir.
 Original-quality images	Orijinal kalitede görseller
-Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Pinterest sağladığında büyük boyut yerine orijinal görseli seçer. Daha fazla veri kullanır. Ekrandaki görseller yeniden yüklendiğinde değişir.
+collage images	kolaj görselleri
+pin closeups	Pin yakın görünümleri
+Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.	Pinterest gönderdiğinde, Pin yakın görünümlerinde ve kolajlarda büyük boyut yerine orijinal görseli gösterir. Daha fazla veri kullanır. Zaten yüklenmiş Pinler, Pinterest onları yeniden yükleyene kadar boyutlarını korur.
 Save media	Medyayı kaydet
 Recent searches autocomplete	Son aramalarda otomatik tamamlama
 Activity alerts	Etkinlik uyarıları

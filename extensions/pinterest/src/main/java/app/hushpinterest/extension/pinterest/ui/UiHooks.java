@@ -8,6 +8,14 @@ package app.hushpinterest.extension.pinterest.ui;
 
 import android.view.View;
 
+import java.lang.reflect.Field;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import app.hushpinterest.extension.pinterest.ads.ModelFields;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.Utils;
@@ -59,6 +67,70 @@ public final class UiHooks {
     /** True has Pinterest's image model answer its original rendition first, where it has one. */
     public static boolean originalImages() {
         return enabled(FamilyNames.ORIGINAL_IMAGES, Settings.ORIGINAL_IMAGES);
+    }
+
+    /**
+     * The images key that asks Pinterest's API for a pin's original. Its collage requests name the
+     * original originals, but a pin request with that key fails and the home feed doesn't load
+     * (S25, 2026-10-06), so pins ask for orig. An originals entry Pinterest sent anyway still counts.
+     */
+    static final String ORIGINAL = "orig", ORIGINALS = "originals";
+
+    /** Adds the original to the image sizes Pinterest asks its API to send with each pin. */
+    public static void imageSizes(Set<String> sizes) {
+        if (sizes == null || !originalImages()) return;
+        try {
+            sizes.add(ORIGINAL);
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.ORIGINAL_IMAGES, "image sizes", failure);
+        }
+    }
+
+    /**
+     * The pin's original image in place of the large one its closeup shows. Pinterest's large image
+     * stays when the switch is off, or when no original arrived as the same kind of image model
+     * with its dimensions and a Pinterest media address.
+     */
+    public static Object closeupImage(Object pin, Object large) {
+        if (pin == null || large == null || !originalImages()) return large;
+        try {
+            Object images = ModelFields.read(ModelFields.of(pin.getClass()), pin, "images");
+            if (!(images instanceof Map<?, ?>)) return large;
+            Object original = ((Map<?, ?>) images).get(ORIGINAL);
+            if (original == null) original = ((Map<?, ?>) images).get(ORIGINALS);
+            if (original == null || original.getClass() != large.getClass()) return large;
+            Map<String, Field> fields = ModelFields.of(original.getClass());
+            if (!dimension(ModelFields.read(fields, original, "width")) || !dimension(ModelFields.read(fields, original, "height"))
+                    || !mediaAddress(ModelFields.read(fields, original, "url"))) return large;
+            HookStatus.counted(FamilyNames.ORIGINAL_IMAGES, "closeup original shown");
+            return original;
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.ORIGINAL_IMAGES, "closeup image", failure);
+            return large;
+        }
+    }
+
+    /**
+     * Pinterest's closeup reads both dimensions as doubles and reads a missing one as zero, which
+     * would size the image wrong. It also steps down to a smaller size for an image past the
+     * screen's texture limit, so an original wider or taller than 8192 keeps the large image.
+     */
+    private static boolean dimension(Object value) {
+        if (!(value instanceof Number)) return false;
+        double number = ((Number) value).doubleValue();
+        return number >= 1 && number <= 8192;
+    }
+
+    private static boolean mediaAddress(Object value) {
+        if (!(value instanceof String)) return false;
+        try {
+            URI uri = new URI((String) value);
+            String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase(Locale.ROOT);
+            return "https".equalsIgnoreCase(uri.getScheme()) && uri.getRawUserInfo() == null
+                    && (host.equals("pinimg.com") || host.endsWith(".pinimg.com"));
+        } catch (URISyntaxException malformed) {
+            return false;
+        }
     }
 
     public static boolean disableUpdateNag() {

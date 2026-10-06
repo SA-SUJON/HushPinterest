@@ -327,7 +327,9 @@ Dismisses newly created optional confirm-email reminders. An open reminder won't
 Hide save toasts	Sembunyikan notifikasi simpan
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Menyimpan Pin tidak lagi memunculkan "Disimpan ke" papanmu atau saran untuk mengikuti pembuatnya. Pin tetap tersimpan.
 Original-quality images	Gambar kualitas asli
-Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Memilih gambar asli sebelum ukuran besar jika Pinterest menyediakannya. Memakai lebih banyak data. Gambar yang sudah tampil berubah saat dimuat ulang.
+collage images	gambar kolase
+pin closeups	tampilan dekat pin
+Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.	Menampilkan gambar asli sebagai ganti ukuran besar di tampilan dekat pin dan kolase, jika Pinterest mengirimkannya. Memakai lebih banyak data. Pin yang sudah dimuat tetap pada ukurannya sampai Pinterest memuatnya ulang.
 Save media	Simpan media
 Recent searches autocomplete	Pelengkapan otomatis pencarian terbaru
 Activity alerts	Notifikasi aktivitas

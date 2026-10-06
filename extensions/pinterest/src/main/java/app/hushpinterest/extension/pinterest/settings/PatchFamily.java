@@ -143,7 +143,8 @@ public enum PatchFamily {
         COMMENTS(HIDE_COMMENTS, "comments", "Hide comments"),
         EMAIL_REMINDER(QUIET_EMAIL_REMINDER, "emailReminder", "Quiet email reminders"),
         SAVE_TOASTS(HIDE_SAVE_TOASTS, "saveToasts", "Hide save toasts"),
-        IMAGE_CHOOSER(ORIGINAL_IMAGES, "imageChooser", "Original-quality images"),
+        IMAGE_CHOOSER(ORIGINAL_IMAGES, "imageChooser", "collage images"),
+        CLOSEUP_IMAGE(ORIGINAL_IMAGES, "closeupImage", "pin closeups"),
         UPDATE_NAG(DISABLE_UPDATE_NAG, "updateNag", "Disable update nag");
 
         public final PatchFamily family;

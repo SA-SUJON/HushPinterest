@@ -45,7 +45,7 @@ family|hidePinMenuItems|Filter pin menu|pinMenuItems
 family|hideComments|Hide comments|comments
 family|quietEmailReminder|Quiet email reminders|emailReminder
 family|hideSaveToasts|Hide save toasts|saveToasts
-family|originalImages|Original-quality images|imageChooser
+family|originalImages|Original-quality images|imageChooser,closeupImage
 family|disableUpdateNag|Disable update nag|updateNag
 
 mutation|settings|settings|Lcom/pinterest/ReleaseHiltApplication;|Lcom/pinterest/activity/PinterestActivity;|Lapp/hushpinterest/extension/pinterest/settings/SettingsEntry;
@@ -67,4 +67,5 @@ mutation|comments|comments|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->c
 mutation|emailReminder|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->quietEmailReminder()Z|email
 mutation|saveToasts|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideSaveToast(Ljava/lang/Object;)Z|saveToast
 mutation|imageChooser|imageOrder|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->originalImages()Z
+mutation|closeupImage|closeupImage|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->imageSizes(Ljava/util/Set;)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->closeupImage(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 mutation|updateNag|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->disableUpdateNag()Z|update

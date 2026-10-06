@@ -319,7 +319,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved."), SettingsIcons.BELL);
             patchToggle(ui, context, build, PatchFamily.ORIGINAL_IMAGES, Settings.ORIGINAL_IMAGES,
                     L10n.t("Original-quality images"),
-                    L10n.t("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload."), SettingsIcons.FEED);
+                    L10n.t("Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again."), SettingsIcons.FEED);
         }
 
         // In every build: a patched Pinterest isn't verified for its own links, so Android opens them

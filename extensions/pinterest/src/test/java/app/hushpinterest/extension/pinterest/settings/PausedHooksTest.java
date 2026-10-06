@@ -247,7 +247,11 @@ public class PausedHooksTest {
                 () -> !UiHooks.commentsVisible(true)));
         probes.put(Settings.QUIET_EMAIL_REMINDER, Collections.singletonList(UiHooks::quietEmailReminder));
         probes.put(Settings.HIDE_SAVE_TOASTS, Collections.singletonList(PausedHooksTest::dropsSaveToast));
-        probes.put(Settings.ORIGINAL_IMAGES, Collections.singletonList(UiHooks::originalImages));
+        probes.put(Settings.ORIGINAL_IMAGES, Arrays.asList(UiHooks::originalImages, () -> {
+            Set<String> sizes = new HashSet<>();
+            UiHooks.imageSizes(sizes);
+            return !sizes.isEmpty();
+        }));
         probes.put(Settings.DISABLE_UPDATE_NAG, Collections.singletonList(UiHooks::disableUpdateNag));
         return probes;
     }

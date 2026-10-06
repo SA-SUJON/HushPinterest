@@ -327,7 +327,9 @@ Dismisses newly created optional confirm-email reminders. An open reminder won't
 Hide save toasts	Merken-Hinweise ausblenden
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Beim Merken eines Pins erscheint kein „Gemerkt auf“-Hinweis zu deiner Pinnwand und kein Vorschlag mehr, der Person zu folgen. Der Pin wird trotzdem gemerkt.
 Original-quality images	Bilder in Originalqualität
-Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Wählt das Originalbild vor der großen Größe, wenn Pinterest eines bereitstellt. Verbraucht mehr Daten. Bereits angezeigte Bilder ändern sich, wenn sie neu geladen werden.
+collage images	Collagenbilder
+pin closeups	Pin-Detailansichten
+Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.	Zeigt in Pin-Detailansichten und Collagen das Originalbild statt der großen Größe, wenn Pinterest eines sendet. Verbraucht mehr Daten. Bereits geladene Pins behalten ihre Größe, bis Pinterest sie neu lädt.
 Save media	Medien speichern
 Recent searches autocomplete	Autovervollständigung der letzten Suchen
 Activity alerts	Aktivitätsmeldungen

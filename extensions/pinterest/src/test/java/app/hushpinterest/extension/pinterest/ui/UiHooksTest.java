@@ -8,11 +8,25 @@ package app.hushpinterest.extension.pinterest.ui;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -237,6 +251,89 @@ public class UiHooksTest {
         assertFalse(report, report.contains("private_unknown"));
         assertFalse(report, report.contains("Counted:"));
         assertEquals(View.VISIBLE, row.getVisibility());
+    }
+
+    @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.FIELD)
+    public @interface Json { String value(); }
+
+    public static final class Pin {
+        @Json("images") Map<String, Object> images = new HashMap<>();
+    }
+
+    public static final class Image {
+        @Json("url") String url;
+        @Json("width") Double width;
+        @Json("height") Double height;
+
+        Image(String url, Double width, Double height) {
+            this.url = url; this.width = width; this.height = height;
+        }
+    }
+
+    public static final class OtherImage {
+        @Json("url") String url = "https://i.pinimg.com/originals/aa/bb/cc/other.jpg";
+        @Json("width") Double width = 3000d;
+        @Json("height") Double height = 4000d;
+    }
+
+    @Test public void theOriginalJoinsRequestedSizesAndShowsInTheCloseupOnlyWhileOn() {
+        Pin pin = new Pin();
+        Image large = new Image("https://i.pinimg.com/736x/aa/bb/cc/large.jpg", 736d, 1104d);
+        Image original = new Image("https://i.pinimg.com/originals/aa/bb/cc/large.png", 2400d, 3600d);
+        pin.images.put("736x", large);
+        pin.images.put("orig", original);
+        Set<String> sizes = new HashSet<>(Arrays.asList("236x", "736x"));
+        UiHooks.imageSizes(sizes);
+        assertEquals(new HashSet<>(Arrays.asList("236x", "736x")), sizes);
+        assertSame(large, UiHooks.closeupImage(pin, large));
+
+        Settings.ORIGINAL_IMAGES.save(true);
+        UiHooks.imageSizes(sizes);
+        // Pinterest's API fails a pin request that names originals, and the home feed doesn't load.
+        assertEquals(new HashSet<>(Arrays.asList("236x", "736x", "orig")), sizes);
+        UiHooks.imageSizes(null);
+        assertSame(original, UiHooks.closeupImage(pin, large));
+        assertNull(UiHooks.closeupImage(pin, null));
+        assertSame(large, UiHooks.closeupImage(null, large));
+        assertSame("a pin without images", large, UiHooks.closeupImage(new Object(), large));
+
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        Set<String> paused = new HashSet<>(Collections.singletonList("736x"));
+        UiHooks.imageSizes(paused);
+        assertEquals(Collections.singleton("736x"), paused);
+        assertSame(large, UiHooks.closeupImage(pin, large));
+    }
+
+    @Test public void theCloseupKeepsItsLargeImageUnlessTheOriginalIsOneItCanShow() {
+        Settings.ORIGINAL_IMAGES.save(true);
+        Image large = new Image("https://i.pinimg.com/736x/aa/bb/cc/large.jpg", 736d, 1104d);
+        Map<String, Object> unusable = new LinkedHashMap<>();
+        unusable.put("no original", null);
+        unusable.put("another image model", new OtherImage());
+        unusable.put("no height", new Image("https://i.pinimg.com/originals/aa/bb/cc/a.jpg", 2400d, null));
+        unusable.put("zero width", new Image("https://i.pinimg.com/originals/aa/bb/cc/a.jpg", 0d, 3600d));
+        unusable.put("past the texture limit", new Image("https://i.pinimg.com/originals/aa/bb/cc/a.jpg", 6000d, 9000d));
+        unusable.put("no address", new Image(null, 2400d, 3600d));
+        unusable.put("plain http", new Image("http://i.pinimg.com/originals/aa/bb/cc/a.jpg", 2400d, 3600d));
+        unusable.put("another host", new Image("https://pinimg.com.example.net/originals/a.jpg", 2400d, 3600d));
+        unusable.put("a user in the address", new Image("https://someone@i.pinimg.com/originals/a.jpg", 2400d, 3600d));
+        unusable.put("malformed address", new Image("https://i.pinimg.com/originals/a b.jpg", 2400d, 3600d));
+        for (Map.Entry<String, Object> entry : unusable.entrySet()) {
+            Pin pin = new Pin();
+            pin.images.put("736x", large);
+            pin.images.put("orig", entry.getValue());
+            assertSame(entry.getKey(), large, UiHooks.closeupImage(pin, large));
+        }
+        Pin bare = new Pin();
+        bare.images = null;
+        assertSame("no images at all", large, UiHooks.closeupImage(bare, large));
+        Pin apex = new Pin();
+        Image onApex = new Image("https://pinimg.com/originals/aa/bb/cc/a.webp", 8192d, 900d);
+        apex.images.put("originals", onApex);
+        assertSame("an originals entry still counts", onApex, UiHooks.closeupImage(apex, large));
+        Image orig = new Image("https://i.pinimg.com/originals/aa/bb/cc/b.jpg", 1600d, 1200d);
+        apex.images.put("orig", orig);
+        assertSame("orig comes first", orig, UiHooks.closeupImage(apex, large));
     }
 
     @Test public void menuCensusDistinguishesNativeHiddenRowsFromFilterDecisions() {

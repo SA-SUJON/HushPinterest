@@ -70,6 +70,7 @@ public final class SettingsStatus {
     public static boolean saveToasts() { return false; }
     public static boolean originalImages() { return false; }
     public static boolean imageChooser() { return false; }
+    public static boolean closeupImage() { return false; }
     public static boolean disableUpdateNag() { return false; }
     public static boolean updateNag() { return false; }
 }

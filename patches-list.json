@@ -712,7 +712,7 @@
     },
     {
       "name": "Original-quality images",
-      "description": "Has Pinterest's image model pick the original image before its large size wherever Pinterest supplied one. Uses more data.",
+      "description": "Asks Pinterest for the original image with each pin and shows it in the pin closeup, and has collages pick the original before the large size. Uses more data.",
       "category": "Interface",
       "use": false,
       "dependencies": [

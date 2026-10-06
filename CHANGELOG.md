@@ -5,6 +5,7 @@ Every HushPinterest release, newest first.
 ## Unreleased
 
 * **Pinterest:** Download pin now saves image pins. Pinterest's app is sent display sizes rather than the original for most pins, and the pin menu used to show "Download unavailable" for all of them. Now the download asks Pinterest's media host for the original behind the largest size and saves it, or saves that largest size when there's no original. Copy media link copies the same address, and Supplied media details says which size it describes. Refs #2
+* **Pinterest:** Original-quality images now reaches pin closeups, not only collages. With it on, HushPinterest asks Pinterest for each pin's original along with its display sizes, and the closeup shows the original instead of the large size. Download pin then saves that original directly. Pins Pinterest already loaded keep their size until it loads them again.
 
 ## 0.0.4 (2026-10-05)
 

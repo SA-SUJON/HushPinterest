@@ -324,7 +324,9 @@ Dismisses newly created optional confirm-email reminders. An open reminder won't
 Hide save toasts	Ocultar avisos ao salvar
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Salvar um Pin não mostra mais "Salvo em" sua pasta nem a sugestão de seguir quem o criou. O Pin continua salvo.
 Original-quality images	Imagens em qualidade original
-Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Escolhe a imagem original antes do tamanho grande quando o Pinterest a fornece. Usa mais dados. Imagens já exibidas mudam quando forem recarregadas.
+collage images	imagens de colagens
+pin closeups	visualizações ampliadas de Pins
+Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.	Mostra a imagem original em vez do tamanho grande nas visualizações ampliadas de Pins e nas colagens, quando o Pinterest a envia. Usa mais dados. Pins já carregados mantêm o tamanho até o Pinterest carregá-los de novo.
 Save media	Salvar mídia
 Recent searches autocomplete	Preenchimento automático de pesquisas recentes
 Activity alerts	Alertas de atividade

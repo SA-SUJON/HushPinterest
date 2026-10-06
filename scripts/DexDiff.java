@@ -275,7 +275,7 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("settings", 3));
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("settings", 3));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3413,6 +3413,120 @@ public class DexDiff {
             capability(c.callee, found);
         }
 
+        /**
+         * The pin closeup's original image: the size set Pinterest requests with pins goes through the
+         * sizes hook just before it's returned, and the closeup builder's large image goes through the
+         * closeup hook, with the pin, right after the helper answers it. Both are found in the clean
+         * target, never from the hooks.
+         */
+        void closeupImage(Contract c) {
+            String sizesHook = c.strings.get(0), imageHook = c.strings.get(1);
+            List<Method> builders = new ArrayList<>();
+            Map<Method, int[]> helperAt = new HashMap<>();
+            for (Method m : clean.methods.values()) {
+                if (m.getDefiningClass().startsWith(OWN) || !AccessFlags.STATIC.isSet(m.getAccessFlags()) || m.getImplementation() == null
+                        || m.getParameterTypes().size() != 1 || !m.getReturnType().equals("Ljava/util/List;")) continue;
+                String pin = m.getParameterTypes().get(0).toString();
+                if (!pin.startsWith("L")) continue;
+                List<Instruction> body = instructions(m);
+                List<Integer> helpers = new ArrayList<>();
+                Set<String> buckets = new HashSet<>();
+                for (int at = 0; at < body.size(); at++) {
+                    Instruction i = body.get(at);
+                    if (i.getOpcode() != Opcode.INVOKE_STATIC || !(reference(i) instanceof MethodReference r)) continue;
+                    if (r.getParameterTypes().isEmpty() && r.getReturnType().equals(r.getDefiningClass())) buckets.add(r.getDefiningClass());
+                    if (r.getParameterTypes().size() == 2 && r.getParameterTypes().get(0).toString().equals(pin)) helpers.add(at);
+                }
+                if (helpers.size() != 2) continue;
+                MethodReference first = (MethodReference) reference(body.get(helpers.get(0))), second = (MethodReference) reference(body.get(helpers.get(1)));
+                String bucket = first.getParameterTypes().get(1).toString();
+                if (!buckets.contains(bucket) || !second.getParameterTypes().get(1).toString().equals(bucket)
+                        || !first.getReturnType().equals(second.getReturnType()) || !first.getReturnType().startsWith("L")
+                        || first.getReturnType().equals(pin)) continue;
+                builders.add(m);
+                helperAt.put(m, new int[]{helpers.get(0)});
+            }
+            Method builder = unique(builders, "pin closeup image builder");
+            boolean found = false;
+            if (builder != null) {
+                List<Instruction> was = instructions(builder);
+                int helper = helperAt.get(builder)[0];
+                MethodReference large = (MethodReference) reference(was.get(helper));
+                String bucket = large.getParameterTypes().get(1).toString();
+                int pin = parameter(builder, 0);
+                boolean ready = helper + 1 < was.size() && was.get(helper + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                        && firstRegister(was.get(helper + 1)) != pin && arguments(was.get(helper)).get(0) == pin;
+                for (int at = 0; ready && at <= helper + 1; at++) ready = !writes(was.get(at), pin);
+                if (!ready) fail("the pin closeup image builder " + builder + " no longer answers its large image beside an untouched pin");
+                Method m = actual(builder);
+                List<Integer> sites = calls(m, imageHook, 1);
+                boolean closeup = false;
+                if (ready && m != null && sites.size() == 1) {
+                    List<Instruction> body = instructions(m);
+                    int image = firstRegister(was.get(helper + 1)), at = sites.get(0);
+                    closeup = at == helper + 2 && at + 3 < body.size() && arguments(body.get(at)).equals(List.of(pin, image))
+                            && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && firstRegister(body.get(at + 1)) == image
+                            && body.get(at + 2).getOpcode() == Opcode.CHECK_CAST && firstRegister(body.get(at + 2)) == image
+                            && large.getReturnType().equals(String.valueOf(reference(body.get(at + 2))))
+                            && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 3, at + 2);
+                    if (!closeup) fail(imageHook + " does not take the pin and its large image, in place, in " + m);
+                    else remove(m, at, at + 3);
+                }
+                // Pinterest's size set: the bucket's one instance method answering a HashSet from a single return.
+                List<Method> sizeSets = new ArrayList<>();
+                ClassDef owner = clean.classes.get(bucket);
+                if (owner != null) for (Method s : owner.getMethods()) {
+                    if (AccessFlags.STATIC.isSet(s.getAccessFlags()) || !s.getParameterTypes().isEmpty() || s.getImplementation() == null
+                            || !s.getReturnType().equals("Ljava/util/HashSet;")) continue;
+                    sizeSets.add(s);
+                }
+                Method sizeSet = unique(sizeSets, "pin image size set");
+                boolean sizes = false;
+                if (sizeSet != null) {
+                    List<Instruction> set = instructions(sizeSet);
+                    List<Integer> returns = new ArrayList<>();
+                    for (int at = 0; at < set.size(); at++) if (set.get(at).getOpcode() == Opcode.RETURN_OBJECT) returns.add(at);
+                    Method s = actual(sizeSet);
+                    List<Integer> hooked = calls(s, sizesHook, 1);
+                    // The hook adds to the set it's handed, so it must be one the method made this call.
+                    boolean fresh = !set.isEmpty() && returns.size() == 1 && set.get(0).getOpcode() == Opcode.NEW_INSTANCE
+                            && "Ljava/util/HashSet;".equals(String.valueOf(reference(set.get(0))))
+                            && firstRegister(set.get(0)) == firstRegister(set.get(returns.get(0)));
+                    for (int at = 1; fresh && at < set.size(); at++) fresh = !writes(set.get(at), firstRegister(set.get(returns.get(0))));
+                    if (returns.size() != 1) fail("the pin image size set " + sizeSet + " has " + returns.size() + " returns, expected 1");
+                    else if (!fresh) fail("the pin image size set " + sizeSet + " doesn't answer a new set each call");
+                    else if (s != null && hooked.size() == 1) {
+                        int exit = returns.get(0), register = firstRegister(set.get(exit)), at = hooked.get(0);
+                        List<Instruction> body = instructions(s);
+                        sizes = at == exit && at + 1 < body.size() && arguments(body.get(at)).equals(List.of(register))
+                                && body.get(at + 1).getOpcode() == Opcode.RETURN_OBJECT && firstRegister(body.get(at + 1)) == register
+                                && onlyFrom(s, at + 1, at);
+                        if (!sizes) fail(sizesHook + " does not take the size set just before its return in " + s);
+                        else remove(s, at, at + 1);
+                    }
+                }
+                found = closeup && sizes;
+            }
+            capability(c.callee, found);
+        }
+
+        /** True when the instruction writes [register], alone or as the high half of a wide pair. */
+        static boolean writes(Instruction i, int register) {
+            if (!i.getOpcode().setsRegister() || !(i instanceof OneRegisterInstruction)) return false;
+            int target = ((OneRegisterInstruction) i).getRegisterA();
+            return target == register || i.getOpcode().setsWideRegister() && target + 1 == register;
+        }
+
+        /** True when the instruction at [at] can be reached only by falling through from [from]. */
+        boolean onlyFrom(Method m, int at, int from) {
+            FeatureFlow graph = flow(m);
+            for (int k = 0; k < graph.normal.size(); k++) {
+                if (k != from && graph.normal.get(k).contains(at)) return false;
+                if (graph.handlers.get(k).contains(at)) return false;
+            }
+            return from >= 0 && graph.normal.get(from).contains(at);
+        }
+
         /** Getter and hook pairs: each value a getter returns goes through its hook first, in the same register. */
         void answers(Contract c) {
             Set<Opcode> exits = Set.of(Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_WIDE, Opcode.RETURN_VOID);
@@ -3654,6 +3768,7 @@ public class DexDiff {
                     case "analytics": analytics(c); break;
                     case "answers": answers(c); break;
                     case "imageOrder": imageOrder(c); break;
+                    case "closeupImage": closeupImage(c); break;
                     case "settings": settings(c); break;
                     default: fail("unknown mutation kind " + c.target);
                 }

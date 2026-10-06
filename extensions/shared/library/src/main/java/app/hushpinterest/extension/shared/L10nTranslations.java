@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(728);
+        Map<String, String> table = new HashMap<>(732);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -498,8 +498,6 @@ public final class L10nTranslations {
                 "Von Android pausiert.");
         table.put("Pending saves",
                 "Ausstehende Speichervorg\u00e4nge");
-        table.put("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.",
-                "W\u00e4hlt das Originalbild vor der gro\u00dfen Gr\u00f6\u00dfe, wenn Pinterest eines bereitstellt. Verbraucht mehr Daten. Bereits angezeigte Bilder \u00e4ndern sich, wenn sie neu geladen werden.");
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
@@ -548,11 +546,11 @@ public final class L10nTranslations {
                 "E-Mail-Erinnerungen ausblenden");
         table.put("Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.",
                 "Eine neue Signatur kann die automatische Linkbest\u00e4tigung verhindern. Du kannst die Webadressen in Android unter \u201eStandardm\u00e4\u00dfig \u00f6ffnen\u201c ausw\u00e4hlen.");
+        table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
+                "Lies die HushPinterest-Versionshinweise auf GitHub. Hier wird nichts heruntergeladen.");
     }
 
     private static void fillDe4(Map<String, String> table) {
-        table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
-                "Lies die HushPinterest-Versionshinweise auf GitHub. Hier wird nichts heruntergeladen.");
         table.put("Reading the settings file",
                 "Einstellungsdatei wird gelesen");
         table.put("Recent searches autocomplete",
@@ -649,6 +647,8 @@ public final class L10nTranslations {
                 "Teilen verwendet das Android-Men\u00fc.");
         table.put("Shoppable pins, shopping stories and featured boards",
                 "Kaufbare Pins, Shopping-Storys und vorgestellte Pinnw\u00e4nde");
+        table.put("Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.",
+                "Zeigt in Pin-Detailansichten und Collagen das Originalbild statt der gro\u00dfen Gr\u00f6\u00dfe, wenn Pinterest eines sendet. Verbraucht mehr Daten. Bereits geladene Pins behalten ihre Gr\u00f6\u00dfe, bis Pinterest sie neu l\u00e4dt.");
         table.put("Sign in to your existing account",
                 "Mit deinem bestehenden Konto anmelden");
         table.put("Skipped",
@@ -803,12 +803,16 @@ public final class L10nTranslations {
                 "Deine Schalter entsprechen bereits dieser Datei, es \u00e4ndert sich also nichts.");
         table.put("ad-only views",
                 "reine Werbeansichten");
+        table.put("collage images",
+                "Collagenbilder");
+        table.put("pin closeups",
+                "Pin-Detailansichten");
         table.put("promoted pins in lists",
                 "beworbene Pins in Listen");
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(728);
+        Map<String, String> table = new HashMap<>(732);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1259,8 +1263,6 @@ public final class L10nTranslations {
                 "Android lo puso en pausa.");
         table.put("Pending saves",
                 "Guardados pendientes");
-        table.put("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.",
-                "Elige la imagen original antes del tama\u00f1o grande cuando Pinterest la proporciona. Usa m\u00e1s datos. Las im\u00e1genes que ya se ven cambian al volver a cargarse.");
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
@@ -1309,11 +1311,11 @@ public final class L10nTranslations {
                 "Ocultar recordatorios de correo");
         table.put("Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.",
                 "Una nueva firma puede impedir la verificaci\u00f3n autom\u00e1tica de enlaces. Puedes elegir las direcciones web en los ajustes de Android para abrir enlaces de forma predeterminada.");
+        table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
+                "Lee las notas de las versiones de HushPinterest en GitHub. Aqu\u00ed no se descarga nada.");
     }
 
     private static void fillEs4(Map<String, String> table) {
-        table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
-                "Lee las notas de las versiones de HushPinterest en GitHub. Aqu\u00ed no se descarga nada.");
         table.put("Reading the settings file",
                 "Leyendo el archivo de configuraci\u00f3n");
         table.put("Recent searches autocomplete",
@@ -1410,6 +1412,8 @@ public final class L10nTranslations {
                 "Compartir usa el men\u00fa de Android.");
         table.put("Shoppable pins, shopping stories and featured boards",
                 "Pines de compras, historias de compras y tableros destacados");
+        table.put("Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.",
+                "Muestra la imagen original en lugar del tama\u00f1o grande en las vistas ampliadas de pines y en los collages, cuando Pinterest la env\u00eda. Usa m\u00e1s datos. Los pines ya cargados mantienen su tama\u00f1o hasta que Pinterest los vuelve a cargar.");
         table.put("Sign in to your existing account",
                 "Inicia sesi\u00f3n en tu cuenta actual");
         table.put("Skipped",
@@ -1564,12 +1568,16 @@ public final class L10nTranslations {
                 "Tus interruptores ya coinciden con ese archivo, as\u00ed que no cambiar\u00e1 nada.");
         table.put("ad-only views",
                 "vistas solo de anuncios");
+        table.put("collage images",
+                "im\u00e1genes de collages");
+        table.put("pin closeups",
+                "vistas ampliadas de pines");
         table.put("promoted pins in lists",
                 "pines promocionados en las listas");
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(728);
+        Map<String, String> table = new HashMap<>(732);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -2020,8 +2028,6 @@ public final class L10nTranslations {
                 "Dijeda oleh Android.");
         table.put("Pending saves",
                 "Penyimpanan tertunda");
-        table.put("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.",
-                "Memilih gambar asli sebelum ukuran besar jika Pinterest menyediakannya. Memakai lebih banyak data. Gambar yang sudah tampil berubah saat dimuat ulang.");
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
@@ -2070,11 +2076,11 @@ public final class L10nTranslations {
                 "Sembunyikan pengingat email");
         table.put("Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.",
                 "Penandatanganan ulang dapat mencegah verifikasi tautan otomatis. Anda dapat memilih alamat web di pengaturan Buka secara default di Android.");
+        table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
+                "Baca rilis HushPinterest di GitHub. Tidak ada yang diunduh di sini.");
     }
 
     private static void fillIn4(Map<String, String> table) {
-        table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
-                "Baca rilis HushPinterest di GitHub. Tidak ada yang diunduh di sini.");
         table.put("Reading the settings file",
                 "Membaca file pengaturan");
         table.put("Recent searches autocomplete",
@@ -2171,6 +2177,8 @@ public final class L10nTranslations {
                 "Bagikan menggunakan menu berbagi Android.");
         table.put("Shoppable pins, shopping stories and featured boards",
                 "Pin belanja, cerita belanja, dan papan unggulan");
+        table.put("Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.",
+                "Menampilkan gambar asli sebagai ganti ukuran besar di tampilan dekat pin dan kolase, jika Pinterest mengirimkannya. Memakai lebih banyak data. Pin yang sudah dimuat tetap pada ukurannya sampai Pinterest memuatnya ulang.");
         table.put("Sign in to your existing account",
                 "Masuk ke akun yang sudah ada");
         table.put("Skipped",
@@ -2325,12 +2333,16 @@ public final class L10nTranslations {
                 "Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.");
         table.put("ad-only views",
                 "tampilan khusus iklan");
+        table.put("collage images",
+                "gambar kolase");
+        table.put("pin closeups",
+                "tampilan dekat pin");
         table.put("promoted pins in lists",
                 "pin promosi di daftar");
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(728);
+        Map<String, String> table = new HashMap<>(732);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2781,8 +2793,6 @@ public final class L10nTranslations {
                 "Pausado pelo Android.");
         table.put("Pending saves",
                 "Salvamentos pendentes");
-        table.put("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.",
-                "Escolhe a imagem original antes do tamanho grande quando o Pinterest a fornece. Usa mais dados. Imagens j\u00e1 exibidas mudam quando forem recarregadas.");
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
@@ -2831,11 +2841,11 @@ public final class L10nTranslations {
                 "Ocultar lembretes de e-mail");
         table.put("Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.",
                 "Assinar novamente pode impedir a verifica\u00e7\u00e3o autom\u00e1tica de links. Voc\u00ea pode escolher os endere\u00e7os web nas configura\u00e7\u00f5es Abrir por padr\u00e3o do Android.");
+        table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
+                "Leia as vers\u00f5es do HushPinterest no GitHub. Nada \u00e9 baixado aqui.");
     }
 
     private static void fillPt_rBR4(Map<String, String> table) {
-        table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
-                "Leia as vers\u00f5es do HushPinterest no GitHub. Nada \u00e9 baixado aqui.");
         table.put("Reading the settings file",
                 "Lendo o arquivo de configura\u00e7\u00f5es");
         table.put("Recent searches autocomplete",
@@ -2932,6 +2942,8 @@ public final class L10nTranslations {
                 "Compartilhar usa o menu do Android.");
         table.put("Shoppable pins, shopping stories and featured boards",
                 "Pins de compras, hist\u00f3rias de compras e pastas em destaque");
+        table.put("Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.",
+                "Mostra a imagem original em vez do tamanho grande nas visualiza\u00e7\u00f5es ampliadas de Pins e nas colagens, quando o Pinterest a envia. Usa mais dados. Pins j\u00e1 carregados mant\u00eam o tamanho at\u00e9 o Pinterest carreg\u00e1-los de novo.");
         table.put("Sign in to your existing account",
                 "Entre na sua conta existente");
         table.put("Skipped",
@@ -3086,12 +3098,16 @@ public final class L10nTranslations {
                 "Suas op\u00e7\u00f5es j\u00e1 correspondem \u00e0s desse arquivo, ent\u00e3o nada ser\u00e1 alterado.");
         table.put("ad-only views",
                 "telas s\u00f3 de an\u00fancios");
+        table.put("collage images",
+                "imagens de colagens");
+        table.put("pin closeups",
+                "visualiza\u00e7\u00f5es ampliadas de Pins");
         table.put("promoted pins in lists",
                 "pins promovidos nas listas");
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(728);
+        Map<String, String> table = new HashMap<>(732);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3542,8 +3558,6 @@ public final class L10nTranslations {
                 "Android taraf\u0131ndan duraklat\u0131ld\u0131.");
         table.put("Pending saves",
                 "Bekleyen kaydetmeler");
-        table.put("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.",
-                "Pinterest sa\u011flad\u0131\u011f\u0131nda b\u00fcy\u00fck boyut yerine orijinal g\u00f6rseli se\u00e7er. Daha fazla veri kullan\u0131r. Ekrandaki g\u00f6rseller yeniden y\u00fcklendi\u011finde de\u011fi\u015fir.");
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
@@ -3592,11 +3606,11 @@ public final class L10nTranslations {
                 "E-posta hat\u0131rlatmalar\u0131n\u0131 sustur");
         table.put("Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.",
                 "Yeniden imzalama, otomatik ba\u011flant\u0131 do\u011frulamas\u0131n\u0131 engelleyebilir. Web adreslerini Android'in Varsay\u0131lan olarak a\u00e7 ayarlar\u0131ndan se\u00e7ebilirsiniz.");
+        table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
+                "HushPinterest s\u00fcr\u00fcmlerini GitHub'da oku. Burada hi\u00e7bir \u015fey indirilmez.");
     }
 
     private static void fillTr4(Map<String, String> table) {
-        table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
-                "HushPinterest s\u00fcr\u00fcmlerini GitHub'da oku. Burada hi\u00e7bir \u015fey indirilmez.");
         table.put("Reading the settings file",
                 "Ayar dosyas\u0131 okunuyor");
         table.put("Recent searches autocomplete",
@@ -3693,6 +3707,8 @@ public final class L10nTranslations {
                 "Payla\u015f, Android payla\u015f\u0131m men\u00fcs\u00fcn\u00fc kullan\u0131r.");
         table.put("Shoppable pins, shopping stories and featured boards",
                 "Sat\u0131n al\u0131nabilir Pinler, al\u0131\u015fveri\u015f hik\u00e2yeleri ve \u00f6ne \u00e7\u0131kan panolar");
+        table.put("Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.",
+                "Pinterest g\u00f6nderdi\u011finde, Pin yak\u0131n g\u00f6r\u00fcn\u00fcmlerinde ve kolajlarda b\u00fcy\u00fck boyut yerine orijinal g\u00f6rseli g\u00f6sterir. Daha fazla veri kullan\u0131r. Zaten y\u00fcklenmi\u015f Pinler, Pinterest onlar\u0131 yeniden y\u00fckleyene kadar boyutlar\u0131n\u0131 korur.");
         table.put("Sign in to your existing account",
                 "Mevcut hesab\u0131n\u0131za giri\u015f yap\u0131n");
         table.put("Skipped",
@@ -3847,6 +3863,10 @@ public final class L10nTranslations {
                 "Anahtarlar\u0131n zaten o dosyayla ayn\u0131, bu y\u00fczden hi\u00e7bir \u015fey de\u011fi\u015fmeyecek.");
         table.put("ad-only views",
                 "yaln\u0131zca reklam g\u00f6r\u00fcn\u00fcmleri");
+        table.put("collage images",
+                "kolaj g\u00f6rselleri");
+        table.put("pin closeups",
+                "Pin yak\u0131n g\u00f6r\u00fcn\u00fcmleri");
         table.put("promoted pins in lists",
                 "listelerdeki reklaml\u0131 pinler");
     }
