@@ -276,6 +276,8 @@ Media link copied.	Enlace del archivo copiado.
 Couldn't copy the media link. Open the pin again and try again.	No se pudo copiar el enlace del archivo. Vuelve a abrir el Pin e inténtalo de nuevo.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Estos detalles proceden de la URL y los metadatos que proporcionó Pinterest. No se ha inspeccionado el archivo.
 Supplied width: %s	Ancho proporcionado: %s
+Supplied size: %s. Downloads look for the original first.	Tamaño proporcionado: %s. Las descargas buscan primero el original.
+Supplied size: the original image	Tamaño proporcionado: la imagen original
 Supplied height: %s	Alto proporcionado: %s
 Supplied URL type: %s	Tipo según la URL proporcionada: %s
 %d pixels	%d píxeles
@@ -284,7 +286,7 @@ Close	Cerrar
 Couldn't show the supplied media details. Open the pin again and try again.	No se pudieron mostrar los detalles proporcionados. Abre el Pin de nuevo e inténtalo otra vez.
 Pinterest supplied an adaptive video stream, but no downloadable MP4.	Pinterest proporcionó una transmisión de video adaptativa, pero ningún MP4 descargable.
 Pinterest hasn't supplied a downloadable MP4 for this pin.	Pinterest no ha proporcionado un MP4 descargable para este Pin.
-Pinterest hasn't supplied an original image to download.	Pinterest no ha proporcionado una imagen original para descargar.
+Pinterest hasn't supplied an image to download.	Pinterest no ha proporcionado una imagen para descargar.
 The supplied original image type isn't supported for download.	El tipo de imagen original proporcionado no admite descarga.
 The supplied media link isn't a supported public Pinterest link.	El enlace proporcionado no es un enlace público de Pinterest compatible.
 Couldn't start the download. Check system Downloads and try again.	No se pudo iniciar la descarga. Revisa las descargas del sistema e inténtalo de nuevo.
@@ -364,6 +366,6 @@ Unsupported	No compatible
 Saved to the location you chose.	Guardado en la ubicación elegida.
 No download was queued. The selection was stopped, canceled or unavailable.	No se puso ninguna descarga en cola. La selección se detuvo, se canceló o no estaba disponible.
 Pinterest didn't supply supported media for this pin.	Pinterest no proporcionó contenido compatible para este pin.
-Download a pin or select visible grid pins. Saves supplied original images and videos.	Descarga un pin o selecciona pines visibles de la cuadrícula. Guarda imágenes originales y videos proporcionados.
+Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied.	Descarga un pin o selecciona pines visibles de la cuadrícula. Guarda videos e imágenes originales, o el tamaño más grande que proporcionó Pinterest.
 Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 usa el selector de archivos. Aquí aparecen los resultados de las selecciones de pines visibles.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Solo se muestran las 32 descargas y resultados de selección más recientes. Se conservan los archivos guardados.

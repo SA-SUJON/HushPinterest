@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(724);
+        Map<String, String> table = new HashMap<>(728);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -260,8 +260,8 @@ public final class L10nTranslations {
                 "Update-Aufforderung ausblenden");
         table.put("Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.",
                 "Schlie\u00dft neu erstellte optionale Erinnerungen zur E-Mail-Best\u00e4tigung. Eine offene Erinnerung bleibt unver\u00e4ndert. Best\u00e4tigungs- und Anmeldepr\u00fcfungen gelten weiterhin.");
-        table.put("Download a pin or select visible grid pins. Saves supplied original images and videos.",
-                "Lade einen Pin herunter oder w\u00e4hle sichtbare Pins im Raster. Speichert bereitgestellte Originalbilder und Videos.");
+        table.put("Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied.",
+                "Lade einen Pin herunter oder w\u00e4hle sichtbare Pins im Raster. Speichert Videos und Originalbilder oder die gr\u00f6\u00dfte von Pinterest bereitgestellte Gr\u00f6\u00dfe.");
         table.put("Download failed.",
                 "Download fehlgeschlagen.");
         table.put("Download history",
@@ -520,8 +520,8 @@ public final class L10nTranslations {
                 "Pinterest hat f\u00fcr diesen Pin keine unterst\u00fctzten Medien bereitgestellt.");
         table.put("Pinterest hasn't supplied a downloadable MP4 for this pin.",
                 "Pinterest hat f\u00fcr diesen Pin keine herunterladbare MP4-Datei bereitgestellt.");
-        table.put("Pinterest hasn't supplied an original image to download.",
-                "Pinterest hat kein Originalbild zum Herunterladen bereitgestellt.");
+        table.put("Pinterest hasn't supplied an image to download.",
+                "Pinterest hat kein Bild zum Herunterladen bereitgestellt.");
         table.put("Pinterest password help",
                 "Pinterest-Hilfe zum Passwort");
         table.put("Pinterest supplied an adaptive video stream, but no downloadable MP4.",
@@ -678,6 +678,10 @@ public final class L10nTranslations {
                 "Bereitgestellte H\u00f6he: %s");
         table.put("Supplied media details",
                 "Bereitgestellte Mediendetails");
+        table.put("Supplied size: %s. Downloads look for the original first.",
+                "Bereitgestellte Gr\u00f6\u00dfe: %s. Downloads suchen zuerst nach dem Original.");
+        table.put("Supplied size: the original image",
+                "Bereitgestellte Gr\u00f6\u00dfe: das Originalbild");
         table.put("Supplied width: %s",
                 "Bereitgestellte Breite: %s");
         table.put("Supported links",
@@ -790,13 +794,13 @@ public final class L10nTranslations {
                 "Du hast HushPinterest pausiert.");
         table.put("Your choices are saved. Tap Resume, then restart Pinterest.",
                 "Deine Auswahl bleibt gespeichert. Tippe auf Fortsetzen und starte Pinterest dann neu.");
+    }
+
+    private static void fillDe6(Map<String, String> table) {
         table.put("Your controls are active.",
                 "Deine Einstellungen sind aktiv.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Deine Schalter entsprechen bereits dieser Datei, es \u00e4ndert sich also nichts.");
-    }
-
-    private static void fillDe6(Map<String, String> table) {
         table.put("ad-only views",
                 "reine Werbeansichten");
         table.put("promoted pins in lists",
@@ -804,7 +808,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(724);
+        Map<String, String> table = new HashMap<>(728);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1017,8 +1021,8 @@ public final class L10nTranslations {
                 "Ocultar aviso de actualizaci\u00f3n");
         table.put("Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.",
                 "Descarta los recordatorios opcionales de confirmaci\u00f3n de correo reci\u00e9n creados. Un recordatorio abierto no cambia. Las comprobaciones de verificaci\u00f3n e inicio de sesi\u00f3n siguen vigentes.");
-        table.put("Download a pin or select visible grid pins. Saves supplied original images and videos.",
-                "Descarga un pin o selecciona pines visibles de la cuadr\u00edcula. Guarda im\u00e1genes originales y videos proporcionados.");
+        table.put("Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied.",
+                "Descarga un pin o selecciona pines visibles de la cuadr\u00edcula. Guarda videos e im\u00e1genes originales, o el tama\u00f1o m\u00e1s grande que proporcion\u00f3 Pinterest.");
         table.put("Download failed.",
                 "La descarga fall\u00f3.");
         table.put("Download history",
@@ -1277,8 +1281,8 @@ public final class L10nTranslations {
                 "Pinterest no proporcion\u00f3 contenido compatible para este pin.");
         table.put("Pinterest hasn't supplied a downloadable MP4 for this pin.",
                 "Pinterest no ha proporcionado un MP4 descargable para este Pin.");
-        table.put("Pinterest hasn't supplied an original image to download.",
-                "Pinterest no ha proporcionado una imagen original para descargar.");
+        table.put("Pinterest hasn't supplied an image to download.",
+                "Pinterest no ha proporcionado una imagen para descargar.");
         table.put("Pinterest password help",
                 "Ayuda de Pinterest con la contrase\u00f1a");
         table.put("Pinterest supplied an adaptive video stream, but no downloadable MP4.",
@@ -1435,6 +1439,10 @@ public final class L10nTranslations {
                 "Alto proporcionado: %s");
         table.put("Supplied media details",
                 "Detalles del contenido proporcionado");
+        table.put("Supplied size: %s. Downloads look for the original first.",
+                "Tama\u00f1o proporcionado: %s. Las descargas buscan primero el original.");
+        table.put("Supplied size: the original image",
+                "Tama\u00f1o proporcionado: la imagen original");
         table.put("Supplied width: %s",
                 "Ancho proporcionado: %s");
         table.put("Supported links",
@@ -1547,13 +1555,13 @@ public final class L10nTranslations {
                 "Pausaste HushPinterest.");
         table.put("Your choices are saved. Tap Resume, then restart Pinterest.",
                 "Tus preferencias est\u00e1n guardadas. Toca Reanudar y luego reinicia Pinterest.");
+    }
+
+    private static void fillEs6(Map<String, String> table) {
         table.put("Your controls are active.",
                 "Tus controles est\u00e1n activos.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Tus interruptores ya coinciden con ese archivo, as\u00ed que no cambiar\u00e1 nada.");
-    }
-
-    private static void fillEs6(Map<String, String> table) {
         table.put("ad-only views",
                 "vistas solo de anuncios");
         table.put("promoted pins in lists",
@@ -1561,7 +1569,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(724);
+        Map<String, String> table = new HashMap<>(728);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1774,8 +1782,8 @@ public final class L10nTranslations {
                 "Sembunyikan pemberitahuan pembaruan");
         table.put("Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.",
                 "Menutup pengingat opsional konfirmasi email yang baru dibuat. Pengingat yang terbuka tidak berubah. Pemeriksaan verifikasi dan masuk tetap berlaku.");
-        table.put("Download a pin or select visible grid pins. Saves supplied original images and videos.",
-                "Unduh satu Pin atau pilih Pin yang terlihat di kisi. Menyimpan gambar asli dan video yang disediakan.");
+        table.put("Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied.",
+                "Unduh satu Pin atau pilih Pin yang terlihat di kisi. Menyimpan video dan gambar asli, atau ukuran terbesar yang diberikan Pinterest.");
         table.put("Download failed.",
                 "Unduhan gagal.");
         table.put("Download history",
@@ -2034,8 +2042,8 @@ public final class L10nTranslations {
                 "Pinterest tidak menyediakan media yang didukung untuk Pin ini.");
         table.put("Pinterest hasn't supplied a downloadable MP4 for this pin.",
                 "Pinterest belum memberikan MP4 yang dapat diunduh untuk Pin ini.");
-        table.put("Pinterest hasn't supplied an original image to download.",
-                "Pinterest belum memberikan gambar asli untuk diunduh.");
+        table.put("Pinterest hasn't supplied an image to download.",
+                "Pinterest belum memberikan gambar untuk diunduh.");
         table.put("Pinterest password help",
                 "Bantuan kata sandi Pinterest");
         table.put("Pinterest supplied an adaptive video stream, but no downloadable MP4.",
@@ -2192,6 +2200,10 @@ public final class L10nTranslations {
                 "Tinggi yang diberikan: %s");
         table.put("Supplied media details",
                 "Detail media yang diberikan");
+        table.put("Supplied size: %s. Downloads look for the original first.",
+                "Ukuran yang diberikan: %s. Unduhan mencari versi asli terlebih dahulu.");
+        table.put("Supplied size: the original image",
+                "Ukuran yang diberikan: gambar asli");
         table.put("Supplied width: %s",
                 "Lebar yang diberikan: %s");
         table.put("Supported links",
@@ -2304,13 +2316,13 @@ public final class L10nTranslations {
                 "Anda menjeda HushPinterest.");
         table.put("Your choices are saved. Tap Resume, then restart Pinterest.",
                 "Pilihan Anda tersimpan. Ketuk Lanjutkan, lalu mulai ulang Pinterest.");
+    }
+
+    private static void fillIn6(Map<String, String> table) {
         table.put("Your controls are active.",
                 "Kontrol Anda aktif.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.");
-    }
-
-    private static void fillIn6(Map<String, String> table) {
         table.put("ad-only views",
                 "tampilan khusus iklan");
         table.put("promoted pins in lists",
@@ -2318,7 +2330,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(724);
+        Map<String, String> table = new HashMap<>(728);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2531,8 +2543,8 @@ public final class L10nTranslations {
                 "Ocultar aviso de atualiza\u00e7\u00e3o");
         table.put("Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.",
                 "Dispensa lembretes opcionais de confirma\u00e7\u00e3o de e-mail rec\u00e9m-criados. Um lembrete aberto n\u00e3o muda. As verifica\u00e7\u00f5es de confirma\u00e7\u00e3o e login continuam valendo.");
-        table.put("Download a pin or select visible grid pins. Saves supplied original images and videos.",
-                "Baixe um Pin ou selecione Pins vis\u00edveis na grade. Salva imagens originais e v\u00eddeos fornecidos.");
+        table.put("Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied.",
+                "Baixe um Pin ou selecione Pins vis\u00edveis na grade. Salva v\u00eddeos e imagens originais, ou o maior tamanho fornecido pelo Pinterest.");
         table.put("Download failed.",
                 "O download falhou.");
         table.put("Download history",
@@ -2791,8 +2803,8 @@ public final class L10nTranslations {
                 "O Pinterest n\u00e3o forneceu m\u00eddia compat\u00edvel para este Pin.");
         table.put("Pinterest hasn't supplied a downloadable MP4 for this pin.",
                 "O Pinterest n\u00e3o forneceu um MP4 para download deste Pin.");
-        table.put("Pinterest hasn't supplied an original image to download.",
-                "O Pinterest n\u00e3o forneceu uma imagem original para download.");
+        table.put("Pinterest hasn't supplied an image to download.",
+                "O Pinterest n\u00e3o forneceu uma imagem para download.");
         table.put("Pinterest password help",
                 "Ajuda do Pinterest com a senha");
         table.put("Pinterest supplied an adaptive video stream, but no downloadable MP4.",
@@ -2949,6 +2961,10 @@ public final class L10nTranslations {
                 "Altura fornecida: %s");
         table.put("Supplied media details",
                 "Detalhes da m\u00eddia fornecida");
+        table.put("Supplied size: %s. Downloads look for the original first.",
+                "Tamanho fornecido: %s. Os downloads procuram o original primeiro.");
+        table.put("Supplied size: the original image",
+                "Tamanho fornecido: a imagem original");
         table.put("Supplied width: %s",
                 "Largura fornecida: %s");
         table.put("Supported links",
@@ -3061,13 +3077,13 @@ public final class L10nTranslations {
                 "Voc\u00ea pausou o HushPinterest.");
         table.put("Your choices are saved. Tap Resume, then restart Pinterest.",
                 "Suas escolhas est\u00e3o salvas. Toque em Retomar e depois reinicie o Pinterest.");
+    }
+
+    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Your controls are active.",
                 "Seus controles est\u00e3o ativos.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Suas op\u00e7\u00f5es j\u00e1 correspondem \u00e0s desse arquivo, ent\u00e3o nada ser\u00e1 alterado.");
-    }
-
-    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("ad-only views",
                 "telas s\u00f3 de an\u00fancios");
         table.put("promoted pins in lists",
@@ -3075,7 +3091,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(724);
+        Map<String, String> table = new HashMap<>(728);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3288,8 +3304,8 @@ public final class L10nTranslations {
                 "G\u00fcncelleme uyar\u0131s\u0131n\u0131 kapat");
         table.put("Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.",
                 "Yeni olu\u015fturulan iste\u011fe ba\u011fl\u0131 e-posta do\u011frulama hat\u0131rlatmalar\u0131n\u0131 kapat\u0131r. A\u00e7\u0131k bir hat\u0131rlatma de\u011fi\u015fmez. Do\u011frulama ve oturum a\u00e7ma kontrolleri ge\u00e7erlili\u011fini korur.");
-        table.put("Download a pin or select visible grid pins. Saves supplied original images and videos.",
-                "Bir Pin indirin veya \u0131zgarada g\u00f6r\u00fcnen Pinleri se\u00e7in. Sa\u011flanan \u00f6zg\u00fcn g\u00f6rselleri ve videolar\u0131 kaydeder.");
+        table.put("Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied.",
+                "Bir Pin indirin veya \u0131zgarada g\u00f6r\u00fcnen Pinleri se\u00e7in. Videolar\u0131 ve \u00f6zg\u00fcn g\u00f6rselleri ya da Pinterest'in sa\u011flad\u0131\u011f\u0131 en b\u00fcy\u00fck boyutu kaydeder.");
         table.put("Download failed.",
                 "\u0130ndirme ba\u015far\u0131s\u0131z oldu.");
         table.put("Download history",
@@ -3548,8 +3564,8 @@ public final class L10nTranslations {
                 "Pinterest bu Pin i\u00e7in desteklenen bir medya sa\u011flamad\u0131.");
         table.put("Pinterest hasn't supplied a downloadable MP4 for this pin.",
                 "Pinterest bu Pin i\u00e7in indirilebilir MP4 sa\u011flamad\u0131.");
-        table.put("Pinterest hasn't supplied an original image to download.",
-                "Pinterest indirilecek \u00f6zg\u00fcn bir g\u00f6rsel sa\u011flamad\u0131.");
+        table.put("Pinterest hasn't supplied an image to download.",
+                "Pinterest indirilecek bir g\u00f6rsel sa\u011flamad\u0131.");
         table.put("Pinterest password help",
                 "Pinterest parola yard\u0131m\u0131");
         table.put("Pinterest supplied an adaptive video stream, but no downloadable MP4.",
@@ -3706,6 +3722,10 @@ public final class L10nTranslations {
                 "Sa\u011flanan y\u00fckseklik: %s");
         table.put("Supplied media details",
                 "Sa\u011flanan medya ayr\u0131nt\u0131lar\u0131");
+        table.put("Supplied size: %s. Downloads look for the original first.",
+                "Sa\u011flanan boyut: %s. \u0130ndirmeler \u00f6nce \u00f6zg\u00fcn g\u00f6rseli arar.");
+        table.put("Supplied size: the original image",
+                "Sa\u011flanan boyut: \u00f6zg\u00fcn g\u00f6rsel");
         table.put("Supplied width: %s",
                 "Sa\u011flanan geni\u015flik: %s");
         table.put("Supported links",
@@ -3818,13 +3838,13 @@ public final class L10nTranslations {
                 "HushPinterest'u duraklatt\u0131n.");
         table.put("Your choices are saved. Tap Resume, then restart Pinterest.",
                 "Tercihleriniz kay\u0131tl\u0131. Devam et'e dokunun, sonra Pinterest'\u0131 yeniden ba\u015flat\u0131n.");
+    }
+
+    private static void fillTr6(Map<String, String> table) {
         table.put("Your controls are active.",
                 "Kontrolleriniz etkin.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Anahtarlar\u0131n zaten o dosyayla ayn\u0131, bu y\u00fczden hi\u00e7bir \u015fey de\u011fi\u015fmeyecek.");
-    }
-
-    private static void fillTr6(Map<String, String> table) {
         table.put("ad-only views",
                 "yaln\u0131zca reklam g\u00f6r\u00fcn\u00fcmleri");
         table.put("promoted pins in lists",

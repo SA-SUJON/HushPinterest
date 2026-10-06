@@ -18,6 +18,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RunWith(RobolectricTestRunner.class)
@@ -52,15 +53,65 @@ public class PinMediaTest {
         @Json("images") Map<String, Image> images = new HashMap<>();
     }
 
-    @Test public void originalImageIsUsedWithoutGuessingOrPreviewFallback() {
+    @Test public void suppliedOriginalWinsAndOtherwiseTheLargestUncroppedSizeStandsIn() {
         Pin pin = new Pin();
-        pin.images.put("736x", new Image("https://i.pinimg.com/736x/preview.jpg", 736, 736));
-        assertNull(PinMedia.source(pin));
+        pin.images.put("150x150", new Image("https://i.pinimg.com/150x150/crop.jpg", 150, 150));
+        assertNull("a square crop isn't the pin's image", PinMedia.source(pin));
+        pin.images.put("236x", new Image("https://i.pinimg.com/236x/small.jpg", 236, 354));
+        pin.images.put("736x", new Image("https://i.pinimg.com/736x/preview.jpg", 736, 1104));
+        PinMedia.Resolution standIn = PinMedia.resolve(pin);
+        assertEquals("https://i.pinimg.com/736x/preview.jpg", standIn.source.url);
+        assertEquals("736x", standIn.size);
+        assertTrue(PinMedia.standIn(standIn));
+        assertEquals(Integer.valueOf(736), standIn.width);
+        assertEquals(Integer.valueOf(1104), standIn.height);
         pin.images.put("orig", new Image("https://i.pinimg.com/originals/source.png?token=ok", 3000, 2000));
-        assertEquals("https://i.pinimg.com/originals/source.png?token=ok", PinMedia.source(pin).url);
-        assertEquals("image/png", PinMedia.source(pin).mime);
-        assertEquals(".png", PinMedia.source(pin).suffix);
+        PinMedia.Resolution original = PinMedia.resolve(pin);
+        assertEquals("https://i.pinimg.com/originals/source.png?token=ok", original.source.url);
+        assertEquals("image/png", original.source.mime);
+        assertEquals(".png", original.source.suffix);
+        assertEquals(PinMedia.ORIGINAL, original.size);
+        assertFalse(PinMedia.standIn(original));
         assertEquals("https://www.pinterest.com/pin/123456/", PinMedia.pinUrl(pin));
+    }
+
+    @Test public void theStandInIsTheWidestTrustedSizeWhateverItsDimensionsSay() {
+        Map<String, Object> images = new HashMap<>();
+        images.put("1200x", Map.of("url", "https://example.com/1200x/elsewhere.jpg", "width", 1200, "height", 1800));
+        images.put("90x", Map.of("url", "https://i.pinimg.com/90x/tiny.jpg", "width", 90, "height", 135));
+        images.put("564x", Map.of("url", "https://i.pinimg.com/564x/a.jpg", "width", 564, "height", 846));
+        images.put("736x", Map.of("url", "https://i.pinimg.com/736x/b.jpg"));
+        images.put("orig", Map.of("url", "https://i.pinimg.com/originals/c.unknown"));
+        PinMedia.Resolution media = PinMedia.resolve(Map.of("id", "123", "images", images));
+        assertEquals("https://i.pinimg.com/736x/b.jpg", media.source.url);
+        assertEquals("736x", media.size);
+        assertNull(media.refusal);
+        assertNull(media.width);
+    }
+
+    @Test public void theAppsOwnOriginalsKeyIsASuppliedOriginalToo() {
+        PinMedia.Resolution media = PinMedia.resolve(Map.of("id", "123", "images", Map.of(
+                "originals", Map.of("url", "https://i.pinimg.com/originals/source.gif", "width", 480, "height", 270),
+                "736x", Map.of("url", "https://i.pinimg.com/736x/preview.jpg"))));
+        assertEquals("https://i.pinimg.com/originals/source.gif", media.source.url);
+        assertEquals("image/gif", media.source.mime);
+        assertEquals(PinMedia.ORIGINALS, media.size);
+        assertFalse(PinMedia.standIn(media));
+        assertEquals(Integer.valueOf(480), media.width);
+    }
+
+    @Test public void originalsLiveBesideTheSuppliedSizeInEveryImageTypeInOrder() {
+        List<PinMedia.Source> originals = PinMedia.originals(new PinMedia.Source(
+                "https://i.pinimg.com/736x/0b/b2/5b/0bb25b05de960e1fee5da5e9c4e8f12e.jpg", "image/jpeg", ".jpg"));
+        String base = "https://i.pinimg.com/originals/0b/b2/5b/0bb25b05de960e1fee5da5e9c4e8f12e";
+        assertEquals(4, originals.size());
+        String[][] expected = {{".jpg", "image/jpeg"}, {".png", "image/png"}, {".gif", "image/gif"}, {".webp", "image/webp"}};
+        for (int i = 0; i < expected.length; i++) {
+            assertEquals(base + expected[i][0], originals.get(i).url);
+            assertEquals(expected[i][1], originals.get(i).mime);
+            assertEquals(expected[i][0], originals.get(i).suffix);
+        }
+        assertTrue(PinMedia.originals(null).isEmpty());
     }
 
     @Test public void largestPlayableMp4WinsOverPreviewsAndPlaylists() {
@@ -137,8 +188,10 @@ public class PinMediaTest {
     }
 
     @Test public void knownPinsCarrySpecificRefusalsWithoutGuessingAMediaSource() {
-        assertEquals(PinMedia.Refusal.ORIGINAL_MISSING, PinMedia.resolve(Map.of("id", "123", "images", Map.of(
-                "736x", Map.of("url", "https://i.pinimg.com/736x/preview.jpg")))).refusal);
+        assertEquals(PinMedia.Refusal.IMAGE_MISSING, PinMedia.resolve(Map.of("id", "123", "images", Map.of())).refusal);
+        assertEquals(PinMedia.Refusal.IMAGE_MISSING, PinMedia.resolve(Map.of("id", "123", "images", Map.of(
+                "150x150", Map.of("url", "https://i.pinimg.com/150x150/crop.jpg"),
+                "736x", Map.of("url", "https://example.com/736x/elsewhere.jpg")))).refusal);
         PinMedia.Resolution unknownType = PinMedia.resolve(Map.of("id", "123", "images", Map.of("orig", Map.of(
                 "url", "https://i.pinimg.com/source.unknown"))));
         assertEquals(PinMedia.Refusal.ORIGINAL_TYPE, unknownType.refusal);

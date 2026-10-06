@@ -273,7 +273,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         if (!Collections.disjoint(build, PatchFamily.ACTIONS_PAGE)) {
             PreferenceCategory actions = category(screen, L10n.t("Pin actions"));
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_PINS, Settings.DOWNLOAD_PINS,
-                    L10n.t("Download pins"), L10n.t("Download a pin or select visible grid pins. Saves supplied original images and videos."), SettingsIcons.DOWNLOADS);
+                    L10n.t("Download pins"), L10n.t("Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied."), SettingsIcons.DOWNLOADS);
             if (build.contains(PatchFamily.DOWNLOAD_PINS)) {
                 actions.addPreference(mark(new DownloadHistoryPreference(context), SettingsIcons.DOWNLOADS));
                 if (Build.VERSION.SDK_INT == 28) actions.addPreference(mark(new PendingSavesPreference(context), SettingsIcons.DOWNLOADS));

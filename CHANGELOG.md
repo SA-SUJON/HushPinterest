@@ -2,6 +2,10 @@
 
 Every HushPinterest release, newest first.
 
+## Unreleased
+
+* **Pinterest:** Download pin now saves image pins. Pinterest's app is sent display sizes rather than the original for most pins, and the pin menu used to show "Download unavailable" for all of them. Now the download asks Pinterest's media host for the original behind the largest size and saves it, or saves that largest size when there's no original. Copy media link copies the same address, and Supplied media details says which size it describes. Refs #2
+
 ## 0.0.4 (2026-10-05)
 
 * **Tooling:** A hook can no longer borrow a register that its own call still reads, and the patch checks refuse a hook call that passes one register twice unless Pinterest's own call already did.

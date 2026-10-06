@@ -98,7 +98,7 @@ If the settings page can't open, Retry tries to load it again. Back returns to P
 
 Shopping filters and the new pin actions and interface controls start off. Create and Notifications have separate switches. The pin menu has separate choices for collage actions, Search image and Promote pin. Home, your profile and the ordinary Save, Share and Report actions stay available.
 
-Download pins adds a Download row only when Pinterest supplies an original image or a direct MP4. It uses the highest resolution MP4 supplied for a video. Android 10 and newer save through Downloads. On Android 9, choose where to save the file. Streaming playlists aren't saved as videos.
+Download pins adds a Download row when Pinterest supplies an image or a direct MP4. Pinterest's app is usually sent display sizes rather than the original upload. So before an image download starts, HushPinterest asks Pinterest's media host for the original behind the largest size and saves that. If the host doesn't have one, the largest size is saved. It uses the highest resolution MP4 supplied for a video. Android 10 and newer save through Downloads. On Android 9, choose where to save the file, and only an original of the same image type replaces the largest size there. Streaming playlists aren't saved as videos.
 
 From a pin menu in a feed, search or board grid, Download visible pins lets you select up to 32 pins already on screen. Nothing is selected automatically. It uses each pin's supplied media and shows queued, saved, skipped, unsupported and failed counts. Stop selection leaves started downloads alone. Android 9 asks for one save location at a time. Unstarted selections end when Pinterest closes.
 
@@ -115,7 +115,7 @@ Download history also records results from visible-pin selections, including ski
 
 On Android 9, Pending saves lists interrupted file picker saves. HushPinterest records the chosen location before writing and keeps only the recovery access Android offered. If a save's completion is uncertain, check that location yourself before saving again. HushPinterest leaves the file as it is during recovery. Removing the entry releases only its owned recovery access.
 
-Supplied media details shows dimensions and a type from Pinterest's metadata and media address. The file hasn't been inspected, and missing values stay unknown. A recognized pin without a downloadable original shows Download unavailable with a reason. Adaptive streams don't become thumbnail downloads.
+Supplied media details shows dimensions, a type and the size they belong to, from Pinterest's metadata and media address. The file hasn't been inspected, and missing values stay unknown. A recognized pin without a downloadable image or MP4 shows Download unavailable with a reason. Adaptive streams don't become thumbnail downloads.
 
 <p>
   <img src="assets/screenshots/settings-download-history.png" width="240" alt="Download history with Refresh and Back">
@@ -159,7 +159,7 @@ The final APK is also checked against the selected feature hooks and their nativ
 The About and Licenses screens link to `github.com`, `gitlab.com` and `www.gnu.org`. Those open in your browser, and only when you tap one.
 The optional setup guide links to password and data-export help at `help.pinterest.com`. Those pages open in your browser when you tap their buttons.
 
-Shared pin links use `www.pinterest.com`. Downloads use media addresses Pinterest supplies under `pinimg.com`. Browser discovery checks installed handlers for `example.com` without opening or loading that address. When Disable analytics is off or paused, its AppsFlyer and Bugsnag wrappers use the SDKs' original connection path and Engage reaches its service again.
+Shared pin links use `www.pinterest.com`. Downloads use media addresses Pinterest supplies under `pinimg.com`. Looking for an original sends at most four HEAD requests to that same host. Browser discovery checks installed handlers for `example.com` without opening or loading that address. When Disable analytics is off or paused, its AppsFlyer and Bugsnag wrappers use the SDKs' original connection path and Engage reaches its service again.
 
 ## Reporting a problem
 
