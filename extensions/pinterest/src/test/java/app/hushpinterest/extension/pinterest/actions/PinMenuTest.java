@@ -266,7 +266,7 @@ public class PinMenuTest {
         image.put("url", "https://i.pinimg.com/originals/source.unknown");
         assertTrue(host.layout.findViewWithTag(PinDownloads.ROW_TAG).performClick());
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        assertEquals("The supplied original image type isn't supported for download.", ShadowToast.getTextOfLatestToast());
+        assertEquals("The supplied image type isn't supported for download.", ShadowToast.getTextOfLatestToast());
         assertEquals(0, host.dismissed);
         assertNoDownload();
     }

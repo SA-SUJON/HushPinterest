@@ -175,7 +175,7 @@ public final class PinDownloads {
             case ADAPTIVE_VIDEO: return L10n.t("Pinterest supplied an adaptive video stream, but no downloadable MP4.");
             case MP4_MISSING: return L10n.t("Pinterest hasn't supplied a downloadable MP4 for this pin.");
             case IMAGE_MISSING: return L10n.t("Pinterest hasn't supplied an image to download.");
-            case ORIGINAL_TYPE: return L10n.t("The supplied original image type isn't supported for download.");
+            case IMAGE_TYPE: return L10n.t("The supplied image type isn't supported for download.");
             case PUBLIC_LINK: return L10n.t("The supplied media link isn't a supported public Pinterest link.");
             default: throw new IllegalArgumentException("Unknown media refusal");
         }

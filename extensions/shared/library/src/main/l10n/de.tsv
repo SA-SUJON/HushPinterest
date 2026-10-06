@@ -287,7 +287,7 @@ Couldn't show the supplied media details. Open the pin again and try again.	Die 
 Pinterest supplied an adaptive video stream, but no downloadable MP4.	Pinterest hat einen adaptiven Videostream bereitgestellt, aber keine herunterladbare MP4-Datei.
 Pinterest hasn't supplied a downloadable MP4 for this pin.	Pinterest hat für diesen Pin keine herunterladbare MP4-Datei bereitgestellt.
 Pinterest hasn't supplied an image to download.	Pinterest hat kein Bild zum Herunterladen bereitgestellt.
-The supplied original image type isn't supported for download.	Der bereitgestellte Originalbildtyp wird beim Download nicht unterstützt.
+The supplied image type isn't supported for download.	Der bereitgestellte Bildtyp wird beim Download nicht unterstützt.
 The supplied media link isn't a supported public Pinterest link.	Der bereitgestellte Medienlink ist kein unterstützter öffentlicher Pinterest-Link.
 Couldn't start the download. Check system Downloads and try again.	Der Download konnte nicht gestartet werden. Prüfe die System-Downloads und versuch es erneut.
 Couldn't open a save location. Try again from the pin.	Ein Speicherort konnte nicht geöffnet werden. Versuch es erneut vom Pin aus.

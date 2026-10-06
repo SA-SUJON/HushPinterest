@@ -730,10 +730,10 @@ public final class L10nTranslations {
                 "Die Einstellung lie\u00df sich nicht vollst\u00e4ndig aktualisieren. Der gespeicherte Wert wird angezeigt.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "Die Einstellungsdatei wurde gespeichert, liest sich aber nicht so zur\u00fcck, wie sie geschrieben wurde. Speichere sie noch einmal als neue Datei.");
+        table.put("The supplied image type isn't supported for download.",
+                "Der bereitgestellte Bildtyp wird beim Download nicht unterst\u00fctzt.");
         table.put("The supplied media link isn't a supported public Pinterest link.",
                 "Der bereitgestellte Medienlink ist kein unterst\u00fctzter \u00f6ffentlicher Pinterest-Link.");
-        table.put("The supplied original image type isn't supported for download.",
-                "Der bereitgestellte Originalbildtyp wird beim Download nicht unterst\u00fctzt.");
         table.put("There's no diagnostic data to clear.",
                 "Es gibt keine Diagnosedaten zum L\u00f6schen.");
         table.put("There's no diagnostic data to put back.",
@@ -1491,10 +1491,10 @@ public final class L10nTranslations {
                 "No se pudo terminar de actualizar el ajuste. Se muestra su valor guardado.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "El archivo de configuraci\u00f3n se guard\u00f3, pero al volver a leerlo no coincide con lo que se escribi\u00f3. Gu\u00e1rdalo de nuevo como un archivo nuevo.");
+        table.put("The supplied image type isn't supported for download.",
+                "El tipo de imagen proporcionado no admite descarga.");
         table.put("The supplied media link isn't a supported public Pinterest link.",
                 "El enlace proporcionado no es un enlace p\u00fablico de Pinterest compatible.");
-        table.put("The supplied original image type isn't supported for download.",
-                "El tipo de imagen original proporcionado no admite descarga.");
         table.put("There's no diagnostic data to clear.",
                 "No hay datos de diagn\u00f3stico que borrar.");
         table.put("There's no diagnostic data to put back.",
@@ -2252,10 +2252,10 @@ public final class L10nTranslations {
                 "Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.");
+        table.put("The supplied image type isn't supported for download.",
+                "Jenis gambar yang diberikan tidak didukung untuk diunduh.");
         table.put("The supplied media link isn't a supported public Pinterest link.",
                 "Tautan media yang diberikan bukan tautan publik Pinterest yang didukung.");
-        table.put("The supplied original image type isn't supported for download.",
-                "Jenis gambar asli yang diberikan tidak didukung untuk diunduh.");
         table.put("There's no diagnostic data to clear.",
                 "Tidak ada data diagnostik yang dapat dihapus.");
         table.put("There's no diagnostic data to put back.",
@@ -3013,10 +3013,10 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel concluir a atualiza\u00e7\u00e3o da configura\u00e7\u00e3o. O valor salvo est\u00e1 sendo mostrado.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "O arquivo de configura\u00e7\u00f5es foi salvo, mas ao ser lido de volta n\u00e3o corresponde ao que foi gravado. Salve de novo como um arquivo novo.");
+        table.put("The supplied image type isn't supported for download.",
+                "O tipo da imagem fornecida n\u00e3o \u00e9 compat\u00edvel com download.");
         table.put("The supplied media link isn't a supported public Pinterest link.",
                 "O link da m\u00eddia fornecida n\u00e3o \u00e9 um link p\u00fablico compat\u00edvel do Pinterest.");
-        table.put("The supplied original image type isn't supported for download.",
-                "O tipo da imagem original fornecida n\u00e3o \u00e9 compat\u00edvel com download.");
         table.put("There's no diagnostic data to clear.",
                 "N\u00e3o h\u00e1 dados de diagn\u00f3stico para limpar.");
         table.put("There's no diagnostic data to put back.",
@@ -3774,10 +3774,10 @@ public final class L10nTranslations {
                 "Ayar\u0131n g\u00fcncellenmesi tamamlanamad\u0131. Kay\u0131tl\u0131 de\u011feri g\u00f6steriliyor.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "Ayar dosyas\u0131 kaydedildi, ancak geri okundu\u011funda yaz\u0131lanla ayn\u0131 de\u011fil. Yeni bir dosya olarak tekrar kaydet.");
+        table.put("The supplied image type isn't supported for download.",
+                "Sa\u011flanan g\u00f6rsel t\u00fcr\u00fcn\u00fcn indirilmesi desteklenmiyor.");
         table.put("The supplied media link isn't a supported public Pinterest link.",
                 "Sa\u011flanan medya ba\u011flant\u0131s\u0131 desteklenen herkese a\u00e7\u0131k bir Pinterest ba\u011flant\u0131s\u0131 de\u011fil.");
-        table.put("The supplied original image type isn't supported for download.",
-                "Sa\u011flanan \u00f6zg\u00fcn g\u00f6rsel t\u00fcr\u00fcn\u00fcn indirilmesi desteklenmiyor.");
         table.put("There's no diagnostic data to clear.",
                 "Temizlenecek tan\u0131lama verisi yok.");
         table.put("There's no diagnostic data to put back.",

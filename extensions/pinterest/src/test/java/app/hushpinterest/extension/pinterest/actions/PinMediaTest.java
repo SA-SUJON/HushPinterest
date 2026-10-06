@@ -187,14 +187,36 @@ public class PinMediaTest {
         assertNull(absent.height);
     }
 
+    @Test public void anIdeaPinWithVideoPagesIsNeverSavedAsItsCover() {
+        Map<String, Object> cover = Map.of("736x", Map.of("url", "https://i.pinimg.com/736x/aa/bb/cc/cover.jpg"));
+        PinMedia.Resolution video = PinMedia.resolve(Map.of("id", "123", "images", cover,
+                "story_pin_data", Map.of("total_video_duration", "0:15")));
+        assertEquals(PinMedia.Refusal.MP4_MISSING, video.refusal);
+        assertNull(video.source);
+        for (String still : new String[]{"0", "0.0", "00:00", ""}) {
+            PinMedia.Resolution image = PinMedia.resolve(Map.of("id", "123", "images", cover,
+                    "story_pin_data", Map.of("total_video_duration", still)));
+            assertEquals(still, "https://i.pinimg.com/736x/aa/bb/cc/cover.jpg", image.source.url);
+        }
+        assertEquals("pages without a duration", "736x", PinMedia.resolve(Map.of("id", "123", "images", cover,
+                "story_pin_data", Map.of("page_count", 3))).size);
+    }
+
     @Test public void knownPinsCarrySpecificRefusalsWithoutGuessingAMediaSource() {
         assertEquals(PinMedia.Refusal.IMAGE_MISSING, PinMedia.resolve(Map.of("id", "123", "images", Map.of())).refusal);
-        assertEquals(PinMedia.Refusal.IMAGE_MISSING, PinMedia.resolve(Map.of("id", "123", "images", Map.of(
+        assertEquals("a crop alone is no image", PinMedia.Refusal.IMAGE_MISSING, PinMedia.resolve(Map.of("id", "123", "images", Map.of(
+                "150x150", Map.of("url", "https://i.pinimg.com/150x150/crop.jpg")))).refusal);
+        PinMedia.Resolution elsewhere = PinMedia.resolve(Map.of("id", "123", "images", Map.of(
                 "150x150", Map.of("url", "https://i.pinimg.com/150x150/crop.jpg"),
-                "736x", Map.of("url", "https://example.com/736x/elsewhere.jpg")))).refusal);
+                "474x", Map.of("url", "https://i.pinimg.com/474x/aa/bb/cc/a.unknown"),
+                "736x", Map.of("url", "https://example.com/736x/elsewhere.jpg", "width", 736.0, "height", 1104.0))));
+        assertEquals("the widest supplied size explains it", PinMedia.Refusal.PUBLIC_LINK, elsewhere.refusal);
+        assertEquals(Integer.valueOf(736), elsewhere.width);
+        assertEquals(PinMedia.Refusal.IMAGE_TYPE, PinMedia.resolve(Map.of("id", "123", "images", Map.of(
+                "236x", Map.of("url", "https://i.pinimg.com/236x/aa/bb/cc/a.svg")))).refusal);
         PinMedia.Resolution unknownType = PinMedia.resolve(Map.of("id", "123", "images", Map.of("orig", Map.of(
                 "url", "https://i.pinimg.com/source.unknown"))));
-        assertEquals(PinMedia.Refusal.ORIGINAL_TYPE, unknownType.refusal);
+        assertEquals(PinMedia.Refusal.IMAGE_TYPE, unknownType.refusal);
         assertNull(unknownType.urlType);
         assertNull(unknownType.source);
         assertEquals(PinMedia.Refusal.PUBLIC_LINK, PinMedia.resolve(Map.of("id", "123", "images", Map.of("orig", Map.of(
