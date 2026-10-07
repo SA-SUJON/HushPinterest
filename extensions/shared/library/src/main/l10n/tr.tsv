@@ -167,14 +167,17 @@ Interface	Arayüz
 Hide shopping and product pins	Alışveriş ve ürün Pinlerini gizle
 Shoppable pins, shopping stories and featured boards	Satın alınabilir Pinler, alışveriş hikâyeleri ve öne çıkan panolar
 Disable analytics	Analizleri devre dışı bırak
-Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch.	Kullanım verisi gönderimini ve analiz başlatma görevlerini durdurur. Firebase Analytics, bu yama olmadan yeniden yamalayana kadar kapalı kalır.
-Firebase Analytics collection is disabled	Firebase Analytics veri toplama kapalı
+Stops usage uploads and analytics launch tasks. Firebase and Google Analytics collection stays off until you patch without this patch.	Kullanım verisi gönderimini ve analiz başlatma görevlerini durdurur. Firebase ve Google Analytics veri toplama, bu yama olmadan yeniden yamalayana kadar kapalı kalır.
+Firebase and Google Analytics collection is turned off	Firebase ve Google Analytics veri toplama kapalı
 Analytics launch tasks	Analiz başlatma görevleri
 Analytics uploads	Analiz veri gönderimi
 Strip link tracking	Bağlantı takibini kaldır
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Kopyalanan ve paylaşılan bağlantılardan bilinen takip parametrelerini kaldırır. Kısa bağlantılar Pinterest tarafından oluşturulduğu gibi kalır.
 Hide advertising ID	Reklam kimliğini gizle
 Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest ve içindeki reklam ve takip kodu, reklam takibi sınırlı olarak tamamı sıfır bir reklam kimliği okur. Reklam kimliğini Android ayarlarından silmişsin gibi olur.
+Remove ad tracking permissions	Reklam izleme izinlerini kaldır
+Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.	Pinterest artık Google reklam kimliği iznine ve Android reklam hizmetlerine sahip değil. Bu, yamalarken ayarlandı ve yalnızca bu yama olmadan yeniden yamalayarak geri gelir.
+Pinterest's access to the ad ID and Android's ad services is removed	Pinterest'in reklam kimliğine ve Android reklam hizmetlerine erişimi kaldırıldı
 Download pins	Pinleri indir
 Open links in your browser	Bağlantıları tarayıcında aç
 Open pin Visit links and profile websites in your browser.	Pinlerin Ziyaret et bağlantılarını ve profil web sitelerini tarayıcında aç.

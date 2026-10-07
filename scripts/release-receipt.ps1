@@ -680,7 +680,9 @@ function Test-ManifestDelta {
     .DESCRIPTION
         Pass requested names plus named dependencies. The templates in the selected allowlist
         authorize only these transformations. Existing matching browser queries are retained,
-        and Analytics may change only its application metadata value and remove its resource.
+        Analytics may change only its application metadata values and remove their resources, and
+        Remove ad tracking permissions may drop only its three permissions and the application's
+        ad services configuration property.
         All other declarations, including duplicates and separate vendor query blocks, survive.
     #>
     param(
@@ -720,7 +722,8 @@ function Test-ManifestDelta {
     $settings = $selected.Contains('HushPinterest settings')
     $analytics = $selected.Contains('Disable analytics')
     $browser = $selected.Contains('Open links in your browser')
-    if (($analytics -or $browser) -and -not $settings) { return Fail 'The selection omits the HushPinterest settings dependency.' }
+    $adTracking = $selected.Contains('Remove ad tracking permissions')
+    if (($analytics -or $browser -or $adTracking) -and -not $settings) { return Fail 'The selection omits the HushPinterest settings dependency.' }
     if ($settings) {
         $floor = Test-PatchedMinSdk -StockMinSdk $Stock.minSdk -PatchedMinSdk $Patched.minSdk
         if (-not $floor.Valid) { return Fail $floor.Reason }
@@ -750,23 +753,57 @@ function Test-ManifestDelta {
         $expected.exported.Add($alias); $expected.components.Add($component); $expected.intentFilters.Add($filter)
     }
     if ($analytics) {
-        $name = 'firebase_analytics_collection_deactivated'
-        $template = ConvertTo-ManifestDeclaration -Owner 'application' -Node (Node 'meta-data' @{
-            'android:name' = $name; 'android:value' = 'true' })
-        $policies.Add("metadata-added $template")
-        $original = @($Stock.metadata | Where-Object {
-            $entry = $_ | ConvertFrom-Json
-            $entry.owner -ceq 'application' -and $entry.declaration.attributes.'android:name' -ceq $name })
-        if ($original.Count -gt 1) { return Fail "The stock manifest has repeated $name metadata." }
-        $replacement = $template
-        if ($original.Count -eq 1) {
-            $node = ($original[0] | ConvertFrom-Json).declaration
-            $node.attributes.PSObject.Properties.Remove('android:resource')
-            $node.attributes | Add-Member -MemberType NoteProperty -Name 'android:value' -Value 'true' -Force
-            $replacement = ConvertTo-ManifestDeclaration -Node $node -Owner 'application'
-            [void]$expected.metadata.Remove($original[0])
+        # Each documented collection switch is added, or set in place when the input declares it.
+        $flags = [ordered]@{
+            'firebase_analytics_collection_deactivated' = 'true'
+            'firebase_crashlytics_collection_enabled' = 'false'
+            'firebase_performance_collection_deactivated' = 'true'
+            'google_analytics_adid_collection_enabled' = 'false'
+            'google_analytics_default_allow_analytics_storage' = 'false'
+            'google_analytics_default_allow_ad_storage' = 'false'
+            'google_analytics_default_allow_ad_user_data' = 'false'
+            'google_analytics_default_allow_ad_personalization_signals' = 'false'
         }
-        $expected.metadata.Add($replacement)
+        foreach ($name in $flags.Keys) {
+            $value = $flags[$name]
+            $template = ConvertTo-ManifestDeclaration -Owner 'application' -Node (Node 'meta-data' @{
+                'android:name' = $name; 'android:value' = $value })
+            $policies.Add("metadata-added $template")
+            $original = @($Stock.metadata | Where-Object {
+                $entry = $_ | ConvertFrom-Json
+                $entry.owner -ceq 'application' -and $entry.declaration.attributes.'android:name' -ceq $name })
+            if ($original.Count -gt 1) { return Fail "The stock manifest has repeated $name metadata." }
+            $replacement = $template
+            if ($original.Count -eq 1) {
+                $node = ($original[0] | ConvertFrom-Json).declaration
+                $node.attributes.PSObject.Properties.Remove('android:resource')
+                $node.attributes | Add-Member -MemberType NoteProperty -Name 'android:value' -Value $value -Force
+                $replacement = ConvertTo-ManifestDeclaration -Node $node -Owner 'application'
+                [void]$expected.metadata.Remove($original[0])
+            }
+            $expected.metadata.Add($replacement)
+        }
+    }
+    if ($adTracking) {
+        # Google's ad ID permission and the Privacy Sandbox ad services permissions go wherever the
+        # input asks for them, and so does the application's ad services configuration property.
+        # The application keeps every other attribute and child, its other properties included.
+        foreach ($permission in @('com.google.android.gms.permission.AD_ID',
+                'android.permission.ACCESS_ADSERVICES_AD_ID', 'android.permission.ACCESS_ADSERVICES_ATTRIBUTION')) {
+            $policies.Add("permission-removed $permission")
+            [void]$expected.permissions.Remove($permission)
+        }
+        $config = 'android.adservices.AD_SERVICES_CONFIG'
+        $policies.Add('component-removed ' + (ConvertTo-ManifestDeclaration -Owner 'application' -Node (Node 'property' @{
+            'android:name' = $config })))
+        foreach ($application in @($Stock.components | Where-Object { ($_ | ConvertFrom-Json).tag -ceq 'application' })) {
+            $node = $application | ConvertFrom-Json
+            $kept = @(@($node.children) | Where-Object { -not ($_.tag -ceq 'property' -and $_.attributes.'android:name' -ceq $config) })
+            if ($kept.Count -eq @($node.children).Count) { continue }
+            $node.children = $kept
+            [void]$expected.components.Remove($application)
+            $expected.components.Add((ConvertTo-ManifestDeclaration -Node $node))
+        }
     }
     if ($browser) {
         $container = ConvertTo-ManifestDeclaration -Owner 'queries#0' -Node (Node 'queries' @{})

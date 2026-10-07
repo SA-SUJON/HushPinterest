@@ -164,14 +164,17 @@ Interface	Interface
 Hide shopping and product pins	Ocultar compras e Pins de produtos
 Shoppable pins, shopping stories and featured boards	Pins de compras, histórias de compras e pastas em destaque
 Disable analytics	Desativar análises
-Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch.	Interrompe os envios de uso e o início dos serviços de análise. O Firebase Analytics continua desativado até você aplicar os patches sem este.
-Firebase Analytics collection is disabled	A coleta do Firebase Analytics está desativada
+Stops usage uploads and analytics launch tasks. Firebase and Google Analytics collection stays off until you patch without this patch.	Interrompe os envios de uso e o início dos serviços de análise. A coleta do Firebase e do Google Analytics continua desativada até você aplicar os patches sem este.
+Firebase and Google Analytics collection is turned off	A coleta do Firebase e do Google Analytics está desativada
 Analytics launch tasks	Inicialização dos serviços de análise
 Analytics uploads	Envios de análises
 Strip link tracking	Remover rastreamento de links
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Remove parâmetros de rastreamento conhecidos dos links copiados e compartilhados. Os links curtos permanecem como o Pinterest os criou.
 Hide advertising ID	Ocultar ID de publicidade
 Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	O Pinterest e o código de anúncios e rastreamento dentro dele leem um ID de publicidade todo em zeros, com o rastreamento de anúncios limitado, como se você tivesse apagado seu ID de publicidade nas configurações do Android.
+Remove ad tracking permissions	Remover permissões de rastreamento de anúncios
+Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.	O Pinterest não tem mais a permissão do ID de publicidade do Google nem os serviços de anúncios do Android. Isso foi definido ao aplicar os patches e só volta se você aplicar os patches de novo sem este.
+Pinterest's access to the ad ID and Android's ad services is removed	o acesso do Pinterest ao ID de publicidade e aos serviços de anúncios do Android foi removido
 Download pins	Baixar Pins
 Open links in your browser	Abrir links no seu navegador
 Open pin Visit links and profile websites in your browser.	Abra links de Visitar dos Pins e sites de perfis no seu navegador.

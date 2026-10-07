@@ -263,11 +263,17 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         if (!Collections.disjoint(build, PatchFamily.PRIVACY_PAGE)) {
             PreferenceCategory privacy = category(screen, L10n.t("Privacy"));
             patchToggle(privacy, context, build, PatchFamily.DISABLE_ANALYTICS, Settings.DISABLE_ANALYTICS,
-                    L10n.t("Disable analytics"), L10n.t("Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch."), SettingsIcons.BLOCK);
+                    L10n.t("Disable analytics"), L10n.t("Stops usage uploads and analytics launch tasks. Firebase and Google Analytics collection stays off until you patch without this patch."), SettingsIcons.BLOCK);
             patchToggle(privacy, context, build, PatchFamily.STRIP_LINK_TRACKING, Settings.STRIP_LINK_TRACKING,
                     L10n.t("Strip link tracking"), L10n.t("Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them."), SettingsIcons.LINKS);
             patchToggle(privacy, context, build, PatchFamily.HIDE_ADVERTISING_ID, Settings.HIDE_ADVERTISING_ID,
                     L10n.t("Hide advertising ID"), L10n.t("Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings."), SettingsIcons.BLOCK);
+            // A patch-time fact with no switch: an explanation, so it takes the info mark.
+            if (build.contains(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS)) {
+                privacy.addPreference(mark(info(context, L10n.t("Remove ad tracking permissions"),
+                        L10n.t("Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.")),
+                        SettingsIcons.ABOUT));
+            }
         }
 
         if (!Collections.disjoint(build, PatchFamily.ACTIONS_PAGE)) {

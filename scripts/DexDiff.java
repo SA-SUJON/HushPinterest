@@ -328,10 +328,11 @@ public class DexDiff {
                 boolean validMutation = family || (!columns[2].equals("guard")
                         ? MUTATION_COLUMNS.getOrDefault(columns[2], -1) == mutationValues
                         : mutationValues >= 2 && mutationValues % 2 == 0);
+                // A family's capability column may be empty: a manifest-only patch changes no bytecode.
                 if ((family && columns.length != 4) || (!family && columns.length < 4)
-                        || Arrays.stream(columns).anyMatch(String::isBlank)
+                        || Arrays.stream(columns).limit(family ? 3 : columns.length).anyMatch(String::isBlank)
                         || !columns[1].matches("[A-Za-z][A-Za-z0-9]*(,[A-Za-z][A-Za-z0-9]*)*")
-                        || (family && !columns[3].matches("[A-Za-z][A-Za-z0-9]*(,[A-Za-z][A-Za-z0-9]*)*"))
+                        || (family && !columns[3].matches("([A-Za-z][A-Za-z0-9]*(,[A-Za-z][A-Za-z0-9]*)*)?"))
                         || !validMutation) {
                     throw new IllegalArgumentException("Invalid contract line " + lineNumber + ": invalid feature columns");
                 }
@@ -3733,6 +3734,7 @@ public class DexDiff {
                 if (!names.add(c.target) || flags.containsKey(c.callee)) { fail("duplicate family " + c.target); continue; }
                 readFlag(c.callee);
                 for (String cap : c.strings.get(0).split(",")) {
+                    if (cap.isEmpty()) continue;
                     if (owners.putIfAbsent(cap, c.callee) != null) fail("duplicate capability " + cap);
                     readFlag(cap);
                     if (!flag(c.callee) && flag(cap)) fail(cap + " is installed without " + c.callee);

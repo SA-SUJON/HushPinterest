@@ -8,6 +8,8 @@ Unreleased source changes. The published release remains 0.0.4.
 
 * **Pinterest:** Download pin now saves image pins. Pinterest's app is sent display sizes rather than the original for most pins, and the pin menu used to show "Download unavailable" for all of them. Now the download asks Pinterest's media host for the original behind the largest size and saves it, or saves that largest size when there's no original. Copy media link copies the same address, and Supplied media details says which size it describes. Refs #2
 * **Pinterest:** Original-quality images now reaches pin closeups, not only collages. With it on, HushPinterest asks Pinterest for each pin's original along with its display sizes, and the closeup shows the original instead of the large size. Download pin then saves that original directly. Pins Pinterest already loaded keep their size until it loads them again.
+* **Pinterest:** New Remove ad tracking permissions patch, on by default. It takes Google's advertising ID permission and Android's Privacy Sandbox ad services permissions and configuration out of Pinterest's manifest. There's no switch for it, so it stays until you patch again without it. While it's in, Google Play services hands Pinterest an all-zero ad ID even with Hide advertising ID turned off.
+* **Pinterest:** Disable analytics now also turns off Firebase Crashlytics and Performance collection in the manifest, stops Google Analytics from collecting the ad ID, and sets Google's default consent for analytics storage, ad storage, ad user data and ad personalization to denied. Pinterest shipped all four consent defaults as granted. Like the Firebase Analytics flag, this stays until you patch again without the patch.
 
 ## 0.0.4 (2026-10-05)
 

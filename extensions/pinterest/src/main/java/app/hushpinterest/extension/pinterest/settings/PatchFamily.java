@@ -50,9 +50,12 @@ public enum PatchFamily {
             Settings.HIDE_AI_PINS),
     HIDE_SHOPPING(FamilyNames.HIDE_SHOPPING, "hideShopping", null, Settings.HIDE_SHOPPING),
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics",
-            "Firebase Analytics collection is disabled", Settings.DISABLE_ANALYTICS),
+            "Firebase and Google Analytics collection is turned off", Settings.DISABLE_ANALYTICS),
     STRIP_LINK_TRACKING(FamilyNames.STRIP_LINK_TRACKING, "stripLinkTracking", null, Settings.STRIP_LINK_TRACKING),
     HIDE_ADVERTISING_ID(FamilyNames.HIDE_ADVERTISING_ID, "hideAdvertisingId", null, Settings.HIDE_ADVERTISING_ID),
+    /** Manifest permissions removed when patching: no switch, so Pause can't reach it. */
+    REMOVE_AD_TRACKING_PERMISSIONS(FamilyNames.REMOVE_AD_TRACKING_PERMISSIONS, "removeAdTrackingPermissions",
+            "Pinterest's access to the ad ID and Android's ad services is removed"),
     DOWNLOAD_PINS(FamilyNames.DOWNLOAD_PINS, "downloadPins", null, Settings.DOWNLOAD_PINS),
     EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "externalBrowser", null, Settings.EXTERNAL_BROWSER),
     SYSTEM_SHARE(FamilyNames.SYSTEM_SHARE, "systemShare", null, Settings.SYSTEM_SHARE),
@@ -115,7 +118,7 @@ public enum PatchFamily {
     /** The families whose switches the Feed page holds. The page and its home row both read this. */
     static final Set<PatchFamily> FEED_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_AI_PINS, HIDE_SHOPPING));
     static final Set<PatchFamily> PRIVACY_PAGE = Collections.unmodifiableSet(EnumSet.of(DISABLE_ANALYTICS, STRIP_LINK_TRACKING,
-            HIDE_ADVERTISING_ID));
+            HIDE_ADVERTISING_ID, REMOVE_AD_TRACKING_PERMISSIONS));
     static final Set<PatchFamily> ACTIONS_PAGE = Collections.unmodifiableSet(EnumSet.of(DOWNLOAD_PINS, SYSTEM_SHARE));
     static final Set<PatchFamily> INTERFACE_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SCREENSHOT_SHARE,
             HIDE_SEARCH_HISTORY, HIDE_NAVIGATION_BUTTONS, HIDE_HEADER_BUTTONS, HIDE_PIN_MENU_ITEMS,

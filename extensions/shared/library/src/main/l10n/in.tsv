@@ -167,14 +167,17 @@ Interface	Antarmuka
 Hide shopping and product pins	Sembunyikan belanja dan Pin produk
 Shoppable pins, shopping stories and featured boards	Pin belanja, cerita belanja, dan papan unggulan
 Disable analytics	Nonaktifkan analitik
-Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch.	Menghentikan pengiriman data penggunaan dan tugas awal analitik. Firebase Analytics tetap nonaktif sampai Anda menambal ulang tanpa tambalan ini.
-Firebase Analytics collection is disabled	Pengumpulan data Firebase Analytics dinonaktifkan
+Stops usage uploads and analytics launch tasks. Firebase and Google Analytics collection stays off until you patch without this patch.	Menghentikan pengiriman data penggunaan dan tugas awal analitik. Pengumpulan data Firebase dan Google Analytics tetap nonaktif sampai Anda menambal ulang tanpa tambalan ini.
+Firebase and Google Analytics collection is turned off	Pengumpulan data Firebase dan Google Analytics dinonaktifkan
 Analytics launch tasks	Tugas awal analitik
 Analytics uploads	Pengiriman data analitik
 Strip link tracking	Hapus pelacakan tautan
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Menghapus parameter pelacakan yang dikenal dari tautan yang disalin dan dibagikan. Tautan pendek tetap seperti yang dibuat Pinterest.
 Hide advertising ID	Sembunyikan ID iklan
 Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest dan kode iklan serta pelacakan di dalamnya membaca ID iklan berisi nol semua dengan pelacakan iklan dibatasi, seolah kamu sudah menghapus ID iklan di setelan Android.
+Remove ad tracking permissions	Hapus izin pelacakan iklan
+Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.	Pinterest tidak lagi memiliki izin ID iklan Google maupun layanan iklan Android. Ini ditetapkan saat Anda menambal, dan hanya bisa dikembalikan dengan menambal ulang tanpa tambalan ini.
+Pinterest's access to the ad ID and Android's ad services is removed	akses Pinterest ke ID iklan dan layanan iklan Android dihapus
 Download pins	Unduh Pin
 Open links in your browser	Buka tautan di browser Anda
 Open pin Visit links and profile websites in your browser.	Buka tautan Kunjungi Pin dan situs web profil di browser Anda.
