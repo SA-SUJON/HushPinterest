@@ -275,7 +275,7 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("settings", 3));
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("settings", 3));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3528,6 +3528,97 @@ public class DexDiff {
             return from >= 0 && graph.normal.get(from).contains(at);
         }
 
+        static final String TOPIC_BINDER = "Presenter bound to BubblesListView must be of type BubblesListPresenter";
+
+        /**
+         * Pinterest's topic suggestion row. The binder that logs the row's presenter error reads an
+         * int field of its own class from this and packed-switches on it, and that switch has no arm
+         * for the row, so the row runs from the fall-through: the row hook goes first there with the
+         * binder's view parameter, reached only from the switch, and the original first instruction
+         * follows it. The row's view, the one class implementing the interface that fall-through casts
+         * the parameter to, gains an onMeasure passing itself and each spec through the measure hook
+         * before its superclass measures. Both are found in the clean target, never from the hooks.
+         */
+        void topicSuggestions(Contract c) {
+            String rowHook = c.strings.get(0), measureHook = c.strings.get(1);
+            List<Method> binders = new ArrayList<>();
+            for (Method m : clean.holding(TOPIC_BINDER)) if (topicBinder(m)) binders.add(m);
+            Method binder = unique(binders, "topic row binder");
+            boolean row = false, measured = false;
+            if (binder != null) {
+                List<Instruction> was = instructions(binder);
+                int view = parameter(binder, 0);
+                Instruction start = was.get(2);
+                String face = start.getOpcode() == Opcode.CHECK_CAST && firstRegister(start) == view ? String.valueOf(reference(start)) : null;
+                if (face == null || writes(was.get(0), view) || writes(was.get(1), view)) {
+                    fail("the topic row binder " + binder + " no longer starts the row arm by casting its untouched view parameter");
+                    face = null;
+                }
+                Method m = actual(binder);
+                List<Integer> sites = calls(m, rowHook, 1);
+                if (face != null && m != null && sites.size() == 1) {
+                    List<Instruction> body = instructions(m);
+                    int at = sites.get(0);
+                    row = at == 2 && at + 1 < body.size() && body.get(1).getOpcode() == Opcode.PACKED_SWITCH
+                            && arguments(body.get(at)).equals(List.of(view))
+                            && body.get(at + 1).getOpcode() == Opcode.CHECK_CAST && firstRegister(body.get(at + 1)) == view
+                            && face.equals(String.valueOf(reference(body.get(at + 1))))
+                            && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 1, at);
+                    if (!row) fail(rowHook + " does not take the view first on the topic row's switch fall-through in " + m);
+                    else remove(m, at, at + 1);
+                }
+                List<ClassDef> implementers = new ArrayList<>();
+                if (face != null) for (ClassDef cd : clean.classes.values())
+                    if (!cd.getType().startsWith(OWN) && cd.getInterfaces().contains(face)) implementers.add(cd);
+                ClassDef rowView = face == null ? null : uniqueClass(implementers, "topic row view");
+                if (rowView != null) measured = topicMeasure(rowView, measureHook);
+            }
+            capability(c.callee, row && measured);
+        }
+
+        /** The topic row binder's shape, as the patch finds it. */
+        boolean topicBinder(Method m) {
+            if (m.getImplementation() == null || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals("V")
+                    || m.getParameterTypes().isEmpty() || !m.getParameterTypes().get(0).toString().startsWith("L")) return false;
+            List<Instruction> body = instructions(m);
+            if (body.size() <= 2 || body.get(0).getOpcode() != Opcode.IGET || !(reference(body.get(0)) instanceof FieldReference f)
+                    || !f.getDefiningClass().equals(m.getDefiningClass()) || !f.getType().equals("I")
+                    || ((TwoRegisterInstruction) body.get(0)).getRegisterB() != parameter(m, -1)) return false;
+            return body.get(1).getOpcode() == Opcode.PACKED_SWITCH && firstRegister(body.get(1)) == firstRegister(body.get(0));
+        }
+
+        /**
+         * The row view's added onMeasure: the measure hook with the view and its width spec, then with
+         * the view and its height spec, each answer back in its own register, then the superclass's
+         * onMeasure with both. A view that measured itself in the clean target would need another hook.
+         */
+        boolean topicMeasure(ClassDef rowView, String measureHook) {
+            String type = rowView.getType(), key = type + "->onMeasure(II)V";
+            if (clean.methods.containsKey(key) || !canOverride(type, "onMeasure", "(II)V")) {
+                fail("the topic row view " + type + " has an onMeasure of its own or one it can't override");
+                return false;
+            }
+            Method m = actual(key);
+            List<Integer> sites = calls(m, measureHook, 2);
+            if (m == null || sites.size() != 2) return false;
+            List<Instruction> body = instructions(m);
+            int self = parameter(m, -1), width = parameter(m, 0), height = parameter(m, 1);
+            boolean prefix = sites.equals(List.of(0, 2)) && body.size() > 4
+                    && arguments(body.get(0)).equals(List.of(self, width)) && arguments(body.get(2)).equals(List.of(self, height))
+                    && isMoveResult(body.get(1).getOpcode()) && firstRegister(body.get(1)) == width
+                    && isMoveResult(body.get(3).getOpcode()) && firstRegister(body.get(3)) == height;
+            if (!prefix) { fail(measureHook + " does not pass the topic row and each spec, in place, first in " + m); return false; }
+            remove(m, 0, 4);
+            List<Instruction> retained = retained(m, edits.get(m.toString()));
+            List<Integer> args = List.of(self, width, height);
+            boolean inherited = retained.size() == 2 && retained.get(0).getOpcode().name.startsWith("invoke-super")
+                    && retained.get(1).getOpcode() == Opcode.RETURN_VOID && reference(retained.get(0)) instanceof MethodReference call
+                    && call.getDefiningClass().equals(rowView.getSuperclass()) && call.getName().equals("onMeasure")
+                    && descriptor(call).equals("(II)V") && arguments(retained.get(0)).equals(args);
+            if (!inherited) fail(m + " lost its inherited original behavior");
+            return inherited;
+        }
+
         /** Getter and hook pairs: each value a getter returns goes through its hook first, in the same register. */
         void answers(Contract c) {
             Set<Opcode> exits = Set.of(Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_WIDE, Opcode.RETURN_VOID);
@@ -3771,6 +3862,7 @@ public class DexDiff {
                     case "answers": answers(c); break;
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;
+                    case "topicSuggestions": topicSuggestions(c); break;
                     case "settings": settings(c); break;
                     default: fail("unknown mutation kind " + c.target);
                 }

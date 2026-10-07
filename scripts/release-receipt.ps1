@@ -682,7 +682,8 @@ function Test-ManifestDelta {
         authorize only these transformations. Existing matching browser queries are retained,
         Analytics may change only its application metadata values and remove their resources, and
         Remove ad tracking permissions may drop only its three permissions and the application's
-        ad services configuration property.
+        ad services configuration property. Spoof signature for Google sign-in may add only its two
+        application metadata entries, and only to a manifest that has neither.
         All other declarations, including duplicates and separate vendor query blocks, survive.
     #>
     param(
@@ -723,7 +724,8 @@ function Test-ManifestDelta {
     $analytics = $selected.Contains('Disable analytics')
     $browser = $selected.Contains('Open links in your browser')
     $adTracking = $selected.Contains('Remove ad tracking permissions')
-    if (($analytics -or $browser -or $adTracking) -and -not $settings) { return Fail 'The selection omits the HushPinterest settings dependency.' }
+    $signature = $selected.Contains('Spoof signature for Google sign-in')
+    if (($analytics -or $browser -or $adTracking -or $signature) -and -not $settings) { return Fail 'The selection omits the HushPinterest settings dependency.' }
     if ($settings) {
         $floor = Test-PatchedMinSdk -StockMinSdk $Stock.minSdk -PatchedMinSdk $Patched.minSdk
         if (-not $floor.Valid) { return Fail $floor.Reason }
@@ -803,6 +805,23 @@ function Test-ManifestDelta {
             $node.children = $kept
             [void]$expected.components.Remove($application)
             $expected.components.Add((ConvertTo-ManifestDeclaration -Node $node))
+        }
+    }
+    if ($signature) {
+        # Pinterest's own certificate, by SHA-1 for microG-RE and as DER hex for signature modules.
+        # The input names neither, so both are new application metadata and nothing else changes.
+        $spoofed = [ordered]@{
+            'app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE' = 'b6a74dbcb894b0f73d8c485c72eb1247a8f027ca'
+            'fake-signature' = '3082024f308201b8a00302010202044f96d518300d06092a864886f70d0101050500306c310b3009060355040613025553310b3009060355040813024341311230100603550407130950616c6f20416c746f31163014060355040a130d50696e74657265737420496e633110300e060355040b1307416e64726f696431123010060355040313094361726c2052696365301e170d3132303432343136333031365a170d3337303431383136333031365a306c310b3009060355040613025553310b3009060355040813024341311230100603550407130950616c6f20416c746f31163014060355040a130d50696e74657265737420496e633110300e060355040b1307416e64726f696431123010060355040313094361726c205269636530819f300d06092a864886f70d010101050003818d0030818902818100bd8b325a2eb8ade0e16e44971e75130ec98f2c37c8a477044382a1c5c18aa3078bede3c1a49776441617f3bb6711d1a7d764785ea20bf8c694d78fdc82d575f88f340fc87b948558385636f80dba536481a9c8bf03505781adbbca1ef65b2f59281ca92e352d9f685d04024c19cb3b4e3e14e6eb69ca113e55b55d766ea860170203010001300d06092a864886f70d0101050500038181009e6766c1071e383b75c520221b502e4701d7a110933a9fe7e7417679be71581ad24a09c42bb5190acfb7e487969f843a634eac015424adc4380cdc0eb21b47616b4459f11a018b4f5185bfb75764d95c1d8bd01c21932911578a3406caf8d317bc65f2d4d5caef1b59e59ed695e235a672460b2ccff2d0a8f3c3b2604c599714'
+        }
+        foreach ($name in $spoofed.Keys) {
+            if (@($Stock.metadata | Where-Object { ($_ | ConvertFrom-Json).declaration.attributes.'android:name' -ceq $name }).Count -gt 0) {
+                return Fail "The stock manifest already declares $name metadata."
+            }
+            $template = ConvertTo-ManifestDeclaration -Owner 'application' -Node (Node 'meta-data' @{
+                'android:name' = $name; 'android:value' = $spoofed[$name] })
+            $policies.Add("metadata-added $template")
+            $expected.metadata.Add($template)
         }
     }
     if ($browser) {

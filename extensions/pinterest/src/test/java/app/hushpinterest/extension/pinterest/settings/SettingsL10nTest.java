@@ -360,7 +360,7 @@ public class SettingsL10nTest {
                 if (repeatsItsName(shown, family.patchName)) repeats.add(language + ": " + shown);
             }
         }
-        assertEquals("real stays items checked", 2, real);
+        assertEquals("real stays items checked", 3, real);
 
         // staysWhilePausedForTests substitutes one more item that, correctly, doesn't repeat its
         // patch's name, so the check also runs on a family whose item a test supplies.

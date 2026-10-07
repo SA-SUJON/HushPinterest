@@ -35,6 +35,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.SettingsContextRule;
@@ -55,7 +56,7 @@ public class UiHooksTest {
             Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SEARCH_HISTORY,
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST,
-            Settings.HIDE_COMMENTS, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.DISABLE_UPDATE_NAG
+            Settings.HIDE_COMMENTS, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.DISABLE_UPDATE_NAG
     };
 
     @After public void restore() {
@@ -70,6 +71,11 @@ public class UiHooksTest {
         assertFalse(UiHooks.quietEmailReminder());
         assertFalse(UiHooks.disableUpdateNag());
         assertFalse(UiHooks.originalImages());
+        assertFalse(UiHooks.hideTopicSuggestions());
+        View topics = new LinearLayout(RuntimeEnvironment.getApplication());
+        UiHooks.topicSuggestions(topics);
+        assertEquals(View.VISIBLE, topics.getVisibility());
+        assertEquals(312, UiHooks.topicSuggestionsMeasureSpec(topics, 312));
         assertEquals(View.INVISIBLE, UiHooks.searchHistoryVisibility(View.INVISIBLE));
         assertEquals(312, UiHooks.searchHistoryMeasureSpec(312));
         assertEquals(View.VISIBLE, UiHooks.commentsVisibility(View.VISIBLE));
@@ -109,6 +115,71 @@ public class UiHooksTest {
             UiHooks.saveToastForTests = null;
         }
         assertFalse("the unpatched stub names no toast", UiHooks.hideSaveToast(saved));
+    }
+
+    @Test public void topicRowsFoldToZeroAndComeBackWhenBoundWithTheSwitchOff() {
+        int spec = View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.AT_MOST);
+        View row = new LinearLayout(RuntimeEnvironment.getApplication());
+        View other = new LinearLayout(RuntimeEnvironment.getApplication());
+        Settings.HIDE_TOPIC_SUGGESTIONS.save(true);
+        UiHooks.topicSuggestions(row);
+        assertEquals(View.GONE, row.getVisibility());
+        int folded = UiHooks.topicSuggestionsMeasureSpec(row, spec);
+        assertEquals(0, View.MeasureSpec.getSize(folded));
+        assertEquals(View.MeasureSpec.EXACTLY, View.MeasureSpec.getMode(folded));
+        assertEquals("a row the hook never hid measures as asked", spec, UiHooks.topicSuggestionsMeasureSpec(other, spec));
+        assertEquals(spec, UiHooks.topicSuggestionsMeasureSpec(null, spec));
+        UiHooks.topicSuggestions(row);
+        assertEquals("binding a hidden row again keeps it hidden", 0, View.MeasureSpec.getSize(UiHooks.topicSuggestionsMeasureSpec(row, spec)));
+        Settings.HIDE_TOPIC_SUGGESTIONS.save(false);
+        UiHooks.topicSuggestions(row);
+        assertEquals(View.VISIBLE, row.getVisibility());
+        assertEquals(spec, UiHooks.topicSuggestionsMeasureSpec(row, spec));
+        UiHooks.topicSuggestions("not a view");
+        UiHooks.topicSuggestions(null);
+    }
+
+    @Test public void aTopicRowPinterestHidItselfIsLeftAlone() {
+        int spec = View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.AT_MOST);
+        View row = new LinearLayout(RuntimeEnvironment.getApplication());
+        row.setVisibility(View.GONE);
+        Settings.HIDE_TOPIC_SUGGESTIONS.save(true);
+        UiHooks.topicSuggestions(row);
+        assertEquals(spec, UiHooks.topicSuggestionsMeasureSpec(row, spec));
+        Settings.HIDE_TOPIC_SUGGESTIONS.save(false);
+        UiHooks.topicSuggestions(row);
+        assertEquals("only rows the hook hid come back", View.GONE, row.getVisibility());
+    }
+
+    @Test public void aHiddenTopicRowComesBackAfterItsNextMeasureWhilePaused() {
+        int width = View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY);
+        int height = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+        View row = new LinearLayout(RuntimeEnvironment.getApplication());
+        Settings.HIDE_TOPIC_SUGGESTIONS.save(true);
+        UiHooks.topicSuggestions(row);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals(width, UiHooks.topicSuggestionsMeasureSpec(row, width));
+        assertEquals(height, UiHooks.topicSuggestionsMeasureSpec(row, height));
+        assertEquals("shown after the layout pass, not during it", View.GONE, row.getVisibility());
+        ShadowLooper.idleMainLooper();
+        assertEquals(View.VISIBLE, row.getVisibility());
+        PauseForTests.resume();
+        assertEquals("a row given back measures as asked until it's bound again", width, UiHooks.topicSuggestionsMeasureSpec(row, width));
+        UiHooks.topicSuggestions(row);
+        assertEquals(View.GONE, row.getVisibility());
+    }
+
+    @Test public void aTopicRowStaysHiddenWhenTheSwitchIsBackOnBeforeTheLayoutPassEnds() {
+        int spec = View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.AT_MOST);
+        View row = new LinearLayout(RuntimeEnvironment.getApplication());
+        Settings.HIDE_TOPIC_SUGGESTIONS.save(true);
+        UiHooks.topicSuggestions(row);
+        Settings.HIDE_TOPIC_SUGGESTIONS.save(false);
+        assertEquals(spec, UiHooks.topicSuggestionsMeasureSpec(row, spec));
+        Settings.HIDE_TOPIC_SUGGESTIONS.save(true);
+        ShadowLooper.idleMainLooper();
+        assertEquals(View.GONE, row.getVisibility());
+        assertEquals(0, View.MeasureSpec.getSize(UiHooks.topicSuggestionsMeasureSpec(row, spec)));
     }
 
     @Test public void searchHistoryAndCommentsFoldToZeroAndRestoreTheirRequestedSize() {

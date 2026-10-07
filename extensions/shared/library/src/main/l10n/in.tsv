@@ -178,6 +178,9 @@ Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad 
 Remove ad tracking permissions	Hapus izin pelacakan iklan
 Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.	Pinterest tidak lagi memiliki izin ID iklan Google maupun layanan iklan Android. Ini ditetapkan saat Anda menambal, dan hanya bisa dikembalikan dengan menambal ulang tanpa tambalan ini.
 Pinterest's access to the ad ID and Android's ad services is removed	akses Pinterest ke ID iklan dan layanan iklan Android dihapus
+Spoof signature for Google sign-in	Palsukan tanda tangan untuk login Google
+Pinterest's manifest names its original signing certificate, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched, and only patching again without it takes it out.	Manifes Pinterest mencantumkan sertifikat penandatanganan aslinya, agar login Google bisa berfungsi dengan microG-RE atau modul XSpoofSignatures. Layanan Google Play biasa mengabaikannya. Ini ditetapkan saat Anda menambal, dan hanya bisa dihapus dengan menambal ulang tanpa tambalan ini.
+Pinterest's original signing certificate is named in its manifest	sertifikat penandatanganan asli Pinterest tercantum di manifesnya
 Download pins	Unduh Pin
 Open links in your browser	Buka tautan di browser Anda
 Open pin Visit links and profile websites in your browser.	Buka tautan Kunjungi Pin dan situs web profil di browser Anda.
@@ -195,6 +198,7 @@ Hide collage menu items	Sembunyikan opsi kolase
 Hide Search image menu item	Sembunyikan opsi Cari gambar
 Hide Promote pin menu item	Sembunyikan opsi Promosikan Pin
 Hide comments	Sembunyikan komentar
+Hide topic suggestions	Sembunyikan saran topik
 Quiet email reminders	Sembunyikan pengingat email
 Disable update nag	Sembunyikan pemberitahuan pembaruan
 Download pin	Unduh Pin
@@ -326,6 +330,7 @@ Hides Add to collage and Remix collage in newly created pin menus. An existing m
 Hides Search image in newly created pin menus. An existing menu won't change.	Menyembunyikan Cari gambar di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Menyembunyikan Promosikan Pin di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Menyembunyikan panel dan pratinjau komentar di bawah Pin saat tata letak atau visibilitasnya diperbarui berikutnya. Tidak mengubah siapa yang boleh berkomentar.
+Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Menyembunyikan baris "Ide yang mungkin Anda sukai" berisi gelembung topik di bawah Pin saat Pinterest menampilkannya lagi. Komentar dan Pin terkait tetap ada.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Menutup pengingat opsional konfirmasi email yang baru dibuat. Pengingat yang terbuka tidak berubah. Pemeriksaan verifikasi dan masuk tetap berlaku.
 Hide save toasts	Sembunyikan notifikasi simpan
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Menyimpan Pin tidak lagi memunculkan "Disimpan ke" papanmu atau saran untuk mengikuti pembuatnya. Pin tetap tersimpan.

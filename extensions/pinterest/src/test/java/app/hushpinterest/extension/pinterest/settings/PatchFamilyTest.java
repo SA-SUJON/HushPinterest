@@ -173,9 +173,10 @@ public class PatchFamilyTest {
         assertEquals(permanent, PatchFamily.DISABLE_ANALYTICS.staysWhilePaused);
         assertTrue(PatchFamily.DISABLE_ANALYTICS.switches.contains(Settings.DISABLE_ANALYTICS));
         assertEquals(summary, PatchFamily.staysWhilePausedSummary(build));
-        // Every other family but the ad tracking one, which has a patch-time edit of its own.
+        // Every other family but the two manifest-only ones, which have patch-time edits of their own.
         Set<PatchFamily> everyOther = EnumSet.allOf(PatchFamily.class);
         everyOther.remove(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS);
+        everyOther.remove(PatchFamily.SPOOF_SIGNATURE);
         assertEquals(summary, PatchFamily.staysWhilePausedSummary(everyOther));
         Set<PatchFamily> withoutAnalytics = EnumSet.copyOf(everyOther);
         withoutAnalytics.remove(PatchFamily.DISABLE_ANALYTICS);
@@ -223,7 +224,7 @@ public class PatchFamilyTest {
                 + "). They were set when you patched, so Pause can't turn them off. To rule one out, patch "
                 + "again and leave out the patch in brackets after it.";
         assertEquals(both, PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.DISABLE_ANALYTICS, family)));
-        assertEquals(both, PatchFamily.staysWhilePausedSummary(EnumSet.allOf(PatchFamily.class)));
+        assertEquals(both, PatchFamily.staysWhilePausedSummary(EnumSet.complementOf(EnumSet.of(PatchFamily.SPOOF_SIGNATURE))));
 
         String line = "Remove ad tracking permissions: no switch, stays in while paused: " + permanent;
         assertEquals(Collections.singletonList(line), PatchFamily.reportLines(build, false).subList(0, 1));
@@ -233,6 +234,42 @@ public class PatchFamilyTest {
                 .filter(text -> text.startsWith("Remove ad tracking permissions:")).findFirst().orElse(null));
         assertFalse(PatchFamily.reportLines(EnumSet.allOf(PatchFamily.class), true).stream()
                 .anyMatch(text -> text.startsWith("Remove ad tracking permissions coverage")));
+    }
+
+    /**
+     * The signature spoofing metadata is a manifest edit with no switch too: the stays row and the
+     * report name it alone and beside the other two, whatever Pause says.
+     */
+    @Test
+    public void spoofedSignatureMetadataIsDisclosedWithNoSwitch() {
+        PatchFamily family = PatchFamily.SPOOF_SIGNATURE;
+        String permanent = "Pinterest's original signing certificate is named in its manifest";
+        assertEquals("Spoof signature for Google sign-in", family.patchName);
+        assertEquals("spoofSignature", family.statusMethod);
+        assertEquals(permanent, family.staysWhilePaused);
+        assertTrue("no switch can turn it off", family.switches.isEmpty());
+        assertTrue("it has no separately recorded targets", family.expectedCapabilities().isEmpty());
+        assertTrue("the Privacy page draws it", PatchFamily.PRIVACY_PAGE.contains(family));
+
+        Set<PatchFamily> build = EnumSet.of(family);
+        assertEquals(permanent + " (" + L10n.isolate("Spoof signature for Google sign-in")
+                + "). It was set when you patched, so Pause can't turn it off. To rule it out, patch again "
+                + "and leave out that patch.", PatchFamily.staysWhilePausedSummary(build));
+        String all = L10n.join(Arrays.asList(
+                "Firebase and Google Analytics collection is turned off (" + L10n.isolate("Disable analytics") + ")",
+                "Pinterest's access to the ad ID and Android's ad services is removed ("
+                        + L10n.isolate("Remove ad tracking permissions") + ")",
+                permanent + " (" + L10n.isolate("Spoof signature for Google sign-in") + ")"))
+                + ". They were set when you patched, so Pause can't turn them off. To rule one out, patch "
+                + "again and leave out the patch in brackets after it.";
+        assertEquals(all, PatchFamily.staysWhilePausedSummary(EnumSet.allOf(PatchFamily.class)));
+
+        String line = "Spoof signature for Google sign-in: no switch, stays in while paused: " + permanent;
+        assertEquals(Collections.singletonList(line), PatchFamily.reportLines(build, false).subList(0, 1));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals(line, PatchFamily.reportLines(build, true).get(0));
+        assertFalse(PatchFamily.reportLines(EnumSet.allOf(PatchFamily.class), true).stream()
+                .anyMatch(text -> text.startsWith("Spoof signature for Google sign-in coverage")));
     }
 
     /** Synthetic exceptions keep singular and plural disclosure wording covered. */
@@ -266,6 +303,8 @@ public class PatchFamilyTest {
                 + L10n.isolate("Disable analytics") + ")"));
         assertTrue(everything, everything.contains("Pinterest's access to the ad ID and Android's ad services is removed ("
                 + L10n.isolate("Remove ad tracking permissions") + ")"));
+        assertTrue(everything, everything.contains("Pinterest's original signing certificate is named in its manifest ("
+                + L10n.isolate("Spoof signature for Google sign-in") + ")"));
         for (Map.Entry<PatchFamily, String> entry : two.entrySet()) {
             assertTrue(entry.getKey().patchName + " is missing from: " + everything,
                     everything.toLowerCase().contains(entry.getValue().toLowerCase()));
@@ -329,8 +368,9 @@ public class PatchFamilyTest {
 
     /**
      * A paused export marks the Hook status lines of the families a switch runs, and only those.
-     * registerDiagnostics() exempts a family with no switch, Remove ad tracking permissions today:
-     * a pause changes nothing for it, so its line stays unmarked.
+     * registerDiagnostics() exempts a family with no switch, today Remove ad tracking permissions
+     * and Spoof signature for Google sign-in: a pause changes nothing for either, so their lines
+     * stay unmarked.
      */
     @Test
     public void aPausedExportMarksEveryFamilyASwitchRuns() {
@@ -346,7 +386,7 @@ public class PatchFamilyTest {
             assertTrue(String.join("\n", lines),
                     lines.contains(family.patchName + ": invoked 1, 0 found, 0 missing" + mark));
         }
-        assertEquals(EnumSet.of(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS), unswitched);
+        assertEquals(EnumSet.of(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS, PatchFamily.SPOOF_SIGNATURE), unswitched);
     }
 
     /** The section goes through the redactor like every other one, and has to come out whole. */

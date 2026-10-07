@@ -51,7 +51,7 @@ Setup and backup guide in About is optional. It explains installed patches, runt
 
 ## Patches
 
-There are 21 patches so far.
+There are 23 patches so far.
 
 | Patch | What it does |
 |---|---|
@@ -68,12 +68,14 @@ There are 21 patches so far.
 | `Hide save toasts` | Stops the pop-up Pinterest shows after you save a pin, such as "Saved to" your board or the suggestion to follow the pin's creator. The pin is still saved. |
 | `Hide search history` | Hides recent-search rows and carousels on this device. It doesn't delete your account's search history. |
 | `Hide shopping and product pins` | Hides shoppable pins, shopping stories and featured board placements. Off by default. Turn it on in HushPinterest settings when you want a feed without shopping. |
+| `Hide topic suggestions` | Hides the "Ideas you might love" row of topic bubbles under pins without leaving a gap. Comments and related pins stay. Its switch starts off, so turn it on in HushPinterest settings. |
 | `HushPinterest settings` | Adds HushPinterest settings to Pinterest. Long-press Pinterest's launcher icon, or open Additional settings in the app on Pinterest's App info page, to turn features on or off, pause HushPinterest, save your switches to a file or load them, and export diagnostics. The licenses are there too. |
 | `No screenshot share menu` | Stops Pinterest's screenshot observer from opening sharing suggestions. Screenshots still work normally. |
 | `Open links in your browser` | Opens pin Visit links and profile websites in your web browser. Pinterest links and sign-in keep their usual behavior. Turn it off in HushPinterest settings at any time. |
 | `Original-quality images` | Asks Pinterest for the original image with each pin and shows it in the pin closeup, and has collages pick the original before the large size. Uses more data. |
 | `Quiet email reminders` | Dismisses the optional confirm-your-email reminder. Account verification and sign-in checks still apply. |
 | `Remove ad tracking permissions` | Removes Google's advertising ID permission and Android's Privacy Sandbox ad services from Pinterest. It can't be turned back on in settings, only by patching again without it. While it's in, Hide advertising ID's switch can't hand back the real ID, because Google Play services answers with zeros. |
+| `Spoof signature for Google sign-in` | Adds Pinterest's original signing certificate to its manifest, so Google sign-in can work in the patched app. It only helps with microG-RE in place of Google Play services, or with the XSpoofSignatures LSPosed module and its permission granted. Stock Google Play services ignores it, and email and password sign-in doesn't need it. |
 | `Strip link tracking` | Removes known tracking parameters from URLs shared or copied from Pinterest. Keeps the destination, other parameters and opaque pin.it links. Turn it off or pause HushPinterest to share the original URLs. |
 | `System share sheet` | Uses Android's share sheet when sharing a pin link. Screenshot and download actions keep their usual behavior. Turn it off in HushPinterest settings at any time. |
 
@@ -147,6 +149,10 @@ Android hands a pinterest.com or pin.it link to the official app only when that 
 
 Manual selections were checked on Android 16. Links for pinterest.com, www.pinterest.com and pin.it opened the patched app.
 
+## Google sign-in
+
+Google checks which key an app was signed with before it signs you in, and a patched Pinterest is signed with yours, not Pinterest's. Email and password sign-in doesn't care. The optional Spoof signature for Google sign-in patch writes Pinterest's original certificate into the manifest, where two kinds of software look for it: microG-RE, when it replaces Google Play services, and the XSpoofSignatures LSPosed module once you grant its permission. Stock Google Play services never reads it, so on most phones the patch changes nothing. It doesn't add any permission.
+
 ## Privacy
 
 HushPinterest doesn't collect anything and has no server. The release check stays off until you turn it on. Once it's on, HushPinterest asks `api.github.com` for its latest release at most once a day, when Pinterest starts, and again whenever you tap Check now. Download pins contacts Pinterest's media server when you tap Download. Browser and share actions open the destination you chose.
@@ -155,7 +161,7 @@ Disable analytics stops the targeted Pinterest usage uploads and the AppsFlyer a
 
 Analytics hooks are checked before any Firebase manifest change. Remove ad tracking permissions checks its settings flag before it edits the manifest, and refuses a Pinterest build that declares none of the permissions or the configuration it removes. Local patch helpers refuse failed results even if the patching tool produced an APK. Runtime analytics controls stay inactive when that patch isn't installed.
 
-Local verification compares the compiled manifest against the full input APK, including merged splits. It checks account and push components, metadata, filters and query declarations. Only the changes for the selected patches are allowed. Leaving out Disable analytics keeps Pinterest's Firebase and Google Analytics flags as supplied. Leaving out Remove ad tracking permissions keeps its ad permissions and ad services configuration.
+Local verification compares the compiled manifest against the full input APK, including merged splits. It checks account and push components, metadata, filters and query declarations. Only the changes for the selected patches are allowed. Leaving out Disable analytics keeps Pinterest's Firebase and Google Analytics flags as supplied. Leaving out Remove ad tracking permissions keeps its ad permissions and ad services configuration. Spoof signature for Google sign-in may add only its two metadata entries, and only to a manifest that has neither.
 
 The final APK is also checked against the selected feature hooks and their native fallback paths. Inserted calls must resolve through the merged app's libraries or Android's public API. Newer Android calls need a reviewed version guard. Missing hooks, duplicate calls and unresolved methods fail before a local helper delivers or installs an APK. These checks use Android SDK Platform 36, or explicit `-AndroidJar` and `-ApiVersions` paths. Known boolean and integer values guide the disabled-path check.
 

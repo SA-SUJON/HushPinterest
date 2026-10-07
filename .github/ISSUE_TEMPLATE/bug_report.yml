@@ -82,12 +82,14 @@ body:
         - Hide save toasts
         - Hide search history
         - Hide shopping and product pins
+        - Hide topic suggestions
         - HushPinterest settings
         - No screenshot share menu
         - Open links in your browser
         - Original-quality images
         - Quiet email reminders
         - Remove ad tracking permissions
+        - Spoof signature for Google sign-in
         - Strip link tracking
         - System share sheet
     validations:

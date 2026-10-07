@@ -11,9 +11,11 @@ import android.view.View;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import app.hushpinterest.extension.pinterest.ads.ModelFields;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
@@ -157,5 +159,68 @@ public final class UiHooks {
 
     public static boolean commentsVisible(boolean requested) {
         return enabled(FamilyNames.HIDE_COMMENTS, Settings.HIDE_COMMENTS) ? false : requested;
+    }
+
+    /**
+     * The topic rows HushPinterest hid, so it brings back only its own. Held weakly: a row Pinterest
+     * lets go of leaves with it.
+     */
+    private static final Set<View> HIDDEN_TOPIC_ROWS = Collections.synchronizedSet(
+            Collections.newSetFromMap(new WeakHashMap<>()));
+
+    public static boolean hideTopicSuggestions() {
+        return enabled(FamilyNames.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_TOPIC_SUGGESTIONS);
+    }
+
+    /**
+     * Pinterest is binding its "Ideas you might love" row of topic bubbles. With the switch on the
+     * row goes GONE and joins the hidden rows, whose measure then answers zero. Off or paused, a
+     * row HushPinterest hid comes back. A row Pinterest made GONE itself is left as it is.
+     */
+    public static void topicSuggestions(Object section) {
+        if (!(section instanceof View)) return;
+        View row = (View) section;
+        try {
+            if (hideTopicSuggestions()) {
+                if (row.getVisibility() != View.GONE) {
+                    HIDDEN_TOPIC_ROWS.add(row);
+                    row.setVisibility(View.GONE);
+                }
+                if (HIDDEN_TOPIC_ROWS.contains(row)) HookStatus.counted(FamilyNames.HIDE_TOPIC_SUGGESTIONS, "topic row hidden");
+            } else if (HIDDEN_TOPIC_ROWS.remove(row)) {
+                row.setVisibility(View.VISIBLE);
+            }
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.HIDE_TOPIC_SUGGESTIONS, "topic row", failure);
+        }
+    }
+
+    /**
+     * The topic row sits straight in Pinterest's grid, a RecyclerView, and that lays out a GONE
+     * child at its measured size, a blank gap. A row HushPinterest hid measures zero instead. Once
+     * the switch is off or Pause is on, the row measures as Pinterest asks and is shown again after
+     * this layout pass, rather than waiting for Pinterest to bind it again. A row whose switch is
+     * back on by then stays hidden.
+     */
+    public static int topicSuggestionsMeasureSpec(View row, int requested) {
+        if (row == null || !HIDDEN_TOPIC_ROWS.contains(row)) return requested;
+        if (topicRowsStayHidden()) return View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY);
+        Utils.runOnMainThread(() -> {
+            if (!topicRowsStayHidden() && HIDDEN_TOPIC_ROWS.remove(row)) row.setVisibility(View.VISIBLE);
+        });
+        return requested;
+    }
+
+    /**
+     * The switch read again for a measure, which Pinterest runs far more often than a bind, so it
+     * isn't counted as another call.
+     */
+    private static boolean topicRowsStayHidden() {
+        try {
+            return Utils.settingsReady() && Settings.HIDE_TOPIC_SUGGESTIONS.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_TOPIC_SUGGESTIONS, "switch read", failure);
+            return false;
+        }
     }
 }

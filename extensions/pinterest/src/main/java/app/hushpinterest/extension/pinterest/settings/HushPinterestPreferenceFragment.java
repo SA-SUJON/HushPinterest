@@ -274,6 +274,11 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                         L10n.t("Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.")),
                         SettingsIcons.ABOUT));
             }
+            if (build.contains(PatchFamily.SPOOF_SIGNATURE)) {
+                privacy.addPreference(mark(info(context, L10n.t("Spoof signature for Google sign-in"),
+                        L10n.t("Pinterest's manifest names its original signing certificate, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched, and only patching again without it takes it out.")),
+                        SettingsIcons.ABOUT));
+            }
         }
 
         if (!Collections.disjoint(build, PatchFamily.ACTIONS_PAGE)) {
@@ -317,6 +322,9 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(ui, context, build, PatchFamily.HIDE_COMMENTS, Settings.HIDE_COMMENTS,
                     L10n.t("Hide comments"),
                     L10n.t("Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_TOPIC_SUGGESTIONS,
+                    L10n.t("Hide topic suggestions"),
+                    L10n.t("Hides the \"Ideas you might love\" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.QUIET_EMAIL_REMINDER, Settings.QUIET_EMAIL_REMINDER,
                     L10n.t("Quiet email reminders"),
                     L10n.t("Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply."), SettingsIcons.BELL);

@@ -178,6 +178,9 @@ Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad 
 Remove ad tracking permissions	Quitar permisos de seguimiento publicitario
 Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.	Pinterest ya no tiene el permiso del ID de publicidad de Google ni los servicios de publicidad de Android. Se fijó al parchear y solo vuelve si parcheas de nuevo sin este parche.
 Pinterest's access to the ad ID and Android's ad services is removed	el acceso de Pinterest al ID de publicidad y a los servicios de publicidad de Android está eliminado
+Spoof signature for Google sign-in	Falsear la firma para iniciar sesión con Google
+Pinterest's manifest names its original signing certificate, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched, and only patching again without it takes it out.	El manifiesto de Pinterest indica su certificado de firma original, para que el inicio de sesión con Google pueda funcionar con microG-RE o el módulo XSpoofSignatures. Los Servicios de Google Play normales lo ignoran. Se fijó al parchear y solo se quita si parcheas de nuevo sin este parche.
+Pinterest's original signing certificate is named in its manifest	el certificado de firma original de Pinterest figura en su manifiesto
 Download pins	Descargar pines
 Open links in your browser	Abrir enlaces en tu navegador
 Open pin Visit links and profile websites in your browser.	Abre enlaces de Visitar de los pines y sitios web de perfiles en tu navegador.
@@ -195,6 +198,7 @@ Hide collage menu items	Ocultar opciones de collage
 Hide Search image menu item	Ocultar opción Buscar imagen
 Hide Promote pin menu item	Ocultar opción Promocionar pin
 Hide comments	Ocultar comentarios
+Hide topic suggestions	Ocultar sugerencias de temas
 Quiet email reminders	Ocultar recordatorios de correo
 Disable update nag	Ocultar aviso de actualización
 Download pin	Descargar pin
@@ -326,6 +330,7 @@ Hides Add to collage and Remix collage in newly created pin menus. An existing m
 Hides Search image in newly created pin menus. An existing menu won't change.	Oculta Buscar imagen en los menús de pines recién creados. Un menú existente no cambia.
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Oculta Promocionar pin en los menús de pines recién creados. Un menú existente no cambia.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Oculta los paneles y las vistas previas de comentarios bajo los pines en su próxima actualización de diseño o visibilidad. No cambia quién puede comentar.
+Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Oculta la fila «Ideas que te pueden gustar» con burbujas de temas bajo los Pins la próxima vez que Pinterest la muestre. Los comentarios y los Pins relacionados se quedan.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Descarta los recordatorios opcionales de confirmación de correo recién creados. Un recordatorio abierto no cambia. Las comprobaciones de verificación e inicio de sesión siguen vigentes.
 Hide save toasts	Ocultar avisos al guardar
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Al guardar un Pin ya no aparece «Guardado en» tu tablero ni una sugerencia para seguir a quien lo creó. El Pin se guarda igual.

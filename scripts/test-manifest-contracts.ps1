@@ -25,6 +25,11 @@ $adPermissions = @('com.google.android.gms.permission.AD_ID', 'android.permissio
     'android.permission.ACCESS_ADSERVICES_ATTRIBUTION')
 $consentDefaults = @('google_analytics_default_allow_analytics_storage', 'google_analytics_default_allow_ad_storage',
     'google_analytics_default_allow_ad_user_data', 'google_analytics_default_allow_ad_personalization_signals')
+$spoofSource = [IO.File]::ReadAllText((Join-Path $PSScriptRoot '../patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/GoogleSignInSpoofPatch.kt'))
+$certificateDer = -join @([regex]::Matches(($spoofSource -split 'PINTEREST_CERTIFICATE_DER =', 2)[1].Split([string[]]@('/**'), 2, 'None')[0],
+    '"([0-9a-f]+)"') | ForEach-Object { $_.Groups[1].Value })
+$certificateSha1 = [regex]::Match($spoofSource, 'PINTEREST_CERTIFICATE_SHA1 = "([0-9a-f]{40})"').Groups[1].Value
+$signatureMetadata = [ordered]@{ 'app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE' = $certificateSha1; 'fake-signature' = $certificateDer }
 function Metadata-Lines([string]$name, [string]$value) {
     return @('        E: meta-data (line=21)',
         "          A: http://schemas.android.com/apk/res/android:name=`"$name`"",
@@ -34,7 +39,7 @@ function Metadata-Lines([string]$name, [string]$value) {
    application property, and declare Google's four consent defaults as true. #>
 function Fixture-Facts([string[]]$features = @(), [string]$build = '14.38.0',
         [ValidateSet('Absent', 'Resource', 'True', 'False')][string]$flag = 'Absent', [switch]$NoQueries,
-        [switch]$NoConsentDefaults, [switch]$NoAdServices) {
+        [switch]$NoConsentDefaults, [switch]$NoAdServices, [switch]$WithSignature) {
     $code = if ($build -eq '14.25.0') { '14258020' } else { '14388010' }
     $lines = [System.Collections.Generic.List[string]]::new()
     $lines.AddRange([string[]]@(
@@ -86,6 +91,14 @@ function Fixture-Facts([string[]]$features = @(), [string]$build = '14.38.0',
         $lines.AddRange([string[]](Metadata-Lines 'firebase_crashlytics_collection_enabled' 'false'))
         $lines.AddRange([string[]](Metadata-Lines 'firebase_performance_collection_deactivated' 'true'))
         $lines.AddRange([string[]](Metadata-Lines 'google_analytics_adid_collection_enabled' 'false'))
+    }
+    if ($features -contains 'signature' -or $WithSignature) {
+        foreach ($name in $signatureMetadata.Keys) {
+            $value = $signatureMetadata[$name]
+            $lines.AddRange([string[]]@('        E: meta-data (line=21)',
+                "          A: http://schemas.android.com/apk/res/android:name=`"$name`"",
+                "          A: http://schemas.android.com/apk/res/android:value=`"$value`" (Raw: `"$value`")"))
+        }
     }
     $lines.AddRange([string[]]@(
         '        E: meta-data (line=21)',
@@ -148,14 +161,21 @@ function Fixture-Facts([string[]]$features = @(), [string]$build = '14.38.0',
 }
 
 $settings = 'HushPinterest settings'; $analytics = 'Disable analytics'; $browser = 'Open links in your browser'
-$adTracking = 'Remove ad tracking permissions'
-$all = @($settings, $analytics, $browser, $adTracking)
+$adTracking = 'Remove ad tracking permissions'; $signature = 'Spoof signature for Google sign-in'
+$all = @($settings, $analytics, $browser, $adTracking, $signature)
 $allowlist = Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt'
 function Check-Manifest($stock, $patched, [string[]]$names) {
     $approved = @(Read-ManifestDeltaAllowlist -Path $allowlist -SelectedPatchNames $names)
     return Test-ManifestDelta -Stock $stock -Patched $patched -SelectedPatchNames $names -ApprovedManifestDelta $approved
 }
 
+Assert-Manifest ($certificateDer.Length -eq 1190 -and $certificateSha1.Length -eq 40) 'The patch source lost its certificate constants.'
+$signatureTemplates = @(Read-ManifestDeltaAllowlist -Path $allowlist -SelectedPatchNames @($signature))
+$signatureWritten = @($signatureMetadata.Keys | ForEach-Object {
+    'metadata-added ' + (ConvertTo-ManifestDeclaration -Owner 'application' -Node ([pscustomobject]@{ tag = 'meta-data'
+        attributes = [pscustomobject]@{ 'android:name' = $_; 'android:value' = $signatureMetadata[$_] }; children = @() })) })
+Assert-Manifest ((@($signatureTemplates | Sort-Object -CaseSensitive) -join "`n") -ceq (@($signatureWritten | Sort-Object -CaseSensitive) -join "`n")) `
+    "The allowlist approves other signature metadata than the patch writes: $($signatureTemplates -join '; ')"
 foreach ($build in @('14.38.0', '14.25.0')) {
     $stock = Fixture-Facts -build $build
     Assert-Manifest ($stock.components.Count -eq 6 -and $stock.metadata.Count -eq 6 -and $stock.intentFilters.Count -eq 2) `
@@ -166,10 +186,11 @@ foreach ($build in @('14.38.0', '14.25.0')) {
         ($stock.components -join '') -like '*android.adservices.AD_SERVICES_CONFIG*') 'The parser lost an ad permission or property.'
     foreach ($scenario in @(
             @{ label = 'default'; names = @($settings, $analytics, $adTracking); features = @('settings', 'analytics', 'adtracking') },
-            @{ label = 'all'; names = $all; features = @('settings', 'analytics', 'browser', 'adtracking') },
+            @{ label = 'all'; names = $all; features = @('settings', 'analytics', 'browser', 'adtracking', 'signature') },
             @{ label = 'analytics-excluded'; names = @($settings, $browser, $adTracking); features = @('settings', 'browser', 'adtracking') },
             @{ label = 'analytics-only'; names = @($analytics, $settings); features = @('settings', 'analytics') },
-            @{ label = 'ad-tracking-only'; names = @($adTracking, $settings); features = @('settings', 'adtracking') })) {
+            @{ label = 'ad-tracking-only'; names = @($adTracking, $settings); features = @('settings', 'adtracking') },
+            @{ label = 'signature-only'; names = @($signature, $settings); features = @('settings', 'signature') })) {
         $check = Check-Manifest $stock (Fixture-Facts -build $build -features $scenario.features) $scenario.names
         Assert-Manifest $check.Valid "$build $($scenario.label): $($check.Reason)"
     }
@@ -191,11 +212,13 @@ foreach ($build in @('14.38.0', '14.25.0')) {
     }
 }
 $stock = Fixture-Facts
-$patched = Fixture-Facts -features @('settings', 'analytics', 'browser', 'adtracking')
+$patched = Fixture-Facts -features @('settings', 'analytics', 'browser', 'adtracking', 'signature')
 $valid = Check-Manifest $stock $patched $all
 # Settings 3, Analytics 8 added and 4 consent values replaced, browser 2, ad tracking 3 permissions
-# and the application declaration replaced once.
-Assert-Manifest ($valid.Entries.Count -eq 22) "The expected full delta is not readable as 22 exact entries: $($valid.Entries.Count)."
+# and the application declaration replaced once, and the 2 signature metadata entries.
+Assert-Manifest ($valid.Entries.Count -eq 24) "The expected full delta is not readable as 24 exact entries: $($valid.Entries.Count)."
+Assert-Manifest (@($valid.Delta.metadataAdded | Where-Object { $_ -clike '*SPOOFED_PACKAGE_SIGNATURE*' -or $_ -clike '*"fake-signature"*' }).Count -eq 2) `
+    'The full delta does not add both signature metadata entries.'
 $applicationChanges = @($valid.Entries | Where-Object { $_ -like 'component-*' -and $_ -like '*"tag":"application"*' })
 Assert-Manifest ($applicationChanges.Count -eq 2 -and $applicationChanges[0] -like '*PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY*' -and
     $applicationChanges[1] -like '*PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY*' -and
@@ -212,7 +235,7 @@ Assert-Manifest $withoutQueries.Valid "A new browser query container was refused
 
 # Matching browser intents in a later vendor block are retained without adding duplicate intents.
 $existing = Copy-Manifest $stock
-$existingPatched = Fixture-Facts -features @('settings', 'analytics', 'adtracking')
+$existingPatched = Fixture-Facts -features @('settings', 'analytics', 'adtracking', 'signature')
 foreach ($entry in @(Read-ManifestDeltaAllowlist -Path $allowlist -SelectedPatchNames @($browser))) {
     $query = $entry.Substring('query-added '.Length) | ConvertFrom-Json
     if ($query.declaration.tag -ne 'intent') { continue }
@@ -286,6 +309,12 @@ $bad = Copy-Manifest $patched; $bad.metadata = @($bad.metadata | ForEach-Object 
     if ($_ -like '*google_analytics_default_allow_ad_storage*') { $_ -replace '"android:value":"false"', '"android:value":"true"' } else { $_ }
 })
 $negatives['consent default left granted'] = $bad
+$bad = Copy-Manifest $patched; $bad.metadata = @($bad.metadata | ForEach-Object { $_ -replace $certificateSha1, ('0' * 40) })
+$negatives['signature metadata naming another certificate'] = $bad
+$bad = Copy-Manifest $patched; $bad.metadata = @($bad.metadata | Where-Object { $_ -cnotlike '*"fake-signature"*' })
+$negatives['one signature metadata entry left out'] = $bad
+$bad = Copy-Manifest $patched; $bad.permissions += 'android.permission.FAKE_PACKAGE_SIGNATURE'
+$negatives['signature spoofing permission requested'] = $bad
 foreach ($pair in $negatives.GetEnumerator()) {
     $check = Check-Manifest $stock $pair.Value $all
     Assert-Manifest (-not $check.Valid) "Accepted $($pair.Key)."
@@ -294,15 +323,23 @@ $omitted = Check-Manifest $stock (Fixture-Facts -features @('settings', 'browser
 Assert-Manifest (-not $omitted.Valid) 'Selecting Analytics without compiled deactivation was accepted.'
 $excluded = Check-Manifest $stock $patched @($settings, $browser, $adTracking)
 Assert-Manifest (-not $excluded.Valid) 'Excluded Analytics still deactivated collection.'
-$keptAds = Check-Manifest $stock (Fixture-Facts -features @('settings', 'analytics', 'browser')) $all
+$keptAds = Check-Manifest $stock (Fixture-Facts -features @('settings', 'analytics', 'browser', 'signature')) $all
 Assert-Manifest (-not $keptAds.Valid) 'Selecting Remove ad tracking permissions without the compiled removal was accepted.'
-$droppedAds = Check-Manifest $stock $patched @($settings, $analytics, $browser)
+$droppedAds = Check-Manifest $stock $patched @($settings, $analytics, $browser, $signature)
 Assert-Manifest (-not $droppedAds.Valid) 'Excluded Remove ad tracking permissions still removed the ad declarations.'
 $alone = Check-Manifest $stock (Fixture-Facts -features @('adtracking')) @($adTracking)
 Assert-Manifest (-not $alone.Valid -and $alone.Reason -like '*settings dependency*') 'Remove ad tracking permissions passed without its settings dependency.'
 $unreviewed = Test-ManifestDelta -Stock $stock -Patched (Fixture-Facts -features @('settings', 'adtracking')) -SelectedPatchNames @($settings, $adTracking) `
     -ApprovedManifestDelta @(Read-ManifestDeltaAllowlist -Path $allowlist -SelectedPatchNames @($settings, $adTracking) | Where-Object { $_ -notlike 'component-removed *' })
 Assert-Manifest (-not $unreviewed.Valid -and $unreviewed.Reason -like '*no exact reviewed template*AD_SERVICES_CONFIG*') 'The ad services property removal passed without its reviewed template.'
+$noSignature = Check-Manifest $stock (Fixture-Facts -features @('settings', 'analytics', 'browser', 'adtracking')) $all
+Assert-Manifest (-not $noSignature.Valid) "Selecting $signature without the compiled metadata was accepted."
+$droppedSignature = Check-Manifest $stock $patched @($settings, $analytics, $browser, $adTracking)
+Assert-Manifest (-not $droppedSignature.Valid) "Excluded $signature still added the signature metadata."
+$signatureAlone = Check-Manifest $stock (Fixture-Facts -features @('signature')) @($signature)
+Assert-Manifest (-not $signatureAlone.Valid -and $signatureAlone.Reason -like '*settings dependency*') "$signature passed without its settings dependency."
+$alreadySpoofed = Check-Manifest (Fixture-Facts -WithSignature) (Fixture-Facts -WithSignature -features @('settings')) @($settings, $signature)
+Assert-Manifest (-not $alreadySpoofed.Valid -and $alreadySpoofed.Reason -like '*already declares*') "A stock manifest already naming the signature was accepted: $($alreadySpoofed.Reason)"
 
 # Schema 4 requires facts and every delta array, and verifies every target independently.
 $receipt = [pscustomobject]@{
@@ -332,7 +369,7 @@ foreach ($property in $valid.Delta.PSObject.Properties) {
 $bad = Copy-Manifest $receipt; $bad.targets[0].manifestDelta.metadataAdded = @()
 Assert-Manifest (-not (Test-ReleaseReceipt -Receipt $bad @arguments).Valid) 'A false recorded metadata delta was accepted.'
 $bad = Copy-Manifest $receipt; $bad.targets += Copy-Manifest $bad.targets[0]
-$bad.targets[1].manifest.patched = Fixture-Facts -features @('settings', 'browser', 'adtracking')
+$bad.targets[1].manifest.patched = Fixture-Facts -features @('settings', 'browser', 'adtracking', 'signature')
 $bad.targets[1].manifestDelta = Get-ManifestDelta -Stock $stock -Patched $bad.targets[1].manifest.patched
 Assert-Manifest (-not (Test-ReleaseReceipt -Receipt $bad @arguments).Valid) 'One good target hid missing Analytics on another.'
 foreach ($schema in @(1, 2, 3)) {

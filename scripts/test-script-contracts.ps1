@@ -4014,6 +4014,15 @@ try {
                     "          A: http://schemas.android.com/apk/res/android:value(0x01010024)=$($flags[$flag])")
             }
         }
+        if ($Patched -and $releaseNames -ccontains 'Spoof signature for Google sign-in') {
+            # The two signature metadata entries, as the allowlist approves them.
+            foreach ($template in @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') `
+                    -SelectedPatchNames @('Spoof signature for Google sign-in'))) {
+                $attributes = ($template.Substring('metadata-added '.Length) | ConvertFrom-Json).declaration.attributes
+                $lines += @('        E: meta-data (line=46)', "          A: $androidName`"$($attributes.'android:name')`" (Raw: `"$($attributes.'android:name')`")",
+                    "          A: http://schemas.android.com/apk/res/android:value(0x01010024)=`"$($attributes.'android:value')`" (Raw: `"$($attributes.'android:value')`")")
+            }
+        }
         if ($Patched -and $releaseNames -ccontains 'HushPinterest settings') {
             $lines += @('        E: activity-alias (line=60)',
                 "          A: $androidName`"app.hushpinterest.extension.pinterest.settings.OpenSettings`" (Raw: `"app.hushpinterest.extension.pinterest.settings.OpenSettings`")",
