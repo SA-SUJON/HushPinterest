@@ -14,8 +14,6 @@ HushPinterest is a Morphe patch bundle for Android that takes promoted pins out 
 
 The latest release is [v0.0.4](https://github.com/SysAdminDoc/HushPinterest/releases/tag/v0.0.4), with 20 patches. Add this repo to Morphe Manager as a patch source and it'll offer each new release when it comes out.
 
-The source version is **0.0.5**. It hasn't been released.
-
 ## Which Pinterest
 
 HushPinterest targets Pinterest **14.38.0**, version code 14388010 (`com.pinterest`), which needs Android 10. On Android 9, use **14.25.0** (version code 14258020) instead. It patches the same way. Use the universal APK, the single file that holds every screen density and processor type. APKMirror lists it as the "nodpi" variant. A split bundle (`.apkm`, `.xapk`) works too if Morphe Manager can merge it.
