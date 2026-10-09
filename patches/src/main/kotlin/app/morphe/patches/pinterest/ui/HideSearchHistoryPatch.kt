@@ -18,8 +18,8 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 @Suppress("unused")
 val hideSearchHistoryPatch = bytecodePatch(
     name = "Hide search history",
-    description = "Hides recent-search rows and carousels on this device. It doesn't delete your account's " +
-        "search history. Its switch is on the Interface page of HushPinterest settings and starts off.",
+    description = "Hides your recent searches on the search screen of this phone. It doesn't delete your account's " +
+        "search history. Starts off. Turn it on in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

@@ -20,8 +20,8 @@ import com.android.tools.smali.dexlib2.AccessFlags
 @Suppress("unused")
 val hideScreenshotSharePatch = bytecodePatch(
     name = "No screenshot share menu",
-    description = "Stops Pinterest's screenshot observer from opening sharing suggestions. Screenshots still " +
-        "work normally. Its switch is on the Interface page of HushPinterest settings and starts off.",
+    description = "Stops Pinterest from popping up sharing suggestions after you take a screenshot. Screenshots " +
+        "still work as usual. Starts off. Turn it on in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

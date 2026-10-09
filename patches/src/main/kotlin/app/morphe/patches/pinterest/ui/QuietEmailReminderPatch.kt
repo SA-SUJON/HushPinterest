@@ -25,8 +25,8 @@ import com.android.tools.smali.dexlib2.Opcode
 @Suppress("unused")
 val quietEmailReminderPatch = bytecodePatch(
     name = "Quiet email reminders",
-    description = "Dismisses the optional confirm-your-email reminder. Account verification and sign-in " +
-        "checks still apply. Its switch is on the Interface page of HushPinterest settings and starts off.",
+    description = "Dismisses the optional reminder to confirm your email. Account checks and sign-in still work as " +
+        "usual. Starts off. Turn it on in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

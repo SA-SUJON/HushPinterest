@@ -36,10 +36,9 @@ internal val ADVERTISING_ID_GETTERS = mapOf(
 @Suppress("unused")
 val hideAdvertisingIdPatch = bytecodePatch(
     name = PATCH,
-    description = "Pinterest and the ad and tracking code inside it read an all-zero advertising ID with ad " +
-        "tracking limited, the same answer Android gives after you delete your ad ID. Its switch is on the " +
-        "Privacy page of HushPinterest settings and starts on. Turning it off or pausing HushPinterest hands " +
-        "back the real ID.",
+    description = "Pinterest sees an empty advertising ID with ad tracking limited, the same as if you deleted your" +
+        " ad ID in Android. Good for keeping ads from following you. On by default. Turn it off in " +
+        "HushPinterest settings > Privacy.",
     default = true,
 ) {
     category("Privacy")

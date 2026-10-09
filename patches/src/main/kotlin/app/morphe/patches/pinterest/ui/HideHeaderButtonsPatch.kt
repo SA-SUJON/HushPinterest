@@ -19,8 +19,9 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 @Suppress("unused")
 val hideHeaderButtonsPatch = bytecodePatch(
     name = "Hide header buttons",
-    description = "Hides trailing header icon buttons. Back buttons, text actions and account controls " +
-        "remain available. Its switch is on the Interface page of HushPinterest settings and starts off.",
+    description = "Hides the small icon buttons at the end of the top bar. Back buttons, text buttons and account " +
+        "controls stay. Good for a cleaner top bar. Starts off. Turn it on in HushPinterest settings > " +
+        "Interface.",
 ) {
     category("Navigation")
     dependsOn(settingsPatch, pinterestExtensionPatch)

@@ -55,9 +55,8 @@ internal const val IMAGE_ORIGINAL = ", original="
 @Suppress("unused")
 val originalImagesPatch = bytecodePatch(
     name = PATCH,
-    description = "Asks Pinterest for the original image with each pin and shows it in the pin closeup, and " +
-        "has collages pick the original before the large size. Uses more data. Its switch is on the " +
-        "Interface page of HushPinterest settings and starts off.",
+    description = "Loads the original image for each pin and in collages, instead of the large size. Pictures look " +
+        "sharper but use more data. Starts off. Turn it on in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

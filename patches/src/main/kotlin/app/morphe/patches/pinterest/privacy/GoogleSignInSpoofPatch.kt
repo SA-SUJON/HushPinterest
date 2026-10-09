@@ -102,11 +102,9 @@ internal val signatureSpoofManifestPatch = resourcePatch {
 @Suppress("unused")
 val googleSignInSpoofPatch = bytecodePatch(
     name = PATCH,
-    description = "Adds Pinterest's original signing certificate to its manifest, so Google sign-in can work " +
-        "in the patched app. It only helps with microG-RE in place of Google Play services, or with the " +
-        "XSpoofSignatures LSPosed module and its permission granted. Stock Google Play services ignores it, " +
-        "and email and password sign-in doesn't need it. It has no switch and isn't selected by default, so " +
-        "turn on Expert mode in Morphe Manager to pick it.",
+    description = "Helps Google sign-in work in the patched app by naming Pinterest's original signature. It only " +
+        "helps with microG-RE or the XSpoofSignatures module. Email sign-in doesn't need it. It isn't " +
+        "selected by default. Works as soon as you patch it in, with no switch.",
     default = false,
 ) {
     category("Privacy")

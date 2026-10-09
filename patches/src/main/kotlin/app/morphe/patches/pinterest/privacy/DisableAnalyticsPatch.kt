@@ -116,13 +116,9 @@ internal val disableFirebaseAnalyticsManifestPatch = resourcePatch {
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
     name = PATCH,
-    description = "Stops Pinterest's usage-event and performance uploads, AppsFlyer tracking, Bugsnag crash " +
-        "reports and the recommendations Pinterest publishes to Google Engage. Its switch is on the Privacy " +
-        "page of HushPinterest settings and starts on. Turning it off or pausing HushPinterest lets those " +
-        "uploads run again. In the manifest it also turns off Firebase Analytics, Crashlytics and " +
-        "Performance collection and Google Analytics' ad ID collection, and sets Google's default analytics " +
-        "and ad consent to denied. That part stays until you patch again without this patch. Sign-in, pin " +
-        "requests and Firebase push components are preserved.",
+    description = "Stops Pinterest from sending usage reports, crash reports and ad-tracking data to outside " +
+        "companies, and turns off Google's analytics inside the app. Good if you'd rather share less. On " +
+        "by default. Turn it off in HushPinterest settings > Privacy.",
     default = true,
 ) {
     category("Privacy")
