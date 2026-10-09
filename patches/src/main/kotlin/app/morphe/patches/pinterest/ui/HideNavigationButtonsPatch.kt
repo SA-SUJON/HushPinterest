@@ -31,7 +31,7 @@ val hideNavigationButtonsPatch = bytecodePatch(
         "bar. Home and Profile remain available. The switches are on the Interface page of HushPinterest " +
         "settings and start off.",
 ) {
-    category("Interface")
+    category("Navigation")
     dependsOn(settingsPatch, pinterestExtensionPatch)
     compatibleWith(*AppCompatibilities.pinterest())
     execute {

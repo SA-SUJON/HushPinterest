@@ -22,7 +22,7 @@ val hideHeaderButtonsPatch = bytecodePatch(
     description = "Hides trailing header icon buttons. Back buttons, text actions and account controls " +
         "remain available. Its switch is on the Interface page of HushPinterest settings and starts off.",
 ) {
-    category("Interface")
+    category("Navigation")
     dependsOn(settingsPatch, pinterestExtensionPatch)
     compatibleWith(*AppCompatibilities.pinterest())
     execute {

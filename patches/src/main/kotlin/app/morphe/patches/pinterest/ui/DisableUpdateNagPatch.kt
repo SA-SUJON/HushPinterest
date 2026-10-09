@@ -30,7 +30,7 @@ val disableUpdateNagPatch = bytecodePatch(
         "yourself. Its switch is on the Updates page, under More settings in HushPinterest settings, and " +
         "starts off.",
 ) {
-    category("Interface")
+    category("Updates")
     dependsOn(settingsPatch, pinterestExtensionPatch)
     compatibleWith(*AppCompatibilities.pinterest())
     execute {
