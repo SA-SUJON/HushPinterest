@@ -32,8 +32,8 @@ private const val PATCH = "Hide AI-labeled pins"
 val hideAiPinsPatch = bytecodePatch(
     name = PATCH,
     description = "Removes pins that Pinterest labels as made or changed with AI from the home feed, search, " +
-        "related pins and boards. AI images without Pinterest's label still show.",
-    default = false,
+        "related pins and boards. AI images without Pinterest's label still show. Its switch is on the Feed " +
+        "page of HushPinterest settings and starts off.",
 ) {
     category("Feed")
     dependsOn(settingsPatch, pinterestExtensionPatch, feedListHookPatch)

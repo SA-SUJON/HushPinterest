@@ -105,7 +105,8 @@ val googleSignInSpoofPatch = bytecodePatch(
     description = "Adds Pinterest's original signing certificate to its manifest, so Google sign-in can work " +
         "in the patched app. It only helps with microG-RE in place of Google Play services, or with the " +
         "XSpoofSignatures LSPosed module and its permission granted. Stock Google Play services ignores it, " +
-        "and email and password sign-in doesn't need it.",
+        "and email and password sign-in doesn't need it. It has no switch and isn't selected by default, so " +
+        "turn on Expert mode in Morphe Manager to pick it.",
     default = false,
 ) {
     category("Privacy")

@@ -36,8 +36,8 @@ internal fun ClassDef.isCommentsModule(): Boolean {
 @Suppress("unused")
 val hideCommentsPatch = bytecodePatch(
     name = "Hide comments",
-    description = "Collapses comments panels and comment previews beneath pins. It doesn't change who can comment on your pins.",
-    default = false,
+    description = "Collapses comments panels and comment previews beneath pins. It doesn't change who can " +
+        "comment on your pins. Its switch is on the Interface page of HushPinterest settings and starts off.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

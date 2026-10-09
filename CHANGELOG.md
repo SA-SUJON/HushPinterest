@@ -2,6 +2,12 @@
 
 Every HushPinterest release, newest first.
 
+## Unreleased
+
+* **Pinterest:** Morphe Manager's default selection now holds every patch but Spoof signature for Google sign-in, so you don't need Expert mode to find a feature. The 16 patches that joined it start with their switches off, so a build patched with the defaults acts like Pinterest until you turn one on in HushPinterest settings. Hide ads, Disable analytics, Strip link tracking and Hide advertising ID still start on.
+* **Pinterest:** Hide AI-labeled pins now starts off. If you updated without ever changing it, it's off now, so turn it back on from the Feed page of HushPinterest settings if you want it.
+* **Pinterest:** Each patch's description in Morphe Manager now says which page of HushPinterest settings holds its switch, and whether that switch starts on or off.
+
 ## 0.0.5 (2026-10-07)
 
 * **Pinterest:** New Spoof signature for Google sign-in patch, off by default. It adds Pinterest's original signing certificate to the manifest so Google sign-in can work in the patched app. That only matters with microG-RE in place of Google Play services, or with the XSpoofSignatures LSPosed module and its permission granted. Stock Google Play services ignores it, and email and password sign-in never needed it.

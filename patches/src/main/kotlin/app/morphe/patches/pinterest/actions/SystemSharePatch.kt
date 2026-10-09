@@ -34,9 +34,9 @@ private const val SYSTEM_SHARE = "$EXTENSION_PACKAGE/actions/SystemShare;"
 @Suppress("unused")
 val systemSharePatch = bytecodePatch(
     name = PATCH,
-    description = "Uses Android's share sheet when sharing a pin link. Screenshot and download actions keep their usual behavior. " +
-        "Turn it off in HushPinterest settings at any time.",
-    default = false,
+    description = "Uses Android's share sheet when sharing a pin link. Screenshot and download actions keep " +
+        "their usual behavior. Its switch is on the Pin actions page of HushPinterest settings and starts " +
+        "off.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

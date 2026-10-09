@@ -235,10 +235,10 @@ public class HushPinterestPreferenceFragmentTest {
             assertEquals("Pins that Pinterest labels as made or changed with AI leave the same lists. "
                             + "AI images without Pinterest's label still show.",
                     String.valueOf(page.findPreference(Settings.HIDE_AI_PINS.key).getSummary()));
-            // Both switches ship on: picking the patch in Morphe Manager is the choice to use it.
-            for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_AI_PINS)) {
-                assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
-            }
+            // Hide ads was always in Manager's default selection and ships on. Hide AI-labeled pins
+            // joined it later, so it starts off and a default build shows Pinterest's own feed.
+            assertTrue(((SwitchPreference) page.findPreference(Settings.HIDE_ADS.key)).isChecked());
+            assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_AI_PINS.key)).isChecked());
             List<Preference> rows = new ArrayList<>();
             collect(page.getPreferenceScreen(), rows);
             for (Preference row : rows) {

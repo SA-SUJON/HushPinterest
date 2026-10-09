@@ -61,8 +61,8 @@ internal const val GOOGLE_MOBILE_ADS = "GOOGLE_MOBILE_ADS"
 val hideAdsPatch = bytecodePatch(
     name = PATCH,
     description = "Removes promoted pins from the home feed, search, related pins and boards, and hides " +
-        "Pinterest's ad-only panels. Google's ad SDK isn't started when Pinterest opens. Turn it off in " +
-        "HushPinterest settings at any time.",
+        "Pinterest's ad-only panels. Google's ad SDK isn't started when Pinterest opens. Its switch is on " +
+        "the Feed page of HushPinterest settings and starts on.",
     default = true,
 ) {
     category("Ads")

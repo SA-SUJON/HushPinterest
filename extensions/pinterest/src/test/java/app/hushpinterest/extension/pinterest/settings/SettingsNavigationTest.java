@@ -109,9 +109,10 @@ public class SettingsNavigationTest {
 
     @Test public void categoryClickChangesOnlyTheSettingWhoseRowWasTapped() {
         assertTrue(page.navigation.open(page.findPreference(Settings.HIDE_AI_PINS.key)));
-        assertTrue(Settings.HIDE_AI_PINS.savedValue());
-        tap(Settings.HIDE_AI_PINS.key);
+        // It joined Manager's default selection with its switch off.
         assertFalse(Settings.HIDE_AI_PINS.savedValue());
+        tap(Settings.HIDE_AI_PINS.key);
+        assertTrue(Settings.HIDE_AI_PINS.savedValue());
         assertTrue(Settings.HIDE_ADS.savedValue());
     }
 
@@ -509,7 +510,7 @@ public class SettingsNavigationTest {
         ShadowLooper.idleMainLooper();
         assertTrue(contains(Settings.HIDE_AI_PINS.key));
         tap(Settings.HIDE_AI_PINS.key);
-        assertFalse(Settings.HIDE_AI_PINS.savedValue());
+        assertTrue(Settings.HIDE_AI_PINS.savedValue());
         search.setText("noSuchSetting987654");
         assertEquals(1, list().getCount());
         assertFalse(list().getAdapter().isEnabled(0));

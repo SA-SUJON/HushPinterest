@@ -32,9 +32,10 @@ internal val OUTGOING_LINK_CALLS = mapOf(
 @Suppress("unused")
 val stripLinkTrackingPatch = bytecodePatch(
     name = PATCH,
-    description = "Removes known tracking parameters from URLs shared or copied from Pinterest. " +
-        "Keeps the destination, other parameters and opaque pin.it links. Turn it off or pause " +
-        "HushPinterest to share the original URLs.",
+    description = "Removes known tracking parameters from URLs shared or copied from Pinterest. Keeps the " +
+        "destination, other parameters and opaque pin.it links. Its switch is on the Privacy page of " +
+        "HushPinterest settings and starts on. Turn it off or pause HushPinterest to share the original " +
+        "URLs.",
     default = true,
 ) {
     category("Privacy")

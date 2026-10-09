@@ -24,9 +24,11 @@ import app.hushpinterest.extension.shared.settings.BooleanSetting;
 /**
  * The switches behind the hooks that ask before they act.
  *
- * <p>A switch's default is the second argument of its {@link BooleanSetting}. Picking a patch in
- * Morphe Manager is the choice to use it, and the switch is the way to turn it off again without
- * patching a second time. While HushPinterest is paused, safe mode included
+ * <p>A switch's default is the second argument of its {@link BooleanSetting}. The patches that were
+ * in Morphe Manager's default selection from the start (Hide ads, Disable analytics, Strip link
+ * tracking and Hide advertising ID) keep their switches on. Every other patch is in the default
+ * selection too, and its switches start off, so a build patched with the defaults acts like
+ * Pinterest until one is turned on. While HushPinterest is paused, safe mode included
  * ({@link app.hushpinterest.extension.shared.settings.HushPinterestPause}), a switch answers off unless
  * {@link app.hushpinterest.extension.shared.settings.Setting#keepWhenPaused} marks it, and the hook behind
  * it takes Pinterest's own path.
@@ -44,9 +46,10 @@ public class Settings extends BaseSettings {
     /**
      * Pins Pinterest itself labels as made or changed with AI leave the same lists. Unlabeled AI
      * images stay: nothing in a pin marks them ({@link app.hushpinterest.extension.pinterest.ads.AiPins}).
+     * Off to start, since the patch joined Manager's default selection.
      */
     public static final BooleanSetting HIDE_AI_PINS =
-            new BooleanSetting("hushpinterest_hide_ai_pins", TRUE);
+            new BooleanSetting("hushpinterest_hide_ai_pins", FALSE);
 
     public static final BooleanSetting HIDE_SHOPPING =
             new BooleanSetting("hushpinterest_hide_shopping", FALSE);

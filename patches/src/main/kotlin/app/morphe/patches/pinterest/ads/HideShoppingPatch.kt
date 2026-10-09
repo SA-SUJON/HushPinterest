@@ -17,9 +17,8 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 @Suppress("unused")
 val hideShoppingPatch = bytecodePatch(
     name = "Hide shopping and product pins",
-    description = "Hides shoppable pins, shopping stories and featured board placements. Off by default. " +
-        "Turn it on in HushPinterest settings when you want a feed without shopping.",
-    default = false,
+    description = "Hides shoppable pins, shopping stories and featured board placements. Its switch is on " +
+        "the Feed page of HushPinterest settings and starts off.",
 ) {
     category("Feed")
     dependsOn(settingsPatch, feedListHookPatch)

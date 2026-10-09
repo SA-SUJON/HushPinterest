@@ -132,8 +132,8 @@ private fun BytecodePatchContext.isFrameworkView(type: ClassDef): Boolean {
 val hideTopicSuggestionsPatch = bytecodePatch(
     name = PATCH,
     description = "Hides the \"Ideas you might love\" row of topic bubbles under pins without leaving a gap. " +
-        "Comments and related pins stay. Its switch starts off, so turn it on in HushPinterest settings.",
-    default = false,
+        "Comments and related pins stay. Its switch is on the Interface page of HushPinterest settings and " +
+        "starts off.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

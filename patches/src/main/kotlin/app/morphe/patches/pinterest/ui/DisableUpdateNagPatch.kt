@@ -26,8 +26,9 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 @Suppress("unused")
 val disableUpdateNagPatch = bytecodePatch(
     name = "Disable update nag",
-    description = "Stops Pinterest's in-app Play Store update prompts. You can still update Pinterest yourself.",
-    default = false,
+    description = "Stops Pinterest's in-app Play Store update prompts. You can still update Pinterest " +
+        "yourself. Its switch is on the Updates page, under More settings in HushPinterest settings, and " +
+        "starts off.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

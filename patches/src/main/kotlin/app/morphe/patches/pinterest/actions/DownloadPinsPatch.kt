@@ -34,10 +34,10 @@ private const val DOWNLOADS = "$EXTENSION_PACKAGE/actions/PinDownloads;"
 @Suppress("unused")
 val downloadPinsPatch = bytecodePatch(
     name = PATCH,
-    description = "Downloads a pin or selected visible grid pins using original images and the highest-resolution MP4 Pinterest supplies. " +
-        "Saves in Downloads on Android 10 or newer, or asks for a save location on Android 9. " +
-        "The pin menu can also copy that media's link. Turn it off in HushPinterest settings at any time.",
-    default = false,
+    description = "Downloads a pin or selected visible grid pins using original images and the " +
+        "highest-resolution MP4 Pinterest supplies. Saves in Downloads on Android 10 or newer, or asks for a " +
+        "save location on Android 9. The pin menu can also copy that media's link. Its switch is on the Pin " +
+        "actions page of HushPinterest settings and starts off.",
 ) {
     category("Downloads")
     dependsOn(settingsPatch, pinterestExtensionPatch)

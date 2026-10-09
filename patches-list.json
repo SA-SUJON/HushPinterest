@@ -6,7 +6,7 @@
   "patches": [
     {
       "name": "Disable analytics",
-      "description": "Stops Pinterest's usage-event and performance uploads, AppsFlyer tracking, Bugsnag crash reports and the recommendations Pinterest publishes to Google Engage. A switch and Pause restore those runtime paths. In the manifest it also turns off Firebase Analytics, Crashlytics and Performance collection and Google Analytics' ad ID collection, and sets Google's default analytics and ad consent to denied. That part stays until you patch again without this patch. Sign-in, pin requests and Firebase push components are preserved.",
+      "description": "Stops Pinterest's usage-event and performance uploads, AppsFlyer tracking, Bugsnag crash reports and the recommendations Pinterest publishes to Google Engage. Its switch is on the Privacy page of HushPinterest settings and starts on. Turning it off or pausing HushPinterest lets those uploads run again. In the manifest it also turns off Firebase Analytics, Crashlytics and Performance collection and Google Analytics' ad ID collection, and sets Google's default analytics and ad consent to denied. That part stays until you patch again without this patch. Sign-in, pin requests and Firebase push components are preserved.",
       "category": "Privacy",
       "use": true,
       "dependencies": [
@@ -51,9 +51,9 @@
     },
     {
       "name": "Disable update nag",
-      "description": "Stops Pinterest's in-app Play Store update prompts. You can still update Pinterest yourself.",
+      "description": "Stops Pinterest's in-app Play Store update prompts. You can still update Pinterest yourself. Its switch is on the Updates page, under More settings in HushPinterest settings, and starts off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -95,9 +95,9 @@
     },
     {
       "name": "Download pins",
-      "description": "Downloads a pin or selected visible grid pins using original images and the highest-resolution MP4 Pinterest supplies. Saves in Downloads on Android 10 or newer, or asks for a save location on Android 9. The pin menu can also copy that media's link. Turn it off in HushPinterest settings at any time.",
+      "description": "Downloads a pin or selected visible grid pins using original images and the highest-resolution MP4 Pinterest supplies. Saves in Downloads on Android 10 or newer, or asks for a save location on Android 9. The pin menu can also copy that media's link. Its switch is on the Pin actions page of HushPinterest settings and starts off.",
       "category": "Downloads",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -139,9 +139,9 @@
     },
     {
       "name": "Filter pin menu",
-      "description": "Adds separate switches for collage, visual-search and Promote pin menu entries. Download, share and copy-link actions remain available.",
+      "description": "Adds separate switches for collage, visual-search and Promote pin menu entries. Download, share and copy-link actions remain available. The switches are on the Interface page of HushPinterest settings and start off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -183,9 +183,9 @@
     },
     {
       "name": "Hide AI-labeled pins",
-      "description": "Removes pins that Pinterest labels as made or changed with AI from the home feed, search, related pins and boards. AI images without Pinterest's label still show.",
+      "description": "Removes pins that Pinterest labels as made or changed with AI from the home feed, search, related pins and boards. AI images without Pinterest's label still show. Its switch is on the Feed page of HushPinterest settings and starts off.",
       "category": "Feed",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -227,7 +227,7 @@
     },
     {
       "name": "Hide ads",
-      "description": "Removes promoted pins from the home feed, search, related pins and boards, and hides Pinterest's ad-only panels. Google's ad SDK isn't started when Pinterest opens. Turn it off in HushPinterest settings at any time.",
+      "description": "Removes promoted pins from the home feed, search, related pins and boards, and hides Pinterest's ad-only panels. Google's ad SDK isn't started when Pinterest opens. Its switch is on the Feed page of HushPinterest settings and starts on.",
       "category": "Ads",
       "use": true,
       "dependencies": [
@@ -271,7 +271,7 @@
     },
     {
       "name": "Hide advertising ID",
-      "description": "Pinterest and the ad and tracking code inside it read an all-zero advertising ID with ad tracking limited, the same answer Android gives after you delete your ad ID. A switch and Pause hand back the real ID.",
+      "description": "Pinterest and the ad and tracking code inside it read an all-zero advertising ID with ad tracking limited, the same answer Android gives after you delete your ad ID. Its switch is on the Privacy page of HushPinterest settings and starts on. Turning it off or pausing HushPinterest hands back the real ID.",
       "category": "Privacy",
       "use": true,
       "dependencies": [
@@ -315,9 +315,9 @@
     },
     {
       "name": "Hide comments",
-      "description": "Collapses comments panels and comment previews beneath pins. It doesn't change who can comment on your pins.",
+      "description": "Collapses comments panels and comment previews beneath pins. It doesn't change who can comment on your pins. Its switch is on the Interface page of HushPinterest settings and starts off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -359,9 +359,9 @@
     },
     {
       "name": "Hide header buttons",
-      "description": "Hides trailing header icon buttons. Back buttons, text actions and account controls remain available.",
+      "description": "Hides trailing header icon buttons. Back buttons, text actions and account controls remain available. Its switch is on the Interface page of HushPinterest settings and starts off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -403,9 +403,9 @@
     },
     {
       "name": "Hide navigation buttons",
-      "description": "Adds separate switches for the Create, Updates and Search navigation buttons. Home and Profile remain available.",
+      "description": "Adds separate switches for the Create, Notifications and Search buttons in the bottom bar. Home and Profile remain available. The switches are on the Interface page of HushPinterest settings and start off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -447,9 +447,9 @@
     },
     {
       "name": "Hide save toasts",
-      "description": "Stops the pop-up Pinterest shows after you save a pin, such as \"Saved to\" your board or the suggestion to follow the pin's creator. The pin is still saved.",
+      "description": "Stops the pop-up Pinterest shows after you save a pin, such as \"Saved to\" your board or the suggestion to follow the pin's creator. The pin is still saved. Its switch is on the Interface page of HushPinterest settings and starts off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -491,9 +491,9 @@
     },
     {
       "name": "Hide search history",
-      "description": "Hides recent-search rows and carousels on this device. It doesn't delete your account's search history.",
+      "description": "Hides recent-search rows and carousels on this device. It doesn't delete your account's search history. Its switch is on the Interface page of HushPinterest settings and starts off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -535,9 +535,9 @@
     },
     {
       "name": "Hide shopping and product pins",
-      "description": "Hides shoppable pins, shopping stories and featured board placements. Off by default. Turn it on in HushPinterest settings when you want a feed without shopping.",
+      "description": "Hides shoppable pins, shopping stories and featured board placements. Its switch is on the Feed page of HushPinterest settings and starts off.",
       "category": "Feed",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -579,9 +579,9 @@
     },
     {
       "name": "Hide topic suggestions",
-      "description": "Hides the \"Ideas you might love\" row of topic bubbles under pins without leaving a gap. Comments and related pins stay. Its switch starts off, so turn it on in HushPinterest settings.",
+      "description": "Hides the \"Ideas you might love\" row of topic bubbles under pins without leaving a gap. Comments and related pins stay. Its switch is on the Interface page of HushPinterest settings and starts off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -667,9 +667,9 @@
     },
     {
       "name": "No screenshot share menu",
-      "description": "Stops Pinterest's screenshot observer from opening sharing suggestions. Screenshots still work normally.",
+      "description": "Stops Pinterest's screenshot observer from opening sharing suggestions. Screenshots still work normally. Its switch is on the Interface page of HushPinterest settings and starts off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -711,9 +711,9 @@
     },
     {
       "name": "Open links in your browser",
-      "description": "Opens pin Visit links and profile websites in your web browser. Pinterest links and sign-in keep their usual behavior. Turn it off in HushPinterest settings at any time.",
+      "description": "Opens pin Visit links and profile websites in your web browser. Pinterest links and sign-in keep their usual behavior. Its switch is on the Links page, under More settings in HushPinterest settings, and starts off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings",
@@ -756,9 +756,9 @@
     },
     {
       "name": "Original-quality images",
-      "description": "Asks Pinterest for the original image with each pin and shows it in the pin closeup, and has collages pick the original before the large size. Uses more data.",
+      "description": "Asks Pinterest for the original image with each pin and shows it in the pin closeup, and has collages pick the original before the large size. Uses more data. Its switch is on the Interface page of HushPinterest settings and starts off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -800,9 +800,9 @@
     },
     {
       "name": "Quiet email reminders",
-      "description": "Dismisses the optional confirm-your-email reminder. Account verification and sign-in checks still apply.",
+      "description": "Dismisses the optional confirm-your-email reminder. Account verification and sign-in checks still apply. Its switch is on the Interface page of HushPinterest settings and starts off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
@@ -844,7 +844,7 @@
     },
     {
       "name": "Remove ad tracking permissions",
-      "description": "Removes Google's advertising ID permission and Android's Privacy Sandbox ad services from Pinterest. It can't be turned back on in settings, only by patching again without it. While it's in, Hide advertising ID's switch can't hand back the real ID, because Google Play services answers with zeros.",
+      "description": "Removes Google's advertising ID permission and Android's Privacy Sandbox ad services from Pinterest. It has no switch, so only patching again without it brings them back. While it's in, Hide advertising ID's switch can't hand back the real ID, because Google Play services answers with zeros.",
       "category": "Privacy",
       "use": true,
       "dependencies": [
@@ -889,7 +889,7 @@
     },
     {
       "name": "Spoof signature for Google sign-in",
-      "description": "Adds Pinterest's original signing certificate to its manifest, so Google sign-in can work in the patched app. It only helps with microG-RE in place of Google Play services, or with the XSpoofSignatures LSPosed module and its permission granted. Stock Google Play services ignores it, and email and password sign-in doesn't need it.",
+      "description": "Adds Pinterest's original signing certificate to its manifest, so Google sign-in can work in the patched app. It only helps with microG-RE in place of Google Play services, or with the XSpoofSignatures LSPosed module and its permission granted. Stock Google Play services ignores it, and email and password sign-in doesn't need it. It has no switch and isn't selected by default, so turn on Expert mode in Morphe Manager to pick it.",
       "category": "Privacy",
       "use": false,
       "dependencies": [
@@ -934,7 +934,7 @@
     },
     {
       "name": "Strip link tracking",
-      "description": "Removes known tracking parameters from URLs shared or copied from Pinterest. Keeps the destination, other parameters and opaque pin.it links. Turn it off or pause HushPinterest to share the original URLs.",
+      "description": "Removes known tracking parameters from URLs shared or copied from Pinterest. Keeps the destination, other parameters and opaque pin.it links. Its switch is on the Privacy page of HushPinterest settings and starts on. Turn it off or pause HushPinterest to share the original URLs.",
       "category": "Privacy",
       "use": true,
       "dependencies": [
@@ -978,9 +978,9 @@
     },
     {
       "name": "System share sheet",
-      "description": "Uses Android's share sheet when sharing a pin link. Screenshot and download actions keep their usual behavior. Turn it off in HushPinterest settings at any time.",
+      "description": "Uses Android's share sheet when sharing a pin link. Screenshot and download actions keep their usual behavior. Its switch is on the Pin actions page of HushPinterest settings and starts off.",
       "category": "Interface",
-      "use": false,
+      "use": true,
       "dependencies": [
         "BytecodePatch",
         "HushPinterest settings"
