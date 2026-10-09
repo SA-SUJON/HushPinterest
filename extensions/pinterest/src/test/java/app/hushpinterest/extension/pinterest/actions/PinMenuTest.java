@@ -84,7 +84,7 @@ public class PinMenuTest {
         assertTrue(text, text.contains("Supplied width: 3000 pixels"));
         assertTrue(text, text.contains("Supplied height: 2000 pixels"));
         assertTrue(text, text.contains("Link type: image/png"));
-        assertTrue(text, text.contains("The file hasn't been inspected."));
+        assertTrue(text, text.contains("HushPinterest hasn't opened the file to check them."));
         assertEquals(0, host.dismissed);
         assertNoDownload();
     }

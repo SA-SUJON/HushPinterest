@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Tooling:** Updated four runtime checks to match the current setup, link and download messages.
+
 * **Developer notes:** Added [measured factory network and background activity](docs/pinterest-14.38.0-runtime.md), with reusable comparison data, CPU and media timers, memory samples and scheduled-worker records. Kept physical battery drain explicitly unmeasured until an unplugged phone run is available.
 
 * **Developer notes:** Added a [signed-in factory audit](docs/pinterest-14.38.0-audit.md) with ad-delivery traces, privacy boundaries, all 23 patch mappings, native settings, screenshots and specific work to investigate next. Clarified that analytics filtering covers selected paths.

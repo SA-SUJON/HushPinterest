@@ -303,7 +303,7 @@ public class PatchFamilyTest {
                 + L10n.isolate("Disable analytics") + ")"));
         assertTrue(everything, everything.contains("Pinterest's access to the ad ID and Android's ad services is removed ("
                 + L10n.isolate("Remove ad tracking permissions") + ")"));
-        assertTrue(everything, everything.contains("Pinterest's original signing certificate is named in its manifest ("
+        assertTrue(everything, everything.contains("Pinterest's original signature is added to the app ("
                 + L10n.isolate("Spoof signature for Google sign-in") + ")"));
         for (Map.Entry<PatchFamily, String> entry : two.entrySet()) {
             assertTrue(entry.getKey().patchName + " is missing from: " + everything,
