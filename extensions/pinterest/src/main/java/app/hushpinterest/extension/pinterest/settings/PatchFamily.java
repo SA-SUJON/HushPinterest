@@ -58,7 +58,7 @@ public enum PatchFamily {
             "Pinterest's access to the ad ID and Android's ad services is removed"),
     /** Signature spoofing metadata added to the manifest when patching: no switch either. */
     SPOOF_SIGNATURE(FamilyNames.SPOOF_SIGNATURE, "spoofSignature",
-            "Pinterest's original signing certificate is named in its manifest"),
+            "Pinterest's original signature is added to the app"),
     DOWNLOAD_PINS(FamilyNames.DOWNLOAD_PINS, "downloadPins", null, Settings.DOWNLOAD_PINS),
     EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "externalBrowser", null, Settings.EXTERNAL_BROWSER),
     SYSTEM_SHARE(FamilyNames.SYSTEM_SHARE, "systemShare", null, Settings.SYSTEM_SHARE),
@@ -209,8 +209,8 @@ public enum PatchFamily {
         for (Capability capability : expected) {
             (installed.contains(capability) ? covered : missing).add(L10n.t(capability.label));
         }
-        if (covered.isEmpty()) return L10n.f("This build has no coverage for %1$s.", L10n.join(missing));
-        return L10n.f("This build covers %1$s. Missing coverage: %2$s.", L10n.join(covered), L10n.join(missing));
+        if (covered.isEmpty()) return L10n.f("This build doesn't include the parts that handle %1$s.", L10n.join(missing));
+        return L10n.f("This build handles %1$s. It's missing the parts for %2$s.", L10n.join(covered), L10n.join(missing));
     }
 
     private String coverageReportLine() {

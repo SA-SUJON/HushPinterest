@@ -27,11 +27,11 @@ Debug logging	Pencatatan debug
 Diagnostic data cleared. Tap again to put it back.	Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.
 Diagnostic data put back.	Data diagnostik dikembalikan.
 Diagnostic report copied to the clipboard.	Laporan diagnostik disalin ke papan klip.
-Empties the log and the hook findings a report would include.	Mengosongkan log dan temuan hook yang akan dimasukkan ke laporan.
+Clears the saved log and patch check results that a report would include.	Menghapus log tersimpan dan hasil pemeriksaan patch yang akan dimuat dalam laporan.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
 Export diagnostic report	Ekspor laporan diagnostik
 Export settings	Ekspor pengaturan
-From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.
+Turns off every HushPinterest switch except Debug logging the next time Pinterest starts. What you chose when you patched stays, and your choices are saved.	Mematikan semua sakelar HushPinterest kecuali Pencatatan debug saat Pinterest dibuka berikutnya. Yang Anda pilih saat menambal tetap berlaku, dan pilihan Anda tersimpan.
 Hide ads	Sembunyikan iklan
 Links, updates, backup and more	Tautan, pembaruan, cadangan, dan lainnya
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Simpan sakelar Anda ke sebuah file. Sakelar ini mencakup semua akun di aplikasi Pinterest ini. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.
@@ -60,7 +60,7 @@ Retry	Coba lagi
 Save full report	Simpan laporan lengkap
 # The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
 Check for new HushPinterest releases	Periksa rilis HushPinterest baru
-Ask GitHub once a day when Pinterest starts, and show a newer release at the top of these settings. Off by default. Nothing is downloaded.	Periksa GitHub sekali sehari saat Pinterest dimulai dan tampilkan rilis yang lebih baru di bagian atas pengaturan ini. Mati secara bawaan. Tidak mengunduh apa pun.
+Once a day, when Pinterest starts, checks GitHub for a newer HushPinterest and tells you at the top of these settings. Nothing is downloaded.	Sekali sehari, saat Pinterest dibuka, memeriksa GitHub untuk HushPinterest yang lebih baru dan memberi tahu Anda di bagian atas setelan ini. Tidak ada yang diunduh.
 Check now	Periksa sekarang
 Asks GitHub for the newest release right now, even with the switch above off.	Menanyakan rilis terbaru ke GitHub sekarang juga, meski sakelar di atas mati.
 Checking GitHub now.	Sedang memeriksa GitHub.
@@ -136,8 +136,8 @@ None of Pinterest's web addresses are selected for this app, so their links open
 Only some of Pinterest's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Hanya sebagian alamat web Pinterest yang dipilih untuk aplikasi ini, dan tautan ke alamat lainnya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
 Saved. Restart Pinterest to apply this change.	Tersimpan. Mulai ulang Pinterest untuk menerapkan perubahan ini.
 # context: Immutable hook coverage shown when a patch has missing targets.
-This build has no coverage for %1$s.	Versi ini tidak mencakup %1$s.
-This build covers %1$s. Missing coverage: %2$s.	Versi ini mencakup %1$s. Cakupan yang belum tersedia: %2$s.
+This build doesn't include the parts that handle %1$s.	Build ini tidak menyertakan bagian yang menangani %1$s.
+This build handles %1$s. It's missing the parts for %2$s.	Build ini menangani %1$s. Bagian untuk %2$s tidak ada.
 Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.	Pinterest berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushPinterest menjeda dirinya sendiri.
 Pinterest's web addresses are selected for this app in Android's settings, so their links open here.	Alamat web Pinterest dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.
 Try again, or go back to Pinterest.	Coba lagi, atau kembali ke Pinterest.
@@ -151,13 +151,13 @@ Accounts	Akun
 Every switch here applies to all the accounts in this Pinterest app, not only the one you have open.	Setiap sakelar di sini berlaku untuk semua akun di aplikasi Pinterest ini, bukan hanya akun yang sedang Anda buka.
 AI-labeled pins	Pin berlabel AI
 AI-labeled pins in lists	pin berlabel AI di daftar
-Android opens pinterest.com and pin.it links in a patched Pinterest only when their addresses are selected for it. Selecting them sends their links here, and your other link settings stay as they are.	Android membuka tautan pinterest.com dan pin.it di Pinterest yang sudah ditambal hanya jika alamatnya dipilih untuk aplikasi itu. Dengan memilihnya, tautan tersebut dikirim ke sini, dan pengaturan tautan Anda yang lain tidak berubah.
+Android sends pinterest.com and pin.it links to a patched Pinterest only after you select those addresses for it. Selecting them sends their links here. Your other link settings stay as they are.	Android mengirim tautan pinterest.com dan pin.it ke Pinterest yang ditambal hanya setelah Anda memilih alamat itu untuknya. Memilihnya mengarahkan tautannya ke sini. Pengaturan tautan Anda yang lain tidak berubah.
 Feed	Umpan
 Hide AI-labeled pins	Sembunyikan pin berlabel AI
-Pins that Pinterest labels as made or changed with AI leave the same lists. AI images without Pinterest's label still show.	Pin yang diberi label oleh Pinterest sebagai dibuat atau diubah dengan AI akan hilang dari daftar yang sama. Gambar AI tanpa label dari Pinterest tetap ditampilkan.
+Removes pins that Pinterest labels as made or changed with AI from the same places. AI images without the label still show.	Menghapus pin yang diberi label Pinterest sebagai buatan atau hasil ubahan AI dari tempat yang sama. Gambar AI tanpa label tetap muncul.
 Promoted and AI-labeled pins	Pin promosi dan pin berlabel AI
 Promoted pins	Pin promosi
-Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Pin promosi hilang dari beranda, pencarian, pin terkait, dan papan sebelum ditampilkan, dan panel yang hanya berisi iklan tetap terlipat.
+Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Menghapus pin promosi dari beranda, pencarian, pin terkait, dan papan Anda, serta menyembunyikan panel yang hanya berisi iklan.
 ad-only views	tampilan khusus iklan
 Google ad SDK start	memulai SDK iklan Google
 promoted pins in lists	pin promosi di daftar
@@ -165,27 +165,27 @@ Privacy	Privasi
 Pin actions	Tindakan Pin
 Interface	Antarmuka
 Hide shopping and product pins	Sembunyikan belanja dan Pin produk
-Shoppable pins, shopping stories and featured boards	Pin belanja, cerita belanja, dan papan unggulan
+Hides shoppable pins, shopping stories and featured boards.	Menyembunyikan pin yang bisa dibeli, cerita belanja, dan papan unggulan.
 Disable analytics	Nonaktifkan analitik
-Stops usage uploads and analytics launch tasks. Firebase and Google Analytics collection stays off until you patch without this patch.	Menghentikan pengiriman data penggunaan dan tugas awal analitik. Pengumpulan data Firebase dan Google Analytics tetap nonaktif sampai Anda menambal ulang tanpa tambalan ini.
+Stops Pinterest from sending usage reports and running its analytics tasks. Google's analytics collection stays off until you patch again without Disable analytics.	Menghentikan Pinterest mengirim laporan penggunaan dan menjalankan tugas analitiknya. Pengumpulan analitik Google tetap mati sampai Anda menambal ulang tanpa Disable analytics.
 Firebase and Google Analytics collection is turned off	Pengumpulan data Firebase dan Google Analytics dinonaktifkan
 Analytics launch tasks	Tugas awal analitik
 Analytics uploads	Pengiriman data analitik
 Strip link tracking	Hapus pelacakan tautan
-Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Menghapus parameter pelacakan yang dikenal dari tautan yang disalin dan dibagikan. Tautan pendek tetap seperti yang dibuat Pinterest.
+Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them.	Menghapus tag pelacakan dari tautan yang Anda salin atau bagikan. Tautan pendek pin.it tetap seperti buatan Pinterest.
 Hide advertising ID	Sembunyikan ID iklan
-Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest dan kode iklan serta pelacakan di dalamnya membaca ID iklan berisi nol semua dengan pelacakan iklan dibatasi, seolah kamu sudah menghapus ID iklan di setelan Android.
+Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest melihat ID iklan kosong dengan pelacakan iklan dibatasi, seolah Anda menghapus ID iklan di setelan Android.
 Remove ad tracking permissions	Hapus izin pelacakan iklan
-Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.	Pinterest tidak lagi memiliki izin ID iklan Google maupun layanan iklan Android. Ini ditetapkan saat Anda menambal, dan hanya bisa dikembalikan dengan menambal ulang tanpa tambalan ini.
+Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Pinterest tidak lagi bisa memakai izin ID iklan Google atau layanan iklan Android. Ini diatur saat Anda menambal. Tambal ulang tanpanya untuk mengembalikannya.
 Pinterest's access to the ad ID and Android's ad services is removed	akses Pinterest ke ID iklan dan layanan iklan Android dihapus
 Spoof signature for Google sign-in	Palsukan tanda tangan untuk login Google
-Pinterest's manifest names its original signing certificate, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched, and only patching again without it takes it out.	Manifes Pinterest mencantumkan sertifikat penandatanganan aslinya, agar login Google bisa berfungsi dengan microG-RE atau modul XSpoofSignatures. Layanan Google Play biasa mengabaikannya. Ini ditetapkan saat Anda menambal, dan hanya bisa dihapus dengan menambal ulang tanpa tambalan ini.
-Pinterest's original signing certificate is named in its manifest	sertifikat penandatanganan asli Pinterest tercantum di manifesnya
+Tells Android this is the original Pinterest, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched. Patch again without it to take it out.	Memberi tahu Android bahwa ini Pinterest asli, agar masuk dengan Google bisa berfungsi dengan microG-RE atau modul XSpoofSignatures. Google Play services biasa mengabaikannya. Ini diatur saat Anda menambal. Tambal ulang tanpanya untuk menghapusnya.
+Pinterest's original signature is added to the app	Tanda tangan asli Pinterest ditambahkan ke aplikasi
 Download pins	Unduh Pin
 Open links in your browser	Buka tautan di browser Anda
 Open pin Visit links and profile websites in your browser.	Buka tautan Kunjungi Pin dan situs web profil di browser Anda.
 System share sheet	Menu berbagi sistem
-Share uses Android's share sheet.	Bagikan menggunakan menu berbagi Android.
+Sharing a pin link opens Android's own share menu.	Membagikan tautan pin membuka menu bagikan bawaan Android.
 No screenshot share menu	Matikan menu berbagi tangkapan layar
 Hide search history	Sembunyikan riwayat pencarian
 Hide navigation buttons	Sembunyikan tombol navigasi
@@ -319,25 +319,25 @@ Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-i
 Save the full report in %1$s.	Simpan laporan lengkap di %1$s.
 Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat. Penyimpanan laporan saat ini tidak tersedia. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.
 Report storage is unavailable right now. You can still copy a quick report.	Penyimpanan laporan saat ini tidak tersedia. Anda masih dapat menyalin laporan singkat.
-Hides new Play Store update prompts. An open prompt won't change.	Menyembunyikan permintaan pembaruan Play Store yang baru. Permintaan yang sudah terbuka tidak berubah.
-Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still work.	Menghentikan saran berbagi tangkapan layar setelah Pinterest dimulai ulang. Tangkapan layar tetap berfungsi.
-Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Menyembunyikan baris dan karusel pencarian terbaru saat tata letak atau visibilitasnya diperbarui berikutnya. Riwayat pencarian akun tidak dihapus.
-Hides Create in the bottom bar on its next layout.	Menyembunyikan Buat di bilah bawah saat tata letaknya diperbarui berikutnya.
-Hides Notifications in the bottom bar on its next layout.	Menyembunyikan Notifikasi di bilah bawah saat tata letaknya diperbarui berikutnya.
-Hides Search in the bottom bar on its next layout.	Menyembunyikan Cari di bilah bawah saat tata letaknya diperbarui berikutnya.
-Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Menyembunyikan ikon di ujung bilah judul saat tata letaknya diperbarui berikutnya. Kembali, tindakan teks, dan kontrol akun tetap tersedia.
-Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Menyembunyikan Tambahkan ke kolase dan Remix kolase di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
-Hides Search image in newly created pin menus. An existing menu won't change.	Menyembunyikan Cari gambar di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
-Hides Promote pin in newly created pin menus. An existing menu won't change.	Menyembunyikan Promosikan Pin di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
-Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Menyembunyikan panel dan pratinjau komentar di bawah Pin saat tata letak atau visibilitasnya diperbarui berikutnya. Tidak mengubah siapa yang boleh berkomentar.
+Hides Play Store pop-ups asking you to update Pinterest. A pop-up that's already open stays.	Menyembunyikan pop-up Play Store yang meminta Anda memperbarui Pinterest. Pop-up yang sudah terbuka tetap ada.
+Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.	Menghentikan Pinterest menyarankan Anda membagikan tangkapan layar. Tangkapan layar tetap berfungsi. Mulai ulang Pinterest untuk melihat perubahannya.
+Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.	Menyembunyikan pencarian terbaru Anda. Riwayat pencarian akun Anda tidak dihapus. Perubahan terlihat saat layar diperbarui berikutnya.
+Hides Create in the bottom bar. The change shows the next time the bar updates.	Menyembunyikan Buat di bilah bawah. Perubahan terlihat saat bilah diperbarui berikutnya.
+Hides Notifications in the bottom bar. The change shows the next time the bar updates.	Menyembunyikan Notifikasi di bilah bawah. Perubahan terlihat saat bilah diperbarui berikutnya.
+Hides Search in the bottom bar. The change shows the next time the bar updates.	Menyembunyikan Cari di bilah bawah. Perubahan terlihat saat bilah diperbarui berikutnya.
+Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.	Menyembunyikan tombol ikon kecil di ujung bilah atas. Kembali, tombol teks, dan kontrol akun tetap ada. Perubahan terlihat saat bilah diperbarui berikutnya.
+Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.	Menyembunyikan Tambahkan ke kolase dan Remix kolase di menu pin yang Anda buka mulai sekarang. Menu yang sudah terbuka tidak berubah.
+Hides Search image in pin menus you open from now on. A menu that's already open won't change.	Menyembunyikan Cari gambar di menu pin yang Anda buka mulai sekarang. Menu yang sudah terbuka tidak berubah.
+Hides Promote pin in pin menus you open from now on. A menu that's already open won't change.	Menyembunyikan Promosikan pin di menu pin yang Anda buka mulai sekarang. Menu yang sudah terbuka tidak berubah.
+Hides comments and comment previews under pins. It doesn't change who can comment. The change shows the next time the screen updates.	Menyembunyikan komentar dan pratinjau komentar di bawah pin. Siapa yang boleh berkomentar tidak berubah. Perubahan terlihat saat layar diperbarui berikutnya.
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Menyembunyikan baris "Ide yang mungkin Anda sukai" berisi gelembung topik di bawah Pin saat Pinterest menampilkannya lagi. Komentar dan Pin terkait tetap ada.
-Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Menutup pengingat opsional konfirmasi email yang baru dibuat. Pengingat yang terbuka tidak berubah. Pemeriksaan verifikasi dan masuk tetap berlaku.
+Dismisses the optional reminder to confirm your email. A reminder that's already open stays. Account checks and sign-in still work as usual.	Menutup pengingat opsional untuk mengonfirmasi email Anda. Pengingat yang sudah terbuka tetap ada. Pemeriksaan akun dan masuk tetap berjalan seperti biasa.
 Hide save toasts	Sembunyikan notifikasi simpan
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Menyimpan Pin tidak lagi memunculkan "Disimpan ke" papanmu atau saran untuk mengikuti pembuatnya. Pin tetap tersimpan.
 Original-quality images	Gambar kualitas asli
 collage images	gambar kolase
 pin closeups	tampilan dekat pin
-Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.	Menampilkan gambar asli sebagai ganti ukuran besar di tampilan dekat pin dan kolase, jika Pinterest mengirimkannya. Memakai lebih banyak data. Pin yang sudah dimuat tetap pada ukurannya sampai Pinterest memuatnya ulang.
+Shows the original image instead of the large size in pin closeups and collages, when Pinterest has one. Uses more data. Pins already loaded change the next time they load.	Menampilkan gambar asli, bukan ukuran besar, di tampilan dekat pin dan kolase, jika Pinterest punya. Memakai lebih banyak data. Pin yang sudah dimuat berubah saat dimuat lagi.
 Save media	Simpan media
 Recent searches autocomplete	Pelengkapan otomatis pencarian terbaru
 Activity alerts	Notifikasi aktivitas
@@ -376,6 +376,6 @@ Unsupported	Tidak didukung
 Saved to the location you chose.	Disimpan ke lokasi yang Anda pilih.
 No download was queued. The selection was stopped, canceled or unavailable.	Tidak ada unduhan yang diantrekan. Pilihan dihentikan, dibatalkan, atau tidak tersedia.
 Pinterest didn't supply supported media for this pin.	Pinterest tidak menyediakan media yang didukung untuk Pin ini.
-Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied.	Unduh satu Pin atau pilih Pin yang terlihat di kisi. Menyimpan video dan gambar asli, atau ukuran terbesar yang diberikan Pinterest.
+Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Unduh satu pin, atau pilih beberapa pin dalam kisi. Menyimpan video dan gambar asli, atau ukuran terbesar yang dimiliki Pinterest.
 Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 memakai pemilih file. Hasil pilihan Pin yang terlihat muncul di sini.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Hanya 32 unduhan dan hasil pilihan terbaru yang ditampilkan. File yang tersimpan tetap disimpan.

@@ -243,7 +243,7 @@ public class PatchFamilyTest {
     @Test
     public void spoofedSignatureMetadataIsDisclosedWithNoSwitch() {
         PatchFamily family = PatchFamily.SPOOF_SIGNATURE;
-        String permanent = "Pinterest's original signing certificate is named in its manifest";
+        String permanent = "Pinterest's original signature is added to the app";
         assertEquals("Spoof signature for Google sign-in", family.patchName);
         assertEquals("spoofSignature", family.statusMethod);
         assertEquals(permanent, family.staysWhilePaused);

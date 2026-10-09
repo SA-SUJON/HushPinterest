@@ -9,6 +9,7 @@ Every HushPinterest release, newest first.
 * **Pinterest:** In Expert mode, Disable update nag sits under Updates and the two button patches under Navigation, so the Interface group is shorter to read.
 * **Pinterest:** Each patch's description in Morphe Manager now says which page of HushPinterest settings holds its switch, and whether that switch starts on or off.
 * **Pinterest:** Patch descriptions in Morphe Manager are rewritten in plain English. Each one says what the patch changes, why you might want it, and ends with where its switch is and whether it starts on or off.
+* **Pinterest:** Setting rows in HushPinterest settings are reworded in plain English, with restart reminders and clearer notes on when a change shows. Translations for German, Spanish, Indonesian, Brazilian Portuguese and Turkish are updated to match.
 
 ## 0.0.5 (2026-10-07)
 

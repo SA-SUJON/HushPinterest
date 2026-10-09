@@ -27,11 +27,11 @@ Debug logging	Registro de depuración
 Diagnostic data cleared. Tap again to put it back.	Se borraron los datos de diagnóstico. Toca de nuevo para restaurarlos.
 Diagnostic data put back.	Se restauraron los datos de diagnóstico.
 Diagnostic report copied to the clipboard.	Informe de diagnóstico copiado en el portapapeles.
-Empties the log and the hook findings a report would include.	Vacía el registro y los resultados de los hooks que incluiría un informe.
+Clears the saved log and patch check results that a report would include.	Borra el registro guardado y los resultados de las comprobaciones de parches que incluiría un informe.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados, y lo que se aplicó al parchear se mantiene. Tu configuración no cambia.
 Export diagnostic report	Exportar informe de diagnóstico
 Export settings	Exportar configuración
-From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Desde el próximo inicio, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene, y tus preferencias quedan guardadas.
+Turns off every HushPinterest switch except Debug logging the next time Pinterest starts. What you chose when you patched stays, and your choices are saved.	Desactiva todos los interruptores de HushPinterest, salvo el Registro de depuración, la próxima vez que se abra Pinterest. Lo que elegiste al parchear se mantiene y tus preferencias quedan guardadas.
 Hide ads	Ocultar anuncios
 Links, updates, backup and more	Enlaces, actualizaciones, copia de seguridad y más
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Guarda tus interruptores en un archivo. Cubren todas las cuentas de esta app de Pinterest. La pausa y el Registro de depuración no se incluyen, y la búsqueda de nuevas versiones tampoco.
@@ -60,7 +60,7 @@ Retry	Reintentar
 Save full report	Guardar informe completo
 # The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
 Check for new HushPinterest releases	Buscar nuevas versiones de HushPinterest
-Ask GitHub once a day when Pinterest starts, and show a newer release at the top of these settings. Off by default. Nothing is downloaded.	Consulta GitHub una vez al día al iniciar Pinterest y muestra una versión más nueva arriba de estos ajustes. Desactivado por defecto. No descarga nada.
+Once a day, when Pinterest starts, checks GitHub for a newer HushPinterest and tells you at the top of these settings. Nothing is downloaded.	Una vez al día, al abrir Pinterest, busca en GitHub un HushPinterest más nuevo y te avisa arriba en estos ajustes. No se descarga nada.
 Check now	Comprobar ahora
 Asks GitHub for the newest release right now, even with the switch above off.	Pregunta ahora mismo a GitHub por la versión más reciente, aunque el interruptor de arriba esté desactivado.
 Checking GitHub now.	Consultando GitHub ahora.
@@ -136,8 +136,8 @@ None of Pinterest's web addresses are selected for this app, so their links open
 Only some of Pinterest's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Solo algunas direcciones web de Pinterest están seleccionadas para esta app, y los enlaces a las demás se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.
 Saved. Restart Pinterest to apply this change.	Guardado. Reinicia Pinterest para aplicar este cambio.
 # context: Immutable hook coverage shown when a patch has missing targets.
-This build has no coverage for %1$s.	Esta versión no cubre %1$s.
-This build covers %1$s. Missing coverage: %2$s.	Esta versión cubre %1$s. Falta cobertura de %2$s.
+This build doesn't include the parts that handle %1$s.	Esta versión no incluye las partes que se encargan de %1$s.
+This build handles %1$s. It's missing the parts for %2$s.	Esta versión se encarga de %1$s. Faltan las partes para %2$s.
 Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.	Tres veces seguidas, Pinterest falló o se congeló durante el primer minuto tras iniciarse, así que HushPinterest se pausó solo.
 Pinterest's web addresses are selected for this app in Android's settings, so their links open here.	Las direcciones web de Pinterest están seleccionadas para esta app en los ajustes de Android, así que sus enlaces se abren aquí.
 Try again, or go back to Pinterest.	Inténtalo de nuevo o vuelve a Pinterest.
@@ -151,13 +151,13 @@ Accounts	Cuentas
 Every switch here applies to all the accounts in this Pinterest app, not only the one you have open.	Cada interruptor de aquí se aplica a todas las cuentas de esta app de Pinterest, no solo a la que tienes abierta.
 AI-labeled pins	Pines con etiqueta de IA
 AI-labeled pins in lists	pines con etiqueta de IA en las listas
-Android opens pinterest.com and pin.it links in a patched Pinterest only when their addresses are selected for it. Selecting them sends their links here, and your other link settings stay as they are.	Android abre los enlaces de pinterest.com y pin.it en un Pinterest parcheado solo cuando sus direcciones están seleccionadas para él. Al seleccionarlas, sus enlaces llegan aquí, y tus demás ajustes de enlaces se quedan como están.
+Android sends pinterest.com and pin.it links to a patched Pinterest only after you select those addresses for it. Selecting them sends their links here. Your other link settings stay as they are.	Android envía los enlaces de pinterest.com y pin.it a un Pinterest parcheado solo después de que selecciones esas direcciones para él. Al seleccionarlas, sus enlaces llegan aquí. Tus otros ajustes de enlaces no cambian.
 Feed	Feed
 Hide AI-labeled pins	Ocultar pines con etiqueta de IA
-Pins that Pinterest labels as made or changed with AI leave the same lists. AI images without Pinterest's label still show.	Los pines que Pinterest etiqueta como creados o modificados con IA desaparecen de las mismas listas. Las imágenes de IA sin la etiqueta de Pinterest se siguen mostrando.
+Removes pins that Pinterest labels as made or changed with AI from the same places. AI images without the label still show.	Quita de los mismos lugares los pines que Pinterest marca como hechos o modificados con IA. Las imágenes de IA sin esa marca se siguen viendo.
 Promoted and AI-labeled pins	Pines promocionados y con etiqueta de IA
 Promoted pins	Pines promocionados
-Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Los pines promocionados desaparecen del feed de inicio, la búsqueda, los pines relacionados y los tableros antes de mostrarse, y los paneles que solo contienen anuncios se quedan plegados.
+Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Quita los pines promocionados de tu feed de inicio, la búsqueda, los pines relacionados y los tableros, y oculta los paneles que solo tienen anuncios.
 ad-only views	vistas solo de anuncios
 Google ad SDK start	inicio del SDK de anuncios de Google
 promoted pins in lists	pines promocionados en las listas
@@ -165,27 +165,27 @@ Privacy	Privacidad
 Pin actions	Acciones del pin
 Interface	Interfaz
 Hide shopping and product pins	Ocultar compras y pines de productos
-Shoppable pins, shopping stories and featured boards	Pines de compras, historias de compras y tableros destacados
+Hides shoppable pins, shopping stories and featured boards.	Oculta los pines comprables, las historias de compras y los tableros destacados.
 Disable analytics	Desactivar estadísticas
-Stops usage uploads and analytics launch tasks. Firebase and Google Analytics collection stays off until you patch without this patch.	Detiene los envíos de uso y el inicio de las estadísticas. La recopilación de Firebase y Google Analytics sigue desactivada hasta que vuelvas a parchear sin este parche.
+Stops Pinterest from sending usage reports and running its analytics tasks. Google's analytics collection stays off until you patch again without Disable analytics.	Evita que Pinterest envíe informes de uso y ejecute sus tareas de analíticas. La recopilación de Google sigue desactivada hasta que vuelvas a parchear sin Disable analytics.
 Firebase and Google Analytics collection is turned off	La recopilación de Firebase y Google Analytics está desactivada
 Analytics launch tasks	Inicio de estadísticas
 Analytics uploads	Envíos de estadísticas
 Strip link tracking	Quitar rastreo de enlaces
-Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Quita parámetros de rastreo conocidos de los enlaces copiados y compartidos. Los enlaces cortos quedan como los creó Pinterest.
+Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them.	Quita las etiquetas de seguimiento de los enlaces que copias o compartes. Los enlaces cortos pin.it se quedan como los creó Pinterest.
 Hide advertising ID	Ocultar el ID de publicidad
-Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest y el código de anuncios y rastreo que lleva dentro leen un ID de publicidad todo en ceros, con el seguimiento de anuncios limitado, como si hubieras borrado tu ID de publicidad en los ajustes de Android.
+Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest ve un ID de publicidad vacío con el seguimiento de anuncios limitado, como si hubieras borrado tu ID de publicidad en los ajustes de Android.
 Remove ad tracking permissions	Quitar permisos de seguimiento publicitario
-Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.	Pinterest ya no tiene el permiso del ID de publicidad de Google ni los servicios de publicidad de Android. Se fijó al parchear y solo vuelve si parcheas de nuevo sin este parche.
+Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Pinterest ya no puede usar el permiso de ID de publicidad de Google ni los servicios de anuncios de Android. Esto se definió al parchear. Vuelve a parchear sin él para recuperarlos.
 Pinterest's access to the ad ID and Android's ad services is removed	el acceso de Pinterest al ID de publicidad y a los servicios de publicidad de Android está eliminado
 Spoof signature for Google sign-in	Falsear la firma para iniciar sesión con Google
-Pinterest's manifest names its original signing certificate, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched, and only patching again without it takes it out.	El manifiesto de Pinterest indica su certificado de firma original, para que el inicio de sesión con Google pueda funcionar con microG-RE o el módulo XSpoofSignatures. Los Servicios de Google Play normales lo ignoran. Se fijó al parchear y solo se quita si parcheas de nuevo sin este parche.
-Pinterest's original signing certificate is named in its manifest	el certificado de firma original de Pinterest figura en su manifiesto
+Tells Android this is the original Pinterest, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched. Patch again without it to take it out.	Le dice a Android que esta es la app original de Pinterest, para que el inicio de sesión con Google pueda funcionar con microG-RE o el módulo XSpoofSignatures. Google Play Services normal lo ignora. Esto se definió al parchear. Vuelve a parchear sin él para quitarlo.
+Pinterest's original signature is added to the app	La firma original de Pinterest se añadió a la app
 Download pins	Descargar pines
 Open links in your browser	Abrir enlaces en tu navegador
 Open pin Visit links and profile websites in your browser.	Abre enlaces de Visitar de los pines y sitios web de perfiles en tu navegador.
 System share sheet	Menú de compartir del sistema
-Share uses Android's share sheet.	Compartir usa el menú de Android.
+Sharing a pin link opens Android's own share menu.	Al compartir el enlace de un pin se abre el menú de compartir propio de Android.
 No screenshot share menu	Sin menú al hacer capturas
 Hide search history	Ocultar historial de búsquedas
 Hide navigation buttons	Ocultar botones de navegación
@@ -319,25 +319,25 @@ Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-i
 Save the full report in %1$s.	Guarda el informe completo en %1$s.
 Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido. El almacenamiento de informes no está disponible ahora. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa otros datos privados antes de compartirlo.
 Report storage is unavailable right now. You can still copy a quick report.	El almacenamiento de informes no está disponible ahora. Aún puedes copiar un informe rápido.
-Hides new Play Store update prompts. An open prompt won't change.	Oculta los nuevos avisos de actualización de Play Store. Un aviso abierto no cambia.
-Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still work.	Detiene las sugerencias para compartir capturas de pantalla tras reiniciar Pinterest. Las capturas siguen funcionando.
-Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Oculta las filas y los carruseles de búsquedas recientes en su próxima actualización de diseño o visibilidad. No elimina el historial de la cuenta.
-Hides Create in the bottom bar on its next layout.	Oculta Crear en la barra inferior cuando vuelva a actualizarse su diseño.
-Hides Notifications in the bottom bar on its next layout.	Oculta Notificaciones en la barra inferior cuando vuelva a actualizarse su diseño.
-Hides Search in the bottom bar on its next layout.	Oculta Buscar en la barra inferior cuando vuelva a actualizarse su diseño.
-Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Oculta los iconos al final de la cabecera en su próxima actualización de diseño. Volver, las acciones de texto y los controles de cuenta siguen disponibles.
-Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Oculta Añadir al collage y Remezclar collage en los menús de pines recién creados. Un menú existente no cambia.
-Hides Search image in newly created pin menus. An existing menu won't change.	Oculta Buscar imagen en los menús de pines recién creados. Un menú existente no cambia.
-Hides Promote pin in newly created pin menus. An existing menu won't change.	Oculta Promocionar pin en los menús de pines recién creados. Un menú existente no cambia.
-Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Oculta los paneles y las vistas previas de comentarios bajo los pines en su próxima actualización de diseño o visibilidad. No cambia quién puede comentar.
+Hides Play Store pop-ups asking you to update Pinterest. A pop-up that's already open stays.	Oculta los avisos de Play Store que te piden actualizar Pinterest. Un aviso que ya está abierto se queda.
+Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.	Evita que Pinterest te sugiera compartir una captura de pantalla. Las capturas siguen funcionando. Reinicia Pinterest para ver el cambio.
+Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.	Oculta tus búsquedas recientes. No borra el historial de búsqueda de tu cuenta. El cambio se ve la próxima vez que se actualice la pantalla.
+Hides Create in the bottom bar. The change shows the next time the bar updates.	Oculta Crear en la barra inferior. El cambio se ve la próxima vez que se actualice la barra.
+Hides Notifications in the bottom bar. The change shows the next time the bar updates.	Oculta Notificaciones en la barra inferior. El cambio se ve la próxima vez que se actualice la barra.
+Hides Search in the bottom bar. The change shows the next time the bar updates.	Oculta Buscar en la barra inferior. El cambio se ve la próxima vez que se actualice la barra.
+Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.	Oculta los botones pequeños con icono al final de la barra superior. Atrás, los botones de texto y los controles de la cuenta se quedan. El cambio se ve la próxima vez que se actualice la barra.
+Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.	Oculta Añadir al collage y Remezclar collage en los menús de pin que abras a partir de ahora. Un menú que ya está abierto no cambia.
+Hides Search image in pin menus you open from now on. A menu that's already open won't change.	Oculta Buscar imagen en los menús de pin que abras a partir de ahora. Un menú que ya está abierto no cambia.
+Hides Promote pin in pin menus you open from now on. A menu that's already open won't change.	Oculta Promocionar pin en los menús de pin que abras a partir de ahora. Un menú que ya está abierto no cambia.
+Hides comments and comment previews under pins. It doesn't change who can comment. The change shows the next time the screen updates.	Oculta los comentarios y sus vistas previas bajo los pines. No cambia quién puede comentar. El cambio se ve la próxima vez que se actualice la pantalla.
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Oculta la fila «Ideas que te pueden gustar» con burbujas de temas bajo los Pins la próxima vez que Pinterest la muestre. Los comentarios y los Pins relacionados se quedan.
-Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Descarta los recordatorios opcionales de confirmación de correo recién creados. Un recordatorio abierto no cambia. Las comprobaciones de verificación e inicio de sesión siguen vigentes.
+Dismisses the optional reminder to confirm your email. A reminder that's already open stays. Account checks and sign-in still work as usual.	Descarta el aviso opcional para confirmar tu correo. Un aviso que ya está abierto se queda. Las comprobaciones de la cuenta y el inicio de sesión funcionan como siempre.
 Hide save toasts	Ocultar avisos al guardar
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Al guardar un Pin ya no aparece «Guardado en» tu tablero ni una sugerencia para seguir a quien lo creó. El Pin se guarda igual.
 Original-quality images	Imágenes en calidad original
 collage images	imágenes de collages
 pin closeups	vistas ampliadas de pines
-Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.	Muestra la imagen original en lugar del tamaño grande en las vistas ampliadas de pines y en los collages, cuando Pinterest la envía. Usa más datos. Los pines ya cargados mantienen su tamaño hasta que Pinterest los vuelve a cargar.
+Shows the original image instead of the large size in pin closeups and collages, when Pinterest has one. Uses more data. Pins already loaded change the next time they load.	Muestra la imagen original en lugar del tamaño grande en las vistas ampliadas de pines y en los collages, cuando Pinterest la tiene. Usa más datos. Los pines ya cargados cambian la próxima vez que se carguen.
 Save media	Guardar contenido multimedia
 Recent searches autocomplete	Autocompletado de búsquedas recientes
 Activity alerts	Avisos de actividad
@@ -376,6 +376,6 @@ Unsupported	No compatible
 Saved to the location you chose.	Guardado en la ubicación elegida.
 No download was queued. The selection was stopped, canceled or unavailable.	No se puso ninguna descarga en cola. La selección se detuvo, se canceló o no estaba disponible.
 Pinterest didn't supply supported media for this pin.	Pinterest no proporcionó contenido compatible para este pin.
-Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied.	Descarga un pin o selecciona pines visibles de la cuadrícula. Guarda videos e imágenes originales, o el tamaño más grande que proporcionó Pinterest.
+Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Descarga un pin o selecciona varios en una cuadrícula. Guarda videos e imágenes originales, o el mayor tamaño que tenga Pinterest.
 Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 usa el selector de archivos. Aquí aparecen los resultados de las selecciones de pines visibles.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Solo se muestran las 32 descargas y resultados de selección más recientes. Se conservan los archivos guardados.
