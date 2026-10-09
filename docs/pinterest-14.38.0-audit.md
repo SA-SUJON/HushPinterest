@@ -9,6 +9,7 @@ Inspected October 9, 2026. This reference combines a signed-in survey of the ori
 | [Factory app map](pinterest-14.38.0-factory-map.md) | APK identity, signing, manifest, components, package layout and stable update anchors |
 | [Advertising delivery](pinterest-14.38.0-ads.md) | Native content models, third-party ad configuration, GMA headers and payloads, current filters, gaps and acceptance criteria |
 | [Tracking and privacy](pinterest-14.38.0-privacy.md) | All nine telemetry paths, ten startup jobs, eight manifest flags, identifier/referrer/link flows and limits |
+| [Runtime measurements](pinterest-14.38.0-runtime.md) | Attributed network observations, CPU and media timers, background scheduling and battery measurement limits |
 | [Patch coverage and customization](pinterest-14.38.0-patch-reference.md) | All 23 patches, native alternatives, concrete additions and a maintenance checklist |
 | This page | Live screen observations, evidence boundaries, key decisions and the next investigation priorities |
 
@@ -42,12 +43,19 @@ The initial logged-out capture is in the [app map](pinterest-14.38.0-factory-map
 | Label | What it establishes | What it does not establish |
 |---|---|---|
 | **Live** | A saved screenshot was visually inspected and its current UI hierarchy recorded | Every account, rollout or device has the same screen |
+| **Measured runtime** | A timed capture or operating-system counter records activity under the stated protocol | Encrypted payload contents, universal behavior or causal battery savings |
 | **Native static** | An instruction, annotation, resource or manifest node exists in the original APK | The branch ran, a value was populated, or a server received it |
 | **Patch source** | Current code targets a particular boundary and implements a behavior | The reviewed source is installed on a phone or every runtime branch passed |
 | **Documented by Pinterest/platform** | The linked official source describes a supported behavior | Exact implementation or account availability in this APK |
 | **Candidate** | There is a specific investigation or patch opportunity | The hook has been implemented or verified |
 
 Raw signed-in screenshots, hierarchy files and packet data remain local because they can contain account information, suggestions and history. Four account-name-free settings captures are included below. Evidence IDs in the survey table refer to the retained local capture sequence. Repeated return screens are omitted from the table.
+
+### Measured runtime summary
+
+The [controlled runtime study](pinterest-14.38.0-runtime.md) captured 10,122 packets and correlated visible connections with the app's socket ownership. Startup included Pinterest API/tracking service names and AppsFlyer. Three minutes of feed browsing received about 4.2 MB and recorded 94.722 seconds of video activity. The following ten-minute background intervals were quiet for this app, with 7,272 combined bytes while Home was visible and 2,719 combined bytes with the display off.
+
+Those byte totals use Android's primary-app-UID counters and the chapter's recorded counter intervals. They do not identify encrypted request bodies or assign every byte to an ad. A short background sample also cannot rule out the delayed workers found in the scheduler. The emulator provides software activity measurements. Physical battery drain remains unmeasured while the prepared phone is connected to USB power.
 
 ## How ads reach the screen
 
@@ -170,7 +178,7 @@ These are proposed work items, not completed features. The linked chapters conta
 | P1 | Report exact ad-hook coverage | Current capability booleans can remain true when only some holder/view targets match. Preserve hard refusal on unsafe targets and show partial support honestly |
 | P1 | Verify nested shopping modules in search and closeups | Both were directly observed. Check wrapper/headline removal, preserved organic content and list pagination |
 | P1 | Trace GMA headers and lifecycle after toggles | Startup suppression does not tear down an already initialized SDK. Measure cold/warm starts and preserve native header cleanup before guarding additions |
-| P1 | Establish a working, attributable stock/patched network comparison | This run's capture was inconclusive. Verify capture completeness with a known content request before using it to judge privacy |
+| P1 | Compare patches against the measured factory network baseline | Guest capture now records app traffic and Android UID counters. Repeat equivalent workloads with patched configurations before claiming suppression or savings |
 | P2 | Diff endpoints, SDK transports, startup tags and identifier readers on each APK update | Existing fingerprints can still match while upstream adds new telemetry |
 | P2 | Trace APP_START, first-party referrer storage and optional request headers | The source constructs attribution data outside AppsFlyer. Determine whether final delivery is already covered before adding redundant blocks |
 | P2 | Improve canonical pin-link and regional-host handling | Use typed pin IDs where already available. Preserve signed URLs, functional queries and board/invite routes |
@@ -210,6 +218,6 @@ These names locate live elements. A generic `list_action`, sheet button or Gesta
 
 ## Remaining evidence gaps
 
-The audit did not cover business-account tooling, paid campaigns, populated-board actions, all video formats, full creation/edit/publish flows, private messaging, actual notification delivery, login-provider compatibility, password recovery, regional consent flows, offline recovery, large-text/TalkBack use, performance/battery measurements or exhaustive remote experiments. It did not compare a newly built patched APK against this factory run.
+The audit did not cover business-account tooling, paid campaigns, populated-board actions, all video formats, full creation/edit/publish flows, private messaging, actual notification delivery, login-provider compatibility, password recovery, regional consent flows, offline recovery, large-text/TalkBack use or exhaustive remote experiments. The [runtime chapter](pinterest-14.38.0-runtime.md) records the measured network, background and CPU activity and separates software activity from physical battery drain. It did not compare a newly built patched APK against this factory run.
 
 Original-media, share-link and push behavior from earlier patch work can remain useful historical evidence, but it must not be relabeled as a fresh factory observation. The named snapshot preserves this audit's signed-in baseline locally for those future comparisons.

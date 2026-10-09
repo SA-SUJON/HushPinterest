@@ -198,7 +198,9 @@ The only explicit user-certificate trust anchor is inside `debug-overrides`. Thi
 
 A narrower base cleartext policy is a possible hardening change. First inventory real HTTP use, especially external web destinations, redirects and SDK fallbacks. Changing the default without those checks could break intentional navigation. Retain the domain and trust-policy diff as part of each original-APK update review.
 
-### Network observation and its limits
+### Initial network capture and the working follow-up
+
+The later [runtime measurement](pinterest-14.38.0-runtime.md) used a guest capture on the active Wi-Fi interface and obtained useful application traffic. It confirmed primary-UID-correlated TLS connections naming Pinterest services and AppsFlyer, with independent per-UID traffic and CPU counters. The earlier failed capture below is retained to explain why its apparent silence was misleading.
 
 A whole-emulator packet capture ran during the signed-in factory survey on October 9, 2026, approximately 4:11 PM to 4:29 PM EDT. Pinterest was in the foreground while home, pin, search and settings screens were inspected. Other apps and system services were present. No TLS decryption was performed, and no advertiser destination was opened.
 
@@ -218,4 +220,4 @@ The multicast DNS records described local discovery. Their names and address val
 
 **This result does not show that Pinterest sends no tracking or advertising traffic.** A sparse capture can miss the application's actual network path. Reused connections also produce no new TLS ClientHello, so absent SNI would not establish absent traffic even with a working capture. The offline parser additionally does not decode QUIC/HTTP3, encrypted DNS, hidden Encrypted ClientHello names, TCP DNS or fragmented IP traffic. Visible outer SNI, when present, can be a cover name rather than the hidden destination.
 
-The static endpoint and SDK findings in this reference therefore remain separate from observed delivery. The next controlled network study should first confirm that a known content request appears in the capture and establish per-app attribution. Only then should stock and patched builds be compared using equivalent actions, account state and cold/warm starts. Record sanitized destinations and counts, keep authentication data private, and distinguish a DNS lookup or TLS handshake from a completed upload.
+The follow-up established a working collection path and conservative per-app correlation. Static endpoint and SDK findings still remain separate from confirmed payload delivery. Stock and patched builds should now be compared using equivalent actions, account state and cold/warm starts. Record sanitized destinations and counts, keep authentication data private, and distinguish a DNS lookup or TLS handshake from a completed upload.
