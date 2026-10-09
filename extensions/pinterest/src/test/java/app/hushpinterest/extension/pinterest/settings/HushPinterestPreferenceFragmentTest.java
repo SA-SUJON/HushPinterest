@@ -228,12 +228,12 @@ public class HushPinterestPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushPinterestPreferenceFragment page = pageOf(controller);
             assertEquals("Hide ads", String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getTitle()));
-            assertEquals("Removes promoted pins from your home feed, search, related pins and boards, and hides " +
-                "panels that only hold ads.",
+            assertEquals("Removes promoted pins from your home feed, search, related pins and boards, and hides "
+                + "panels that only hold ads.",
                     String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getSummary()));
             assertEquals("Hide AI-labeled pins", String.valueOf(page.findPreference(Settings.HIDE_AI_PINS.key).getTitle()));
-            assertEquals("Removes pins that Pinterest labels as made or changed with AI from the same places. AI " +
-                "images without the label still show.",
+            assertEquals("Removes pins that Pinterest labels as made or changed with AI from the same places. AI "
+                + "images without the label still show.",
                     String.valueOf(page.findPreference(Settings.HIDE_AI_PINS.key).getSummary()));
             // Hide ads was always in Manager's default selection and ships on. Hide AI-labeled pins
             // joined it later, so it starts off and a default build shows Pinterest's own feed.

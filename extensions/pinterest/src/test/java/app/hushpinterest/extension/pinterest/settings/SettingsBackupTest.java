@@ -965,8 +965,8 @@ public class SettingsBackupTest {
             assertFalse(language + " has an English name", message.contains("Hide ads ("));
             assertTrue(language, message.contains(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Hide ads"), on, off)));
             assertTrue(language, message.contains(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Download pins"), off, on)));
-            assertTrue(language, message.contains(L10n.t("Your choice is saved, but this build doesn't include the " +
-                "patch for it.")));
+            assertTrue(language, message.contains(L10n.t("Your choice is saved, but this build doesn't include the "
+                + "patch for it.")));
         }
     }
 

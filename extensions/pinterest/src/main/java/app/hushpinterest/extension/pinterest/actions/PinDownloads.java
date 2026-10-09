@@ -151,8 +151,8 @@ public final class PinDownloads {
             if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
                 throw new IllegalStateException("Activity unavailable");
             }
-            String text = L10n.t("These details come from the link and file information Pinterest gave the app. " +
-                "HushPinterest hasn't opened the file to check them.")
+            String text = L10n.t("These details come from the link and file information Pinterest gave the app. "
+                + "HushPinterest hasn't opened the file to check them.")
                     + "\n\n" + L10n.f("Supplied width: %s", media.width == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.width))
                     + "\n" + L10n.f("Supplied height: %s", media.height == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.height))
                     + "\n" + L10n.f("Link type: %s", media.urlType == null ? L10n.t("Unknown") : media.urlType);
@@ -173,8 +173,8 @@ public final class PinDownloads {
 
     private static String refusalMessage(PinMedia.Refusal refusal) {
         switch (refusal) {
-            case ADAPTIVE_VIDEO: return L10n.t("Pinterest only offered a streaming video for this pin, not a file " +
-                "that can be downloaded.");
+            case ADAPTIVE_VIDEO: return L10n.t("Pinterest only offered a streaming video for this pin, not a file "
+                + "that can be downloaded.");
             case MP4_MISSING: return L10n.t("Pinterest didn't offer a downloadable video file for this pin.");
             case IMAGE_MISSING: return L10n.t("Pinterest hasn't supplied an image to download.");
             case IMAGE_TYPE: return L10n.t("HushPinterest can't download this type of image.");

@@ -160,8 +160,8 @@ public class PinMenuTest {
         assertTrue(row.isFocusable());
         assertTrue(row.getContentDescription().toString().contains("streaming video"));
         assertTrue(row.performClick());
-        assertTrue(details().contains("Pinterest only offered a streaming video for this pin, not a file that can " +
-            "be downloaded."));
+        assertTrue(details().contains("Pinterest only offered a streaming video for this pin, not a file that can "
+            + "be downloaded."));
         assertEquals(0, host.dismissed);
         assertNoDownload();
     }
