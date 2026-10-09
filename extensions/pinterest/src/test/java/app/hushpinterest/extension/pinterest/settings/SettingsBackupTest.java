@@ -940,7 +940,7 @@ public class SettingsBackupTest {
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS);
         SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false,
                 Settings.DOWNLOAD_PINS, true, Settings.EXTERNAL_BROWSER, true));
-        String unavailable = "Saved choice only. This build doesn't include this control.";
+        String unavailable = "Your choice is saved, but this build doesn't include the patch for it.";
         assertEquals("3 switches will change.\n\nHide ads (On to Off)\n\nDownload pins (Off to On)\n"
                 + unavailable + "\n\nOpen links in your browser (Off to On)\n" + unavailable,
                 SettingsBackupPreference.previewMessage(snapshot));
@@ -965,7 +965,8 @@ public class SettingsBackupTest {
             assertFalse(language + " has an English name", message.contains("Hide ads ("));
             assertTrue(language, message.contains(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Hide ads"), on, off)));
             assertTrue(language, message.contains(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Download pins"), off, on)));
-            assertTrue(language, message.contains(L10n.t("Saved choice only. This build doesn't include this control.")));
+            assertTrue(language, message.contains(L10n.t("Your choice is saved, but this build doesn't include the " +
+                "patch for it.")));
         }
     }
 

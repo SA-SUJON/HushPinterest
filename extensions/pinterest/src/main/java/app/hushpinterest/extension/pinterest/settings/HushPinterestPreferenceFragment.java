@@ -621,7 +621,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         String status;
         if (!HushPinterestPause.isPaused()) {
             // The version lives on the About page. Here it pushed the line that matters below it.
-            status = pausedNext ? L10n.t("HushPinterest pauses when Pinterest restarts.") : L10n.t("Your controls are active.");
+            status = pausedNext ? L10n.t("HushPinterest pauses when Pinterest restarts.") : L10n.t("Your switches " +
+                "are working.");
         } else if (pausedNext) {
             status = pausedSummary(HushPinterestPause.reason(), context.getPackageName())
                     + " " + L10n.t("Tap to turn it back on.");

@@ -331,7 +331,7 @@ public class HushPinterestPreferenceFragmentTest {
             List<Preference> rows = rowsOf(controller);
             Preference card = rows.get(0);
             assertEquals("HushPinterest is on", String.valueOf(card.getTitle()));
-            assertEquals("Your controls are active.", String.valueOf(card.getSummary()));
+            assertEquals("Your switches are working.", String.valueOf(card.getSummary()));
             Preference version = null;
             for (Preference row : rows) {
                 if ("Version".contentEquals(row.getTitle())) version = row;

@@ -392,7 +392,8 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
                 message.append("\n\n").append(L10n.f("%1$s (%2$s to %3$s)", switchName(setting),
                         switchValue(setting.persistedValue()), switchValue((Boolean) entry.getValue())));
                 if (!available(setting)) {
-                    message.append('\n').append(L10n.t("Saved choice only. This build doesn't include this control."));
+                    message.append('\n').append(L10n.t("Your choice is saved, but this build doesn't include the " +
+                        "patch for it."));
                 }
             }
             if (snapshot.unknown > 0) {

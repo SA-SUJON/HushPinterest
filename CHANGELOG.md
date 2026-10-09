@@ -10,6 +10,7 @@ Every HushPinterest release, newest first.
 * **Pinterest:** Each patch's description in Morphe Manager now says which page of HushPinterest settings holds its switch, and whether that switch starts on or off.
 * **Pinterest:** Patch descriptions in Morphe Manager are rewritten in plain English. Each one says what the patch changes, why you might want it, and ends with where its switch is and whether it starts on or off.
 * **Pinterest:** Setting rows in HushPinterest settings are reworded in plain English, with restart reminders and clearer notes on when a change shows. Translations for German, Spanish, Indonesian, Brazilian Portuguese and Turkish are updated to match.
+* **Pinterest:** Download, setup guide, import and update-check messages are plainer and say what to do next. Translations are updated to match.
 
 ## 0.0.5 (2026-10-07)
 
