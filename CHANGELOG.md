@@ -4,6 +4,9 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Developer notes:** Added a [signed-in factory audit](docs/pinterest-14.38.0-audit.md) with ad-delivery traces, privacy boundaries, all 23 patch mappings, native settings, screenshots and specific work to investigate next. Clarified that analytics filtering covers selected paths.
+
+* **Developer notes:** Mapped the factory Pinterest 14.38.0 APK and first-run screen, with patch anchors for future updates.
 * **Pinterest:** Morphe Manager's default selection now holds every patch but Spoof signature for Google sign-in, so you don't need Expert mode to find a feature. The 16 patches that joined it start with their switches off, so a build patched with the defaults acts like Pinterest until you turn one on in HushPinterest settings. Hide ads, Disable analytics, Strip link tracking and Hide advertising ID still start on.
 * **Pinterest:** Hide AI-labeled pins now starts off. If you updated without ever changing it, it's off now, so turn it back on from the Feed page of HushPinterest settings if you want it.
 * **Pinterest:** In Expert mode, Disable update nag sits under Updates and the two button patches under Navigation, so the Interface group is shorter to read.
