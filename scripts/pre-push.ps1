@@ -46,17 +46,22 @@ if ($env:HUSHPINTEREST_SKIP_PRE_PUSH -eq '1') {
 . (Join-Path $PSScriptRoot 'common.ps1')
 
 # A hook runs with git's own environment. User environment variables set after the shell
-# launched, or set in the user scope only, may be absent. Import the five this script and
+# launched, or set in the user scope only, may be absent. Import the six this script and
 # its suites need from the registry so a gate worktree can find the desktop CLI, the
-# fixture folder, the build governor, the machine's build queue and the device serial.
-# Without the wrapper and the queue, the gate's Gradle build ran outside the queue.
-foreach ($envName in @('HUSHPINTEREST_DESKTOP_JAR', 'HUSHPINTEREST_FIXTURE_DIR',
+# fixture folder, the applied record store, the build governor, the machine's build queue and
+# the device serial. Without the wrapper and the queue, the gate's Gradle build ran outside the
+# queue. HUSHPINTEREST_RELEASE_GATE is never imported: only a release run sets it, for its push.
+foreach ($envName in @('HUSHPINTEREST_DESKTOP_JAR', 'HUSHPINTEREST_FIXTURE_DIR', 'HUSHPINTEREST_APPLY_RECORDS',
         'HUSHPINTEREST_BUILD_WRAPPER', 'HUSHPINTEREST_DEVICE_SERIAL', 'BUILD_QUEUE_SCRIPT')) {
     if (-not (Test-Path "Env:\$envName")) {
         $regValue = [Environment]::GetEnvironmentVariable($envName, [EnvironmentVariableTarget]::User)
         if ($regValue) { Set-Item -LiteralPath "Env:\$envName" -Value $regValue }
     }
 }
+# Read once and taken out of the environment, so no suite this gate runs (the routing contracts
+# start this hook themselves) takes the push it's checking for a release push of its own.
+$script:releasePush = $env:HUSHPINTEREST_RELEASE_GATE -eq '1'
+if (Test-Path Env:\HUSHPINTEREST_RELEASE_GATE) { Remove-Item -LiteralPath Env:\HUSHPINTEREST_RELEASE_GATE }
 
 $zeroObject = '0' * 40
 # The tip of each pushed ref, peeled, filled in by Get-PushedPaths. The build gate builds each of
@@ -108,6 +113,7 @@ function Assert-PatchFixtures {
     }
     $missing = @()
     $count = 0
+    $declared = @()
     foreach ($version in @($target.PackageVersions)) {
         $codes = @($target.PackageVersionCodes[$version] | Where-Object { $_ })
         if ($codes.Count -eq 0) {
@@ -122,6 +128,7 @@ function Assert-PatchFixtures {
             if (-not (Test-Path -LiteralPath $file -PathType Leaf) -or (Get-Item -LiteralPath $file).Length -eq 0) {
                 $missing += $name
             }
+            $declared += $file
             $count++
         }
     }
@@ -130,7 +137,57 @@ function Assert-PatchFixtures {
             ($missing -join ', ') + ". Restore those vendor APKs in $directory, then push again.")
     }
     Write-Step "$count declared Pinterest fixture(s) found"
+    # For a release push, which patches each of them (Invoke-ReleaseFixtureApply).
+    $script:declaredFixtureFiles = $declared
     return $directory
+}
+
+function Invoke-ReleaseFixtureApply {
+    <#
+        A release push (HUSHPINTEREST_RELEASE_GATE=1, which scripts/release/release.ps1 sets for
+        its own push) patches every declared fixture with the bundle this gate just built from the
+        pushed commit, through that commit's verify-all-patches.ps1: report, manifest delta,
+        resource table, DexDiff and host references. -KeepIn keeps each passing run under its key,
+        so the receipt and patch-for-device.ps1 can take it for that same bundle instead of
+        patching again. A record is accepted only when its key matches, and the key holds this
+        bundle's hash, so a record from any other build is never read. With none, the fixture is
+        patched in full.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$GateRoot,
+        [Parameter(Mandatory = $true)][string[]]$Fixtures,
+        [Parameter(Mandatory = $true)][string]$Commit
+    )
+
+    $desktopJar = $env:HUSHPINTEREST_DESKTOP_JAR
+    if (-not $desktopJar -or -not (Test-Path -LiteralPath $desktopJar -PathType Leaf)) {
+        throw ('A release push patches every declared fixture, which needs HUSHPINTEREST_DESKTOP_JAR to name ' +
+            'the Morphe desktop CLI. Set it, then push again.')
+    }
+    $bundle = Get-ReleaseBundlePath -Root $GateRoot -Version (Get-BundleVersion -Root $GateRoot)
+    if (-not (Test-Path -LiteralPath $bundle -PathType Leaf)) {
+        throw "The release gate's :patches:buildAndroid left no bundle at $bundle, so there is nothing to patch the fixtures with."
+    }
+    $verifyAll = Join-Path $GateRoot 'scripts/verify-all-patches.ps1'
+    $store = Get-AppliedRecordStore
+    # A pushed commit from before records existed has no -KeepIn, and is patched without keeping.
+    $keeps = (Get-Command $verifyAll).Parameters.ContainsKey('KeepIn')
+    $work = Join-Path ([System.IO.Path]::GetTempPath()) ('hushpinterest-release-gate-' + [guid]::NewGuid().ToString('N'))
+    try {
+        foreach ($fixture in $Fixtures) {
+            Write-Step "release push: patching $(Split-Path -Leaf $fixture) with the bundle built from $Commit"
+            $arguments = @{ Apk = $fixture; DesktopJar = $desktopJar; WorkDir = $work; Bundle = $bundle }
+            if ($keeps) { $arguments['KeepIn'] = $store }
+            $global:LASTEXITCODE = 0
+            Invoke-CommitScript -Script $verifyAll -Arguments $arguments
+            if ($LASTEXITCODE -ne 0) {
+                throw ("$(Split-Path -Leaf $fixture) did not pass verify-all-patches.ps1 with the bundle built from " +
+                    "$Commit. Read the output above. A release can't go out on it.")
+            }
+        }
+    } finally {
+        if (Test-Path -LiteralPath $work) { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue }
+    }
 }
 
 function Get-PushedPaths {
@@ -801,6 +858,13 @@ try {
             ':extensions:pinterest:lint',
             ':patches:fixtureTest'
         ) }
+        # A release push is the one gate a release runs, so it also builds the bundle, last, and
+        # patches every declared fixture with it below. Everyday pushes don't.
+        $releaseGate = $touchesCode -and $script:releasePush
+        if ($releaseGate) {
+            Write-Step 'release push: building the bundle and patching every declared fixture with it'
+            $tasks += ':patches:buildAndroid'
+        }
         # HUSHPINTEREST_BUILD_WRAPPER names a PowerShell script that runs Gradle on this machine,
         # called as <wrapper> -ProjectDir <repository> -Tasks <task>...: a machine that shares its
         # CPU and memory between several builds points it at a governor, which takes its own
@@ -877,6 +941,10 @@ try {
                     Invoke-CommitScript -Script $buildAdvisories -Arguments @{ Root = $gateRoot }
                 }
                 if ($LASTEXITCODE -ne 0) { throw 'The resolved build advisory scan did not pass.' }
+                if ($releaseGate) {
+                    $releaseCommit = if ($gateCommit) { $gateCommit } else { 'the working tree' }
+                    Invoke-ReleaseFixtureApply -GateRoot $gateRoot -Fixtures $script:declaredFixtureFiles -Commit $releaseCommit
+                }
                 } finally {
                     $env:HUSHPINTEREST_FIXTURE_DIR = $savedFixtureDir
                     $env:HUSHPINTEREST_REQUIRE_FIXTURES = $savedRequiredFixtures

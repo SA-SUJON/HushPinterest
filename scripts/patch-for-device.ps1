@@ -20,6 +20,13 @@
     HUSHPINTEREST_WORKDIR, Java through -Java, HUSHPINTEREST_JAVA or JAVA_HOME, and aapt2 through
     -Aapt2, HUSHPINTEREST_AAPT2 or the SDK. None of them has a machine-specific default.
 
+    When the release push gate has already patched this exact bundle onto this APK with the same
+    patch selection, tools and verifier files, and kept the run (verify-all-patches.ps1 -KeepIn),
+    that run's patched APK is signed with apksigner beside aapt2 and handed back instead of patching
+    again. The report and manifest checks below still run on it. The store is -AppliedDir, else
+    HUSHPINTEREST_APPLY_RECORDS, else the default one in the temp folder; -NoReuse always patches.
+    Nothing this script makes is kept there: it skips the resource table check.
+
 .EXAMPLE
     scripts/patch-for-device.ps1 -Serial $env:HUSHPINTEREST_DEVICE_SERIAL
 #>
@@ -52,7 +59,11 @@ param(
     [string]$OutputApk,
     # The checkout whose catalog and release bundle are used, the one holding this script unless
     # given. The contract tests point it at a fixture.
-    [string]$Root
+    [string]$Root,
+    # The applied record store to look for a gate run of this bundle in.
+    [string]$AppliedDir,
+    # Patch with the CLI even when a kept gate run matches.
+    [switch]$NoReuse
 )
 
 $ErrorActionPreference = 'Stop'
@@ -168,6 +179,48 @@ Write-Host "[device] $($names.Count) patches from $(Split-Path -Leaf $bundle) on
 $patchInput = Get-MergedApk -Apk $Apk -Destination (Join-Path $OutDir 'stock-merged.apk') `
     -Java $Java -DesktopJar $DesktopJar
 $stockManifest = Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2
+
+# A gate run that patched this exact bundle onto this APK with these patches and passed every check,
+# as verify-all-patches.ps1 -KeepIn keeps it. Nothing is hashed while the store holds no record.
+$recorded = $null
+if (-not $NoReuse) {
+    $store = Get-AppliedRecordStore -Path $AppliedDir
+    if (@(Get-AppliedRecords -Store $store).Count -gt 0) {
+        $hostStubs = Resolve-HostReferenceStubs -AndroidJar $AndroidJar -ApiVersions $ApiVersions -Aapt2 $Aapt2
+        $AndroidJar = $hostStubs.AndroidJar
+        $ApiVersions = $hostStubs.ApiVersions
+        $identity = Get-AppliedRecordKey -Bundle $bundle -Fixture $Apk -PatchList $catalogPath -PatchNames $names `
+            -Forced $false -DesktopJar $DesktopJar -AndroidJar $AndroidJar -ApiVersions $ApiVersions
+        $recorded = Find-AppliedRecord -Store $store -Key $identity.Key
+    }
+}
+if ($recorded) {
+    # The kept APK is unsigned. apksigner signs it with the same key and alias the CLI would have
+    # used, reading the password from the environment so it stays off the command line.
+    Write-Host ("[device] this bundle, APK and patch selection passed every check in the gate run kept as " +
+        "$($identity.Key) at $($recorded.RecordedAt); signing that APK instead of patching again")
+    $apksigner = Join-Path (Split-Path -Parent $Aapt2) 'apksigner.bat'
+    if (-not (Test-Path -LiteralPath $apksigner -PathType Leaf)) {
+        throw "No apksigner beside aapt2 at $apksigner to sign the kept APK. Pass -NoReuse to patch and sign with the CLI."
+    }
+    $savedPassword = [Environment]::GetEnvironmentVariable($passwordVariable, [EnvironmentVariableTarget]::Process)
+    $preference = $ErrorActionPreference
+    try {
+        [Environment]::SetEnvironmentVariable($passwordVariable, $keystorePassword, [EnvironmentVariableTarget]::Process)
+        $ErrorActionPreference = 'Continue'
+        $global:LASTEXITCODE = -1
+        $signOutput = @(& $apksigner sign --ks $Keystore --ks-key-alias $KeyAlias --ks-pass "env:$passwordVariable" `
+            --key-pass "env:$passwordVariable" --out $out $recorded.PatchedApk 2>&1 | ForEach-Object { "$_" })
+        $signExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $preference
+        [Environment]::SetEnvironmentVariable($passwordVariable, $savedPassword, [EnvironmentVariableTarget]::Process)
+    }
+    if ($signExitCode -ne 0 -or -not (Test-Path -LiteralPath $out -PathType Leaf)) {
+        throw "apksigner could not sign the kept APK (exit $signExitCode): $($signOutput -join ' ')"
+    }
+    Copy-Item -LiteralPath $recorded.Result -Destination $result
+} else {
 $enable = @()
 foreach ($name in $names) { $enable += '-e'; $enable += $name }
 $arguments = @('patch', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result,
@@ -210,6 +263,7 @@ try {
     }
     Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue
 }
+}
 # The same report check the throwaway verification applies: every requested patch, every
 # step, the target, and a real APK. The build that goes onto a phone deserves no less.
 $report = $null
@@ -225,12 +279,18 @@ $patchedManifest = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
 $manifestCheck = Test-ManifestDelta -Stock $stockManifest -Patched $patchedManifest `
     -SelectedPatchNames $manifestSelection -ApprovedManifestDelta $approvedChanges
 if (-not $manifestCheck.Valid) { throw "Patching changed an unapproved compiled manifest fact: $($manifestCheck.Reason)" }
+if ($recorded) {
+    # Signing adds a signature block and leaves the dex alone, and these dex passed DexDiff and the
+    # host reference check when the gate kept the run.
+    Write-Host '[device] the structural and host reference checks passed on this dex in the kept run'
+} else {
 $registerReport = Join-Path $OutDir 'injected-registers.txt'
 $global:LASTEXITCODE = -1
 & (Join-Path $PSScriptRoot 'verify-injected-registers.ps1') -CleanApk $Apk -CleanMerged $patchInput `
     -PatchedApk $out -ReportPath $registerReport -Java $java -DesktopJar $DesktopJar -Aapt2 $Aapt2 `
     -SelectedPatchNames $manifestSelection -AndroidJar $AndroidJar -ApiVersions $ApiVersions
 if ($LASTEXITCODE -ne 0) { throw 'Patched bytecode failed its compiled mutation or structural checks.' }
+}
 Write-Host "[device] applied $(@($report.appliedPatches).Count), failed $(@($report.failedPatches).Count), target $($report.packageName) $($report.packageVersion)"
 if ($outputReservation) {
     $input = [IO.File]::OpenRead($out)
