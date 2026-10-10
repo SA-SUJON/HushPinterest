@@ -172,9 +172,7 @@ Firebase and Google Analytics collection is turned off	La recopilación de Fireb
 Analytics launch tasks	Inicio de estadísticas
 Analytics uploads	Envíos de estadísticas
 Strip link tracking	Quitar rastreo de enlaces
-Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them unless Plain pin links is on.	Quita las etiquetas de seguimiento de los enlaces que copias o compartes. Los enlaces cortos pin.it se quedan como los creó Pinterest, salvo que Enlaces de pin simples esté activado.
-Plain pin links	Enlaces de pin simples
-Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.	Los enlaces de pin.it copiados y compartidos pasan a ser el enlace de pinterest.com del propio pin, así no dicen quién los compartió. Si HushPinterest aún no conoce el pin, un enlace copiado se consulta con Pinterest en segundo plano y se cambia un momento después.
+Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them.	Quita las etiquetas de seguimiento de los enlaces que copias o compartes. Los enlaces cortos pin.it se quedan como los creó Pinterest.
 Hide advertising ID	Ocultar el ID de publicidad
 Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest ve un ID de publicidad vacío con el seguimiento de anuncios limitado, como si hubieras borrado tu ID de publicidad en los ajustes de Android.
 Remove ad tracking permissions	Quitar permisos de seguimiento publicitario

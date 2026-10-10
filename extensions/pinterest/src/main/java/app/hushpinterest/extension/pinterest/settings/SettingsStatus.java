@@ -44,7 +44,6 @@ public final class SettingsStatus {
     public static boolean analyticsUploads() { return false; }
     public static boolean stripLinkTracking() { return false; }
     public static boolean linkTracking() { return false; }
-    public static boolean plainPinLinks() { return false; }
     public static boolean hideAdvertisingId() { return false; }
     public static boolean advertisingId() { return false; }
     public static boolean removeAdTrackingPermissions() { return false; }

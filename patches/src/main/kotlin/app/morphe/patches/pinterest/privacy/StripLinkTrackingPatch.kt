@@ -6,13 +6,11 @@
  */
 package app.morphe.patches.pinterest.privacy
 
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
 import app.morphe.patches.pinterest.misc.extension.handleTargets
-import app.morphe.patches.pinterest.misc.extension.patchLog
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
@@ -35,9 +33,8 @@ internal val OUTGOING_LINK_CALLS = mapOf(
 val stripLinkTrackingPatch = bytecodePatch(
     name = PATCH,
     description = "Removes tracking tags from links you copy or share from Pinterest. The link still goes to the " +
-        "same place. Its Plain pin links switch also turns short pin.it links into the pin's own pinterest.com " +
-        "link, so they don't show who shared them. Strip link tracking is on by default and Plain pin links " +
-        "starts off. Both are in HushPinterest settings > Privacy.",
+        "same place, and short pin.it links stay as they are. On by default. Turn it off in HushPinterest" +
+        " settings > Privacy.",
     default = true,
 ) {
     category("Privacy")
@@ -47,7 +44,6 @@ val stripLinkTrackingPatch = bytecodePatch(
     execute {
         requireStatusMethod("stripLinkTracking")
         requireStatusMethod("linkTracking")
-        requireStatusMethod("plainPinLinks")
         val counts = redirectPrivacyCalls(OUTGOING_LINK_CALLS)
         val covered = handleTargets(PATCH, "outgoing link boundaries", listOf("shared text", "copied text")) { target ->
             val covered = counts.any { (call, count) -> count > 0 &&
@@ -56,16 +52,6 @@ val stripLinkTrackingPatch = bytecodePatch(
             if (covered) null else "no $target boundary was found"
         }
         if (covered == 2) enableCapability("linkTracking")
-        // Plain pin links has its own two hooks, found before either goes in. Without both shapes
-        // this patch still strips tracking, and the switch stays off the settings screen.
-        val plain = try {
-            insertPlainPinLinks(findPinInvite(), findDirectShare())
-            true
-        } catch (missing: PatchException) {
-            patchLog.warning("$PATCH: ${missing.message}. Plain pin links isn't in this build.")
-            false
-        }
-        if (plain) enableCapability("plainPinLinks")
         enableStatus("stripLinkTracking")
     }
 }

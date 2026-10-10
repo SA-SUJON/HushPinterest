@@ -271,14 +271,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                         + "until you patch again without Disable analytics."), SettingsIcons.BLOCK);
             patchToggle(privacy, context, build, PatchFamily.STRIP_LINK_TRACKING, Settings.STRIP_LINK_TRACKING,
                     L10n.t("Strip link tracking"), L10n.t("Removes tracking tags from links you copy or share. "
-                        + "Short pin.it links stay as Pinterest made them unless Plain pin links is on."), SettingsIcons.LINKS);
-            // Its own hooks: a build where Pinterest's invite logger or direct share wasn't found has no row for it.
-            if (build.contains(PatchFamily.STRIP_LINK_TRACKING) && PatchFamily.Capability.PLAIN_PIN_LINKS.installed()) {
-                privacy.addPreference(mark(toggle(context, Settings.PLAIN_PIN_LINKS, L10n.t("Plain pin links"),
-                        L10n.t("Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. "
-                                + "When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.")),
-                        SettingsIcons.LINKS));
-            }
+                        + "Short pin.it links stay as Pinterest made them."), SettingsIcons.LINKS);
             patchToggle(privacy, context, build, PatchFamily.HIDE_ADVERTISING_ID, Settings.HIDE_ADVERTISING_ID,
                     L10n.t("Hide advertising ID"), L10n.t("Pinterest sees an empty advertising ID with ad tracking "
                         + "limited, as if you deleted your ad ID in Android "

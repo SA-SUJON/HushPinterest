@@ -68,7 +68,6 @@ import app.hushpinterest.extension.pinterest.ads.FeedFilter;
 import app.hushpinterest.extension.pinterest.privacy.Analytics;
 import app.hushpinterest.extension.pinterest.privacy.AdvertisingId;
 import app.hushpinterest.extension.pinterest.privacy.LinkTracking;
-import app.hushpinterest.extension.pinterest.privacy.PlainPinLinks;
 import app.hushpinterest.extension.pinterest.ui.InterfaceControls;
 import app.hushpinterest.extension.pinterest.ui.UiHooks;
 import app.hushpinterest.extension.pinterest.ui.UiHooksForTests;
@@ -95,10 +94,6 @@ public class PausedHooksTest {
 
     private static final int MEASURE_SPEC = View.MeasureSpec.makeMeasureSpec(300, View.MeasureSpec.AT_MOST);
     private static final String TRACKED_LINK = "https://www.pinterest.com/pin/123456/?utm_source=share&keep=1";
-    private static final String INVITE_LINK = "https://pin.it/Probe123";
-
-    /** Pinterest's kind of shared object, as its enum names a pin. */
-    enum ProbeKind { PIN }
     private static final Map<String, Object> PIN = Map.of("id", "123456", "images", Map.of(
             "orig", Map.of("url", "https://i.pinimg.com/originals/pin.jpg")));
     /** A pin as a board's own page carries it: saved to board 4242. */
@@ -218,22 +213,6 @@ public class PausedHooksTest {
                         TRACKED_LINK).getCharSequenceExtra(Intent.EXTRA_TEXT)),
                 () -> !TRACKED_LINK.contentEquals(LinkTracking.newPlainText("Pin link", TRACKED_LINK)
                         .getItemAt(0).getText())));
-        // A pin's own invite link, seen as Pinterest makes it, is shared and copied as the plain link.
-        probes.put(Settings.PLAIN_PIN_LINKS, Arrays.asList(
-                () -> {
-                    PlainPinLinks.invite(ProbeKind.PIN, "123456", INVITE_LINK);
-                    return !INVITE_LINK.equals(LinkTracking.cleanText(INVITE_LINK).toString());
-                },
-                () -> !INVITE_LINK.equals(LinkTracking.putStringExtra(new Intent(), Intent.EXTRA_TEXT,
-                        INVITE_LINK).getStringExtra(Intent.EXTRA_TEXT)),
-                () -> !INVITE_LINK.contentEquals(LinkTracking.newPlainText("Pin link", INVITE_LINK)
-                        .getItemAt(0).getText()),
-                // A share straight to one app gets the plain link in its text before the app opens.
-                () -> {
-                    Intent share = new Intent().putExtra(Intent.EXTRA_TEXT, INVITE_LINK);
-                    PlainPinLinks.directShare(null, INVITE_LINK, share);
-                    return !INVITE_LINK.equals(share.getStringExtra(Intent.EXTRA_TEXT));
-                }));
         probes.put(Settings.HIDE_ADVERTISING_ID, Arrays.asList(
                 () -> !"real".equals(AdvertisingId.id("real")),
                 () -> AdvertisingId.limitTracking(false)));

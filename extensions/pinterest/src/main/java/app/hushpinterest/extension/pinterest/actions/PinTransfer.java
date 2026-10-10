@@ -20,11 +20,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
-/**
- * Streams into a chosen document and validates every redirect before connecting. It also asks a
- * pin.it short link where it leads, for Plain pin links.
- */
-public final class PinTransfer {
+/** Streams into a chosen document and validates every redirect before connecting. */
+final class PinTransfer {
     private PinTransfer() {}
 
     // Android 9 saves have one five-minute budget across every redirect and copy, and a
@@ -63,32 +60,6 @@ public final class PinTransfer {
             if (head.getResponseCode() != HttpURLConnection.HTTP_OK) return false;
             String type = head.getContentType();
             return type != null && type.split(";", 2)[0].trim().equalsIgnoreCase(source.mime);
-        } finally {
-            head.disconnect();
-        }
-    }
-
-    /**
-     * Where a redirect at the address points: its Location header, or null when the answer isn't a
-     * redirect. A HEAD request with no redirect followed and no body read. The caller checks the
-     * address and the answer.
-     */
-    public static String location(URI uri, int timeoutMs) throws IOException {
-        return location(uri, timeoutMs, NETWORK);
-    }
-
-    static String location(URI uri, int timeoutMs, Connection factory) throws IOException {
-        HttpURLConnection head = factory.open(uri);
-        try {
-            head.setRequestMethod("HEAD");
-            head.setInstanceFollowRedirects(false);
-            head.setUseCaches(false);
-            head.setConnectTimeout(timeoutMs);
-            head.setReadTimeout(timeoutMs);
-            head.setRequestProperty("Accept-Encoding", "identity");
-            int status = head.getResponseCode();
-            if (status != 301 && status != 302 && status != 303 && status != 307 && status != 308) return null;
-            return head.getHeaderField("Location");
         } finally {
             head.disconnect();
         }
