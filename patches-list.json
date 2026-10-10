@@ -875,7 +875,7 @@
     },
     {
       "name": "Strip link tracking",
-      "description": "Removes tracking tags from links you copy or share from Pinterest. The link still goes to the same place, and short pin.it links stay as they are. On by default. Turn it off in HushPinterest settings > Privacy.",
+      "description": "Removes tracking tags from links you copy or share from Pinterest. The link still goes to the same place. Its Plain pin links switch also turns short pin.it links into the pin's own pinterest.com link, so they don't show who shared them. Strip link tracking is on by default and Plain pin links starts off. Both are in HushPinterest settings > Privacy.",
       "category": "Privacy",
       "use": true,
       "dependencies": [

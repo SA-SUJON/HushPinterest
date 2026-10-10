@@ -94,6 +94,39 @@ public class PinTransferTest {
         @Override public void connect() {}
     }
 
+    @Test public void locationAsksOnceWithHeadAndReadsOnlyARedirect() throws Exception {
+        List<Response> opened = new ArrayList<>();
+        String next = PinTransfer.location(URI.create("https://pin.it/Zz9"), 1500, uri -> {
+            Response response = new Response(uri, 308, "https://api.pinterest.com/url_shortener/Zz9/redirect/");
+            opened.add(response);
+            return response;
+        });
+        assertEquals("https://api.pinterest.com/url_shortener/Zz9/redirect/", next);
+        assertEquals(1, opened.size());
+        Response head = opened.get(0);
+        assertEquals("HEAD", head.getRequestMethod());
+        assertFalse(head.getInstanceFollowRedirects());
+        assertFalse(head.getUseCaches());
+        assertEquals(1500, head.getConnectTimeout());
+        assertEquals(1500, head.getReadTimeout());
+        assertEquals("identity", head.getRequestProperty("Accept-Encoding"));
+        assertEquals(0, head.inputOpens);
+        assertTrue(head.disconnected);
+        for (int status : new int[]{301, 302, 303, 307}) {
+            assertEquals(String.valueOf(status), "/next", PinTransfer.location(URI.create("https://pin.it/Zz9"), 1500,
+                    uri -> new Response(uri, status, "/next")));
+        }
+        for (int status : new int[]{200, 304, 404, 500}) {
+            Response answer = new Response(URI.create("https://pin.it/Zz9"), status, "/ignored");
+            assertNull(String.valueOf(status), PinTransfer.location(URI.create("https://pin.it/Zz9"), 1500, uri -> answer));
+            assertTrue(answer.disconnected);
+        }
+        try {
+            PinTransfer.location(URI.create("https://pin.it/Zz9"), 1500, uri -> { throw new IOException("offline"); });
+            fail("a failed connection answered");
+        } catch (IOException expected) { assertEquals("offline", expected.getMessage()); }
+    }
+
     @Test public void followsOnlyValidatedCdnRedirectsAndClosesIntermediateConnections() throws Exception {
         List<Response> opened = new ArrayList<>();
         HttpURLConnection last = PinTransfer.connect("https://v.pinimg.com/start.mp4", uri -> {

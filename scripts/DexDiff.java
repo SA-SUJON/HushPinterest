@@ -276,7 +276,7 @@ public class DexDiff {
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 3),
-            Map.entry("longPress", 2), Map.entry("surveyPrompts", 2));
+            Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3780,12 +3780,239 @@ public class DexDiff {
             return names.containsAll(BOARD_OPTIONS);
         }
 
+        static final String SENDABLE = "Lcom/pinterest/sendshare/model/SendableObject;";
+
+        /** Pinterest's invite logger, as the patch finds it: (SendableObject, A, B, int, String, String)V on an instance. */
+        static boolean inviteLogger(Method m) {
+            if (m.getImplementation() == null || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals("V")) return false;
+            List<String> types = m.getParameterTypes().stream().map(Object::toString).toList();
+            return types.size() == 6 && types.get(0).equals(SENDABLE) && types.get(3).equals("I")
+                    && types.get(4).equals("Ljava/lang/String;") && types.get(5).equals("Ljava/lang/String;")
+                    && types.subList(1, 3).stream().allMatch(t -> t.startsWith("L") && !t.startsWith("Ljava/") && !t.startsWith("Landroid/"));
+        }
+
         /** True when [i] reads [register] as a value or as a call or array argument. */
         static boolean readsRegister(Instruction i, int register) {
             for (int[] read : valueReads(i)) if (read[0] == register || read[1] == 'W' && read[0] + 1 == register) return true;
             if (i instanceof FiveRegisterInstruction || i instanceof RegisterRangeInstruction)
                 for (int argument : invokeRegisters(i)) if (argument == register) return true;
             return false;
+        }
+
+        static final String START_ACTIVITY = "Landroid/content/Context;->startActivity(Landroid/content/Intent;)V";
+
+        /** A share straight to one app, as the patch finds it in the clean target: where it starts the app, and with what. */
+        record DirectShare(Method method, int at, int shared, int url, int intent) {}
+
+        /** An instance call to a method of the invite logger's shape, in any class. */
+        static boolean inviteLoggerCall(Instruction i) {
+            if (i.getOpcode() != Opcode.INVOKE_VIRTUAL && i.getOpcode() != Opcode.INVOKE_VIRTUAL_RANGE || !(reference(i) instanceof MethodReference call)
+                    || !call.getReturnType().equals("V")) return false;
+            List<String> types = call.getParameterTypes().stream().map(Object::toString).toList();
+            return types.size() == 6 && types.get(0).equals(SENDABLE) && types.get(3).equals("I")
+                    && types.get(4).equals("Ljava/lang/String;") && types.get(5).equals("Ljava/lang/String;")
+                    && types.subList(1, 3).stream().allMatch(t -> t.startsWith("L") && !t.startsWith("Ljava/") && !t.startsWith("Landroid/"));
+        }
+
+        /** True when nothing reaches the instructions after [from], up to and including [to], but [from] and they themselves. */
+        static boolean enteredOnlyFrom(FeatureFlow graph, int from, int to) {
+            for (int k = 0; k < graph.normal.size(); k++) {
+                for (int next : graph.normal.get(k)) if (next > from && next <= to && (k < from || k >= to)) return false;
+                for (int next : graph.handlers.get(k)) if (next > from && next <= to) return false;
+            }
+            return true;
+        }
+
+        /**
+         * The shares straight to one app in the clean target. Each is a method holding "invite_url"
+         * that starts the app with an intent a static builder made, then passes the shared object and
+         * the invite link to an instance call of the invite logger's shape. Nothing between the start
+         * and that call is entered from elsewhere or writes either value, nothing between the builder
+         * and the start writes the intent, and the start itself is reached only by falling through.
+         * The three registers are distinct and at most v15.
+         */
+        List<DirectShare> directShares() {
+            List<DirectShare> out = new ArrayList<>();
+            for (Method m : clean.holding("invite_url")) {
+                List<Instruction> body = instructions(m);
+                FeatureFlow graph = new FeatureFlow(m);
+                for (int start = 0; start < body.size(); start++) {
+                    Instruction call = body.get(start);
+                    if (call.getOpcode() != Opcode.INVOKE_VIRTUAL || !START_ACTIVITY.equals(String.valueOf(reference(call)))) continue;
+                    List<Integer> started = arguments(call);
+                    int log = -1;
+                    for (int k = start + 1; k < body.size() && log < 0; k++) if (inviteLoggerCall(body.get(k))) log = k;
+                    if (log < 0 || started.size() != 2) continue;
+                    List<Integer> logged = arguments(body.get(log));
+                    if (logged.size() != 7) continue;
+                    int shared = logged.get(1), url = logged.get(6), intent = started.get(1);
+                    if (shared > 15 || url > 15 || intent > 15 || new HashSet<>(List.of(shared, url, intent)).size() != 3) continue;
+                    if (!enteredOnlyFrom(graph, start - 1, start) || !enteredOnlyFrom(graph, start, log)) continue;
+                    boolean written = false;
+                    for (int k = start + 1; k < log; k++) if (writes(body.get(k), shared) || writes(body.get(k), url)) written = true;
+                    if (written) continue;
+                    int made = -1;
+                    for (int k = start - 1; k >= 0 && made < 0; k--) if (writes(body.get(k), intent)) made = k;
+                    if (made < 1 || body.get(made).getOpcode() != Opcode.MOVE_RESULT_OBJECT || !enteredOnlyFrom(graph, made, start)) continue;
+                    Instruction builder = body.get(made - 1);
+                    if (builder.getOpcode() != Opcode.INVOKE_STATIC && builder.getOpcode() != Opcode.INVOKE_STATIC_RANGE
+                            || !(reference(builder) instanceof MethodReference built) || !built.getReturnType().equals("Landroid/content/Intent;")) continue;
+                    out.add(new DirectShare(m, start, shared, url, intent));
+                }
+            }
+            return out;
+        }
+
+        /**
+         * Plain pin links. The invite logger is an instance method of a class holding "invite_url",
+         * shaped (SendableObject, A, B, int, String, String)V, that a method of its own class holding
+         * the string calls. Exactly one call in it builds the log event from (A, kind, B, id String,
+         * int, String, String, ...), its kind and id each the result of a no-argument getter of the
+         * untouched shared object right above it. The hook goes just in front of that call: the
+         * logger's invite link parameter moved into a scratch local, then the hook with the call's
+         * kind and id registers and the scratch. The scratch must be a local nothing in the clean
+         * logger reads before writing, from the event call on, and the link parameter must still be
+         * its argument there. The share straight to one app (see [directShares]) gets the second hook
+         * right in front of its app start, with the shared object, link and intent registers, and
+         * the two stubs it reads the shared object through call the log event's own getters. The
+         * patch puts in both hooks or neither. Found in the clean target, never from the hooks.
+         */
+        void pinInvites(Contract c) {
+            String hook = c.strings.get(0);
+            List<Method> loggers = new ArrayList<>();
+            for (Method caller : clean.holding("invite_url")) {
+                ClassDef owner = clean.classes.get(caller.getDefiningClass());
+                if (owner == null) continue;
+                for (Instruction i : instructions(caller)) {
+                    if (!(reference(i) instanceof MethodReference call) || !call.getDefiningClass().equals(owner.getType())) continue;
+                    for (Method own : owner.getMethods())
+                        if (inviteLogger(own) && own.toString().equals(call.toString()) && !loggers.contains(own)) loggers.add(own);
+                }
+            }
+            // The patch leaves Plain pin links out of a build without exactly this shape, and so
+            // expects nothing here: no flag and, through the unclaimed call check, no hook call.
+            Method logger = loggers.size() == 1 ? loggers.get(0) : null;
+            if (logger == null || clean.duplicates.contains(logger.toString()) || clean.duplicates.contains(logger.getDefiningClass())) {
+                capability(c.callee, false);
+                return;
+            }
+            List<Instruction> was = instructions(logger);
+            List<String> types = logger.getParameterTypes().stream().map(Object::toString).toList();
+            List<Integer> builds = new ArrayList<>();
+            for (int at = 0; at < was.size(); at++) {
+                if (!was.get(at).getOpcode().name().startsWith("INVOKE_") || !(reference(was.get(at)) instanceof MethodReference call)
+                        || call.getReturnType().equals("V")) continue;
+                List<String> p = call.getParameterTypes().stream().map(Object::toString).toList();
+                if (p.size() >= 7 && p.get(0).equals(types.get(1)) && p.get(1).startsWith("L") && p.get(2).equals(types.get(2))
+                        && p.subList(3, 7).equals(List.of("Ljava/lang/String;", "I", "Ljava/lang/String;", "Ljava/lang/String;"))) builds.add(at);
+            }
+            if (builds.size() != 1) { capability(c.callee, false); return; }
+            int event = builds.get(0);
+            Instruction call = was.get(event);
+            int offset = call.getOpcode() == Opcode.INVOKE_STATIC || call.getOpcode() == Opcode.INVOKE_STATIC_RANGE ? 0 : 1;
+            List<Integer> original = arguments(call);
+            if (original.size() < offset + 7) { capability(c.callee, false); return; }
+            int kind = original.get(offset + 1), id = original.get(offset + 3), url = parameter(logger, 5), sendable = parameter(logger, 0);
+            String kindType = ((MethodReference) reference(call)).getParameterTypes().get(1).toString();
+            FeatureFlow graph = new FeatureFlow(logger);
+            java.util.function.IntPredicate entered = at -> {
+                for (int k = 0; k < graph.normal.size(); k++)
+                    if (k != at - 1 && graph.normal.get(k).contains(at) || graph.handlers.get(k).contains(at)) return true;
+                return false;
+            };
+            boolean shaped = kind <= 15 && id <= 15 && kind != id && !entered.test(event);
+            String[] getters = new String[2];
+            for (int register : new int[]{kind, id}) {
+                int write = -1;
+                for (int k = event - 1; k >= 0 && write < 0; k--) if (writes(was.get(k), register)) write = k;
+                Instruction getter = write > 0 ? was.get(write - 1) : null;
+                boolean ok = getter != null && was.get(write).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                        && getter.getOpcode() == Opcode.INVOKE_VIRTUAL && arguments(getter).equals(List.of(sendable))
+                        && reference(getter) instanceof MethodReference read && read.getDefiningClass().equals(SENDABLE)
+                        && read.getParameterTypes().isEmpty() && read.getReturnType().equals(register == kind ? kindType : "Ljava/lang/String;");
+                for (int k = write; ok && k <= event; k++) if (entered.test(k)) ok = false;
+                if (ok && reachedAfterWrite(graph, was, sendable, write - 1)) ok = false;
+                if (ok) getters[register == kind ? 0 : 1] = String.valueOf(reference(getter));
+                shaped &= ok;
+            }
+            // The link must still be the argument at the event call, along every path there.
+            if (reachedAfterWrite(graph, was, url, event)) shaped = false;
+            // And some local the hook's call can name must be free from the event call on.
+            boolean free = false;
+            for (int scratch = 0; scratch < Math.min(16, parameter(logger, -1)) && !free; scratch++)
+                free = scratch != kind && scratch != id && unread(graph, was, event, scratch);
+            if (!shaped || !free) { capability(c.callee, false); return; }
+            List<DirectShare> shares = directShares();
+            DirectShare share = shares.size() == 1 ? shares.get(0) : null;
+            if (share == null || share.method().toString().equals(logger.toString()) || clean.duplicates.contains(share.method().toString())
+                    || clean.duplicates.contains(share.method().getDefiningClass())) {
+                capability(c.callee, false);
+                return;
+            }
+
+            Method m = actual(logger);
+            List<Integer> sites = calls(m, hook, 1);
+            boolean placed = false;
+            if (m != null && sites.size() == 1) {
+                int at = sites.get(0);
+                List<Instruction> body = instructions(m);
+                List<Integer> passed = arguments(body.get(at));
+                int scratch = passed.size() == 3 ? passed.get(2) : -1;
+                Instruction move = at > 0 ? body.get(at - 1) : null;
+                placed = at == event + 1 && at + 1 < body.size() && move != null && move.getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                        && ((TwoRegisterInstruction) move).getRegisterA() == scratch && ((TwoRegisterInstruction) move).getRegisterB() == url
+                        && passed.equals(List.of(kind, id, scratch)) && scratch >= 0 && scratch < parameter(m, -1) && scratch <= 15
+                        && String.valueOf(reference(body.get(at + 1))).equals(String.valueOf(reference(call)))
+                        && arguments(body.get(at + 1)).equals(original)
+                        && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 1, at) && (at - 1 == 0 || onlyFrom(m, at - 1, at - 2));
+                if (!placed) fail(hook + " is not the invite link, kind and id passed right in front of the log event in " + m);
+                else if (!unread(graph, was, event, scratch)) {
+                    fail(hook + " borrows v" + scratch + " in " + m + ", which the logger still reads after its log event");
+                    placed = false;
+                }
+                remove(m, at - 1, at + 1);
+            }
+
+            String direct = c.strings.get(1);
+            Method sharer = actual(share.method());
+            List<Integer> shareSites = calls(sharer, direct, 1);
+            boolean shared = false;
+            if (sharer != null && shareSites.size() == 1) {
+                int at = shareSites.get(0);
+                List<Instruction> body = instructions(sharer);
+                Instruction start = instructions(share.method()).get(share.at());
+                shared = at == share.at() && at + 1 < body.size()
+                        && arguments(body.get(at)).equals(List.of(share.shared(), share.url(), share.intent()))
+                        && START_ACTIVITY.equals(String.valueOf(reference(body.get(at + 1))))
+                        && arguments(body.get(at + 1)).equals(arguments(start))
+                        && onlyFrom(sharer, at + 1, at) && (at == 0 || onlyFrom(sharer, at, at - 1));
+                if (!shared) fail(direct + " is not the shared object, invite link and intent passed right in front of the app start in " + sharer);
+                remove(sharer, at, at + 1);
+            }
+
+            boolean stubs = false;
+            if (placed && shared) {
+                String own = BASE + "privacy/PlainPinLinks;->";
+                List<Opcode> shape = List.of(Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT,
+                        Opcode.RETURN_OBJECT, Opcode.CONST_4, Opcode.RETURN_OBJECT);
+                Method kindStub = stub(own + "sharedKind(Ljava/lang/Object;)Ljava/lang/Object;", shape,
+                        Arrays.asList(null, SENDABLE, getters[0], null, null, null, null));
+                Method idStub = stub(own + "sharedId(Ljava/lang/Object;)Ljava/lang/String;", shape,
+                        Arrays.asList(null, SENDABLE, getters[1], null, null, null, null));
+                stubs = kindStub != null && idStub != null;
+                for (Method read : Arrays.asList(kindStub, idStub)) {
+                    if (read == null) continue;
+                    List<Instruction> body = instructions(read);
+                    int input = parameter(read, 0);
+                    if (firstRegister(body.get(0)) != input || !flow(read).normal.get(0).contains(5) || !arguments(body.get(2)).equals(List.of(input))
+                            || firstRegister(body.get(3)) != firstRegister(body.get(4)) || firstRegister(body.get(5)) != firstRegister(body.get(6))
+                            || ((NarrowLiteralInstruction) body.get(5)).getNarrowLiteral() != 0) {
+                        fail(read + " doesn't answer its input's getter, or null for none");
+                        stubs = false;
+                    }
+                }
+            }
+            capability(c.callee, placed && shared && stubs);
         }
 
         /** True when no path from [from], a handler included, reads [register] before writing it. */
@@ -3802,6 +4029,22 @@ public class DexDiff {
                 if (!writes(body.get(k), register)) work.addAll(graph.normal.get(k));
             }
             return true;
+        }
+
+        /** True when [target] can run after some write to [register], along a branch, a loop or a handler. */
+        static boolean reachedAfterWrite(FeatureFlow graph, List<Instruction> body, int register, int target) {
+            BitSet seen = new BitSet();
+            Deque<Integer> work = new ArrayDeque<>();
+            for (int k = 0; k < body.size(); k++) if (writes(body.get(k), register)) work.addAll(graph.normal.get(k));
+            while (!work.isEmpty()) {
+                int k = work.poll();
+                if (k == target) return true;
+                if (seen.get(k)) continue;
+                seen.set(k);
+                work.addAll(graph.normal.get(k));
+                work.addAll(graph.handlers.get(k));
+            }
+            return false;
         }
 
         static final String TOPIC_BINDER = "Presenter bound to BubblesListView must be of type BubblesListPresenter";
@@ -4343,6 +4586,7 @@ public class DexDiff {
                     case "topicSuggestions": topicSuggestions(c); break;
                     case "boardMenu": boardMenu(c); break;
                     case "surveyPrompts": surveyPrompts(c); break;
+                    case "pinInvites": pinInvites(c); break;
                     case "settings": settings(c); break;
                     default: fail("unknown mutation kind " + c.target);
                 }
