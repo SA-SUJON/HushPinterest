@@ -1,8 +1,9 @@
 /*
- * Original HushPinterest implementation, 2026.
- * Copyright 2026 HushPinterest contributors
- * https://github.com/SysAdminDoc/HushPinterest
- * SPDX-License-Identifier: GPL-3.0-only
+ * Forked from https://github.com/SysAdminDoc/HushTelegram at df79f7d (GPL-3.0),
+ * modified for HushPinterest (Pinterest), 2026.
+ *
+ * Copyright 2026 HushTelegram contributors
+ * https://github.com/SysAdminDoc/HushTelegram
  */
 package app.morphe.patches.pinterest.notifications
 
@@ -11,13 +12,20 @@ import app.morphe.FixtureDex
 import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.pinterest.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.pinterest.privacy.PINTEREST_CERTIFICATE_SHA1
 import app.morphe.patches.pinterest.privacy.callReference
 import app.morphe.patches.pinterest.privacy.identity
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -146,7 +154,75 @@ class PushNotificationsFixtureTest {
         }
     }
 
-    private fun header(owner: ClassDef): Method? = owner.methods.singleOrNull { method ->
+    @Test
+    fun `a moved anchor, a changed address or a path around a header refuses before any change`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val input = ExtensionDex.classes() + read(build)
+            val changes = listOf(
+                "key" to "request header builder has 0 matches",
+                "sink" to "no longer goes straight into one header write",
+                "url" to "request URL factory has 0 matches",
+                "create" to "has a caller it doesn't know",
+                "token" to "has a caller it doesn't know",
+                "bypass" to "reaches the certificate header write without its name",
+                "apiKey" to "request header builder has 0 matches",
+                "apiConnection" to "no longer followed by the API key header",
+                "apiBypass" to "no longer followed by the API key header",
+                "packageName" to "package header no longer goes into the same connection first",
+                "packageConnection" to "package header no longer goes into the same connection first",
+                "packageOverwritten" to "package header no longer goes into the same connection first",
+                "packageBypass" to "reaches the certificate header without the package header",
+                "hiddenHook" to "certificate hook can't be called",
+            )
+            for ((change, says) in changes) {
+                val context = PatchContexts.of(input)
+                val plan = context.resolveFirebaseHeader()
+                val method = plan.method
+                val body = instructions(method)
+                val write = body[plan.index] as FiveRegisterInstruction
+                val packageName = body.indexOfFirst { it.string() == "X-Android-Package" }
+                val packageWrite = (packageName + 1 until plan.index).first { body[it].callReference()?.name == "addRequestProperty" }
+                val packageHeader = body[packageWrite] as FiveRegisterInstruction
+                fun rewrite(index: Int, connection: Int, name: Int, value: Int) = method.replaceInstruction(index,
+                    "invoke-virtual {v$connection, v$name, v$value}, ${body[index].callReference()!!.identity()}")
+                // A branch on the key parameter, so the stock path stays reachable beside the new edge.
+                fun bypassTo(index: Int) = method.addInstructionsWithLabels(0, "if-eqz v${method.implementation!!.registerCount - 1}, :bypass",
+                    ExternalLabel("bypass", method.getInstruction(index)))
+                fun text(owner: MutableMethod, from: String, to: String) {
+                    val at = instructions(owner).indexOfFirst { it.string() == from }
+                    owner.replaceInstruction(at, "const-string v${(instructions(owner)[at] as OneRegisterInstruction).registerA}, \"$to\"")
+                }
+                when (change) {
+                    "key" -> text(method, "X-Android-Cert", "X-Unrelated-Cert")
+                    "sink" -> rewrite(plan.index, write.registerC, write.registerE, write.registerD)
+                    "url" -> text(context.mutableClassDefBy(method.definingClass).methods.single { owner ->
+                        instructions(owner).any { it.string() == FIREBASE_INSTALLATIONS_URL } }, FIREBASE_INSTALLATIONS_URL, "https://unrelated.invalid/")
+                    "create", "token" -> {
+                        val request = plan.requests.getValue(if (change == "create") FirebaseRequest.CREATE else FirebaseRequest.TOKEN)
+                        text(context.mutableClassDefBy(request.definingClass).methods.single { it.identity() == request.identity() },
+                            if (change == "create") "x-goog-fis-android-iid-migration-auth" else "/authTokens:generate", "changed-request")
+                    }
+                    "bypass" -> bypassTo(plan.index)
+                    "apiKey" -> text(method, "x-goog-api-key", "x-unrelated-key")
+                    "apiConnection" -> (body[plan.index + 2] as FiveRegisterInstruction).let { rewrite(plan.index + 2, it.registerD, it.registerD, it.registerE) }
+                    "apiBypass" -> bypassTo(plan.index + 2)
+                    "packageName" -> rewrite(packageWrite, packageHeader.registerC, packageHeader.registerE, packageHeader.registerE)
+                    "packageConnection" -> rewrite(packageWrite, packageHeader.registerE, packageHeader.registerD, packageHeader.registerE)
+                    // The name register is set again between the name and the write, so the write sends another name.
+                    "packageOverwritten" -> method.addInstruction(packageName + 1, "const-string v${packageHeader.registerD}, \"X-Other-Package\"")
+                    "packageBypass" -> bypassTo(packageWrite + 1)
+                    "hiddenHook" -> context.mutableClassDefBy(PUSH_NOTIFICATIONS).methods.single { it.name == "certificateHeader" }
+                        .let { it.accessFlags = it.accessFlags and AccessFlags.PUBLIC.value.inv() }
+                }
+                val before = snapshot(context, input)
+                val failure = assertThrows("${build.name}: $change", PatchException::class.java) { fixPushNotificationsPatch.execute(context) }
+                assertTrue("${build.name}: $change: ${failure.message}", failure.message.orEmpty().contains(says))
+                assertArrayEquals("${build.name}: $change left retained edits", before, snapshot(context, input))
+            }
+        }
+    }
+
+    private fun header(owner: ClassDef): Method? =owner.methods.singleOrNull { method ->
         method.returnType == "Ljava/net/HttpURLConnection;" && FIREBASE_HEADER_TEXTS.all { text -> instructions(method).any { it.string() == text } }
     }
 

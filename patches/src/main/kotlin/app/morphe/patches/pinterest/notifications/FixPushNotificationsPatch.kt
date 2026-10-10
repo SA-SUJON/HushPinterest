@@ -59,7 +59,8 @@ internal const val FIREBASE_INSTALLATIONS_URL = "https://firebaseinstallations.g
  * certificate for Firebase's own Installations requests while the switch is on.
  *
  * Firebase's header builder is found by its texts and checked the way Firebase writes it: the
- * certificate header, then the API key header, then the connection returned. Every caller has to
+ * package header on every path first, then the certificate header, then the API key header, then
+ * the connection returned. Every caller has to
  * be the Installations sign-up or token request through Firebase's own URL, or the patch refuses.
  * Found by reading 14.39.0 (2026-10-10).
  */
@@ -143,6 +144,18 @@ internal fun BytecodePatchContext.resolveFirebaseHeader(): FirebaseHeaderPlan {
     val flow = ControlFlow.of(method)
     shape(flow.normal.indices.all { at -> sink !in flow.normal[at] || at == literal } && flow.exceptional.none { sink in it },
         "a path reaches the certificate header write without its name")
+    // The hook only answers a request that already names Pinterest's package, so Firebase has to
+    // write X-Android-Package to the same connection, in a straight run, on every path before.
+    val packageName = body.indices.filter { body[it].string() == "X-Android-Package" }.unique("package header name")
+    val packageWrite = (packageName + 1 until literal).firstOrNull { body[it].isHeaderWrite() } ?: -1
+    val packageOperands = body.getOrNull(packageWrite)?.namedRegisters().orEmpty()
+    val nameRegister = body[packageName].namedRegisters().singleOrNull()
+    shape(body[packageName].opcode in setOf(Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO) && packageWrite > packageName &&
+        packageOperands.size == 3 && packageOperands[0] == operands[0] && packageOperands[1] == nameRegister &&
+        (packageName + 1 until packageWrite).none { nameRegister in body[it].namedRegisters() } &&
+        (packageName + 1..packageWrite).all { flow.straight(it) },
+        "the package header no longer goes into the same connection first")
+    shape(!flow.reaches(literal, avoiding = packageWrite), "a path reaches the certificate header without the package header")
     val kinds = RegisterKinds.of(method).at(sink)
     shape(kinds != null && kinds.getOrNull(operands[0]) == RegisterKind.ref(HTTP) &&
         kinds.getOrNull(operands[2]) in setOf(RegisterKind.ref(STRING), RegisterKind.ZERO),
@@ -181,7 +194,26 @@ internal fun BytecodePatchContext.requireExtensionCertificate() {
     }
 }
 
-private fun Instruction.isHeaderWrite() = opcode == Opcode.INVOKE_VIRTUAL && call()?.let {
+/** [at] is entered only by falling through from the instruction before it. */
+private fun ControlFlow.straight(at: Int) = at > 0 && at in normal[at - 1] &&
+    normal.indices.none { from -> from != at - 1 && at in normal[from] } && exceptional.none { at in it }
+
+/** Some path from the entry reaches [target] without [avoiding] completing; a write that throws adds nothing. */
+private fun ControlFlow.reaches(target: Int, avoiding: Int): Boolean {
+    val seen = BooleanArray(instructions.size)
+    val pending = ArrayDeque(listOf(0))
+    while (pending.isNotEmpty()) {
+        val at = pending.removeFirst()
+        if (at == target) return true
+        if (seen[at]) continue
+        seen[at] = true
+        if (at != avoiding) pending.addAll(normal[at])
+        pending.addAll(exceptional[at])
+    }
+    return false
+}
+
+private fun Instruction.isHeaderWrite() =opcode == Opcode.INVOKE_VIRTUAL && call()?.let {
     it.definingClass in setOf(CONNECTION, HTTP) && it.name == "addRequestProperty" && it.hasShape(listOf(STRING, STRING), "V")
 } == true
 private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()

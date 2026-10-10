@@ -1,8 +1,9 @@
 /*
- * Original HushPinterest implementation, 2026.
- * Copyright 2026 HushPinterest contributors
- * https://github.com/SysAdminDoc/HushPinterest
- * SPDX-License-Identifier: GPL-3.0-only
+ * Forked from https://github.com/SysAdminDoc/HushTelegram at df79f7d (GPL-3.0),
+ * modified for HushPinterest (Pinterest), 2026.
+ *
+ * Copyright 2026 HushTelegram contributors
+ * https://github.com/SysAdminDoc/HushTelegram
  */
 package app.hushpinterest.extension.pinterest.notifications;
 
