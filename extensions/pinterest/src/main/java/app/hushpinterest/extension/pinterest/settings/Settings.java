@@ -26,7 +26,8 @@ import app.hushpinterest.extension.shared.settings.BooleanSetting;
  *
  * <p>A switch's default is the second argument of its {@link BooleanSetting}. The patches that were
  * in Morphe Manager's default selection from the start (Hide ads, Disable analytics, Strip link
- * tracking and Hide advertising ID) keep their switches on. Every other patch is in the default
+ * tracking and Hide advertising ID) keep their switches on, and so does Fix push notifications,
+ * since a patched build gets no push notifications without it. Every other patch is in the default
  * selection too, and its switches start off, so a build patched with the defaults acts like
  * Pinterest until one is turned on. While HushPinterest is paused, safe mode included
  * ({@link app.hushpinterest.extension.shared.settings.HushPinterestPause}), a switch answers off unless

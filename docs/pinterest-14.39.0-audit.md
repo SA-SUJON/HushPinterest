@@ -12,7 +12,7 @@ The survey ran on October 9, 2026 with Pinterest 14.38.0 (version code 14388010)
 | [Advertising delivery](pinterest-14.39.0-ads.md) | Native content models, third-party ad configuration, GMA headers and payloads, current filters, gaps and acceptance criteria |
 | [Tracking and privacy](pinterest-14.39.0-privacy.md) | All nine telemetry paths, ten startup jobs, eight manifest flags, identifier/referrer/link flows and limits |
 | [Runtime measurements](pinterest-14.39.0-runtime.md) | Attributed network observations, CPU and media timers, background scheduling and battery measurement limits |
-| [Patch coverage and customization](pinterest-14.39.0-patch-reference.md) | All 26 patches, native alternatives, concrete additions and a maintenance checklist |
+| [Patch coverage and customization](pinterest-14.39.0-patch-reference.md) | All 27 patches, native alternatives, concrete additions and a maintenance checklist |
 | This page | Live screen observations, evidence boundaries, key decisions and the next investigation priorities |
 
 The strongest immediate leads are a typed shopping-story mismatch, incomplete reporting of partial ad-hook coverage, GMA initialization and request-header boundaries, and the difference between visible filtering and network suppression. Native settings also cover more ground than the patch list alone suggests. Pinterest already offers theme, comment, notification, personalization and AI-content controls.
