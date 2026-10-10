@@ -48,7 +48,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Pinterest's closeup section binder, the topic row's interface, its one view class and that view's own ancestors, in both APKs. */
+/** Pinterest's closeup section binder, the topic row's interface, its one view class and that view's own ancestors, in each declared APK. */
 class TopicSuggestionsFixtureTest {
     private class Build(val name: String, val binder: ClassDef, val face: ClassDef, val row: ClassDef, val ancestors: List<ClassDef>) {
         val classes get() = listOf(binder, face, row) + ancestors

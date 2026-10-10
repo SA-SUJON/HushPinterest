@@ -26,7 +26,7 @@ import org.junit.Assert.*
 import org.junit.Test
 import java.io.File
 
-/** Resolves and applies the real native action targets independently in both supported builds. */
+/** Resolves and applies the real native action targets in each declared build. */
 class PinActionsFixtureTest {
     @Test
     fun `all action hooks use the real pin menu Visit dispatcher and chooser in each declared build`() {

@@ -29,7 +29,7 @@ import org.w3c.dom.Element
 
 /**
  * The signature spoofing metadata: its two constants against the certificate each declared build
- * is signed with, the manifest edit on both builds, its refusals and the build flag.
+ * is signed with, the manifest edit on each declared build, its refusals and the build flag.
  */
 class GoogleSignInSpoofManifestTest {
     @Test

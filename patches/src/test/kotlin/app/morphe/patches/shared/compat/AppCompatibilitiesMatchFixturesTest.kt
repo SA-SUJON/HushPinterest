@@ -65,16 +65,16 @@ class AppCompatibilitiesMatchFixturesTest {
     }
 
     /**
-     * minSdk is declared metadata for Morphe Manager, not a mirror of the vendor manifest: it is
-     * HushPinterest's own floor, which the extension's settings screen and diagnostics raise past
-     * Pinterest's (Android 9), so the build's manifest value is only ever a lower bound on it.
+     * minSdk is declared metadata for Morphe Manager, not a mirror of the vendor manifest, so the
+     * build's manifest value is only ever a lower bound on it: Manager must never offer the patches
+     * on a device the vendor build itself refuses. Only the newest stable build is declared.
      */
     @Test
     fun `every declared target carries the version code of its vendor build and a floor at least as high`() {
         val targets = AppCompatibilities.pinterest().single().targets
         assertEquals(
-            "declared versions, newest first",
-            listOf(AppCompatibilities.PINTEREST_TARGET_VERSION, "14.25.0"),
+            "declared versions: the newest stable build only",
+            listOf(AppCompatibilities.PINTEREST_TARGET_VERSION),
             targets.map { it.version },
         )
         var checked = 0

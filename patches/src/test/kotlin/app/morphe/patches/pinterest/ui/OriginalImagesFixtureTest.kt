@@ -33,7 +33,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
-/** Pinterest's collage image model, pin closeup builder and pin image size set in both APKs. */
+/** Pinterest's collage image model, pin closeup builder and pin image size set in each declared APK. */
 class OriginalImagesFixtureTest {
     /** The classes the patch reads in one build: the image model, the closeup builder's class and the size bucket. */
     private class Build(val name: String, val model: ClassDef, val builder: ClassDef, val bucket: ClassDef) {

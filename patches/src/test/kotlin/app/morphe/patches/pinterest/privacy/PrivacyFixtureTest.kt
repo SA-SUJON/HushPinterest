@@ -57,7 +57,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Real API annotations, Rx factories, startup scheduler and outgoing framework calls in both APKs. */
+/** Real API annotations, Rx factories, startup scheduler and outgoing framework calls in each declared APK. */
 class PrivacyFixtureTest {
     @Test
     fun `each declared original APK gets all privacy hooks without warnings and keeps core URL calls`() {

@@ -32,7 +32,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
-/** Google's advertising ID info class in both APKs, and the answer filters placed before its returns. */
+/** Google's advertising ID info class in each declared APK, and the answer filters placed before its returns. */
 class AdvertisingIdFixtureTest {
     @Test
     fun `each declared original APK filters both advertising ID answers before every return`() {

@@ -18,7 +18,7 @@ class ShoppingFixtureTest {
         if (it.name == "value") (it.value as? StringEncodedValue)?.value else null
     }
 
-    @Test fun `both builds retain shoppable pins featured boards and typed shopping stories`() {
+    @Test fun `each declared build retains shoppable pins featured boards and typed shopping stories`() {
         for (build in Fixtures.declaredBuilds()) {
             var shoppable = false
             var featured = false

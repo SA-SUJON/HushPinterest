@@ -32,7 +32,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Pinterest's toast container and the save confirmation models in both APKs. */
+/** Pinterest's toast container and the save confirmation models in each declared APK. */
 class SaveToastsFixtureTest {
     @Test
     fun `each declared original APK drops only the save toasts before the container builds them`() {
