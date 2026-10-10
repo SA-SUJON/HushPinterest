@@ -172,7 +172,9 @@ Firebase and Google Analytics collection is turned off	Firebase ve Google Analyt
 Analytics launch tasks	Analiz başlatma görevleri
 Analytics uploads	Analiz veri gönderimi
 Strip link tracking	Bağlantı takibini kaldır
-Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them.	Kopyaladığın veya paylaştığın bağlantılardan takip etiketlerini kaldırır. Kısa pin.it bağlantıları Pinterest'in oluşturduğu gibi kalır.
+Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them unless Plain pin links is on.	Kopyaladığın veya paylaştığın bağlantılardan takip etiketlerini kaldırır. Sade pin bağlantıları kapalıysa kısa pin.it bağlantıları Pinterest'in oluşturduğu gibi kalır.
+Plain pin links	Sade pin bağlantıları
+Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.	Kopyalanan ve paylaşılan pin.it bağlantıları pinin kendi pinterest.com bağlantısına dönüşür, böylece onları kimin paylaştığını göstermez. HushPinterest pini henüz tanımıyorsa kopyalanan bağlantı arka planda Pinterest'e sorulur ve kısa bir süre sonra değiştirilir.
 Hide advertising ID	Reklam kimliğini gizle
 Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest, reklam takibi sınırlı olarak boş bir reklam kimliği görür. Reklam kimliğini Android ayarlarından silmişsin gibi olur.
 Remove ad tracking permissions	Reklam izleme izinlerini kaldır

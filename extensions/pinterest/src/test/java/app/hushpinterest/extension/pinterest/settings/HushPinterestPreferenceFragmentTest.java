@@ -16,6 +16,7 @@ package app.hushpinterest.extension.pinterest.settings;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -284,6 +285,31 @@ public class HushPinterestPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getSummary()));
             assertEquals("This build doesn't include the parts that handle AI-labeled pins in lists.",
                     String.valueOf(page.findPreference(Settings.HIDE_AI_PINS.key).getSummary()));
+        }
+    }
+
+    /** Plain pin links has its own hook, so its row shows only when that hook went in, right under Strip link tracking. */
+    @Test
+    public void plainPinLinksShowsOnlyWhereItsHookWentIn() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Set<PatchFamily.Capability> withoutIt = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutIt.remove(PatchFamily.Capability.PLAIN_PIN_LINKS);
+        PatchFamily.capabilitiesForTests = withoutIt;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            assertNull(page.findPreference(Settings.PLAIN_PIN_LINKS.key));
+            assertNotNull(page.findPreference(Settings.STRIP_LINK_TRACKING.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            SwitchPreference row = (SwitchPreference) page.findPreference(Settings.PLAIN_PIN_LINKS.key);
+            assertNotNull(row);
+            assertEquals("Plain pin links", String.valueOf(row.getTitle()));
+            assertFalse("Plain pin links starts off", row.isChecked());
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            assertEquals(indexOfKey(rows, Settings.STRIP_LINK_TRACKING.key) + 1, indexOfKey(rows, Settings.PLAIN_PIN_LINKS.key));
         }
     }
 

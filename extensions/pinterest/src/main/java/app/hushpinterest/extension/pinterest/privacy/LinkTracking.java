@@ -13,6 +13,7 @@ import android.net.Uri;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -46,31 +47,61 @@ public final class LinkTracking {
         }
     }
 
-    /** Preserves labels, non-link text, nulls and styled text when no URL changes. */
+    /**
+     * Preserves labels, non-link text, nulls and styled text when no URL changes. With Plain pin
+     * links on, a pin.it link whose pin is known becomes the pin's own link.
+     */
     public static CharSequence cleanText(CharSequence text) {
         HookStatus.invoked(FamilyNames.STRIP_LINK_TRACKING);
-        if (text == null || !active()) return text;
+        if (text == null) return text;
+        boolean strip = active();
+        boolean plain = PlainPinLinks.active();
+        if (!strip && !plain) return text;
         try {
-            Matcher matcher = URL.matcher(text);
-            StringBuffer result = null;
-            while (matcher.find()) {
-                String original = matcher.group();
-                int end = original.length();
-                while (end > 0 && ".,!?;:)]}".indexOf(original.charAt(end - 1)) >= 0) end--;
-                String cleaned = cleanUrl(original.substring(0, end)) + original.substring(end);
-                if (result != null || !cleaned.equals(original)) {
-                    if (result == null) result = new StringBuffer();
-                    matcher.appendReplacement(result, Matcher.quoteReplacement(cleaned));
-                }
-            }
-            if (result == null) return text;
-            matcher.appendTail(result);
-            HookStatus.counted(FamilyNames.STRIP_LINK_TRACKING, "shared or copied URL cleaned");
-            return result.toString();
+            CharSequence cleaned = rewrite(text, strip, plain);
+            if (cleaned != text) HookStatus.counted(FamilyNames.STRIP_LINK_TRACKING, "shared or copied URL cleaned");
+            return cleaned;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.STRIP_LINK_TRACKING, "outgoing URL", failure);
             return text;
         }
+    }
+
+    /** [text] itself when no URL changes, else the rewritten string. */
+    static CharSequence rewrite(CharSequence text, boolean strip, boolean plain) {
+        Matcher matcher = URL.matcher(text);
+        StringBuffer result = null;
+        while (matcher.find()) {
+            String original = matcher.group();
+            int end = trimmedEnd(original);
+            String core = strip ? cleanUrl(original.substring(0, end)) : original.substring(0, end);
+            String pin = plain ? PlainPinLinks.known(core) : null;
+            String cleaned = (pin != null ? pin : core) + original.substring(end);
+            if (result != null || !cleaned.equals(original)) {
+                if (result == null) result = new StringBuffer();
+                matcher.appendReplacement(result, Matcher.quoteReplacement(cleaned));
+            }
+        }
+        if (result == null) return text;
+        matcher.appendTail(result);
+        return result.toString();
+    }
+
+    /** The URLs in [text], each without the punctuation that ends a sentence around it. */
+    static List<String> urls(CharSequence text) {
+        List<String> found = new ArrayList<>();
+        Matcher matcher = URL.matcher(text);
+        while (matcher.find()) {
+            String original = matcher.group();
+            found.add(original.substring(0, trimmedEnd(original)));
+        }
+        return found;
+    }
+
+    private static int trimmedEnd(String url) {
+        int end = url.length();
+        while (end > 0 && ".,!?;:)]}".indexOf(url.charAt(end - 1)) >= 0) end--;
+        return end;
     }
 
     /** Keeps raw parameter spelling and order. Signed links are preserved in full. */
@@ -83,7 +114,7 @@ public final class LinkTracking {
         String host = uri.getHost();
         if (host == null || !("https".equalsIgnoreCase(scheme) || "http".equalsIgnoreCase(scheme))) return original;
         host = host.toLowerCase(Locale.ROOT);
-        // A short-link token itself isn't a removable query parameter. No resolver request is made.
+        // A short-link token itself isn't a removable query parameter. Plain pin links handles pin.it.
         boolean pinterest = host.equals("pinterest.com") || host.endsWith(".pinterest.com") || host.equals("pin.it");
         int queryEnd = hash < 0 ? original.length() : hash;
         String[] parts = original.substring(question + 1, queryEnd).split("&", -1);
@@ -120,10 +151,16 @@ public final class LinkTracking {
         return intent.putExtra(key, Intent.EXTRA_TEXT.equals(key) ? cleanText(value) : value);
     }
 
+    /**
+     * A pin.it link Plain pin links can't name the pin for yet is copied as it is, and looked up in
+     * the background. The clipboard swap that may follow is posted to the main thread, so it runs
+     * after Pinterest has set this clip.
+     */
     public static ClipData newPlainText(CharSequence label, CharSequence text) {
         CharSequence cleaned = cleanText(text);
         CharSequence safeLabel = label != null && text != null && label.toString().equals(text.toString())
                 ? cleaned : label;
+        PlainPinLinks.resolveLater(cleaned);
         return ClipData.newPlainText(safeLabel, cleaned);
     }
 }

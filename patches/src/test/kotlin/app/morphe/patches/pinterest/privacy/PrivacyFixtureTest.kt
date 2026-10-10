@@ -83,7 +83,8 @@ class PrivacyFixtureTest {
                 stripLinkTrackingPatch.execute(context)
             }
             assertEquals(build.name, emptyList<String>(), warnings)
-            for (flag in listOf("disableAnalytics", "analyticsTasks", "analyticsUploads", "stripLinkTracking", "linkTracking")) {
+            for (flag in listOf("disableAnalytics", "analyticsTasks", "analyticsUploads", "stripLinkTracking", "linkTracking",
+                "plainPinLinks")) {
                 assertFlag(context, flag)
             }
             // Original API calls remain solely inside the new wrappers' inactive branch.
@@ -379,8 +380,10 @@ class PrivacyFixtureTest {
                     tagType = owner.type
                     selected[owner.type] = ImmutableClassDef.of(owner)
                 }
+                // Plain pin links' invite logger and direct share sit beside the "invite_url" string.
                 if (owner.superclass == "Lcom/pinterest/api/adapter/coroutine/NetworkResponse;" ||
                     owner.methods.any { it.name == "<clinit>" && ENGAGE_BIND in it.strings() } ||
+                    owner.methods.any { "invite_url" in it.strings() } ||
                     owner.methods.any { method -> method.implementation?.instructions?.any { instruction ->
                         val call = instruction.callReference()?.identity()
                         call == URL_CALL || call in OUTGOING_LINK_CALLS

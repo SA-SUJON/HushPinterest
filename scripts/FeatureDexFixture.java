@@ -600,6 +600,8 @@ public final class FeatureDexFixture {
                 write(root, "feature-links-partial-clean", partialClean, false);
             }
             reset(); enable("stripLinkTracking");
+            // These synthetic targets have no invite logger, so Plain pin links stays out.
+            FLAGS.put("plainPinLinks", false);
             if (partial || variant.equals("false-capability")) FLAGS.put("linkTracking", false);
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             links(classes, true, variant, !partial);
@@ -609,6 +611,8 @@ public final class FeatureDexFixture {
         fallbackShapes.addAll(INTEGER_FALLBACKS);
         for (String shape : fallbackShapes) for (String answer : List.of("good", "bad")) {
             reset(); enable("stripLinkTracking");
+            // These synthetic targets have no invite logger, so Plain pin links stays out.
+            FLAGS.put("plainPinLinks", false);
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             links(classes, true, shape + "-" + answer, true);
             write(root, "feature-links-" + shape + "-" + answer, classes, true, "stripLinkTracking");
