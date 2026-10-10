@@ -146,6 +146,21 @@ class PlainPinLinksFixtureTest {
     }
 
     /**
+     * A try block ending at the app start would cover the hook, so that keeps it out too. The catch
+     * type is one no Pinterest block has, so it can't clash with a handler the method already has.
+     */
+    @Test
+    fun `a try block ending at the app start leaves Plain pin links out`() {
+        leavesOut { classes, _, share ->
+            editSharer(classes, share) { impl ->
+                assertTrue("the app start is past the method's first instruction", share.at > 0)
+                impl.addCatch("Lapp/hushpinterest/test/Unthrown;", impl.newLabelForIndex(0),
+                    impl.newLabelForIndex(share.at), impl.newLabelForIndex(impl.instructions.size - 1))
+            }
+        }
+    }
+
+    /**
      * Runs Strip link tracking on [host]'s change to the first declared build: it applies, warns
      * once that Plain pin links isn't in, leaves its flag off and the logger and direct share
      * classes as they were, and no method calls Plain pin links.

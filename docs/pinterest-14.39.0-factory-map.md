@@ -122,7 +122,7 @@ HushPinterest injects a Morphe extension into Pinterest rather than building a r
 
 The built extension payloads are named `extensions/pinterest.mpe` and `extensions/shared.mpe`. `PinterestExtensionPatch` merges them and inserts `setContext()` into the application class's `onCreate()` implementation, or the first APK superclass that declares it. This gives settings and feature hooks a context before they read preferences. Do not move initialization later without tracing every startup hook.
 
-`SettingsPatch` adds the `app.hushpinterest.extension.pinterest.settings.OpenSettings` activity alias for Android's `APPLICATION_PREFERENCES` action. It points to Pinterest's launcher activity, which then opens the injected settings screen. The alias also raises the patched package's minimum API to 28 when the target APK has a lower floor. This settings entry is added by HushPinterest and is not part of factory Pinterest.
+`SettingsPatch` adds the `app.hushpinterest.extension.pinterest.settings.OpenSettings` activity alias for Android's `APPLICATION_PREFERENCES` action. It points to Pinterest's launcher activity, which then opens the injected settings screen. The patch also raises the patched package's minimum API to 29 (Android 10) when the target APK has a lower floor. This settings entry is added by HushPinterest and is not part of factory Pinterest.
 
 Most features have two parts:
 

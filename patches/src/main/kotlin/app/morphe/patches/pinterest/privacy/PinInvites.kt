@@ -152,6 +152,9 @@ private fun Method.directShares(): List<DirectShare> {
         // The hook's call names its three registers directly, so each must be a distinct v0 to v15.
         if (listOf(shared, url, intent).any { it > 15 } || setOf(shared, url, intent).size != 3) return@mapNotNull null
         if (flow.entered(start) || !flow.enteredOnlyFrom(start, log)) return@mapNotNull null
+        // The hook goes right in front of the app start, so a try block ending there would take it in.
+        val address = instructions.take(start).sumOf { it.codeUnits }
+        if (implementation!!.tryBlocks.any { it.startCodeAddress + it.codeUnitCount == address }) return@mapNotNull null
         if ((start + 1 until log).any { instructions[it].writes(shared) || instructions[it].writes(url) }) return@mapNotNull null
         val made = (start - 1 downTo 0).firstOrNull { instructions[it].writes(intent) } ?: return@mapNotNull null
         val builder = if (made > 0) instructions[made - 1] else return@mapNotNull null
@@ -181,9 +184,9 @@ internal fun BytecodePatchContext.insertPlainPinLinks(invite: PinInvite, share: 
         throw PatchException("$WHAT: the log event call in ${invite.logger.signature()} is a branch target")
     }
     // Pinterest's app start opens a try block (14.38.0 and 14.39.0 both), so it carries that block's
-    // start label. Only a label something jumps to keeps a path away from the hook.
-    if (sharer.jumpLabelsAt(share.at).isNotEmpty()) {
-        throw PatchException("$WHAT: the direct share's start in ${share.method.signature()} is a branch target")
+    // start label. Any other label there keeps the hook out.
+    if (sharer.labelsKeepingHookOut(share.at).isNotEmpty()) {
+        throw PatchException("$WHAT: the direct share's start in ${share.method.signature()} is a branch target or a try block's end")
     }
     for ((stub, getter) in listOf("sharedKind" to invite.kindGetter, "sharedId" to invite.idGetter)) {
         writeStub(
@@ -211,17 +214,17 @@ internal fun BytecodePatchContext.insertPlainPinLinks(invite: PinInvite, share: 
 }
 
 /**
- * The labels on instruction [index] that a branch, a switch or a handler can jump to: every label
- * but a try block's start or end. Those two only mark where a block's range begins or ends, and
- * stay on the instruction when code goes in front of it, so that code lands just before a block
- * starting there or at the end of one ending there. The direct share's hook writes no register and
- * catches everything it throws, so either is the same to it. A jump label stays on the instruction
- * too, and the path through it would skip the hook.
+ * The labels on instruction [index] that keep the hook out: every label but a try block's start.
+ * A start only marks where a block's range begins and stays on the instruction when code goes in
+ * front of it, so that code lands just before the block, outside it. A try block's end stays on
+ * the instruction too, which would put the hook inside the block that ends there: its handler
+ * would then merge the registers at the hook, an invoke the verifier counts as throwing. A jump
+ * label stays on the instruction as well, and the path through it would skip the hook.
  */
-private fun MutableMethod.jumpLabelsAt(index: Int): Set<Label> {
+private fun MutableMethod.labelsKeepingHookOut(index: Int): Set<Label> {
     val implementation = implementation!!
-    val boundaries = implementation.tryBlocks.flatMap { listOf(it.start, it.end) }.toSet()
-    return (implementation.instructions[index] as BuilderInstruction).location.labels.filterTo(mutableSetOf()) { it !in boundaries }
+    val starts = implementation.tryBlocks.map { it.start }.toSet()
+    return (implementation.instructions[index] as BuilderInstruction).location.labels.filterTo(mutableSetOf()) { it !in starts }
 }
 
 private fun Method.isInviteLogger(): Boolean {

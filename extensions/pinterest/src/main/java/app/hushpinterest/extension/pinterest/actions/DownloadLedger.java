@@ -39,14 +39,14 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 public final class DownloadLedger {
     static final int LIMIT = 32;
     /**
-     * How many requests and saves are kept, unshown, once they're older than the visible history:
+     * How many requests are kept, unshown, once they're older than the visible history:
      * enough that a second Download board of a full board skips every pin the first one saved.
      */
     static final int EARLIER_LIMIT = BoardDownloads.PINS;
     static final String STORE = "hushpinterest_download_history";
     static final String RECORDS = "requests_v1";
     static final String EARLIER = "earlier_v1";
-    /** One earlier history line: a request ID, or a negative picker-save key, then the pin ID. */
+    /** One earlier history line: a request ID, then the pin ID. */
     private static final Pattern EARLIER_LINE = Pattern.compile("([0-9]{1,19}),([0-9]{1,30})");
     static final String SENDER_PERMISSION = "android.permission.SEND_DOWNLOAD_COMPLETED_INTENTS";
     private static final Object LOCK = new Object();
