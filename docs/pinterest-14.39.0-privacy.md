@@ -138,7 +138,25 @@ This table records exact 14.39.0 native anchors, with the 14.38.0 name in parent
 | `Ld30/v;-><clinit>()V` (`Lx20/u;`) | Contains `TAG_APPSFLYER_INIT` | Current startup enum anchor |
 | `Luf/a;-><init>(Luf/a;Lqe/b;Lqe/d;Ltf/c;)V` | Contains `https://notify.bugsnag.com` | Default reporting destination is present; this alone doesn't prove an upload |
 
-The request-header branch copies a cached base map before adding current values. Further inspection should enumerate that map's complete contents and each field's purpose. Preserve authorization checks and normal feed operations when testing any narrower privacy hook.
+The request-header branch copies a cached base map before adding current values. Read on 14.39.0 (2026-10-10): the base map is `Lz70/a;->g`, built once by `Lxj2/b;` (case 3), and `La80/g;->intercept` (switch case 2) puts every entry on each API request, then adds the per-request values. Disable analytics doesn't touch headers, so only the row marked covered changes today.
+
+| Header | Value | Coverage |
+|---|---|---|
+| `User-Agent` | `Pinterest for Android/<version> (<build>; <Android release>)`, with `for Android Tablet` on tablets | None. Functional |
+| `X-Pinterest-Device` | `Build.MODEL` | None |
+| `X-Pinterest-Device-Manufacturer` | `Build.MANUFACTURER` | None |
+| `X-Pinterest-InstallId` | A random ID made once per install (UUID-based with an MD5 tail) and kept in preferences, `Lkd/y;->L` | None. Stable until Pinterest's data is cleared. Session and push use aren't traced, so replacing it needs a device check first |
+| `X-Pinterest-App-Type-Detailed` | The app type enum's number | None. Functional |
+| `Accept-Language` | The device locale | None. Functional |
+| `X-Pinterest-Advertising-Id` | The Google advertising ID, or empty | Covered by Hide advertising ID (row above) |
+| `X-Pinterest-WebView-Supported` | `true` or `false` from the `android_3p_webview_ads` experiment | None. An ad capability flag, not an identifier |
+| `X-Pinterest-AppState` | `Lvc0/b;->apiHeader`, a stored string | None. What it carries isn't traced |
+| `X-Pinterest-Platform-BID` | `Lad0/e;->g`, filled by a coroutine, also sent by `Li52/z;->intercept` | None. Its source isn't traced |
+| `X-Node-ID` | `true`, on `graphql` requests only | None. Functional |
+| `X-Pinterest-Force-Experiments`, `X-Pinterest-Integration-Test-Mode` | Only when `Lsn0/h;->a()` is set, a test-build flag | Not sent by a normal install |
+| `Authorization` | `Bearer` plus the session token, approved domains only | Must stay |
+
+Preserve authorization checks and normal feed operations when testing any narrower privacy hook.
 
 The Play referrer parser copies `utm_source`, `utm_medium`, `utm_campaign` and `app_upsell_type`, and can mark `from_play_install_referrer_link`. The APP_START builder distinguishes push, pull-notification, deep-link and web-URL starts. Its event map can contain the entire incoming URL. Cleaning a URL only after its original value has been recorded won't reduce that earlier event, so the launch URL is protected by Disable analytics stopping both uploads, not by Strip link tracking.
 
@@ -218,7 +236,7 @@ Run on October 10, 2026 against the 14.39.0 APK (version code 14398020, SHA-256 
 | --- | --- | --- |
 | High | Run `scripts/app-inventory.ps1 -BaseApk` on every APK update and classify what it adds | The tool records the endpoints, startup tasks, hosts, transports and identifier readers. Classifying a new path or reader is still a person's job. A successful patch must not imply that new telemetry was inventoried |
 | High | Compare stock and patched network behavior using controlled actions | Same app build and comparable account/consent state; welcome, feed, search, closeup, share, background and restart. Preserve TLS and account data. Store sanitized counts and destinations rather than secrets or raw account payloads |
-| High | Trace the optional API-header fields to their final transport (APP_START is done: both of its uploads go through endpoints Disable analytics wraps) | Determine whether current telemetry wrappers already suppress each route. Preserve authorization, normal requests, deferred links and push registration |
+| High | Find what `X-Pinterest-AppState` and `X-Pinterest-Platform-BID` carry, and whether `X-Pinterest-InstallId` can be replaced without breaking sessions or push (the header table above lists the rest; APP_START is done: both of its uploads go through endpoints Disable analytics wraps) | Determine whether current telemetry wrappers already suppress each route. Preserve authorization, normal requests, deferred links and push registration |
 | High | Offer canonical pin links using a typed pin ID | Separate opt-in control; preserve non-pin invites and signed links. Check image/video copy/share, unknown pin.it links, direct-to-app shares, cancellation and absence of UI-thread networking |
 | Medium | Extend regional-host and known attribution-key cleaning | Exact trusted domains; `mweb_unauth_id` and `amp_client_id` only after destination checks. Cover deceptive suffixes, encoding, uppercase keys and unrelated sites with legitimate `sender` values |
 | Medium | Reduce install attribution without removing first-open navigation | Trace referrer fields individually. Check Play installs and sideloads, organic attribution, campaign links, `af_dp`, `utm_content`, sign-in and error handling |
