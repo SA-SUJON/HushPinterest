@@ -53,14 +53,12 @@ class UiFixtureTest {
             assertTrue(wrongScope.message, wrongScope.message.orEmpty().contains("dedicated layout"))
             assertFlag(rejectedComments, "hideComments", false)
             assertFlag(rejectedComments, "comments", false)
-            val hasUpdateManager = classes.any { it.type.startsWith("Lcom/google/android/play/core/appupdate/") }
             val context = PatchContexts.of(ExtensionDex.classes() + classes)
             val warnings = PatchLogCapture.warnings { patches.forEach { it.execute(context) } }
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             for ((family, capability) in flags) {
-                val installed = family != "disableUpdateNag" || hasUpdateManager
-                assertFlag(context, family, installed)
-                assertFlag(context, capability, installed)
+                assertFlag(context, family, true)
+                assertFlag(context, capability, true)
             }
             for (type in SEARCH_HISTORY_VIEWS + COMMENT_PREVIEW + commentsModules.map { it.type }) {
                 val view = context.mutableClassDefBy(type)
@@ -111,13 +109,11 @@ class UiFixtureTest {
             assertTrue(nav.methods.single { it.name == "onMeasure" }.calls().any {
                 it.definingClass == INTERFACE_CONTROLS && it.name == "refreshNavigation"
             })
-            if (hasUpdateManager) {
-                val original = classes.flatMap { it.methods }.single { "inAppUpdateManager" in it.strings() }
-                val modified = context.mutable(original)
-                assertEquals("the shared coroutine's other task must keep its dispatcher", original.instructions()[0].opcode,
-                    modified.instructions()[0].opcode)
-                assertEquals(1, modified.calls().count { it.definingClass == UI_HOOKS && it.name == "disableUpdateNag" })
-            }
+            val original = classes.flatMap { it.methods }.single { "inAppUpdateManager" in it.strings() }
+            val modified = context.mutable(original)
+            assertEquals("the shared coroutine's other task must keep its dispatcher", original.instructions()[0].opcode,
+                modified.instructions()[0].opcode)
+            assertEquals(1, modified.calls().count { it.definingClass == UI_HOOKS && it.name == "disableUpdateNag" })
         }
     }
 
@@ -142,7 +138,6 @@ class UiFixtureTest {
         FixtureDex.forEach(build) { dex ->
             for (owner in dex.classes) {
                 val match = owner.type in required || owner.isCommentsModule() ||
-                    owner.type.startsWith("Lcom/google/android/play/core/appupdate/") ||
                     (owner.superclass == "Ljava/lang/Enum;" && owner.fields.map { it.name }
                         .containsAll(listOf("HOME", "PROFILE", "CREATE", "NOTIFICATIONS"))) ||
                     owner.methods.any { method -> method.strings().any { it in anchors } ||
