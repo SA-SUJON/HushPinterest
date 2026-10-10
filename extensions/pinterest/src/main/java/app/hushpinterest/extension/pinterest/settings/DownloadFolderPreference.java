@@ -13,7 +13,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Build;
 import android.preference.Preference;
 import android.provider.DocumentsContract;
 import android.view.View;
@@ -113,13 +112,11 @@ public final class DownloadFolderPreference extends Preference {
         }
     }
 
-    /** Opens Android's folder picker, at Pictures where the picker allows a starting folder. */
+    /** Opens Android's folder picker at Pictures. */
     static void pick(HushPinterestPreferenceFragment page) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,
-                    DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", "primary:Pictures"));
-        }
+        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,
+                DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", "primary:Pictures"));
         try {
             page.startActivityForResult(intent, PICK);
         } catch (ActivityNotFoundException missing) {
