@@ -399,6 +399,17 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     + "stay as they are.")),
                 SettingsIcons.ABOUT));
 
+        // In every build: where Pinterest keeps its own controls for what no switch here covers. The
+        // rows name each path in Pinterest's own words where the build has them (NativeControls).
+        PreferenceCategory pinterest = category(screen, L10n.t("Pinterest's own settings"));
+        pinterest.addPreference(mark(info(context, L10n.t("Finding them"),
+                L10n.t("Open Pinterest's settings from the gear on your Saved tab. HushPinterest doesn't change any of "
+                    + "these.")), SettingsIcons.ABOUT));
+        for (NativeControls.Control control : NativeControls.controls()) {
+            pinterest.addPreference(mark(info(context, control.title, NativeControls.summary(context, control)),
+                    SettingsIcons.SETTINGS));
+        }
+
         // In every build: the release check is the settings entry's own, not a patch's. Its switch
         // is one Pause turns off, so it sits above the Pause row with the rest.
         PreferenceCategory updates = category(screen, L10n.t("Updates"));

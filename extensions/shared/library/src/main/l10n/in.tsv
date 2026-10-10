@@ -409,3 +409,23 @@ ad buttons on pin closeups	tombol iklan di tampilan dekat pin
 floating ad bars on pin closeups	bilah iklan mengambang di tampilan dekat pin
 sponsor credits on boards	keterangan sponsor di papan
 %1$s (%2$d of %3$d parts)	%1$s (%2$d dari %3$d bagian)
+# context: Pinterest's own settings page. Step labels use Pinterest's own in menu names from 14.39.0.
+Pinterest's own settings	Pengaturan Pinterest sendiri
+Finding them	Cara menemukannya
+Open Pinterest's settings from the gear on your Saved tab. HushPinterest doesn't change any of these.	Buka pengaturan Pinterest dari ikon roda gigi di tab Disimpan. HushPinterest tidak mengubah satu pun pengaturan ini.
+Settings	Pengaturan
+App theme	Tema aplikasi
+Pinterest's choice of a light or dark look, or the one your phone uses.	Pilihan Pinterest untuk tampilan terang atau gelap, atau tampilan yang dipakai ponsel Anda.
+Account management	Manajemen akun
+Privacy and data	Privasi dan data
+Pinterest's ad personalization and data choices for your account. Disable analytics doesn't change them.	Pilihan Pinterest tentang iklan yang dipersonalisasi dan data akun Anda. Nonaktifkan analitik tidak mengubahnya.
+Notifications	Notifikasi
+Which push, email and in-app notices Pinterest sends you.	Pemberitahuan push, email, dan dalam aplikasi mana yang dikirim Pinterest kepada Anda.
+Show AI content	Tampilkan konten AI
+Turned off, Pinterest shows less AI content in your feed. Hide AI-labeled pins only takes out pins that carry Pinterest's AI label.	Jika dimatikan, Pinterest menampilkan lebih sedikit konten AI di feed Anda. Sembunyikan pin berlabel AI hanya menghapus pin yang memiliki label AI dari Pinterest.
+Refine your recommendations	Persempit rekomendasi Anda
+AI content	Konten AI
+Autoplay videos on cellular data	Otomatis putar video di jaringan seluler
+Turned off, videos don't start on their own on mobile data. Pinterest may still load some of a video ahead of time.	Jika dimatikan, video tidak diputar sendiri saat memakai data seluler. Pinterest mungkin tetap memuat sebagian video lebih dulu.
+Social permissions	Izin fitur sosial
+In Pinterest: %1$s	Di Pinterest: %1$s

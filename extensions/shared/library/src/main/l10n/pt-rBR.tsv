@@ -406,3 +406,23 @@ ad buttons on pin closeups	botões de anúncio nas visualizações ampliadas de 
 floating ad bars on pin closeups	barras flutuantes de anúncio nas visualizações ampliadas de Pins
 sponsor credits on boards	créditos de patrocínio nas pastas
 %1$s (%2$d of %3$d parts)	%1$s (%2$d de %3$d partes)
+# context: Pinterest's own settings page. Step labels use Pinterest's own pt-rBR menu names from 14.39.0.
+Pinterest's own settings	Configurações do próprio Pinterest
+Finding them	Como encontrar
+Open Pinterest's settings from the gear on your Saved tab. HushPinterest doesn't change any of these.	Abra as configurações do Pinterest pela engrenagem na sua aba Salvos. O HushPinterest não muda nenhuma delas.
+Settings	Configurações
+App theme	Tema do aplicativo
+Pinterest's choice of a light or dark look, or the one your phone uses.	A escolha do Pinterest entre um visual claro ou escuro, ou o que o seu celular usa.
+Account management	Gerenciamento de conta
+Privacy and data	Privacidade e dados
+Pinterest's ad personalization and data choices for your account. Disable analytics doesn't change them.	As escolhas do Pinterest sobre anúncios personalizados e dados da sua conta. Desativar análises não muda nada nelas.
+Notifications	Notificações
+Which push, email and in-app notices Pinterest sends you.	Quais avisos push, por e-mail e no app o Pinterest envia para você.
+Show AI content	Mostrar conteúdo de IA
+Turned off, Pinterest shows less AI content in your feed. Hide AI-labeled pins only takes out pins that carry Pinterest's AI label.	Desativado, o Pinterest mostra menos conteúdo de IA no seu feed. Ocultar pins com selo de IA só tira os pins que têm o selo de IA do Pinterest.
+Refine your recommendations	Refinar suas recomendações
+AI content	Conteúdo de IA
+Autoplay videos on cellular data	Reproduzir vídeos automaticamente com dados móveis
+Turned off, videos don't start on their own on mobile data. Pinterest may still load some of a video ahead of time.	Desativado, os vídeos não começam sozinhos com dados móveis. O Pinterest ainda pode carregar parte de um vídeo antes.
+Social permissions	Permissões para redes sociais
+In Pinterest: %1$s	No Pinterest: %1$s

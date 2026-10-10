@@ -409,3 +409,23 @@ ad buttons on pin closeups	Pin yakın görünümlerindeki reklam düğmeleri
 floating ad bars on pin closeups	Pin yakın görünümlerindeki kayan reklam çubukları
 sponsor credits on boards	panolardaki sponsor bilgileri
 %1$s (%2$d of %3$d parts)	%1$s (%3$d parçanın %2$d tanesi)
+# context: Pinterest's own settings page. Step labels use Pinterest's own tr menu names from 14.39.0.
+Pinterest's own settings	Pinterest'in kendi ayarları
+Finding them	Nerede bulunur
+Open Pinterest's settings from the gear on your Saved tab. HushPinterest doesn't change any of these.	Pinterest ayarlarını Kaydedilenler sekmenizdeki dişli simgesinden açın. HushPinterest bunların hiçbirini değiştirmez.
+Settings	Ayarlar
+App theme	Uygulama teması
+Pinterest's choice of a light or dark look, or the one your phone uses.	Pinterest'in açık ya da koyu görünüm veya telefonunuzun kullandığı görünüm seçimi.
+Account management	Hesap yönetimi
+Privacy and data	Gizlilik ve veriler
+Pinterest's ad personalization and data choices for your account. Disable analytics doesn't change them.	Pinterest'in hesabınız için kişiselleştirilmiş reklam ve veri seçimleri. Analizleri devre dışı bırak bunları değiştirmez.
+Notifications	Bildirimler
+Which push, email and in-app notices Pinterest sends you.	Pinterest'in size hangi anlık, e-posta ve uygulama içi bildirimleri gönderdiği.
+Show AI content	Yapay zeka içeriği göster
+Turned off, Pinterest shows less AI content in your feed. Hide AI-labeled pins only takes out pins that carry Pinterest's AI label.	Kapalıyken Pinterest akışınızda daha az yapay zeka içeriği gösterir. Yapay zeka etiketli pinleri gizle yalnızca Pinterest'in yapay zeka etiketini taşıyan pinleri kaldırır.
+Refine your recommendations	Önerilerinizi daraltın
+AI content	Yapay Zeka içeriği
+Autoplay videos on cellular data	Hücresel veri ile videoları otomatik oynat
+Turned off, videos don't start on their own on mobile data. Pinterest may still load some of a video ahead of time.	Kapalıyken videolar mobil veride kendiliğinden başlamaz. Pinterest yine de bir videonun bir kısmını önceden yükleyebilir.
+Social permissions	Sosyal izinler
+In Pinterest: %1$s	Pinterest'te: %1$s

@@ -115,7 +115,7 @@ public class HushPinterestPreferenceFragmentTest {
 
     /** The sections every build has, in the order they're drawn. */
     private static final List<String> EVERY_BUILD = Arrays.asList(
-            "Links", "Updates", "Pause, backup and diagnostics", "About");
+            "Links", "Pinterest's own settings", "Updates", "Pause, backup and diagnostics", "About");
 
     @After
     public void restore() {

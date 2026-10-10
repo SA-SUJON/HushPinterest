@@ -111,6 +111,7 @@ final class SettingsNavigation extends BaseAdapter {
         section("Pin actions", L10n.t("Pin actions"), null, SettingsIcons.DOWNLOADS, true);
         section("Interface", L10n.t("Interface"), null, SettingsIcons.SETTINGS, true);
         section("Links", L10n.t("Links"), null, SettingsIcons.LINKS, false);
+        section("Pinterest's own settings", L10n.t("Pinterest's own settings"), null, SettingsIcons.SETTINGS, false);
         section("Updates", L10n.t("Updates"), null, SettingsIcons.UPDATES, false);
         section("Set when you patched", L10n.t("Set when you patched"), null, SettingsIcons.PATCHED, false);
         section("Pause, backup and diagnostics", L10n.t("Pause, backup and diagnostics"), null, SettingsIcons.TOOLS, false);

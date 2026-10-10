@@ -409,3 +409,23 @@ ad buttons on pin closeups	botones de anuncio en las vistas ampliadas de pines
 floating ad bars on pin closeups	barras flotantes de anuncios en las vistas ampliadas de pines
 sponsor credits on boards	créditos de patrocinio en los tableros
 %1$s (%2$d of %3$d parts)	%1$s (%2$d de %3$d partes)
+# context: Pinterest's own settings page. Step labels use Pinterest's own es menu names from 14.39.0.
+Pinterest's own settings	Configuración propia de Pinterest
+Finding them	Dónde encontrarlas
+Open Pinterest's settings from the gear on your Saved tab. HushPinterest doesn't change any of these.	Abre la configuración de Pinterest desde el engranaje de tu pestaña Guardado. HushPinterest no cambia ninguna de estas opciones.
+Settings	Configuración
+App theme	Tema de la aplicación
+Pinterest's choice of a light or dark look, or the one your phone uses.	La opción de Pinterest entre un aspecto claro u oscuro, o el que usa tu teléfono.
+Account management	Administración de la cuenta
+Privacy and data	Privacidad y datos
+Pinterest's ad personalization and data choices for your account. Disable analytics doesn't change them.	Las opciones de Pinterest sobre anuncios personalizados y datos de tu cuenta. Desactivar estadísticas no las cambia.
+Notifications	Notificaciones
+Which push, email and in-app notices Pinterest sends you.	Qué avisos push, por correo y en la aplicación te envía Pinterest.
+Show AI content	Mostrar contenido de IA
+Turned off, Pinterest shows less AI content in your feed. Hide AI-labeled pins only takes out pins that carry Pinterest's AI label.	Si lo desactivas, Pinterest muestra menos contenido de IA en tu feed. Ocultar pines con etiqueta de IA solo quita los pines que llevan la etiqueta de IA de Pinterest.
+Refine your recommendations	Ajusta las recomendaciones
+AI content	Contenido de IA
+Autoplay videos on cellular data	Reproducir los videos automáticamente con datos móviles
+Turned off, videos don't start on their own on mobile data. Pinterest may still load some of a video ahead of time.	Si lo desactivas, los videos no empiezan solos con datos móviles. Pinterest puede seguir cargando parte de un video por adelantado.
+Social permissions	Permisos sociales
+In Pinterest: %1$s	En Pinterest: %1$s

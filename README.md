@@ -115,6 +115,8 @@ These settings were captured on Android 16 with every patch included. All 19 fea
 
 If the settings page can't open, Retry tries to load it again. Back returns to Pinterest. The recovery screen was checked with a controlled load failure.
 
+Some things are Pinterest's own settings, and HushPinterest leaves them to it. The Pinterest's own settings page under More settings says where to find Pinterest's theme, privacy, notification, AI content and cellular autoplay settings, using the names Pinterest's menus show.
+
 Hide AI-labeled pins, the shopping filter, the pin actions, the link and update switches and every interface control start off. Create and Notifications have separate switches. The pin menu has separate choices for collage actions, Search image and Promote pin. Home, your profile and the ordinary Save, Share and Report actions stay available.
 
 Download pins adds a Download row when Pinterest supplies an image or a direct MP4. Pinterest's app is usually sent display sizes rather than the original upload. So before an image download starts, HushPinterest asks Pinterest's media host for the original behind the largest size and saves that. If the host doesn't have one, the largest size is saved. It uses the highest resolution MP4 supplied for a video and saves through Android's Downloads service. Streaming playlists aren't saved as videos.

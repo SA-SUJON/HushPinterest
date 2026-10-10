@@ -409,3 +409,23 @@ ad buttons on pin closeups	Werbeschaltflächen in Pin-Detailansichten
 floating ad bars on pin closeups	schwebende Werbeleisten in Pin-Detailansichten
 sponsor credits on boards	Sponsorenhinweise auf Pinnwänden
 %1$s (%2$d of %3$d parts)	%1$s (%2$d von %3$d Teilen)
+# context: Pinterest's own settings page. Step labels use Pinterest's own de menu names from 14.39.0.
+Pinterest's own settings	Pinterests eigene Einstellungen
+Finding them	So findest du sie
+Open Pinterest's settings from the gear on your Saved tab. HushPinterest doesn't change any of these.	Öffne Pinterests Einstellungen über das Zahnrad im Tab Gemerkt. HushPinterest ändert keine davon.
+Settings	Einstellungen
+App theme	App-Farbschema
+Pinterest's choice of a light or dark look, or the one your phone uses.	Pinterests Wahl zwischen hellem oder dunklem Aussehen oder dem deines Telefons.
+Account management	Kontoverwaltung
+Privacy and data	Datenschutz und Daten
+Pinterest's ad personalization and data choices for your account. Disable analytics doesn't change them.	Pinterests Einstellungen zu personalisierter Werbung und Daten für dein Konto. Analyse deaktivieren ändert sie nicht.
+Notifications	Benachrichtigungen
+Which push, email and in-app notices Pinterest sends you.	Welche Push-, E-Mail- und In-App-Hinweise Pinterest dir schickt.
+Show AI content	KI-Inhalte anzeigen
+Turned off, Pinterest shows less AI content in your feed. Hide AI-labeled pins only takes out pins that carry Pinterest's AI label.	Ausgeschaltet zeigt Pinterest weniger KI-Inhalte in deinem Feed. KI-markierte Pins ausblenden entfernt nur Pins mit Pinterests KI-Kennzeichnung.
+Refine your recommendations	Verfeinere deine Empfehlungen
+AI content	KI-Inhalte
+Autoplay videos on cellular data	Videos mit Mobilfunkdaten automatisch abspielen
+Turned off, videos don't start on their own on mobile data. Pinterest may still load some of a video ahead of time.	Ausgeschaltet starten Videos über mobile Daten nicht von selbst. Pinterest lädt eventuell trotzdem schon einen Teil eines Videos vorab.
+Social permissions	Sozialberechtigungen
+In Pinterest: %1$s	In Pinterest: %1$s
