@@ -275,7 +275,8 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 3));
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 3),
+            Map.entry("longPress", 2));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3223,6 +3224,150 @@ public class DexDiff {
             capability(c.callee, m != null && layout != null);
         }
 
+        /**
+         * The long-press menu's Download button: one call at the head of the menu's show method with
+         * the menu and its event, nothing borrowed, and six stubs bound to the members the clean APK
+         * has for them: the event's pin, the menu's shown id, the pin's id getter, the menu's button
+         * list and layout method, and Pinterest's own button model, icon, string, factory and styler.
+         */
+        void longPress(Contract c) {
+            String menuType = c.strings.get(1);
+            String item = "Lcom/pinterest/ui/menu/ContextMenuItemView;";
+            String arrayList = "Ljava/util/ArrayList;";
+            ClassDef menu = clean.classes.get(menuType);
+            List<Method> shows = new ArrayList<>(), lists = new ArrayList<>();
+            if (menu != null) for (Method method : menu.getMethods()) {
+                if (method.getImplementation() == null || AccessFlags.STATIC.isSet(method.getAccessFlags())) continue;
+                List<String> parameters = method.getParameterTypes().stream().map(Object::toString).toList();
+                if (parameters.size() == 2 && parameters.stream().allMatch(p -> p.startsWith("L") && !p.startsWith("Ljava/") && !p.startsWith("Landroid/")))
+                    shows.add(method);
+                if (method.getReturnType().equals("V") && parameters.equals(List.of("Ljava/util/List;"))
+                        && AccessFlags.PUBLIC.isSet(method.getAccessFlags()) && AccessFlags.FINAL.isSet(method.getAccessFlags())) lists.add(method);
+            }
+            Method show = unique(shows, "long-press menu show method");
+            Method list = unique(lists, "long-press menu item list method");
+            Method m = actual(show);
+            List<Integer> sites = calls(m, c.strings.get(0), 1);
+            if (m != null && sites.size() == 1) {
+                if (sites.get(0) != 0 || !arguments(instructions(m).get(0)).equals(List.of(parameter(m, -1), parameter(m, 0))))
+                    fail("long-press hook is not the show method's first instruction with the menu and its event");
+                remove(m, sites.get(0), sites.get(0) + 1);
+            }
+
+            // The clean members each stub has to name, found the way the patch finds them.
+            String event = show == null ? null : show.getParameterTypes().get(0).toString();
+            ClassDef eventClass = event == null ? null : clean.classes.get(event);
+            ClassDef pinMenu = clean.classes.get(PIN_MENU);
+            String pin = null;
+            if (pinMenu != null) for (Field field : pinMenu.getFields()) if (field.getName().equals("pin")) pin = field.getType();
+            ClassDef pinClass = pin == null ? null : clean.classes.get(pin);
+            List<Field> models = new ArrayList<>();
+            if (eventClass != null && pinClass != null) for (Field field : eventClass.getFields())
+                if (!AccessFlags.STATIC.isSet(field.getAccessFlags()) && pinClass.getInterfaces().contains(field.getType())) models.add(field);
+            if (models.size() != 1) fail("long-press event has " + models.size() + " pin interface fields, expected 1");
+            Field model = models.size() == 1 ? models.get(0) : null;
+            ClassDef face = model == null ? null : clean.classes.get(model.getType());
+            List<Method> getters = new ArrayList<>();
+            if (face != null) for (Method method : face.getMethods()) if (AccessFlags.ABSTRACT.isSet(method.getAccessFlags())
+                    && method.getParameterTypes().isEmpty() && method.getReturnType().equals("Ljava/lang/String;")) getters.add(method);
+            Method getter = unique(getters, "long-press pin id getter");
+            List<Field> shownFields = new ArrayList<>();
+            if (menu != null) for (Field field : menu.getFields())
+                if (!AccessFlags.STATIC.isSet(field.getAccessFlags()) && field.getType().equals("Ljava/lang/String;")) shownFields.add(field);
+            if (shownFields.size() != 1) fail("long-press menu has " + shownFields.size() + " shown id fields, expected 1");
+            // The button list is the ArrayList field whose value the list method hands to add().
+            Set<String> added = new TreeSet<>();
+            if (list != null) {
+                List<Instruction> body = instructions(list);
+                for (int at = 0; at < body.size(); at++) {
+                    if (body.get(at).getOpcode() != Opcode.IGET_OBJECT || !(reference(body.get(at)) instanceof FieldReference field)
+                            || !field.getDefiningClass().equals(menuType) || !field.getType().equals(arrayList)) continue;
+                    int held = firstRegister(body.get(at));
+                    for (int next = at + 1; next < body.size(); next++) {
+                        Instruction i = body.get(next);
+                        if (String.valueOf(reference(i)).equals(arrayList + "->add(Ljava/lang/Object;)Z") && !arguments(i).isEmpty()
+                                && arguments(i).get(0) == held) { added.add(field.toString()); break; }
+                        if (i.getOpcode().setsRegister() && firstRegister(i) == held) break;
+                    }
+                }
+            }
+            if (added.size() != 1) fail("long-press menu list method adds to " + added.size() + " button lists, expected 1");
+            List<ClassDef> buttonModels = new ArrayList<>(), strings = new ArrayList<>();
+            for (Method method : clean.holding("ContextMenuItemIcon(iconResId=")) if (method.getName().equals("toString")
+                    && clean.classes.get(method.getDefiningClass()) != null && !buttonModels.contains(clean.classes.get(method.getDefiningClass())))
+                buttonModels.add(clean.classes.get(method.getDefiningClass()));
+            ClassDef buttonModel = uniqueClass(buttonModels, "long-press menu button model");
+            String icon = null;
+            if (buttonModel != null) for (Method method : buttonModel.getMethods()) if (method.getName().equals("<init>")
+                    && method.getParameterTypes().size() == 4 && method.getParameterTypes().subList(1, 4).stream().map(Object::toString).toList()
+                    .equals(List.of("I", "I", "Lkotlin/jvm/functions/Function0;"))) icon = method.getParameterTypes().get(0).toString();
+            List<Method> factories = new ArrayList<>(), stylers = new ArrayList<>();
+            for (ClassDef owner : clean.classes.values()) {
+                if (owner.getType().startsWith(OWN)) continue;
+                Set<String> statics = new HashSet<>();
+                for (Field field : owner.getStaticFields()) if (field.getType().equals("I")) statics.add(field.getName());
+                if (statics.contains("download") && statics.contains("contextmenu_share")) strings.add(owner);
+                for (Method method : owner.getMethods()) {
+                    if (!AccessFlags.STATIC.isSet(method.getAccessFlags()) || method.getImplementation() == null) continue;
+                    List<String> parameters = method.getParameterTypes().stream().map(Object::toString).toList();
+                    if (buttonModel != null && method.getReturnType().equals(item) && parameters.equals(List.of("Landroid/content/Context;", buttonModel.getType())))
+                        factories.add(method);
+                    if (method.getReturnType().equals("V") && parameters.equals(List.of(item)) && instructions(method).stream().anyMatch(i ->
+                            reference(i) instanceof FieldReference field && field.getName().equals("themed_sema_color_icon_inverse"))) stylers.add(method);
+                }
+            }
+            Method factory = unique(factories, "long-press menu button factory");
+            Method styler = unique(stylers, "long-press menu button styler");
+            ClassDef stringsClass = uniqueClass(strings, "long-press Download string class");
+            boolean resolved = m != null && list != null && model != null && getter != null && shownFields.size() == 1 && added.size() == 1
+                    && icon != null && factory != null && styler != null && stringsClass != null;
+
+            if (resolved) {
+                String own = BASE + "actions/LongPressDownload;->";
+                String faceType = model.getType(), shown = shownFields.get(0).getName(), modelType = buttonModel.getType();
+                stub(own + "eventPin(Ljava/lang/Object;)Ljava/lang/Object;", List.of(Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET_OBJECT,
+                        Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.RETURN_OBJECT, Opcode.CONST_4, Opcode.RETURN_OBJECT),
+                        Arrays.asList(null, event, event + "->" + model.getName() + ":" + faceType, pin, null, null, null, null));
+                stub(own + "menuModel(Ljava/lang/Object;)Ljava/lang/String;", List.of(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT),
+                        Arrays.asList(menuType, menuType + "->" + shown + ":Ljava/lang/String;", null));
+                stub(own + "modelId(Ljava/lang/Object;)Ljava/lang/String;", List.of(Opcode.CHECK_CAST, Opcode.INVOKE_INTERFACE,
+                        Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT), Arrays.asList(faceType, getter.toString(), null, null));
+                stub(own + "menuItems(Ljava/lang/Object;)Ljava/util/ArrayList;", List.of(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT),
+                        Arrays.asList(menuType, added.iterator().next(), null));
+                stub(own + "layoutItems(Ljava/lang/Object;Ljava/util/List;)V", List.of(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID),
+                        Arrays.asList(menuType, list.toString(), null));
+                Method button = stub(own + "downloadItem(Landroid/content/Context;)Landroid/view/View;", List.of(Opcode.NEW_INSTANCE,
+                        Opcode.SGET_OBJECT, Opcode.SGET, Opcode.CONST_4, Opcode.INVOKE_DIRECT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT,
+                        Opcode.INVOKE_STATIC, Opcode.RETURN_OBJECT), Arrays.asList(modelType, icon + "->DOWNLOAD:" + icon,
+                        stringsClass.getType() + "->download:I", null, modelType + "-><init>(" + icon + "IILkotlin/jvm/functions/Function0;)V",
+                        factory.toString(), null, styler.toString(), null));
+                if (button != null) {
+                    List<Instruction> body = instructions(button);
+                    int made = firstRegister(body.get(0)), shaped = firstRegister(body.get(6));
+                    if (!arguments(body.get(4)).equals(List.of(made, firstRegister(body.get(1)), firstRegister(body.get(2)), firstRegister(body.get(2)),
+                            firstRegister(body.get(3)))) || ((NarrowLiteralInstruction) body.get(3)).getNarrowLiteral() != 0
+                            || !arguments(body.get(5)).equals(List.of(parameter(button, 0), made))
+                            || !arguments(body.get(7)).equals(List.of(shaped)) || firstRegister(body.get(8)) != shaped)
+                        fail("long-press download button stub builds the button from the wrong registers");
+                }
+            }
+            capability(c.callee, resolved);
+        }
+
+        /** An extension stub the patch filled: these opcodes, naming these references, its input cast first. */
+        Method stub(String key, List<Opcode> opcodes, List<String> references) {
+            Method m = actual(key);
+            if (m == null) return null;
+            List<Instruction> body = instructions(m);
+            if (!body.stream().map(Instruction::getOpcode).toList().equals(opcodes)) { fail(key + " is not the stub the patch writes"); return null; }
+            for (int at = 0; at < body.size(); at++) if (references.get(at) != null && !references.get(at).equals(String.valueOf(reference(body.get(at)))))
+                fail(key + " names " + reference(body.get(at)) + " where the clean APK has " + references.get(at));
+            int cast = body.get(0).getOpcode() == Opcode.CHECK_CAST ? 0 : body.get(1).getOpcode() == Opcode.CHECK_CAST ? 1 : -1;
+            if (cast >= 0 && !AccessFlags.STATIC.isSet(m.getAccessFlags())) fail(key + " is no static stub");
+            if (cast >= 0 && firstRegister(body.get(cast)) != parameter(m, 0)) fail(key + " casts something other than its input");
+            return m;
+        }
+
         void bridge(String key, String type, String name, String shape) {
             Method m = actual(key);
             if (m == null) return;
@@ -3963,6 +4108,7 @@ public class DexDiff {
                     case "navigation": navigation(c); break;
                     case "menu": menu(c); break;
                     case "downloads": downloads(c); break;
+                    case "longPress": longPress(c); break;
                     case "comments": comments(c); break;
                     case "links": links(c); break;
                     case "analytics": analytics(c); break;

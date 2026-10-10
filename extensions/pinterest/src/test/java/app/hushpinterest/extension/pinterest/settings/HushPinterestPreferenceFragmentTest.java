@@ -95,6 +95,7 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.SPOOF_SIGNATURE, "Spoof signature for Google sign-in");
         ROW_TITLES.put(PatchFamily.DOWNLOAD_PINS, "Download pins");
         ROW_TITLES.put(PatchFamily.DOWNLOAD_BOARD, "Download board");
+        ROW_TITLES.put(PatchFamily.LONG_PRESS_DOWNLOAD, "Long-press download");
         ROW_TITLES.put(PatchFamily.EXTERNAL_BROWSER, "Open links in your browser");
         ROW_TITLES.put(PatchFamily.SYSTEM_SHARE, "System share sheet");
         ROW_TITLES.put(PatchFamily.HIDE_SCREENSHOT_SHARE, "No screenshot share menu");

@@ -235,7 +235,8 @@ public class SettingsBackupTest {
                 Collections.emptyList(), notSwitches);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_AI_PINS,
                         Settings.HIDE_SHOPPING, Settings.DISABLE_ANALYTICS, Settings.STRIP_LINK_TRACKING,
-                        Settings.HIDE_ADVERTISING_ID, Settings.DOWNLOAD_PINS, Settings.DOWNLOAD_BOARD, Settings.EXTERNAL_BROWSER, Settings.SYSTEM_SHARE,
+                        Settings.HIDE_ADVERTISING_ID, Settings.DOWNLOAD_PINS, Settings.DOWNLOAD_BOARD, Settings.LONG_PRESS_DOWNLOAD,
+                        Settings.EXTERNAL_BROWSER, Settings.SYSTEM_SHARE,
                         Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SEARCH_HISTORY,
                         Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
                         Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH,

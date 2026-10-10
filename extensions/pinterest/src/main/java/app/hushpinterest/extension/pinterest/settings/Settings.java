@@ -63,6 +63,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_download_pins", FALSE);
     public static final BooleanSetting DOWNLOAD_BOARD =
             new BooleanSetting("hushpinterest_download_board", FALSE);
+    public static final BooleanSetting LONG_PRESS_DOWNLOAD =
+            new BooleanSetting("hushpinterest_long_press_download", FALSE);
     public static final BooleanSetting EXTERNAL_BROWSER =
             new BooleanSetting("hushpinterest_external_browser", FALSE);
     public static final BooleanSetting SYSTEM_SHARE =

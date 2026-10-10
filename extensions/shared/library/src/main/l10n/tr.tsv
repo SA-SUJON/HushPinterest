@@ -389,3 +389,6 @@ Every pin loaded from this board is already in Download history.	Bu panodan yük
 Couldn't start the board download. Open the board menu and try again.	Pano indirmesi başlatılamadı. Pano menüsünü açıp tekrar dene.
 board menus	pano menüleri
 loaded board pins	yüklenen pano Pinleri
+# context: Long-press download, a button added to the round menu a held pin opens, and its switch on the Pin actions page.
+Long-press download	Uzun basarak indirme
+Adds a Download button to the round menu you get when you hold a pin. Slide onto it and let go to save the pin. Download pins has to be on too.	Bir pine basılı tuttuğunda açılan yuvarlak menüye bir İndir düğmesi ekler. Parmağını düğmeye kaydırıp bırakınca pin kaydedilir. Pinleri indir de açık olmalıdır.

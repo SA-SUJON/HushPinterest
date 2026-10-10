@@ -59,6 +59,8 @@ import java.util.function.Function;
 
 import app.hushpinterest.extension.pinterest.actions.BoardDownloads;
 import app.hushpinterest.extension.pinterest.actions.ExternalBrowser;
+import app.hushpinterest.extension.pinterest.actions.LongPressDownloadForTests;
+import app.hushpinterest.extension.pinterest.actions.LongPressDownloadTest;
 import app.hushpinterest.extension.pinterest.actions.PinDownloads;
 import app.hushpinterest.extension.pinterest.actions.SystemShare;
 import app.hushpinterest.extension.pinterest.ads.Ads;
@@ -86,7 +88,7 @@ import app.hushpinterest.extension.shared.settings.PauseForTests;
  * without a probe here fails the first test.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 30)
+@Config(sdk = 30, shadows = LongPressDownloadTest.NativeMenu.class)
 public class PausedHooksTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
@@ -216,6 +218,7 @@ public class PausedHooksTest {
                 () -> AdvertisingId.limitTracking(false)));
         probes.put(Settings.DOWNLOAD_PINS, Collections.singletonList(PausedHooksTest::queuesPinDownload));
         probes.put(Settings.DOWNLOAD_BOARD, Collections.singletonList(() -> BoardDownloads.record(Collections.singletonList(BOARD_PIN))));
+        probes.put(Settings.LONG_PRESS_DOWNLOAD, Collections.singletonList(PausedHooksTest::addsLongPressDownload));
         probes.put(Settings.EXTERNAL_BROWSER, Collections.singletonList(() -> withActivity(activity -> {
             ResolveInfo browser = new ResolveInfo();
             browser.activityInfo = new ActivityInfo();
@@ -284,6 +287,20 @@ public class PausedHooksTest {
         finally {
             Utils.setActivity(null);
             controller.pause().stop().destroy();
+        }
+    }
+
+    /**
+     * The long-press button saves through Download pins, so it needs that switch on as well. When
+     * a test has it off, the probe turns it on for its own run and puts it back.
+     */
+    private static boolean addsLongPressDownload() {
+        boolean pins = Settings.DOWNLOAD_PINS.savedValue();
+        if (!pins) Settings.DOWNLOAD_PINS.save(true);
+        try {
+            return LongPressDownloadForTests.addsDownloadButton();
+        } finally {
+            if (!pins) Settings.DOWNLOAD_PINS.save(false);
         }
     }
 

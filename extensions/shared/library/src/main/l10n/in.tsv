@@ -389,3 +389,6 @@ Every pin loaded from this board is already in Download history.	Semua Pin yang 
 Couldn't start the board download. Open the board menu and try again.	Tidak dapat memulai unduhan papan. Buka menu papan, lalu coba lagi.
 board menus	menu papan
 loaded board pins	Pin papan yang dimuat
+# context: Long-press download, a button added to the round menu a held pin opens, and its switch on the Pin actions page.
+Long-press download	Unduh dengan tekan lama
+Adds a Download button to the round menu you get when you hold a pin. Slide onto it and let go to save the pin. Download pins has to be on too.	Menambahkan tombol Unduh ke menu bundar yang muncul saat kamu menahan Pin. Geser ke tombol itu lalu lepaskan untuk menyimpan Pin. Unduh Pin juga harus aktif.
