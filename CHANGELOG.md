@@ -26,6 +26,7 @@ Every HushPinterest release, newest first.
 * **Pinterest:** Patch descriptions in Morphe Manager are rewritten in plain English. Each one says what the patch changes, why you might want it, and ends with where its switch is and whether it starts on or off.
 * **Pinterest:** Setting rows in HushPinterest settings are reworded in plain English, with restart reminders and clearer notes on when a change shows. Translations for German, Spanish, Indonesian, Brazilian Portuguese and Turkish are updated to match.
 * **Pinterest:** Download, setup guide, import and update-check messages are plainer and say what to do next. Translations are updated to match.
+* **Pinterest:** New Download board patch. It adds Download board to a board's menu, which saves every pin Pinterest has loaded for that board (up to 500) the same way Download pins does. Pins already in Download history are skipped, and when it's done you see how many were saved, skipped or unsupported, with a reminder that only loaded pins are included. So scroll to the end of a board first if you want all of it. Download pins has to be on too. The switch starts off on the Pin actions page, and with it off or HushPinterest paused, the board menu is Pinterest's own. Nothing new is asked of Pinterest apart from the media downloads themselves.
 
 ## 0.0.5 (2026-10-07)
 

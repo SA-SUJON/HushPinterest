@@ -376,3 +376,13 @@ Pinterest didn't supply supported media for this pin.	O Pinterest não forneceu 
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Baixe um pin ou selecione vários em uma grade. Salva vídeos e imagens originais, ou o maior tamanho que o Pinterest tiver.
 Android 9 uses the file picker. Results from visible-pin selections appear here.	O Android 9 usa o seletor de arquivos. Os resultados das seleções de Pins visíveis aparecem aqui.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Apenas os 32 downloads e resultados de seleção mais recentes são listados. Os arquivos salvos são mantidos.
+# context: Download board, a row in a board's own menu and its switch on the Pin actions page.
+Download board	Baixar pasta
+Adds Download board to a board's menu. It saves the pins Pinterest has loaded for that board so far and skips any already in Download history. Download pins has to be on too.	Adiciona Baixar pasta ao menu de uma pasta. Salva os Pins que o Pinterest carregou até agora dessa pasta e pula os que já estão no Histórico de downloads. Baixar Pins também precisa estar ativado.
+Skipped because they're already in Download history: %d	Pulados porque já estão no Histórico de downloads: %d
+Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.	Só entram os Pins que o Pinterest já carregou desta pasta, no máximo %d. Para incluir mais, role a pasta mais para baixo antes.
+No pins from this board have loaded yet. Scroll through the board, then try again.	Nenhum Pin desta pasta foi carregado ainda. Role a pasta e tente de novo.
+Every pin loaded from this board is already in Download history.	Todos os Pins carregados desta pasta já estão no Histórico de downloads.
+Couldn't start the board download. Open the board menu and try again.	Não foi possível iniciar o download da pasta. Abra o menu da pasta e tente de novo.
+board menus	menus de pastas
+loaded board pins	Pins carregados da pasta

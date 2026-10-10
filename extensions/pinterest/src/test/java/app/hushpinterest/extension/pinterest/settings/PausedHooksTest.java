@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import app.hushpinterest.extension.pinterest.actions.BoardDownloads;
 import app.hushpinterest.extension.pinterest.actions.ExternalBrowser;
 import app.hushpinterest.extension.pinterest.actions.PinDownloads;
 import app.hushpinterest.extension.pinterest.actions.SystemShare;
@@ -93,6 +94,9 @@ public class PausedHooksTest {
     private static final String TRACKED_LINK = "https://www.pinterest.com/pin/123456/?utm_source=share&keep=1";
     private static final Map<String, Object> PIN = Map.of("id", "123456", "images", Map.of(
             "orig", Map.of("url", "https://i.pinimg.com/originals/pin.jpg")));
+    /** A pin as a board's own page carries it: saved to board 4242. */
+    private static final Map<String, Object> BOARD_PIN = Map.of("id", "654321", "images", Map.of(),
+            "board", Map.of("id", "4242"));
     private enum Tab { CREATE, NOTIFICATIONS, SEARCH }
     private enum Source { PIN }
     private enum Task { TAG_APPSFLYER_INIT }
@@ -211,6 +215,7 @@ public class PausedHooksTest {
                 () -> !"real".equals(AdvertisingId.id("real")),
                 () -> AdvertisingId.limitTracking(false)));
         probes.put(Settings.DOWNLOAD_PINS, Collections.singletonList(PausedHooksTest::queuesPinDownload));
+        probes.put(Settings.DOWNLOAD_BOARD, Collections.singletonList(() -> BoardDownloads.record(Collections.singletonList(BOARD_PIN))));
         probes.put(Settings.EXTERNAL_BROWSER, Collections.singletonList(() -> withActivity(activity -> {
             ResolveInfo browser = new ResolveInfo();
             browser.activityInfo = new ActivityInfo();

@@ -275,7 +275,7 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("settings", 3));
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 3));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3528,6 +3528,113 @@ public class DexDiff {
             return from >= 0 && graph.normal.get(from).contains(at);
         }
 
+        /** The extra a board screen puts its board id under. */
+        static final String BOARD_ID_EXTRA = "com.pinterest.EXTRA_BOARD_ID";
+        static final Set<String> BOARD_OPTIONS = Set.of("Edit", "Merge", "Archive", "Unarchive", "PreviewBoard");
+
+        /**
+         * The board menu. The board screen's presenter is the one class holding the board id extra that
+         * builds the menu in an instance method taking nothing, with one static call answering the option
+         * group (the class whose toString writes "OptionGroup(label="), into a class whose own builder
+         * reads the board options enum. The menu hook goes right after that answer is moved into its
+         * register, reached only from there, with the menu and an untouched this, and its answer replaces
+         * the menu, cast back to the option group. Found in the clean target, never from the hook.
+         */
+        void boardMenu(Contract c) {
+            String hook = c.strings.get(0);
+            List<Method> groups = new ArrayList<>();
+            for (Method m : clean.holding("OptionGroup(label=")) if (m.getName().equals("toString")) groups.add(m);
+            Method described = unique(groups, "option group");
+            boolean found = false;
+            if (described != null) {
+                String group = described.getDefiningClass();
+                List<ClassDef> presenters = new ArrayList<>();
+                List<Method> builders = new ArrayList<>();
+                Map<Method, Integer> callAt = new HashMap<>();
+                for (ClassDef cd : clean.classesHolding(BOARD_ID_EXTRA)) {
+                    if (AccessFlags.INTERFACE.isSet(cd.getAccessFlags())) continue;
+                    List<Method> own = menuBuilds(cd, group, callAt);
+                    if (!own.isEmpty()) {
+                        presenters.add(cd);
+                        builders.addAll(own);
+                    }
+                }
+                ClassDef presenter = uniqueClass(presenters, "board screen presenter");
+                Method builder = presenter == null ? null : unique(builders, "board menu builder call");
+                if (builder != null) {
+                    List<Instruction> was = instructions(builder);
+                    int call = callAt.get(builder), self = parameter(builder, -1);
+                    int menu = call + 2 < was.size() && was.get(call + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT ? firstRegister(was.get(call + 1)) : -1;
+                    boolean ready = menu >= 0 && menu != self;
+                    for (int at = 0; ready && at <= call + 1; at++) ready = !writes(was.get(at), self);
+                    if (!ready) fail("the board screen presenter " + builder + " no longer keeps its built menu beside an untouched this");
+                    Method m = actual(builder);
+                    List<Integer> sites = calls(m, hook, 1);
+                    if (ready && m != null && sites.size() == 1) {
+                        List<Instruction> body = instructions(m);
+                        int at = sites.get(0);
+                        found = at == call + 2 && at + 3 < body.size() && arguments(body.get(at)).equals(List.of(menu, self))
+                                && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && firstRegister(body.get(at + 1)) == menu
+                                && body.get(at + 2).getOpcode() == Opcode.CHECK_CAST && firstRegister(body.get(at + 2)) == menu
+                                && group.equals(String.valueOf(reference(body.get(at + 2))))
+                                && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 3, at + 2);
+                        if (!found) fail(hook + " does not take the built board menu and this, in place, in " + m);
+                        else remove(m, at, at + 3);
+                    }
+                }
+            }
+            capability(c.callee, found);
+        }
+
+        /**
+         * Each instance method of [owner] taking nothing that makes a static call into a board menu
+         * builder answering [group], once per call, with the call's index put in [callAt].
+         */
+        List<Method> menuBuilds(ClassDef owner, String group, Map<Method, Integer> callAt) {
+            List<Method> out = new ArrayList<>();
+            for (Method m : owner.getMethods()) {
+                if (m.getImplementation() == null || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !descriptor(m).equals("()V")) continue;
+                List<Instruction> body = instructions(m);
+                for (int at = 0; at < body.size(); at++) {
+                    Instruction i = body.get(at);
+                    if ((i.getOpcode() == Opcode.INVOKE_STATIC || i.getOpcode() == Opcode.INVOKE_STATIC_RANGE) && reference(i) instanceof MethodReference r
+                            && r.getReturnType().equals(group) && takesOptions(r) && boardBuilder(r.getDefiningClass(), group)) {
+                        out.add(m);
+                        callAt.put(m, at);
+                    }
+                }
+            }
+            return out;
+        }
+
+        /** True for a method taking a list of options and a Function1 handler first, as the option group builders do. */
+        static boolean takesOptions(MethodReference r) {
+            List<? extends CharSequence> p = r.getParameterTypes();
+            return p.size() >= 2 && p.get(0).toString().equals("Ljava/util/List;") && p.get(1).toString().equals("Lkotlin/jvm/functions/Function1;");
+        }
+
+        /** True when [type] has a static method answering [group] from options that reads the board options enum. */
+        boolean boardBuilder(String type, String group) {
+            ClassDef owner = clean.classes.get(type);
+            if (owner == null) return false;
+            for (Method m : owner.getMethods()) {
+                if (m.getImplementation() == null || !AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals(group) || !takesOptions(m)) continue;
+                for (Instruction i : instructions(m))
+                    if (i.getOpcode() == Opcode.SGET_OBJECT && reference(i) instanceof FieldReference f && f.getType().equals(f.getDefiningClass())
+                            && boardOptions(f.getDefiningClass())) return true;
+            }
+            return false;
+        }
+
+        /** True for an enum with a constant for each of [BOARD_OPTIONS]. */
+        boolean boardOptions(String type) {
+            ClassDef options = clean.classes.get(type);
+            if (options == null || !"Ljava/lang/Enum;".equals(options.getSuperclass())) return false;
+            Set<String> names = new HashSet<>();
+            for (Field f : options.getFields()) if (AccessFlags.STATIC.isSet(f.getAccessFlags()) && f.getType().equals(type)) names.add(f.getName());
+            return names.containsAll(BOARD_OPTIONS);
+        }
+
         static final String TOPIC_BINDER = "Presenter bound to BubblesListView must be of type BubblesListPresenter";
 
         /**
@@ -3863,6 +3970,7 @@ public class DexDiff {
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;
                     case "topicSuggestions": topicSuggestions(c); break;
+                    case "boardMenu": boardMenu(c); break;
                     case "settings": settings(c); break;
                     default: fail("unknown mutation kind " + c.target);
                 }

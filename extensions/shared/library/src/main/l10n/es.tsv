@@ -379,3 +379,13 @@ Pinterest didn't supply supported media for this pin.	Pinterest no proporcionó 
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Descarga un pin o selecciona varios en una cuadrícula. Guarda videos e imágenes originales, o el mayor tamaño que tenga Pinterest.
 Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 usa el selector de archivos. Aquí aparecen los resultados de las selecciones de pines visibles.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Solo se muestran las 32 descargas y resultados de selección más recientes. Se conservan los archivos guardados.
+# context: Download board, a row in a board's own menu and its switch on the Pin actions page.
+Download board	Descargar tablero
+Adds Download board to a board's menu. It saves the pins Pinterest has loaded for that board so far and skips any already in Download history. Download pins has to be on too.	Añade Descargar tablero al menú de un tablero. Guarda los pines que Pinterest cargó hasta ahora de ese tablero y omite los que ya están en el Historial de descargas. Descargar pines también tiene que estar activado.
+Skipped because they're already in Download history: %d	Omitidos porque ya están en el Historial de descargas: %d
+Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.	Solo se incluyen los pines que Pinterest cargó hasta ahora de este tablero, hasta %d. Para incluir más, desplázate primero más abajo en el tablero.
+No pins from this board have loaded yet. Scroll through the board, then try again.	Todavía no se cargó ningún pin de este tablero. Desplázate por el tablero y vuelve a intentarlo.
+Every pin loaded from this board is already in Download history.	Todos los pines cargados de este tablero ya están en el Historial de descargas.
+Couldn't start the board download. Open the board menu and try again.	No se pudo iniciar la descarga del tablero. Abre el menú del tablero y vuelve a intentarlo.
+board menus	menús de tableros
+loaded board pins	pines cargados del tablero

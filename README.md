@@ -60,12 +60,13 @@ Setup and backup guide in About is optional. It explains installed patches, runt
 
 ## Patches
 
-There are 23 patches so far.
+There are 24 patches so far.
 
 | Patch | What it does |
 |---|---|
 | `Disable analytics` | Stops Pinterest from sending usage reports, crash reports and ad-tracking data to outside companies, and turns off Google's analytics inside the app. Good if you'd rather share less. On by default. Turn it off in HushPinterest settings > Privacy. |
 | `Disable update nag` | Stops Pinterest's pop-ups asking you to update from the Play Store. You can still update Pinterest yourself. Good if the reminders get annoying. Starts off. Turn it on in HushPinterest settings > More settings > Updates. |
+| `Download board` | Adds Download board to a board's menu. It saves every pin Pinterest has loaded for that board and skips ones already in Download history, so you can keep a board without picking pins one at a time. Needs Download pins on too. Starts off. Turn it on in HushPinterest settings > Pin actions. |
 | `Download pins` | Adds downloads for a pin, or for several pins you select in a grid. Saves the original image or the highest-quality video Pinterest supplies to your phone. Starts off. Turn it on in HushPinterest settings > Pin actions. |
 | `Filter pin menu` | Lets you hide Add to collage, Remix collage, Search image and Promote pin in a pin's menu, each with its own switch. Download, share and copy link stay. Starts off. Turn them on in HushPinterest settings > Interface. |
 | `Hide AI-labeled pins` | Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show. Starts off. Turn it on in HushPinterest settings > Feed. |
@@ -123,6 +124,8 @@ From a pin menu in a feed, search or board grid, Download visible pins lets you 
   <img src="assets/screenshots/download-selection-history.png" width="240" alt="Download history showing one completed video and one unsupported pin">
 </p>
 
+Download board adds a row to a board's own menu. It saves the pins Pinterest has already loaded for that board, up to 500, and skips any that Download history lists as downloaded. A download that failed, or that Android no longer has, gets tried again. History only keeps the 32 most recent entries, so older downloads can come around again. Pinterest loads a board a page at a time and HushPinterest never asks it for more, so scroll to the end of the board first if you want all of it. Loaded pins are remembered for the last four boards you opened, and only until Pinterest closes. The result shows the same counts as a selection, plus how many were already in Download history. Download pins has to be on too, and this switch starts off.
+
 Download history in Pin actions checks the requests HushPinterest started. It shows Android's current status after Pinterest restarts, when a result arrives and when you tap Refresh. A failed request offers Retry only when Android still supplies a supported media address. Otherwise, reopen the pin. A finished image offers Set as wallpaper, which opens Android's own Set as options for the saved file. Removing a history entry keeps the downloaded file. Use system Downloads to cancel a request that's still running.
 
 Download history also records results from visible-pin selections, including skipped or unsupported pins. It keeps the 32 most recent entries without storing media addresses. These local results don't claim to be Android download requests.
@@ -162,7 +165,7 @@ Google checks which key an app was signed with before it signs you in, and a pat
 
 ## Privacy
 
-HushPinterest doesn't collect anything and has no server. The release check stays off until you turn it on. Once it's on, HushPinterest asks `api.github.com` for its latest release at most once a day, when Pinterest starts, and again whenever you tap Check now. Download pins contacts Pinterest's media server when you tap Download. Browser and share actions open the destination you chose.
+HushPinterest doesn't collect anything and has no server. The release check stays off until you turn it on. Once it's on, HushPinterest asks `api.github.com` for its latest release at most once a day, when Pinterest starts, and again whenever you tap Check now. Download pins contacts Pinterest's media server when you tap Download, and Download board does the same for each pin it saves. Browser and share actions open the destination you chose.
 
 Disable analytics stops the targeted Pinterest usage uploads and the AppsFlyer and Bugsnag transports. Pinterest's Google Engage client gets the same "service not found" answer it gets on a phone without Engage, so nothing is published to Google's recommendation surfaces. Its manifest change turns off Firebase Analytics, Crashlytics and Performance collection, stops Google Analytics from collecting the ad ID and sets Google's four default consent signals to denied. It leaves Firebase messaging, Firebase Installations and the sign-in components in place. Strip link tracking removes known tracking parameters from copied and shared links while keeping unknown parameters, signed links and opaque `pin.it` short links. Hide advertising ID changes the answer Google's ad ID getters give inside Pinterest, so Pinterest's own requests and the bundled ad and analytics SDKs see zeros. It doesn't touch the ad ID other apps see. Remove ad tracking permissions takes Google's advertising ID permission, the two Privacy Sandbox ad services permissions and the ad services configuration out of Pinterest's manifest. Google Play services then answers Pinterest with an all-zero ad ID, so while both patches are in, turning off Hide advertising ID doesn't bring the real one back. Hide search history hides recent searches on this device. It doesn't delete Pinterest's server history.
 

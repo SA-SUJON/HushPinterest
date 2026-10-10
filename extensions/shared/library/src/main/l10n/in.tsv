@@ -379,3 +379,13 @@ Pinterest didn't supply supported media for this pin.	Pinterest tidak menyediaka
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Unduh satu pin, atau pilih beberapa pin dalam kisi. Menyimpan video dan gambar asli, atau ukuran terbesar yang dimiliki Pinterest.
 Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 memakai pemilih file. Hasil pilihan Pin yang terlihat muncul di sini.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Hanya 32 unduhan dan hasil pilihan terbaru yang ditampilkan. File yang tersimpan tetap disimpan.
+# context: Download board, a row in a board's own menu and its switch on the Pin actions page.
+Download board	Unduh papan
+Adds Download board to a board's menu. It saves the pins Pinterest has loaded for that board so far and skips any already in Download history. Download pins has to be on too.	Menambahkan Unduh papan ke menu papan. Menyimpan Pin yang sejauh ini sudah dimuat Pinterest untuk papan itu dan melewati yang sudah ada di Riwayat unduhan. Unduh Pin juga harus aktif.
+Skipped because they're already in Download history: %d	Dilewati karena sudah ada di Riwayat unduhan: %d
+Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.	Hanya Pin yang sejauh ini sudah dimuat Pinterest untuk papan ini yang disertakan, maksimal %d. Untuk menyertakan lebih banyak, gulir papan lebih jauh ke bawah dulu.
+No pins from this board have loaded yet. Scroll through the board, then try again.	Belum ada Pin dari papan ini yang dimuat. Gulir papan, lalu coba lagi.
+Every pin loaded from this board is already in Download history.	Semua Pin yang dimuat dari papan ini sudah ada di Riwayat unduhan.
+Couldn't start the board download. Open the board menu and try again.	Tidak dapat memulai unduhan papan. Buka menu papan, lalu coba lagi.
+board menus	menu papan
+loaded board pins	Pin papan yang dimuat

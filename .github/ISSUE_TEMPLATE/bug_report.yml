@@ -71,6 +71,7 @@ body:
       options:
         - Disable analytics
         - Disable update nag
+        - Download board
         - Download pins
         - Filter pin menu
         - Hide AI-labeled pins

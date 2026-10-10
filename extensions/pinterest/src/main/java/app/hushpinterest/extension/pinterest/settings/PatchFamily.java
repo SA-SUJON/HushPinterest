@@ -60,6 +60,7 @@ public enum PatchFamily {
     SPOOF_SIGNATURE(FamilyNames.SPOOF_SIGNATURE, "spoofSignature",
             "Pinterest's original signature is added to the app"),
     DOWNLOAD_PINS(FamilyNames.DOWNLOAD_PINS, "downloadPins", null, Settings.DOWNLOAD_PINS),
+    DOWNLOAD_BOARD(FamilyNames.DOWNLOAD_BOARD, "downloadBoard", null, Settings.DOWNLOAD_BOARD),
     EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "externalBrowser", null, Settings.EXTERNAL_BROWSER),
     SYSTEM_SHARE(FamilyNames.SYSTEM_SHARE, "systemShare", null, Settings.SYSTEM_SHARE),
     HIDE_SCREENSHOT_SHARE(FamilyNames.HIDE_SCREENSHOT_SHARE, "hideScreenshotShare", null, Settings.HIDE_SCREENSHOT_SHARE),
@@ -123,7 +124,7 @@ public enum PatchFamily {
     static final Set<PatchFamily> FEED_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_AI_PINS, HIDE_SHOPPING));
     static final Set<PatchFamily> PRIVACY_PAGE = Collections.unmodifiableSet(EnumSet.of(DISABLE_ANALYTICS, STRIP_LINK_TRACKING,
             HIDE_ADVERTISING_ID, REMOVE_AD_TRACKING_PERMISSIONS, SPOOF_SIGNATURE));
-    static final Set<PatchFamily> ACTIONS_PAGE = Collections.unmodifiableSet(EnumSet.of(DOWNLOAD_PINS, SYSTEM_SHARE));
+    static final Set<PatchFamily> ACTIONS_PAGE = Collections.unmodifiableSet(EnumSet.of(DOWNLOAD_PINS, DOWNLOAD_BOARD, SYSTEM_SHARE));
     static final Set<PatchFamily> INTERFACE_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SCREENSHOT_SHARE,
             HIDE_SEARCH_HISTORY, HIDE_NAVIGATION_BUTTONS, HIDE_HEADER_BUTTONS, HIDE_PIN_MENU_ITEMS,
             HIDE_COMMENTS, HIDE_TOPIC_SUGGESTIONS, QUIET_EMAIL_REMINDER, HIDE_SAVE_TOASTS, ORIGINAL_IMAGES));
@@ -140,6 +141,8 @@ public enum PatchFamily {
         LINK_TRACKING(STRIP_LINK_TRACKING, "linkTracking", "Strip link tracking"),
         ADVERTISING_ID(HIDE_ADVERTISING_ID, "advertisingId", "Hide advertising ID"),
         PIN_DOWNLOADS(DOWNLOAD_PINS, "pinDownloads", "Download pins"),
+        BOARD_MENU(DOWNLOAD_BOARD, "boardMenu", "board menus"),
+        BOARD_PINS(DOWNLOAD_BOARD, "boardPins", "loaded board pins"),
         VISIT_LINKS(EXTERNAL_BROWSER, "visitLinks", "Open links in your browser"),
         PIN_SHARE(SYSTEM_SHARE, "pinShare", "System share sheet"),
         SCREENSHOT_SHARE(HIDE_SCREENSHOT_SHARE, "screenshotShare", "No screenshot share menu"),

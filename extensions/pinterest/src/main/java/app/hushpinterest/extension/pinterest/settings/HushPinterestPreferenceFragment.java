@@ -301,6 +301,10 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                 actions.addPreference(mark(new DownloadHistoryPreference(context), SettingsIcons.DOWNLOADS));
                 if (Build.VERSION.SDK_INT == 28) actions.addPreference(mark(new PendingSavesPreference(context), SettingsIcons.DOWNLOADS));
             }
+            patchToggle(actions, context, build, PatchFamily.DOWNLOAD_BOARD, Settings.DOWNLOAD_BOARD,
+                    L10n.t("Download board"), L10n.t("Adds Download board to a board's menu. It saves the pins Pinterest "
+                        + "has loaded for that board so far and skips any already in Download history. Download pins "
+                        + "has to be on too."), SettingsIcons.DOWNLOADS);
             patchToggle(actions, context, build, PatchFamily.SYSTEM_SHARE, Settings.SYSTEM_SHARE,
                     L10n.t("System share sheet"), L10n.t("Sharing a pin link opens Android's own share menu."), SettingsIcons.EXPORT);
         }

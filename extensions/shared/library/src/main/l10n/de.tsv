@@ -379,3 +379,13 @@ Pinterest didn't supply supported media for this pin.	Pinterest hat für diesen 
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Lade einen Pin herunter oder wähle mehrere Pins in einem Raster aus. Speichert Videos und Originalbilder oder die größte Größe, die Pinterest hat.
 Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 nutzt die Dateiauswahl. Ergebnisse der Auswahl sichtbarer Pins erscheinen hier.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Nur die 32 neuesten Downloads und Auswahlergebnisse werden angezeigt. Gespeicherte Dateien bleiben erhalten.
+# context: Download board, a row in a board's own menu and its switch on the Pin actions page.
+Download board	Pinnwand herunterladen
+Adds Download board to a board's menu. It saves the pins Pinterest has loaded for that board so far and skips any already in Download history. Download pins has to be on too.	Fügt dem Menü einer Pinnwand den Eintrag Pinnwand herunterladen hinzu. Er speichert die Pins, die Pinterest für diese Pinnwand bisher geladen hat, und überspringt alle, die schon im Download-Verlauf sind. Dafür muss auch Pins herunterladen an sein.
+Skipped because they're already in Download history: %d	Übersprungen, weil schon im Download-Verlauf: %d
+Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.	Nur die Pins, die Pinterest für diese Pinnwand bisher geladen hat, sind dabei, bis zu %d. Um mehr einzuschließen, scrolle zuerst auf der Pinnwand weiter nach unten.
+No pins from this board have loaded yet. Scroll through the board, then try again.	Von dieser Pinnwand wurden noch keine Pins geladen. Scrolle durch die Pinnwand und versuche es dann noch einmal.
+Every pin loaded from this board is already in Download history.	Jeder geladene Pin dieser Pinnwand ist schon im Download-Verlauf.
+Couldn't start the board download. Open the board menu and try again.	Der Pinnwand-Download konnte nicht starten. Öffne das Menü der Pinnwand und versuche es noch einmal.
+board menus	Pinnwand-Menüs
+loaded board pins	geladene Pinnwand-Pins

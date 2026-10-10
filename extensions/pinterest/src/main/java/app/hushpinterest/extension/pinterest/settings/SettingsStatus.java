@@ -50,6 +50,9 @@ public final class SettingsStatus {
     public static boolean spoofSignature() { return false; }
     public static boolean downloadPins() { return false; }
     public static boolean pinDownloads() { return false; }
+    public static boolean downloadBoard() { return false; }
+    public static boolean boardMenu() { return false; }
+    public static boolean boardPins() { return false; }
     public static boolean externalBrowser() { return false; }
     public static boolean visitLinks() { return false; }
     public static boolean systemShare() { return false; }
