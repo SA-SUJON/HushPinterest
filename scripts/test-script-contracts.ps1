@@ -6100,6 +6100,18 @@ Assert-True ($libsReaders.Count -eq 0) `
 
 Write-Host '[scripts] release bundle path contracts passed'
 
+# Every tracked PowerShell file parses. The release stages, the device helpers and the receipt run
+# only on a release or with a phone, so a syntax slip in one of them would otherwise first show
+# there. Read as UTF-8 (Get-ScriptAst), so both editions parse the same text.
+$unparsed = New-Object System.Collections.Generic.List[string]
+$trackedScripts = @(& git -C $Root ls-files -- '*.ps1')
+Assert-True ($LASTEXITCODE -eq 0 -and $trackedScripts.Count -gt 0) 'git could not list the tracked PowerShell files.'
+foreach ($tracked in $trackedScripts) {
+    try { [void](Get-ScriptAst -Path (Join-Path $Root $tracked)) } catch { $unparsed.Add($_.Exception.Message) }
+}
+Assert-True ($unparsed.Count -eq 0) ("These tracked scripts don't parse: " + ($unparsed -join '; '))
+Write-Host "[scripts] all $($trackedScripts.Count) tracked PowerShell files parse"
+
 # --- tracked files name no machine -----------------------------------------------------------
 #
 # No tracked file names the working-notes folder .gitignore keeps out, the backup folders on the
