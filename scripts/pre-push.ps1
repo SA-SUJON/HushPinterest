@@ -865,6 +865,13 @@ try {
             Write-Step 'release push: building the bundle and patching every declared fixture with it'
             $tasks += ':patches:buildAndroid'
         }
+        # A quick pass first: everything but the fixture suite and the bundle, so a slip in a unit
+        # test or a lint stops the push in minutes instead of behind :patches:fixtureTest (Hushfeed's
+        # 0.69.0 gate failed a two-minute test after 47 minutes that way). The full pass after it
+        # finds those tasks up to date. Each pass takes its own build queue slot.
+        $quickTasks = @($tasks | Where-Object { $_ -notin @(':patches:fixtureTest', ':patches:buildAndroid') })
+        $gradlePasses = if ($quickTasks.Count -lt $tasks.Count) { @(, $quickTasks) + @(, $tasks) } else { @(, $tasks) }
+        if ($gradlePasses.Count -gt 1) { Write-Step 'quick pass first: the unit tests and lint, then the fixture suite' }
         # HUSHPINTEREST_BUILD_WRAPPER names a PowerShell script that runs Gradle on this machine,
         # called as <wrapper> -ProjectDir <repository> -Tasks <task>...: a machine that shares its
         # CPU and memory between several builds points it at a governor, which takes its own
@@ -909,14 +916,15 @@ try {
                     $env:GITHUB_ACTOR = $login
                     $env:GITHUB_TOKEN = $token
                 }
+                foreach ($passTasks in $gradlePasses) {
                 $global:LASTEXITCODE = 0
                 Invoke-WithoutGitEnvironment {
                     if ($wrapper) {
-                        & $wrapper -ProjectDir $gateRoot -Tasks $tasks
+                        & $wrapper -ProjectDir $gateRoot -Tasks $passTasks
                     } else {
                         $queued = Enter-HushPinterestQueue -Job 'gate gradle'
                         try {
-                            & (Join-Path $gateRoot 'gradlew.bat') -p $gateRoot @tasks
+                            & (Join-Path $gateRoot 'gradlew.bat') -p $gateRoot @passTasks
                         } finally {
                             Exit-HushPinterestQueue $queued
                         }
@@ -926,9 +934,13 @@ try {
                     if (-not $touchesCode) {
                         throw 'The resolved build dependency report could not be generated. Read the dependency resolution or checksum verification failure above.'
                     }
+                    $which = if ($gradlePasses.Count -gt 1 -and $passTasks.Count -lt $tasks.Count) {
+                        ' The quick pass failed, so the fixture suite never started.'
+                    } else { '' }
                     throw ('The runtime test build did not pass. Read the output above: it says whether a ' +
                         'test failed, an API level above the payload floor was reached, or the build could ' +
-                        'not start. Push anyway with HUSHPINTEREST_SKIP_PRE_PUSH=1.')
+                        "not start.$which Push anyway with HUSHPINTEREST_SKIP_PRE_PUSH=1.")
+                }
                 }
                 $buildAdvisories = Join-Path $gateRoot 'scripts/build-advisories.ps1'
                 if (-not (Test-Path -LiteralPath $buildAdvisories -PathType Leaf)) {

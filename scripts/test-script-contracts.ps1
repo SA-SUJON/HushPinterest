@@ -3055,6 +3055,40 @@ try {
             Remove-Item -LiteralPath (Join-Path $hookRoot 'patches') -Recurse -Force -ErrorAction SilentlyContinue
         }
 
+        # The cheap checks fail first: one build without the fixture suite (and a release push's
+        # bundle), then the full one, which finds the quick pass's tasks up to date. A quick pass
+        # that fails stops the push before the fixture suite starts. A stub logs each call and fails
+        # the quick one while the fail marker exists.
+        $passLog = Join-Path $hookRoot 'wrapper-passes.txt'
+        $passFails = Join-Path $hookRoot 'wrapper-quick-fails.txt'
+        $quickStub = Join-Path $hookRoot 'build-wrapper-quick.ps1'
+        Set-Content -LiteralPath $quickStub -Encoding UTF8 -Value @(
+            'param([string]$ProjectDir, [string[]]$Tasks)',
+            "Add-Content -LiteralPath '$passLog' -Value (`$Tasks -join ',')",
+            "if ((Test-Path -LiteralPath '$passFails') -and `$Tasks -notcontains ':patches:fixtureTest') { exit 1 }",
+            'exit 0')
+        $env:HUSHPINTEREST_BUILD_WRAPPER = $quickStub
+        try {
+            Remove-Item -LiteralPath $passLog, $passFails -Force -ErrorAction SilentlyContinue
+            & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/pinterest/src/main/java/Any.java') 6> $null
+            $passes = @(Get-Content -LiteralPath $passLog)
+            Assert-True ($passes.Count -eq 2) "The gate did not build twice, quick then full: $($passes -join ' | ')"
+            Assert-True ($passes[0] -like '*:extensions:pinterest:test*:patches:test*:extensions:pinterest:lint*' -and
+                $passes[0] -notlike '*fixtureTest*' -and $passes[0] -notlike '*buildAndroid*') `
+                "The first build was not the quick one without the fixture suite: $($passes[0])"
+            Assert-True ($passes[1] -like '*:patches:test*' -and $passes[1] -like '*,:patches:fixtureTest') `
+                "The second build was not the full one ending with the fixture suite: $($passes[1])"
+
+            Remove-Item -LiteralPath $passLog -Force
+            Set-Content -LiteralPath $passFails -Value 'fail' -Encoding ASCII
+            Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/pinterest/src/main/java/Any.java') 6> $null } `
+                '*quick pass failed, so the fixture suite never started*' 'A failed quick build was ignored.'
+            Assert-True (@(Get-Content -LiteralPath $passLog).Count -eq 1) 'The full build ran after the quick one failed.'
+        } finally {
+            Remove-Item -LiteralPath $passLog, $passFails, $quickStub -Force -ErrorAction SilentlyContinue
+            $env:HUSHPINTEREST_BUILD_WRAPPER = $wrapperStub
+        }
+
         # The Gradle file that writes the release bundle. The contract tests hold it to the
         # directory common.ps1 reads the bundle from, and a push that moved only it ran the build
         # and never them; the bundle path then went unchecked until the next script push.
