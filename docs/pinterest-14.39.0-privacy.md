@@ -172,11 +172,51 @@ Spoof signature for Google sign-in is a compatibility patch. It adds metadata in
 
 Traffic analysis must account for Hush's own optional requests. Automatic release checks start off, use GitHub's latest-release endpoint at most once daily after enabling, and send a HushPinterest/version User-Agent with a constrained cookie and redirect policy. Manual Check now is user-triggered. Download features can make user-requested media and original-availability requests to Pinterest media hosts. These aren't automatic telemetry, but they must be classified correctly in a capture. See [release-check policy](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/ReleaseCheck.java#L60), [headers](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/ReleaseCheck.java#L398) and [media transfer](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/actions/PinTransfer.java#L47).
 
+### Build inventory and the 14.38.0 to 14.39.0 diff
+
+`scripts/app-inventory.ps1` writes a sorted inventory of one Pinterest APK, one `key = value` line per entry, so two builds can be compared line by line. `scripts/AppInventory.java` does the reading with the dexlib2 copy inside the Morphe desktop CLI. Nothing is patched, installed or run. Code is credited to its package, and a package the shrinker renamed is written as `~`, because that name changes with every build and would make every line look moved. `-Detail` adds the real class and method names under each line. `-BaseApk` inventories a second build and writes what each section gained, lost or changed.
+
+```
+scripts/app-inventory.ps1 -Apk <new APK> -BaseApk <old APK> -Detail
+```
+
+Retrofit's annotation classes are renamed in Pinterest, so the endpoint list doesn't rely on their names. The tool finds the method where Retrofit itself reads a service method's annotations: it tests each annotation with `instance-of` and names the verb in a string right after. That ties every renamed annotation class to its verb. The startup tasks are the `TAG_*` constants of the enum whose static initializer names the most of them, which is the startup task enum. A constant is counted as read wherever code outside the enum loads its field.
+
+Run on October 10, 2026 against the 14.39.0 APK (version code 14398020, SHA-256 `4ecc7f9a34c89fd98d0e2133c294517772857b935969847bfd92b3e25b13e78d`) and the 14.38.0 APK (version code 14388010, SHA-256 `af6b383adb445cebee1ca43f14ac409f91475c1d62e0e11ef52ef52e29fb0553`, signed by the same Pinterest certificate). The 14.38.0 APK was downloaded for the comparison only and deleted afterwards.
+
+| Section | 14.39.0 | 14.38.0 | What a line holds |
+| --- | --- | --- | --- |
+| `endpoints` | 470 | 472 | A verb and relative path, and how many service methods share it. In 14.39.0 that's 217 GET, 135 POST, 73 PUT, 43 DELETE and 2 PATCH |
+| `startup-tasks` | 52 | 51 | A startup task constant and how many places read it |
+| `hosts` | 746 | 746 | A host named in a URL or as a whole string, and the packages whose code holds it |
+| `transport` | 5 | 5 | A connection opener (`URL.openConnection`, Cronet, `HttpEngine`, OkHttp, Volley) and who calls it |
+| `sdk` | 81 | 80 | A third-party package that keeps its names, and its class count |
+| `identifiers` | 26 | 26 | A reader of the advertising ID, Android ID, install referrer, installer or a device identifier, and who calls it |
+
+**Confirmed static, 14.39.0.** These are findings about code present in the APK. None of them shows that a request was sent.
+
+- All nine `TELEMETRY_PATHS` above are among the POST endpoints. A few other POST paths have reporting-like names and aren't classified yet: `/v3/orientation/user_landing_signals/`, `callback/invite_sent/external/`, `callback/raw_idea_pin_data/` and `pins/{pinUid}/signal_request_review/`.
+- The ten startup tasks Disable analytics skips are all there, each read in one place (`TAG_FIREBASE_ANALYTICS_INIT` in two). Seven constants aren't read anywhere outside the enum, so this build probably never schedules them by name: `TAG_ADD_ACCOUNT`, `TAG_BOARDS_PREFETCH`, `TAG_COMPOSE_WARMUP`, `TAG_CORE_FEATURE_LOADER_REGISTRY`, `TAG_SHUFFLES_LIB_INIT`, `TAG_UNDEFINED` and `TAG_WARM_UP_VIDEO_CONNECTION`. Tasks with reporting-like names that stay eligible include `TAG_LOG_APP_EXIT`, `TAG_LOG_REPORT_FULLY_DRAWN`, `TAG_CRASH_REPORTING`, `TAG_SCREENSHOT_DETECTION` and `TAG_TRACKING_REQUESTS`, the deferred queue the telemetry wrappers rely on.
+- 553 of the 746 hosts are AWS endpoints, every one of them held by the AWS SDK and nearly all by its region table. Most of the other 193 belong to Pinterest and Google. What's left is mostly ad measurement domains, with AppsFlyer, Bugsnag and the LINE SDK among the others.
+- `URL.openConnection` has 28 call sites: three in AppsFlyer, one each in Bugsnag, the Google advertising ID client, Firebase Messaging, Glide, the AWS client and `ads_mobile_sdk`, three in Chromium's `org/chromium/net` and 16 in renamed packages. Hush's transport hook covers the AppsFlyer and Bugsnag ones. Cronet's `newUrlRequestBuilder` has six call sites (`ads_mobile_sdk`, reCAPTCHA and four renamed), and the platform `HttpEngine` has one.
+- The advertising ID getter `Info.getId()` has 15 call sites, 14 of them outside Google's own client, which matches the caller count under Advertising ID behavior. The Secure `android_id` read appears in three methods, `Lb/n5;->c`, AppsFlyer and `Lxg/r2;->I`, and the last of those also reads `Build.SERIAL`. That's the LINE SDK key derivation in the table above.
+- Two readers the tables above don't list yet. `Lvn0/b;->b` calls `AccountManager.getAccounts`, and reCAPTCHA's `Lcom/google/android/recaptcha/internal/aa;->a` calls `PackageManager.getInstalledPackages`. Neither has been traced further.
+- Install attribution: the Play referrer client is built in `PinterestActivity.onCreate` and read in `Lxm0/b;`, and AppsFlyer has its own. AppsFlyer also names the Facebook, Facebook Lite and Instagram install referrer providers. The broadcast receivers of AppsFlyer and Google measurement both check for the Play `INSTALL_REFERRER` action. Installer lookups (`getInstallerPackageName` and `getInstallSourceInfo`) come from the ad SDK, AppsFlyer, Bugsnag, reCAPTCHA, Chromium and three renamed classes.
+- No direct call turned up to TelephonyManager's device ID, IMEI or phone number getters, the Wi-Fi or Bluetooth MAC getters, MediaDrm's property reader, the app set ID or the Firebase installation ID. The tool matches those exact framework methods, so a call through a renamed wrapper of a library class wouldn't be caught.
+
+**What moved from 14.38.0 to 14.39.0.** The whole diff is 26 lines.
+
+- Endpoints: `GET` and `POST feeds/home/early_flush_test/` are gone, and `POST v3/callback/event/` now has one service method instead of two. Disable analytics still finds its wrapper target for that path in 14.39.0.
+- Startup tasks: `TAG_SECURE_PREFS_ENCRYPTION_CANARY` is new and read in one place.
+- Hosts: none added or removed. Thirteen hosts changed which packages hold them, or in how many places. That's code moving between packages, mostly renamed ones.
+- Transport and identifiers: no change.
+- SDKs: `com/google/zxing` (six classes) keeps its names now, and eight packages changed their class counts by one to six.
+
 ### Concrete privacy opportunities
 
 | Priority | Candidate | Required proof and acceptance |
 | --- | --- | --- |
-| High | Generate telemetry, transport, startup-tag and identifier diffs for every APK update | Record exact annotations, callers and newly unclassified paths. A successful patch must not imply that new telemetry was inventoried |
+| High | Run `scripts/app-inventory.ps1 -BaseApk` on every APK update and classify what it adds | The tool records the endpoints, startup tasks, hosts, transports and identifier readers. Classifying a new path or reader is still a person's job. A successful patch must not imply that new telemetry was inventoried |
 | High | Compare stock and patched network behavior using controlled actions | Same app build and comparable account/consent state; welcome, feed, search, closeup, share, background and restart. Preserve TLS and account data. Store sanitized counts and destinations rather than secrets or raw account payloads |
 | High | Trace APP_START and optional API-header fields to their final transport | Determine whether current telemetry wrappers already suppress each route. Preserve authorization, normal requests, deferred links and push registration |
 | High | Offer canonical pin links using a typed pin ID | Separate opt-in control; preserve non-pin invites and signed links. Check image/video copy/share, unknown pin.it links, direct-to-app shares, cancellation and absence of UI-thread networking |
