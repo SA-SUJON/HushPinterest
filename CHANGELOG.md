@@ -9,6 +9,7 @@ Every HushPinterest release, newest first.
 * **Pinterest:** Download board no longer saves a board's pins a second time once they've dropped off Download history. The history still shows the newest 32 entries, and it now remembers the 500 before those. Removing a pin from Download history forgets its older downloads too.
 * **Pinterest:** Morphe Manager and the patch index now show the HushPinterest icon next to the source instead of the owner's GitHub picture.
 * **Tooling:** The Pinterest reference docs now describe 14.39.0. The APK facts, class and method names, endpoints and resource names were checked against the 14.39.0 build, with the old 14.38.0 name kept next to each one that moved. The patch reference covers all 26 patches. The signed-in screen survey and the runtime measurements are still the 14.38.0 runs, and the docs say so.
+* **Tooling:** A fixture run that passes every check is now kept under a key made from the bundle, the APK, the patch selection and the hash of every verifier script, and a later run with the same key reuses it instead of patching Pinterest again. The release push gate patches each declared fixture once and the release receipt reads those runs. `scripts/patch-for-device.ps1` can sign the gate's patched APK for a phone when its key matches. A changed input means a full run, and a failed run is never kept.
 
 ## 0.0.6 (2026-10-10)
 

@@ -35,7 +35,10 @@
     verifier file (Get-AppliedRecordKey in common.ps1). A later run with -KeepIn and the same key
     says it's reusing that run and stops before patching. A failed or partial run is never kept.
     The release push gate passes it, and build-release-receipt.ps1 and patch-for-device.ps1 read
-    what it kept. Without -KeepIn nothing is kept or read, and every run patches.
+    what it kept. HUSHPINTEREST_APPLY_RECORDS stands in for -KeepIn when it isn't given, so a
+    machine that sets it keeps every passing local run for the gate to find. Without either,
+    nothing is kept or read, and every run patches. -NoReuse patches in full even when a kept run
+    matches, and keeps the new run in its place when it passes.
 
 .EXAMPLE
     scripts/verify-all-patches.ps1 -Apk C:\path\to\native-fixture.apk `
@@ -59,7 +62,9 @@ param(
     [string]$ApiVersions,
     [string[]]$PatchNames,
     # The applied record store to reuse a passing run from and keep this one in.
-    [string]$KeepIn
+    [string]$KeepIn,
+    # Patch even when a run kept under the same key matches. A pass is still kept.
+    [switch]$NoReuse
 )
 
 $ErrorActionPreference = 'Stop'
@@ -154,6 +159,7 @@ if ($forced) {
 # check below, so it's handed back instead, once its report still reads as complete. Any input
 # that moved gives another key and a full run.
 $appliedIdentity = $null
+if (-not $KeepIn -and $env:HUSHPINTEREST_APPLY_RECORDS) { $KeepIn = $env:HUSHPINTEREST_APPLY_RECORDS }
 if ($KeepIn) {
     $hostStubs = Resolve-HostReferenceStubs -AndroidJar $AndroidJar -ApiVersions $ApiVersions -Aapt2 $Aapt2
     $AndroidJar = $hostStubs.AndroidJar
@@ -161,8 +167,10 @@ if ($KeepIn) {
     $KeepIn = Get-AppliedRecordStore -Path $KeepIn
     $appliedIdentity = Get-AppliedRecordKey -Bundle $Bundle -Fixture $Apk -PatchList $PatchList -PatchNames $names `
         -Forced $forced -DesktopJar $DesktopJar -AndroidJar $AndroidJar -ApiVersions $ApiVersions
-    $recorded = Find-AppliedRecord -Store $KeepIn -Key $appliedIdentity.Key
-    if ($recorded) {
+    $recorded = if ($NoReuse) { $null } else { Find-AppliedRecord -Store $KeepIn -Key $appliedIdentity.Key }
+    if ($NoReuse) {
+        Write-Host "[verify] -NoReuse: patching in full, and keeping the run as $($appliedIdentity.Key) if it passes"
+    } elseif ($recorded) {
         $recordedReport = $null
         try { $recordedReport = Get-Content -LiteralPath $recorded.Result -Raw | ConvertFrom-Json }
         catch { Write-Warning "Could not parse the kept result JSON: $($_.Exception.Message)" }

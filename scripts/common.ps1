@@ -758,7 +758,9 @@ function Save-AppliedRecord {
         # Name in the record to the report it copies. A report the run didn't write is left out.
         [System.Collections.IDictionary]$Reports = @{},
         $Target,
-        [int]$Keep = 6
+        # Each record holds a patched Pinterest, about 130 MB, and one release needs one per
+        # declared fixture.
+        [int]$Keep = 3
     )
 
     $key = [string]$Identity.Key
