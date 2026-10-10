@@ -172,6 +172,8 @@ class PushNotificationsFixtureTest {
                 "packageConnection" to "package header no longer goes into the same connection first",
                 "packageOverwritten" to "package header no longer goes into the same connection first",
                 "packageBypass" to "reaches the certificate header without the package header",
+                "packageValue" to "package header's value is no longer the app's package name",
+                "connectionReassigned" to "connection register changes between the package header and the certificate header",
                 "hiddenHook" to "certificate hook can't be called",
             )
             for ((change, says) in changes) {
@@ -211,6 +213,10 @@ class PushNotificationsFixtureTest {
                     // The name register is set again between the name and the write, so the write sends another name.
                     "packageOverwritten" -> method.addInstruction(packageName + 1, "const-string v${packageHeader.registerD}, \"X-Other-Package\"")
                     "packageBypass" -> bypassTo(packageWrite + 1)
+                    "packageValue" -> method.replaceInstruction(packageWrite - 2, "invoke-virtual {v${(body[packageWrite - 2] as FiveRegisterInstruction)
+                        .registerC}}, Landroid/content/Context;->getOpPackageName()Ljava/lang/String;")
+                    // The register that held the connection is set again before the certificate header.
+                    "connectionReassigned" -> method.addInstruction(packageWrite + 1, "move-object v${write.registerC}, v${write.registerC}")
                     "hiddenHook" -> context.mutableClassDefBy(PUSH_NOTIFICATIONS).methods.single { it.name == "certificateHeader" }
                         .let { it.accessFlags = it.accessFlags and AccessFlags.PUBLIC.value.inv() }
                 }

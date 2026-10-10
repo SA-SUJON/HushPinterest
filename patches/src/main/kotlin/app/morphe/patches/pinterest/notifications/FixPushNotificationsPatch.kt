@@ -27,6 +27,7 @@ import app.morphe.util.RegisterKind
 import app.morphe.util.RegisterKinds
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.namedRegisters
+import app.morphe.util.writesRegister
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -150,12 +151,20 @@ internal fun BytecodePatchContext.resolveFirebaseHeader(): FirebaseHeaderPlan {
     val packageWrite = (packageName + 1 until literal).firstOrNull { body[it].isHeaderWrite() } ?: -1
     val packageOperands = body.getOrNull(packageWrite)?.namedRegisters().orEmpty()
     val nameRegister = body[packageName].namedRegisters().singleOrNull()
-    shape(body[packageName].opcode in setOf(Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO) && packageWrite > packageName &&
+    shape(body[packageName].opcode in setOf(Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO) && packageWrite > packageName + 2 &&
         packageOperands.size == 3 && packageOperands[0] == operands[0] && packageOperands[1] == nameRegister &&
         (packageName + 1 until packageWrite).none { nameRegister in body[it].namedRegisters() } &&
         (packageName + 1..packageWrite).all { flow.straight(it) },
         "the package header no longer goes into the same connection first")
+    // Its value is the app's own package name, which the hook compares with Pinterest's.
+    shape(body[packageWrite - 2].opcode == Opcode.INVOKE_VIRTUAL &&
+        body[packageWrite - 2].call()?.toString() == "Landroid/content/Context;->getPackageName()Ljava/lang/String;" &&
+        body[packageWrite - 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
+        body[packageWrite - 1].namedRegisters() == listOf(packageOperands[2]),
+        "the package header's value is no longer the app's package name")
     shape(!flow.reaches(literal, avoiding = packageWrite), "a path reaches the certificate header without the package header")
+    shape(!flow.writesOnTheWay(packageWrite, literal, operands[0]),
+        "the connection register changes between the package header and the certificate header")
     val kinds = RegisterKinds.of(method).at(sink)
     shape(kinds != null && kinds.getOrNull(operands[0]) == RegisterKind.ref(HTTP) &&
         kinds.getOrNull(operands[2]) in setOf(RegisterKind.ref(STRING), RegisterKind.ZERO),
@@ -213,7 +222,22 @@ private fun ControlFlow.reaches(target: Int, avoiding: Int): Boolean {
     return false
 }
 
-private fun Instruction.isHeaderWrite() =opcode == Opcode.INVOKE_VIRTUAL && call()?.let {
+/** Some instruction on a path from after [from] completes to [to] writes [register]. */
+private fun ControlFlow.writesOnTheWay(from: Int, to: Int, register: Int): Boolean {
+    val seen = BooleanArray(instructions.size)
+    val pending = ArrayDeque(normal[from])
+    while (pending.isNotEmpty()) {
+        val at = pending.removeFirst()
+        if (at == to || seen[at]) continue
+        seen[at] = true
+        if (writesRegister(instructions[at], register)) return true
+        pending.addAll(normal[at])
+        pending.addAll(exceptional[at])
+    }
+    return false
+}
+
+private fun Instruction.isHeaderWrite() = opcode == Opcode.INVOKE_VIRTUAL && call()?.let {
     it.definingClass in setOf(CONNECTION, HTTP) && it.name == "addRequestProperty" && it.hasShape(listOf(STRING, STRING), "V")
 } == true
 private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()

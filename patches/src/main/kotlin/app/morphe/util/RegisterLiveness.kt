@@ -236,7 +236,7 @@ private fun readsRegister(instruction: Instruction, register: Int): Boolean {
 }
 
 /** Whether [instruction] writes [register], or a wide pair that covers it. */
-private fun writesRegister(instruction: Instruction, register: Int): Boolean {
+internal fun writesRegister(instruction: Instruction, register: Int): Boolean {
     val opcode = instruction.opcode
     if (!opcode.setsRegister()) return false
     val destination = (instruction as? OneRegisterInstruction)?.registerA ?: return false
