@@ -18,12 +18,21 @@ import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -144,20 +153,92 @@ class PinActionsFixtureTest {
                 assertEquals("${build.name} $stub", listOf(SENDABLE_TYPE, field), references(body))
                 println("${build.name}: $stub reads $field")
             }
+            // The extension makes a pin link only for kind 0, and the patch applied, so the
+            // sendable's model constructor gives the overflow menu's pin model that kind.
+            val pin = classes.single { it.type == PIN_MENU }.fields.single { it.name == "pin" }.type
+            if (build.name.startsWith("pinterest-14.39.0-")) assertEquals("${build.name} pin model", "Lcom/pinterest/api/model/oe;", pin)
+            println("${build.name}: a pin ($pin) is sendable kind 0")
         }
     }
 
     @Test
-    fun `a sendable without its id and kind constructor refuses system share before host changes`() {
-        val classes = read(Fixtures.declaredBuilds().first())
-        val context = PatchContexts.of(ExtensionDex.classes() + classes.filterNot { it.type == SENDABLE_TYPE })
-        assertThrows(PatchException::class.java) { systemSharePatch.execute(context) }
+    fun `a build without the sendable class refuses system share before host changes`() {
+        refusesSystemShare("no $SENDABLE_TYPE") { classes -> classes.filterNot { it.type == SENDABLE_TYPE } }
+    }
+
+    @Test
+    fun `a sendable constructor that doesn't store its kind refuses system share before host changes`() {
+        refusesSystemShare("doesn't store parameter 1 in one I field") { classes ->
+            classes.map { owner ->
+                if (owner.type != SENDABLE_TYPE) owner else replace(owner, { it.isIdAndKind() }) { body ->
+                    body.flatMap { if (it.opcode == Opcode.IPUT) List(it.codeUnits) { ImmutableInstruction10x(Opcode.NOP) } else listOf(it) }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `a sendable constructor that stores its id twice refuses system share before host changes`() {
+        refusesSystemShare("doesn't store parameter 0 in one Ljava/lang/String; field") { classes ->
+            classes.map { owner ->
+                if (owner.type != SENDABLE_TYPE) owner else replace(owner, { it.isIdAndKind() }) { body ->
+                    // The String parameter is the highest register a String store reads from.
+                    val id = body.filter { it.opcode == Opcode.IPUT_OBJECT &&
+                        ((it as ReferenceInstruction).reference as FieldReference).type == "Ljava/lang/String;" }
+                        .maxBy { (it as TwoRegisterInstruction).registerA }
+                    // A second String field gets the id parameter too.
+                    val other = body.indexOfFirst { it.opcode == Opcode.IPUT_OBJECT && it !== id &&
+                        ((it as ReferenceInstruction).reference as FieldReference).type == "Ljava/lang/String;" }
+                    body.mapIndexed { at, instruction ->
+                        if (at != other) instruction else ImmutableInstruction22c(Opcode.IPUT_OBJECT, (id as TwoRegisterInstruction).registerA,
+                            (instruction as TwoRegisterInstruction).registerB, (instruction as ReferenceInstruction).reference)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `a sendable whose pin branch stores another kind refuses system share before host changes`() {
+        refusesSystemShare("doesn't give a pin kind 0") { classes ->
+            val pin = classes.single { it.type == PIN_MENU }.fields.single { it.name == "pin" }.type
+            classes.map { owner ->
+                if (owner.type != SENDABLE_TYPE) owner else replace(owner, { it.name == "<init>" && it.parameterTypes.size == 1 }) { body ->
+                    // The zero the pin branch stores as its kind becomes a one.
+                    val test = body.indexOfFirst { it.opcode == Opcode.INSTANCE_OF && ((it as ReferenceInstruction).reference as TypeReference).type == pin }
+                    val store = (test until body.size).first { body[it].opcode == Opcode.IPUT }
+                    val value = (body[store] as TwoRegisterInstruction).registerA
+                    val zero = (0 until store).last { body[it].opcode == Opcode.CONST_4 && (body[it] as OneRegisterInstruction).registerA == value }
+                    body.mapIndexed { at, instruction -> if (at == zero) ImmutableInstruction11n(Opcode.CONST_4, value, 1) else instruction }
+                }
+            }
+        }
+    }
+
+    private fun refusesSystemShare(message: String, change: (List<ClassDef>) -> List<ClassDef>) {
+        val classes = change(read(Fixtures.declaredBuilds().first()))
+        val context = PatchContexts.of(ExtensionDex.classes() + classes)
+        val refusal = assertThrows(PatchException::class.java) { systemSharePatch.execute(context) }
+        assertTrue(refusal.message, refusal.message.orEmpty().contains(message))
         assertFlag(context, "systemShare", 0)
         assertFlag(context, "pinShare", 0)
         assertFalse(classes.flatMap { context.mutableClassDefByOrNull(it.type)?.methods ?: emptyList() }.any { method ->
             references(method.implementation?.instructions?.toList() ?: emptyList()).any { "/SystemShare;->" in it }
         })
     }
+
+    private fun Method.isIdAndKind() = name == "<init>" && parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", "I")
+
+    /** A copy of [owner] whose methods matching [which] carry [change]d instructions of the same size. */
+    private fun replace(owner: ClassDef, which: (Method) -> Boolean, change: (List<Instruction>) -> List<Instruction>) =
+        ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
+            owner.annotations, owner.fields, owner.methods.map { method ->
+                val implementation = method.implementation
+                if (!which(method) || implementation == null) method else ImmutableMethod(method.definingClass, method.name,
+                    method.parameters, method.returnType, method.accessFlags, method.annotations, method.hiddenApiRestrictions,
+                    ImmutableMethodImplementation(implementation.registerCount, change(implementation.instructions.toList()),
+                        implementation.tryBlocks, null))
+            })
 
     @Test
     fun `missing close-screen method refuses system share before host changes`() {

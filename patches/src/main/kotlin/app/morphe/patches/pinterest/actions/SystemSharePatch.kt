@@ -25,15 +25,20 @@ import app.morphe.patches.pinterest.misc.extension.requireStub
 import app.morphe.patches.pinterest.misc.extension.writeStub
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.RegisterKind
+import app.morphe.util.RegisterKinds
 import app.morphe.util.superclassChain
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "System share sheet"
 private const val SYSTEM_SHARE = "$EXTENSION_PACKAGE/actions/SystemShare;"
@@ -115,9 +120,11 @@ val systemSharePatch = bytecodePatch(
         // The sheet's sendable names its pin by fields whose names, and the accessors over them,
         // change every build (e() was the id in 14.38.0 and is the kind in 14.39.0), so the stubs
         // read the two fields the (String, int) constructor stores.
-        val sendable = sendableFields(
-            classDefByOrNull(SENDABLE) ?: throw PatchException("$PATCH: no $SENDABLE"),
-        )
+        val sendableClass = classDefByOrNull(SENDABLE) ?: throw PatchException("$PATCH: no $SENDABLE")
+        val sendable = sendableFields(sendableClass)
+        // The extension makes a pin link only for kind 0, so a build that numbered its kinds
+        // differently would hand Android's sheet a board's id as a pin's.
+        pinSendableKind(sendableClass, sendable.second, pinType())
         // Every lookup is done, so a refusal above leaves both host methods as they were.
         writeStub(SYSTEM_SHARE, "sendableId", 2, """
             check-cast p0, $SENDABLE
@@ -159,7 +166,7 @@ val systemSharePatch = bytecodePatch(
 
 /**
  * The sendable's id and kind: the String and the int its `(String, int)` constructor stores in its
- * own fields, each written once from that parameter. The kind is 0 for a pin.
+ * own fields, each written once from that parameter. [pinSendableKind] checks a pin's kind is 0.
  */
 internal fun sendableFields(owner: ClassDef): Pair<FieldReference, FieldReference> {
     val init = owner.methods.singleOrNull {
@@ -176,6 +183,43 @@ internal fun sendableFields(owner: ClassDef): Pair<FieldReference, FieldReferenc
             ?: throw PatchException("$PATCH: ${owner.type}(String, int) doesn't store parameter $parameter in one $type field")
     }
     return stored(Opcode.IPUT_OBJECT, 0, "Ljava/lang/String;") to stored(Opcode.IPUT, 1, "I")
+}
+
+/**
+ * Refuses unless a pin's sendable kind is 0, the only kind the extension makes a pin link for. The
+ * sendable's model constructor sorts what it's given by class: the one branch that tests for the
+ * pin model, [pin], has to store a literal zero in [kind] on every path, before it can branch.
+ */
+internal fun pinSendableKind(owner: ClassDef, kind: FieldReference, pin: String) {
+    fun Instruction.type() = ((this as? ReferenceInstruction)?.reference as? TypeReference)?.type
+    val init = owner.methods.singleOrNull { method ->
+        method.name == "<init>" && method.parameterTypes.size == 1 &&
+            method.implementation?.instructions?.any { it.opcode == Opcode.INSTANCE_OF && it.type() == pin } == true
+    } ?: throw PatchException("$PATCH: no single ${owner.type} constructor that tells a pin model ($pin) apart")
+    val body = init.implementation!!.instructions.toList()
+    val test = body.indices.singleOrNull { body[it].opcode == Opcode.INSTANCE_OF && body[it].type() == pin }
+        ?: throw PatchException("$PATCH: ${owner.type} tests for a pin model more than once")
+    val branch = body.getOrNull(test + 1)
+    val result = (body[test] as TwoRegisterInstruction).registerA
+    if ((body[test] as TwoRegisterInstruction).registerB != init.parameterRegisterNumber(0) ||
+        branch?.opcode != Opcode.IF_EQZ || (branch as OneRegisterInstruction).registerA != result
+    ) throw PatchException("$PATCH: ${owner.type} no longer branches on its model being a pin")
+    val self = init.localRegisterCount()
+    var at = test + 2
+    while (true) {
+        val instruction = body.getOrNull(at) ?: throw PatchException("$PATCH: ${owner.type}'s pin branch never sets a kind")
+        if (instruction.opcode == Opcode.IPUT && (instruction as TwoRegisterInstruction).registerB == self &&
+            (instruction as ReferenceInstruction).reference == kind
+        ) break
+        if (instruction is OffsetInstruction || !instruction.opcode.canContinue()) {
+            throw PatchException("$PATCH: ${owner.type}'s pin branch branches before it sets its kind")
+        }
+        at++
+    }
+    val value = (body[at] as TwoRegisterInstruction).registerA
+    if (RegisterKinds.of(init).at(at)?.getOrNull(value) != RegisterKind.ZERO) {
+        throw PatchException("$PATCH: ${owner.type} doesn't give a pin kind 0, the only kind a pin link is made for")
+    }
 }
 
 /**

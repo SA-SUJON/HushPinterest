@@ -19,7 +19,8 @@ internal const val PIN_MENU = "Lcom/pinterest/feature/gridactions/modal/view/Pin
 internal fun BytecodePatchContext.pinMenu(): MutableClass = mutableClassDefByOrNull(PIN_MENU)
     ?: throw PatchException("Pin actions: this build has no pin overflow menu controller")
 
-internal fun BytecodePatchContext.pinType(): String = pinMenu().fields.singleOrNull {
+internal fun BytecodePatchContext.pinType(): String = (classDefByOrNull(PIN_MENU)
+    ?: throw PatchException("Pin actions: this build has no pin overflow menu controller")).fields.singleOrNull {
     it.name == "pin" && it.type.startsWith("Lcom/pinterest/api/model/")
 }?.type ?: throw PatchException("Pin actions: the overflow menu has no unique pin model field")
 
