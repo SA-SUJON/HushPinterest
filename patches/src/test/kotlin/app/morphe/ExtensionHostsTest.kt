@@ -122,7 +122,7 @@ class ExtensionHostsTest {
          * installed handler locally and never opens its example URL.
          */
         val ALLOWED_HOSTS = setOf("github.com", "api.github.com", "gitlab.com", "www.gnu.org", "example.com",
-            "www.pinterest.com", "help.pinterest.com")
+            "www.pinterest.com", "help.pinterest.com", "ko-fi.com")
         const val RELEASE_CHECK =
             "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/ReleaseCheck.java"
         val TRANSPORTS = listOf(

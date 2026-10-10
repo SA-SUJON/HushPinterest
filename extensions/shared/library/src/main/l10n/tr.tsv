@@ -107,6 +107,10 @@ Jump to a section	Bir bölüme git
 Go straight to one group of settings. Back returns to where you were.	Doğrudan bir ayar grubuna git. Geri, bulunduğun yere döndürür.
 Browse settings	Ayarları keşfet
 More settings	Diğer ayarlar
+# context: title of the last row on the settings home page; a tap opens the maintainer's Ko-fi page in a browser
+Support HushPinterest	HushPinterest'i destekle
+# context: that row's summary; Ko-fi is a tipping site's name and stays as it is
+Buy me a coffee on Ko-fi	Ko-fi'de bana bir kahve ısmarla
 No matching settings	Eşleşen ayar yok
 %1$d setting found	%1$d ayar bulundu
 %1$d settings found	%1$d ayar bulundu

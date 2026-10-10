@@ -17,6 +17,7 @@ import static org.junit.Assert.*;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.preference.Preference;
@@ -92,8 +93,8 @@ public class SettingsNavigationTest {
     @Test @Config(sdk = {28, 30, 33, 36})
     public void homeAndEveryCategoryAreReachableWithoutRemovingTheModel() {
         assertNotNull(page.navigation);
-        // Status, Browse settings, four feature categories and More settings.
-        assertEquals(7, list().getCount());
+        // Status, Browse settings, four feature categories, More settings and Support HushPinterest.
+        assertEquals(8, list().getCount());
         assertEquals(8, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
@@ -104,7 +105,36 @@ public class SettingsNavigationTest {
             assertTrue(page.navigation.back());
             while (page.navigation.back()) { }
         }
-        assertEquals(7, list().getCount());
+        assertEquals(8, list().getCount());
+    }
+
+    @Test public void theHomePageEndsWithSupportWhichOpensKoFi() {
+        Map<String, Object> before = savedValues();
+        int last = list().getCount() - 1;
+        Preference row = (Preference) list().getItemAtPosition(last);
+        assertEquals(HushPinterestPreferenceFragment.SUPPORT, row.getKey());
+        assertEquals("Support HushPinterest", String.valueOf(row.getTitle()));
+        assertEquals("Buy me a coffee on Ko-fi", String.valueOf(row.getSummary()));
+        assertEquals("More settings", String.valueOf(((Preference) list().getItemAtPosition(last - 1)).getTitle()));
+        assertTrue(list().getAdapter().isEnabled(last));
+
+        tap(HushPinterestPreferenceFragment.SUPPORT);
+        Intent started = org.robolectric.Shadows.shadowOf(controller.get()).getNextStartedActivity();
+        assertNotNull("nothing opened", started);
+        assertEquals(Intent.ACTION_VIEW, started.getAction());
+        assertEquals("https://ko-fi.com/X8K126YVER", started.getDataString());
+        assertTrue(started.hasCategory(Intent.CATEGORY_BROWSABLE));
+        assertTrue("the page would open inside Pinterest's task",
+                (started.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) != 0);
+        assertNull(started.getComponent());
+        assertEquals("the tap left the home page", last + 1, list().getCount());
+
+        org.robolectric.Shadows.shadowOf(org.robolectric.RuntimeEnvironment.getApplication()).checkActivities(true);
+        tap(HushPinterestPreferenceFragment.SUPPORT);
+        assertEquals("No app on this phone can open the link. The address is " + L10n.isolate("ko-fi.com/X8K126YVER") + ".",
+                ShadowToast.getTextOfLatestToast());
+        assertFalse(controller.get().isFinishing());
+        assertEquals(before, savedValues());
     }
 
     @Test public void categoryClickChangesOnlyTheSettingWhoseRowWasTapped() {
@@ -348,7 +378,7 @@ public class SettingsNavigationTest {
         PatchFamily.inBuildForTests = EnumSet.noneOf(PatchFamily.class);
         recreate();
         assertFalse(hasHomeRow("Feed"));
-        assertEquals(3, list().getCount());
+        assertEquals(4, list().getCount());
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS, PatchFamily.Capability.AD_VIEWS);
         recreate();
@@ -517,7 +547,7 @@ public class SettingsNavigationTest {
         assertEquals("No matching settings", ((Preference) list().getItemAtPosition(0)).getTitle());
         assertTrue(page.navigation.back());
         assertEquals("", search.getText().toString());
-        assertEquals(7, list().getCount());
+        assertEquals(8, list().getCount());
     }
 
     @Test public void interfaceRowsNameTheirOwnSurfaceAndRefreshBoundary() {
@@ -701,13 +731,13 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.HIDE_ADS.key));
         SettingsL10nTest.backOf(dialog).performClick();
         assertTrue(dialog.getDialog().isShowing());
-        assertEquals(7, list().getCount());
+        assertEquals(8, list().getCount());
         page.navigation.navigate("About");
         dialog.getDialog().onBackPressed();
         // More settings: Links, Updates, Pause, backup and diagnostics, and About.
         assertEquals(4, list().getCount());
         dialog.getDialog().onBackPressed();
-        assertEquals(7, list().getCount());
+        assertEquals(8, list().getCount());
         dialog.getDialog().onBackPressed();
         ShadowLooper.idleMainLooper();
         assertFalse(controller.get().isFinishing());

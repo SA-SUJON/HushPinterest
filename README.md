@@ -179,7 +179,7 @@ Local verification compares the compiled manifest against the full input APK, in
 
 The final APK is also checked against the selected feature hooks and their native fallback paths. Inserted calls must resolve through the merged app's libraries or Android's public API. Newer Android calls need a reviewed version guard. Missing hooks, duplicate calls and unresolved methods fail before a local helper delivers or installs an APK. These checks use Android SDK Platform 36, or explicit `-AndroidJar` and `-ApiVersions` paths. Known boolean and integer values guide the disabled-path check.
 
-The About and Licenses screens link to `github.com`, `gitlab.com` and `www.gnu.org`. Those open in your browser, and only when you tap one.
+The About and Licenses screens link to `github.com`, `gitlab.com` and `www.gnu.org`, and Support HushPinterest on the settings home links to `ko-fi.com`. Those open in your browser, and only when you tap one.
 The optional setup guide links to password and data-export help at `help.pinterest.com`. Those pages open in your browser when you tap their buttons.
 
 Shared pin links use `www.pinterest.com`. Downloads use media addresses Pinterest supplies under `pinimg.com`. Looking for an original sends at most four HEAD requests to that same host. Browser discovery checks installed handlers for `example.com` without opening or loading that address. When Disable analytics is off or paused, its AppsFlyer and Bugsnag wrappers use the SDKs' original connection path and Engage reaches its service again.
