@@ -14,6 +14,8 @@ Every HushPinterest release, newest first.
 
 * **Tooling:** A release now ends with `scripts/verify-published-index.ps1`. It asks GitHub for the latest release and for the patches-bundle.json that main serves, and fails when they disagree, naming any index commit that never got pushed. For most of October 7, v0.0.5 was out while the index still said 0.0.4, so Morphe Manager didn't offer the update to anyone on 0.0.4. Refs #3
 
+* **Tooling:** A patch test now fails when the extension carries a class from outside its own package, apart from the three Kotlin helpers it has always kept. The patcher lays such a class over Pinterest's own copy, and Download board's lookup of Kotlin's Unit had briefly pulled one in.
+
 * **Developer notes:** Added [measured factory network and background activity](docs/pinterest-14.38.0-runtime.md), with reusable comparison data, CPU and media timers, memory samples and scheduled-worker records. Kept physical battery drain explicitly unmeasured until an unplugged phone run is available.
 
 * **Developer notes:** Added a [signed-in factory audit](docs/pinterest-14.38.0-audit.md) with ad-delivery traces, privacy boundaries, all 23 patch mappings, native settings, screenshots and specific work to investigate next. Clarified that analytics filtering covers selected paths.

@@ -246,10 +246,14 @@ public final class BoardDownloads {
         return null;
     }
 
-    /** Kotlin's Unit, read from its one static field of its own type, whatever that field is called. */
+    /**
+     * Kotlin's Unit, read from its one static field of its own type, whatever that field is called.
+     * The name is built at run time on purpose: R8 keeps any class a Class.forName literal names,
+     * and a literal here copied the stdlib's Unit into the extension, on top of Pinterest's own.
+     */
     private static Object unit(ClassLoader loader) {
         try {
-            Class<?> type = Class.forName("kotlin.Unit", false, loader);
+            Class<?> type = Class.forName(String.join(".", "kotlin", "Unit"), false, loader);
             for (Field field : type.getDeclaredFields()) {
                 if (Modifier.isStatic(field.getModifiers()) && field.getType() == type) {
                     field.setAccessible(true);
