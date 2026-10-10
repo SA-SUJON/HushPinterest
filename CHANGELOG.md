@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** HushPinterest now patches Pinterest 14.38.0 only, which needs Android 10 or newer. On Android 9, keep HushPinterest 0.0.5 with Pinterest 14.25.0.
 
+* **Tooling:** The heavy desktop jobs now wait for a slot in the machine's build queue when `BUILD_QUEUE_SCRIPT` names one: CLI patch runs, split bundle merges, the resource table check, the dex and host reference checks and fingerprint ranking. They show up in the queue's status and no longer start beside two Gradle builds. A release receipt asks for release priority. The push hook reads `BUILD_QUEUE_SCRIPT` from the user environment too, and without a build wrapper its Gradle run waits for a slot as well.
+
 * **Tooling:** Updated four runtime checks to match the current setup, link and download messages.
 
 * **Tooling:** A release now ends with `scripts/verify-published-index.ps1`. It asks GitHub for the latest release and for the patches-bundle.json that main serves, and fails when they disagree, naming any index commit that never got pushed. For most of October 7, v0.0.5 was out while the index still said 0.0.4, so Morphe Manager didn't offer the update to anyone on 0.0.4. Refs #3

@@ -491,24 +491,54 @@ exit /b 0
     [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output; Text = $output -join "`n" }
 }
 
+# The verifier's two 8 GB checks each wait for a slot in the machine's build queue. Here a stand-in
+# queue takes the real one's place: it lets each job straight through and writes down what took a
+# slot and what gave one back, a java that never started included.
+$savedQueueScript = $env:BUILD_QUEUE_SCRIPT
+$savedQueuePriority = $env:BUILD_QUEUE_PRIORITY
 try {
     New-Item -ItemType Directory -Path $standIns | Out-Null
+    $queueLog = Join-Path $standIns 'queue.log'
+    $quotedLog = "'" + $queueLog.Replace("'", "''") + "'"
+    $fakeQueue = Join-Path $standIns 'build-queue.ps1'
+    Set-Content -LiteralPath $fakeQueue -Encoding ASCII -Value @(
+        'param([switch]$Status, [string]$Label, [string]$Priority, [string]$Run)',
+        'function Enter-BuildQueue {',
+        '    param([string]$Label = ''build'', [string]$Priority)',
+        "    Add-Content -LiteralPath $quotedLog -Value ""enter `$Label""",
+        '    return [pscustomobject]@{ slot = 0; label = $Label }',
+        '}',
+        'function Exit-BuildQueue { param($Ticket) ' + "Add-Content -LiteralPath $quotedLog -Value ""exit `$(`$Ticket.label)"" }",
+        'function Get-BuildQueueMask { param([int]$Slot) [System.Diagnostics.Process]::GetCurrentProcess().ProcessorAffinity }')
+    $env:BUILD_QUEUE_SCRIPT = $fakeQueue
+    $env:BUILD_QUEUE_PRIORITY = $null
     # Each run has to reach the DexDiff call, or a stand-in that broke early would pass the checks below.
     $reached = '(?m)^\[registers\] patched '
     $passed = Invoke-VerifierWithStandIns -Name 'passed' -DexDiffExit 0
     Assert-True ($passed.ExitCode -eq 0 -and $passed.Text -match $reached -and
         $passed.Output -contains '[registers] success.') `
         "The verifier did not pass a comparison DexDiff passed.`n$($passed.Text)"
+    $queued = @(Get-Content -LiteralPath $queueLog) -join '|'
+    Assert-True ($queued -ceq ('enter hushpinterest dex diff|exit hushpinterest dex diff|' +
+        'enter hushpinterest host references|exit hushpinterest host references')) `
+        "The verifier did not run each check in a build queue slot of its own: $queued"
+    Remove-Item -LiteralPath $queueLog -Force
     $refused = Invoke-VerifierWithStandIns -Name 'refused' -DexDiffExit 1
     Assert-True ($refused.ExitCode -eq 1 -and $refused.Text -match $reached -and
         $refused.Text -match 'FAIL: the dex comparison exited 1' -and
         $refused.Output -notcontains '[registers] success.') `
         "The verifier did not fail a comparison DexDiff failed.`n$($refused.Text)"
+    Remove-Item -LiteralPath $queueLog -Force -ErrorAction SilentlyContinue
     $gone = Invoke-VerifierWithStandIns -Name 'java-gone' -DexDiffExit 0 -JavaGone
     Assert-True ($gone.ExitCode -ne 0 -and $gone.Text -match $reached -and
         $gone.Output -notcontains '[registers] success.' -and $gone.Text -notmatch '\[registers\] static: ') `
         "The verifier passed a run whose java could not start for DexDiff (exit $($gone.ExitCode)).`n$($gone.Text)"
+    $queued = @(Get-Content -LiteralPath $queueLog) -join '|'
+    Assert-True ($queued -ceq 'enter hushpinterest dex diff|exit hushpinterest dex diff') `
+        "A DexDiff whose java could not start kept its build queue slot: $queued"
 } finally {
+    $env:BUILD_QUEUE_SCRIPT = $savedQueueScript
+    $env:BUILD_QUEUE_PRIORITY = $savedQueuePriority
     Remove-Item -LiteralPath $standIns -Recurse -Force -ErrorAction SilentlyContinue
 }
 

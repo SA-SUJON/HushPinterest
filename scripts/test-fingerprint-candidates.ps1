@@ -146,6 +146,10 @@ $caseRoot = [System.IO.Path]::GetFullPath((Join-Path $tempBase ("hushpinterest-f
 $junction = Join-Path $caseRoot 'reports'
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
+# The wrapper runs below rank fixture-sized APKs, so they run straight away rather than waiting in
+# the machine's build queue behind real builds. The queue itself is held by test-script-contracts.ps1.
+$savedQueueScript = $env:BUILD_QUEUE_SCRIPT
+$env:BUILD_QUEUE_SCRIPT = $null
 try {
     New-Item -ItemType Directory -Path $caseRoot | Out-Null
     $classes = Join-Path $caseRoot 'classes'
@@ -391,6 +395,7 @@ try {
     Assert-True (@(Compare-Object $before $after).Count -eq 0) `
         ("Something under patches/ changed while the tool ran:`n" + (@(Compare-Object $before $after) | Out-String))
 } finally {
+    $env:BUILD_QUEUE_SCRIPT = $savedQueueScript
     foreach ($probe in $patchProbes) {
         if (Test-Path -LiteralPath $probe) { Remove-Item -LiteralPath $probe -Force }
     }

@@ -46,11 +46,12 @@ if ($env:HUSHPINTEREST_SKIP_PRE_PUSH -eq '1') {
 . (Join-Path $PSScriptRoot 'common.ps1')
 
 # A hook runs with git's own environment. User environment variables set after the shell
-# launched, or set in the user scope only, may be absent. Import the four this script and
+# launched, or set in the user scope only, may be absent. Import the five this script and
 # its suites need from the registry so a gate worktree can find the desktop CLI, the
-# fixture folder, the build governor and the device serial.
+# fixture folder, the build governor, the machine's build queue and the device serial.
+# Without the wrapper and the queue, the gate's Gradle build ran outside the queue.
 foreach ($envName in @('HUSHPINTEREST_DESKTOP_JAR', 'HUSHPINTEREST_FIXTURE_DIR',
-        'HUSHPINTEREST_BUILD_WRAPPER', 'HUSHPINTEREST_DEVICE_SERIAL')) {
+        'HUSHPINTEREST_BUILD_WRAPPER', 'HUSHPINTEREST_DEVICE_SERIAL', 'BUILD_QUEUE_SCRIPT')) {
     if (-not (Test-Path "Env:\$envName")) {
         $regValue = [Environment]::GetEnvironmentVariable($envName, [EnvironmentVariableTarget]::User)
         if ($regValue) { Set-Item -LiteralPath "Env:\$envName" -Value $regValue }
@@ -798,8 +799,9 @@ try {
         ) }
         # HUSHPINTEREST_BUILD_WRAPPER names a PowerShell script that runs Gradle on this machine,
         # called as <wrapper> -ProjectDir <repository> -Tasks <task>...: a machine that shares its
-        # CPU and memory between several builds points it at a governor. Unset, the Gradle
-        # wrapper in the repository runs the tasks directly.
+        # CPU and memory between several builds points it at a governor, which takes its own
+        # place in the build queue. Unset, the Gradle wrapper in the repository runs the tasks,
+        # after a slot in the queue BUILD_QUEUE_SCRIPT names when there is one.
         $wrapper = $env:HUSHPINTEREST_BUILD_WRAPPER
         if ($wrapper -and -not (Test-Path -LiteralPath $wrapper -PathType Leaf)) {
             throw "HUSHPINTEREST_BUILD_WRAPPER names $wrapper, which is not there."
@@ -844,7 +846,12 @@ try {
                     if ($wrapper) {
                         & $wrapper -ProjectDir $gateRoot -Tasks $tasks
                     } else {
-                        & (Join-Path $gateRoot 'gradlew.bat') -p $gateRoot @tasks
+                        $queued = Enter-HushPinterestQueue -Job 'gate gradle'
+                        try {
+                            & (Join-Path $gateRoot 'gradlew.bat') -p $gateRoot @tasks
+                        } finally {
+                            Exit-HushPinterestQueue $queued
+                        }
                     }
                 }
                 if ($LASTEXITCODE -ne 0) {

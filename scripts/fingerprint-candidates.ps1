@@ -100,14 +100,21 @@ function Resolve-Build {
 
 # The tool, with Continue only in here: Windows PowerShell 5.1 turns a program's stderr into a
 # terminating error under Stop. A java that can't start still throws out of here into the script's
-# Stop, and the exit code starts at -1 so a run that never started can't read as a pass.
+# Stop, and the exit code starts at -1 so a run that never started can't read as a pass. The 8 GB
+# run waits for a slot in the machine's build queue first.
 function Invoke-Candidates {
     param([string[]]$Arguments)
     $ErrorActionPreference = 'Continue'
-    $global:LASTEXITCODE = -1
-    & $script:JavaPath '-Xmx8g' '-cp' $script:DesktopJarPath (Join-Path $PSScriptRoot 'FingerprintCandidates.java') @Arguments 2>&1 |
-        ForEach-Object { Write-Host "$_" }
-    return $LASTEXITCODE
+    $queued = Enter-HushPinterestQueue -Job 'fingerprint candidates'
+    try {
+        $global:LASTEXITCODE = -1
+        & $script:JavaPath '-Xmx8g' '-cp' $script:DesktopJarPath (Join-Path $PSScriptRoot 'FingerprintCandidates.java') @Arguments 2>&1 |
+            ForEach-Object { Write-Host "$_" }
+        $exitCode = $LASTEXITCODE
+    } finally {
+        Exit-HushPinterestQueue $queued
+    }
+    return $exitCode
 }
 
 # -Method picks the capture mode. -OldApk names the build of the method there, and with -Calibrate

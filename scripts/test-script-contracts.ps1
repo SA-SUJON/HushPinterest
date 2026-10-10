@@ -3730,6 +3730,121 @@ try {
 
 Write-Host '[scripts] shared helper contracts passed'
 
+# --- build queue ---------------------------------------------------------------------------------
+#
+# The heavy desktop jobs (a CLI patch run, a merge, the resource table check, the dex and host
+# reference checks, the fingerprint ranking, the gate's own Gradle run without a wrapper) wait for
+# a slot in the machine's build queue when BUILD_QUEUE_SCRIPT names one, so build-queue.ps1 -Status
+# shows them and they never start beside two Gradle builds. A stand-in queue lets every job straight
+# through and writes down what entered, at which priority, and what left.
+
+function New-FakeBuildQueue {
+    param([string]$Path, [string]$Log)
+    $quotedLog = "'" + $Log.Replace("'", "''") + "'"
+    Set-Content -LiteralPath $Path -Encoding ASCII -Value @(
+        'param([switch]$Status, [string]$Label, [string]$Priority, [string]$Run)',
+        'function Enter-BuildQueue {',
+        '    param([string]$Label = ''build'', [string]$Priority)',
+        '    if (-not $Priority) { $Priority = if ($env:BUILD_QUEUE_PRIORITY -eq ''release'') { ''release'' } else { ''normal'' } }',
+        "    Add-Content -LiteralPath $quotedLog -Value ""enter `$Priority `$Label""",
+        '    return [pscustomobject]@{ slot = 0; label = $Label }',
+        '}',
+        'function Exit-BuildQueue {',
+        '    param($Ticket)',
+        "    Add-Content -LiteralPath $quotedLog -Value ""exit `$(`$Ticket.label)""",
+        '}',
+        'function Get-BuildQueueMask {',
+        '    param([int]$Slot)',
+        '    return [System.Diagnostics.Process]::GetCurrentProcess().ProcessorAffinity',
+        '}')
+}
+
+$queueRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushpinterest-queue-" + [guid]::NewGuid().ToString('N'))
+$savedQueueScript = $env:BUILD_QUEUE_SCRIPT
+$savedQueuePriority = $env:BUILD_QUEUE_PRIORITY
+try {
+    New-Item -ItemType Directory -Path $queueRoot | Out-Null
+    $queueLog = Join-Path $queueRoot 'queue.log'
+    $fakeQueue = Join-Path $queueRoot 'build-queue.ps1'
+    New-FakeBuildQueue -Path $fakeQueue -Log $queueLog
+    $env:BUILD_QUEUE_PRIORITY = $null
+
+    # No queue named: nothing to wait for, and nothing to give back.
+    $env:BUILD_QUEUE_SCRIPT = $null
+    $global:LASTEXITCODE = 3
+    $held = Enter-HushPinterestQueue -Job 'fixture job'
+    Exit-HushPinterestQueue $held
+    Assert-True ($null -eq $held -and $LASTEXITCODE -eq 3 -and -not (Test-Path -LiteralPath $queueLog)) `
+        'A job waited for a build queue nobody named, or lost the exit code the caller reads.'
+
+    # A queue named: the job takes a slot under its label, runs below normal priority, and leaves
+    # with the exit code of the job it held the slot for.
+    $env:BUILD_QUEUE_SCRIPT = $fakeQueue
+    $process = [System.Diagnostics.Process]::GetCurrentProcess()
+    $priorityBefore = $process.PriorityClass
+    $held = Enter-HushPinterestQueue -Job 'fixture job'
+    try {
+        $process.Refresh()
+        Assert-True ($process.PriorityClass -eq [System.Diagnostics.ProcessPriorityClass]::BelowNormal) `
+            "A job holding a queue slot ran at $($process.PriorityClass) priority."
+        $global:LASTEXITCODE = 7
+    } finally {
+        Exit-HushPinterestQueue $held
+    }
+    $process.Refresh()
+    Assert-True ($LASTEXITCODE -eq 7 -and $process.PriorityClass -eq $priorityBefore) `
+        "Leaving the queue lost the job's exit code ($LASTEXITCODE) or kept its priority ($($process.PriorityClass))."
+    Assert-True ((@(Get-Content -LiteralPath $queueLog) -join '|') -ceq 'enter normal hushpinterest fixture job|exit hushpinterest fixture job') `
+        "The job did not take and give back one queue slot under its own label: $(@(Get-Content -LiteralPath $queueLog) -join '; ')"
+
+    # A release run's jobs go ahead of everyday ones.
+    Remove-Item -LiteralPath $queueLog -Force
+    $env:BUILD_QUEUE_PRIORITY = 'release'
+    Exit-HushPinterestQueue (Enter-HushPinterestQueue -Job 'fixture release')
+    Assert-True ((@(Get-Content -LiteralPath $queueLog) -join '|') -ceq 'enter release hushpinterest fixture release|exit hushpinterest fixture release') `
+        "A release job did not ask the queue for release priority: $(@(Get-Content -LiteralPath $queueLog) -join '; ')"
+    $env:BUILD_QUEUE_PRIORITY = $null
+
+    # A queue named but not there is a mistake to correct, not a reason to run outside it.
+    $env:BUILD_QUEUE_SCRIPT = Join-Path $queueRoot 'no-such-queue.ps1'
+    Assert-Throws { Enter-HushPinterestQueue -Job 'fixture job' } '*BUILD_QUEUE_SCRIPT names*which is not there*' `
+        'A build queue that is not there was ignored.'
+} finally {
+    $env:BUILD_QUEUE_SCRIPT = $savedQueueScript
+    $env:BUILD_QUEUE_PRIORITY = $savedQueuePriority
+    Remove-Item -LiteralPath $queueRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# Every heavy call site enters the queue, under a label of its own.
+$queuedJobs = [ordered]@{
+    'common.ps1'                       = @('merge')
+    'verify-all-patches.ps1'           = @('verify patch', 'verify resources')
+    'build-release-receipt.ps1'        = @('receipt patch', 'receipt resources')
+    'verify-injected-registers.ps1'    = @('dex diff', 'host references')
+    'patch-for-device.ps1'             = @('device patch')
+    'fingerprint-candidates.ps1'       = @('fingerprint candidates')
+    'pre-push.ps1'                     = @('gate gradle')
+    'test-bouncycastle-test-graph.ps1' = @('bouncycastle review')
+}
+foreach ($name in $queuedJobs.Keys) {
+    $text = Get-Content -LiteralPath (Join-Path $PSScriptRoot $name) -Raw
+    foreach ($job in $queuedJobs[$name]) {
+        Assert-True ($text -match "(?m)^[^#\r\n]*\`$queued = Enter-HushPinterestQueue -Job '$job'\r?$") `
+            "$name does not wait in the build queue for its $job job."
+    }
+    Assert-True (([regex]::Matches($text, '(?m)^[^#\r\n]*Exit-HushPinterestQueue \$queued\r?$')).Count -eq $queuedJobs[$name].Count) `
+        "$name does not give back every queue slot it takes."
+}
+$receiptText = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'build-release-receipt.ps1') -Raw
+Assert-True ($receiptText -match "(?m)^\`$env:BUILD_QUEUE_PRIORITY = 'release'\r?$" -and
+    $receiptText -match '(?m)^\s+\$env:BUILD_QUEUE_PRIORITY = \$savedQueuePriority\r?$') `
+    'The receipt builder does not ask the build queue for release priority, or keeps it after the run.'
+$hookText = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'pre-push.ps1') -Raw
+Assert-True ($hookText -match "'HUSHPINTEREST_BUILD_WRAPPER', 'HUSHPINTEREST_DEVICE_SERIAL', 'BUILD_QUEUE_SCRIPT'\)\) \{") `
+    'The hook does not read the build wrapper and the build queue from the user environment.'
+
+Write-Host '[scripts] build queue contracts passed'
+
 # --- split bundle callers ----------------------------------------------------------------------
 #
 # The morphe CLI merges an .apkm's splits into one APK before it patches, and since 1.17.0 deletes
@@ -3818,7 +3933,16 @@ Write-Host '[scripts] relative path contracts passed'
 # against the newest build, and so does the device build, on the same stand-ins.
 
 $releaseRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushpinterest-release-" + [guid]::NewGuid().ToString('N'))
+$savedQueueScript = $env:BUILD_QUEUE_SCRIPT
+$savedQueuePriority = $env:BUILD_QUEUE_PRIORITY
 try {
+    # The stand-in runs below go through a stand-in build queue, never the machine's, and it
+    # writes down which jobs took a slot and at which priority.
+    $releaseQueueLog = Join-Path $releaseRoot 'queue.log'
+    New-Item -ItemType Directory -Path $releaseRoot -Force | Out-Null
+    New-FakeBuildQueue -Path (Join-Path $releaseRoot 'build-queue.ps1') -Log $releaseQueueLog
+    $env:BUILD_QUEUE_SCRIPT = Join-Path $releaseRoot 'build-queue.ps1'
+    $env:BUILD_QUEUE_PRIORITY = $null
     $releaseRepo = Join-Path $releaseRoot 'repo'
     # The source ledger and the two files its rules hold an adopted source to go in as well: a
     # release is held to the census, and .gitignore has to let the ledger be committed.
@@ -4385,6 +4509,7 @@ try {
         @("component-removed $($applications[0])", "component-added $($applications[1])") | Sort-Object -Unique -CaseSensitive)
     $builtBuilds = @($releaseTarget.PackageVersions) + @($newerBuild)
     $allFixtures = @($builtBuilds | ForEach-Object { $fixturePaths[$_] })
+    Remove-Item -LiteralPath $releaseQueueLog -Force -ErrorAction SilentlyContinue
     try {
         Invoke-ReceiptBuilder -Fixtures $allFixtures
     } catch {
@@ -4424,6 +4549,17 @@ try {
         "patch $($fixturePaths[$_]) merged forced=$(if ($releaseTarget.PackageVersions -contains $_) { 0 } else { 1 })" })
     Assert-True (($patchRuns -join "`n") -eq ($expectedRuns -join "`n")) `
         "The CLI was not run once per fixture, on its merge, with -f for the undeclared build only: $($patchRuns -join '; ')"
+    # A receipt is a release's, so every job it ran took a slot in the build queue at release
+    # priority and gave it back, one CLI patch run per fixture, and the run left
+    # BUILD_QUEUE_PRIORITY the way it found it.
+    $queueLines = @(Get-Content -LiteralPath $releaseQueueLog)
+    $queueEntries = @($queueLines | Where-Object { $_ -like 'enter *' })
+    Assert-True ($queueEntries.Count -gt 0 -and
+        @($queueEntries | Where-Object { $_ -notlike 'enter release hushpinterest *' }).Count -eq 0 -and
+        @($queueLines | Where-Object { $_ -like 'exit *' }).Count -eq $queueEntries.Count -and
+        @($queueEntries | Where-Object { $_ -ceq 'enter release hushpinterest receipt patch' }).Count -eq $builtBuilds.Count -and
+        $null -eq $env:BUILD_QUEUE_PRIORITY) `
+        "The receipt's jobs did not each take and give back a release slot in the build queue: $($queueLines -join '; ')"
     # The SBOM beside the bundle, recorded by name, hash and count, once OSV had been asked about it.
     Assert-True ($built.sbom.file -eq "patches-$releaseVersionHere.cdx.json" -and
         $built.sbom.sha256 -ceq (Get-Sha256Hex -Path $releaseSbom) -and [int]$built.sbom.components -eq 3) `
@@ -4520,7 +4656,14 @@ try {
         return $said
     }
     $newestFixture = $fixturePaths[$releaseTarget.PackageVersion]
+    Remove-Item -LiteralPath $releaseQueueLog -Force -ErrorAction SilentlyContinue
     $said = Invoke-VerifyAll -Apk $newestFixture
+    # An everyday verification: each of its five heavy jobs takes an ordinary slot in turn and
+    # gives it back before the next one starts.
+    $expectedQueue = @('merge', 'verify patch', 'verify resources', 'dex diff', 'host references' |
+        ForEach-Object { "enter normal hushpinterest $_"; "exit hushpinterest $_" })
+    Assert-True ((@(Get-Content -LiteralPath $releaseQueueLog) -join '|') -ceq ($expectedQueue -join '|')) `
+        "verify-all-patches.ps1 did not run each heavy job in its own build queue slot: $(@(Get-Content -LiteralPath $releaseQueueLog) -join '; ')"
     Assert-True ($said -like "*merged $(Split-Path -Leaf $newestFixture) into one APK for the CLI*" -and
         $said -like '*success: every requested patch applied*') "verify-all-patches.ps1 did not merge the bundle and pass: $said"
     Assert-True ((@(Get-Content -LiteralPath $mergeLog) -join "`n") -eq "merge $newestFixture" -and
@@ -5498,6 +5641,8 @@ try {
     Assert-True ($said -like "*tag v$indexVersionHere isn't in this clone, so the Manager floor the index names wasn't checked*") `
         "A lag window without the index version's tag did not say the floor went unchecked: $said"
 } finally {
+    $env:BUILD_QUEUE_SCRIPT = $savedQueueScript
+    $env:BUILD_QUEUE_PRIORITY = $savedQueuePriority
     if ($signerHome -and (Test-Path -LiteralPath $signerHome)) {
         Invoke-ReleaseChecksumGpg 'gpgconf' @('--homedir', $signerHome, '--kill', 'gpg-agent') | Out-Null
     }
