@@ -32,6 +32,7 @@ import com.android.tools.smali.dexlib2.iface.Field
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -132,10 +133,11 @@ private fun BytecodePatchContext.springReset(): Pair<FieldReference, FieldRefere
     val driver = starter.fields(Opcode.IGET_OBJECT).filter { !it.type.startsWith("[") && "$it" in written }.distinctBy { "$it" }
         .only("the menu button's spring driver")
     // Clearing the driver is only safe because the detach handler cancels it: a running one would
-    // step the springs twice beside the new one.
+    // step the springs twice beside the new one. So a method the handler calls has to read the
+    // driver and call its cancel(CancellationException) on that same value.
     val calls = detach.instructionList().mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference) }
         .filter { it.definingClass in types && it.parameterTypes.isEmpty() && it.returnType == "V" }.map { it.name }.toSet()
-    if (methods.none { it.name in calls && it.parameterTypes.isEmpty() && it.fields(Opcode.IGET_OBJECT).any { field -> "$field" == "$driver" } }) {
+    if (methods.none { it.name in calls && it.parameterTypes.isEmpty() && it.cancels(driver) }) {
         throw PatchException("$PATCH: the menu button's detach handler no longer cancels its spring driver")
     }
     for (field in listOf(flag, driver)) {
@@ -146,6 +148,33 @@ private fun BytecodePatchContext.springReset(): Pair<FieldReference, FieldRefere
         }
     }
     return flag to driver
+}
+
+/**
+ * Whether this method reads [driver] and, on the straight path after that read, calls a
+ * `(CancellationException)V` method, a coroutine Job's cancel, with the value it read as receiver.
+ */
+private fun Method.cancels(driver: FieldReference): Boolean {
+    val body = instructionList()
+    return body.withIndex().any { (at, read) ->
+        if (read.opcode != Opcode.IGET_OBJECT || "${(read as ReferenceInstruction).reference}" != "$driver") return@any false
+        val held = (read as TwoRegisterInstruction).registerA
+        for (next in body.drop(at + 1)) {
+            val call = (next as? ReferenceInstruction)?.reference as? MethodReference
+            val receiver = when (next) {
+                is FiveRegisterInstruction -> next.registerC.takeIf { next.registerCount == 2 }
+                is RegisterRangeInstruction -> next.startRegister.takeIf { next.registerCount == 2 }
+                else -> null
+            }
+            if (call != null && receiver == held && call.returnType == "V" &&
+                call.parameterTypes.map(CharSequence::toString) == listOf("Ljava/util/concurrent/CancellationException;")
+            ) return@any true
+            if (!next.opcode.canContinue() || next.opcode.setsRegister() && (next as? OneRegisterInstruction)?.registerA == held) {
+                return@any false
+            }
+        }
+        false
+    }
 }
 
 internal fun BytecodePatchContext.longPressMenu(): LongPressMenu {

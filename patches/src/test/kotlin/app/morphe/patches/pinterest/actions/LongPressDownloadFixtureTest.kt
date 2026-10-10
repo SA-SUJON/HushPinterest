@@ -27,6 +27,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -77,6 +79,12 @@ class LongPressDownloadFixtureTest {
             // The detached mark is the boolean the detach handler sets and the driver is the job it
             // cancels, both cleared from a zero so a put-back button springs in again.
             assertEquals(build.name, "Z", found.springsDetached.type)
+            // Pinned by hand, so a search that drifts to another boolean and object pair fails here
+            // instead of agreeing with itself (DexDiff repeats the same search).
+            if (build.name.startsWith("pinterest-14.39.0-")) {
+                assertEquals(build.name, "Lcom/pinterest/ui/menu/SpringLinearLayout;->d:Z", "${found.springsDetached}")
+                assertEquals(build.name, "Lcom/pinterest/ui/menu/KotSpringLinearLayout;->g:Lu93/y1;", "${found.springDriver}")
+            }
             assertEquals(build.name, listOf(CONTEXT_MENU_ITEM, "${found.springsDetached}", "${found.springDriver}"), stub("springsReattached"))
             assertEquals(build.name, listOf(Opcode.CHECK_CAST, Opcode.CONST_4, Opcode.IPUT_BOOLEAN, Opcode.IPUT_OBJECT, Opcode.RETURN_VOID),
                 extension.methods.single { it.name == "springsReattached" }.implementation!!.instructions.map { it.opcode })
@@ -170,12 +178,37 @@ class LongPressDownloadFixtureTest {
         }) { it }
     }
 
-    private fun refuses(extension: (List<ClassDef>) -> List<ClassDef> = { it }, host: (List<ClassDef>) -> List<ClassDef>) {
+    @Test
+    fun `a detach handler that no longer cancels its spring driver refuses before any edit`() {
+        refuses(message = "no longer cancels its spring driver") { classes ->
+            classes.map { owner ->
+                if (owner.methods.none { method -> method.implementation?.instructions?.any { it.isJobCancel() } == true }) return@map owner
+                owner.withMethods(owner.methods.map { method ->
+                    val implementation = method.implementation ?: return@map method
+                    if (implementation.instructions.none { it.isJobCancel() }) return@map method
+                    // Same-size NOPs keep every branch offset and try range where it was.
+                    ImmutableMethod(method.definingClass, method.name, method.parameters, method.returnType, method.accessFlags,
+                        method.annotations, method.hiddenApiRestrictions, ImmutableMethodImplementation(implementation.registerCount,
+                            implementation.instructions.flatMap { instruction ->
+                                if (instruction.isJobCancel()) List(instruction.codeUnits) { ImmutableInstruction10x(Opcode.NOP) }
+                                else listOf(instruction)
+                            }, implementation.tryBlocks, null))
+                })
+            }
+        }
+    }
+
+    private fun refuses(
+        extension: (List<ClassDef>) -> List<ClassDef> = { it },
+        message: String? = null,
+        host: (List<ClassDef>) -> List<ClassDef>,
+    ) {
         val classes = host(read(Fixtures.declaredBuilds().first()))
         val context = PatchContexts.of(extension(ExtensionDex.classes()) + classes)
         val watched = classes.map { it.type } + LONG_PRESS + SETTINGS_STATUS
         val before = snapshot(context, watched)
-        assertThrows(PatchException::class.java) { longPressDownloadPatch.execute(context) }
+        val refusal = assertThrows(PatchException::class.java) { longPressDownloadPatch.execute(context) }
+        if (message != null) assertTrue(refusal.message, refusal.message.orEmpty().contains(message))
         assertEquals(before, snapshot(context, watched))
     }
 
@@ -254,6 +287,11 @@ class LongPressDownloadFixtureTest {
         private fun Method.strings(): List<String> = implementation?.instructions?.mapNotNull {
             ((it as? ReferenceInstruction)?.reference as? StringReference)?.string
         }.orEmpty()
+
+        /** A call to a coroutine Job's cancel(CancellationException), what the detach handler stops the springs with. */
+        fun Instruction.isJobCancel() = ((this as? ReferenceInstruction)?.reference as? MethodReference)?.let {
+            it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/util/concurrent/CancellationException;")
+        } == true
 
         fun Method.copy(name: String) = ImmutableMethod(
             definingClass, name, parameters, returnType, accessFlags, annotations, hiddenApiRestrictions, implementation,
