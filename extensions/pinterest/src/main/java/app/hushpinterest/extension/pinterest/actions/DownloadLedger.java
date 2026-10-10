@@ -45,6 +45,11 @@ public final class DownloadLedger {
     static final int EARLIER_LIMIT = BoardDownloads.PINS;
     static final String STORE = "hushpinterest_download_history";
     static final String RECORDS = "requests_v1";
+    /**
+     * The longest history text read: every line at its longest, with a request ID, a pin ID, a time
+     * and a folder path whose every character is escaped.
+     */
+    static final int RECORDS_LENGTH = LIMIT * (19 + 30 + 19 + 3 + 3 + DownloadFolder.MAX_LENGTH * 3 + 1);
     static final String EARLIER = "earlier_v1";
     /** One earlier history line: a request ID, then the pin ID. */
     private static final Pattern EARLIER_LINE = Pattern.compile("([0-9]{1,19}),([0-9]{1,30})");
@@ -76,16 +81,17 @@ public final class DownloadLedger {
         private final PinMedia.Source source;
         // The image type of a request Android finished. Read from Android, never persisted.
         private final String image;
-        // Whether the request goes to Pinterest's folder: kept with the request (",P") when it's
-        // queued, and read from the destination Android reports while it still has the request.
-        private final boolean pinterestFolder;
+        // The folder the request saves in, null for Download: kept with the request (",P" for
+        // Pinterest's folder, ",F:" and the path for another) when it's queued, and read from the
+        // destination Android reports while it still has the request.
+        private final String folder;
 
         private Job(long id, String pinId, long createdAt, State state, int reason, PinMedia.Source source) {
-            this(id, pinId, createdAt, state, reason, source, null, false);
+            this(id, pinId, createdAt, state, reason, source, null, null);
         }
 
         private Job(long id, String pinId, long createdAt, State state, int reason, PinMedia.Source source, String image,
-                    boolean pinterestFolder) {
+                    String folder) {
             this.id = id;
             this.pinId = pinId;
             this.createdAt = createdAt;
@@ -93,15 +99,15 @@ public final class DownloadLedger {
             this.reason = reason;
             this.source = source;
             this.image = image;
-            this.pinterestFolder = pinterestFolder;
+            this.folder = folder;
         }
 
         private Job with(State state, int reason, PinMedia.Source source) {
-            return with(state, reason, source, null, pinterestFolder);
+            return with(state, reason, source, null, folder);
         }
 
-        private Job with(State state, int reason, PinMedia.Source source, String image, boolean pinterestFolder) {
-            return new Job(id, pinId, createdAt, state, reason, source, image, pinterestFolder);
+        private Job with(State state, int reason, PinMedia.Source source, String image, String folder) {
+            return new Job(id, pinId, createdAt, state, reason, source, image, folder);
         }
 
         public boolean canRetry() { return state == State.FAILED && source != null; }
@@ -155,10 +161,10 @@ public final class DownloadLedger {
             }
             if (state == State.COMPLETED) {
                 // Android's Downloads list shows only the Download folder.
-                return pinterestFolder ? L10n.t("Saved in Pictures/100PINT/Pins.") : L10n.t("Check Downloads for the saved file.");
+                return folder != null ? L10n.f("Saved in %s.", folder) : L10n.t("Check Downloads for the saved file.");
             }
             if (state == State.MISSING) {
-                return pinterestFolder ? L10n.t("Android no longer has this request. Check Pictures/100PINT/Pins before saving again.")
+                return folder != null ? L10n.f("Android no longer has this request. Check %s before saving again.", folder)
                         : L10n.t("Android no longer has this request. Check Downloads before saving again.");
             }
             if (state == State.UNAVAILABLE) return L10n.t("Couldn't check Downloads. Try again.");
@@ -168,20 +174,20 @@ public final class DownloadLedger {
 
     /** A request queued to Download. */
     public static boolean record(Context context, long id, String pinId) {
-        return record(context, id, pinId, false);
+        return record(context, id, pinId, null);
     }
 
     /**
      * Call after native enqueue on its worker. Only the returned ID is an ownership claim.
-     * [pinterestFolder] is where the request was told to save.
+     * [folder] is where the request was told to save, null for Download.
      */
-    public static boolean record(Context context, long id, String pinId, boolean pinterestFolder) {
+    public static boolean record(Context context, long id, String pinId, String folder) {
         if (context == null || !Utils.isMainProcess() ||
                 id < 0 || pinId == null || !pinId.matches("[0-9]{1,30}")) return false;
         try {
             DownloadLedger ledger = new DownloadLedger(context);
             synchronized (LOCK) {
-                ledger.insert(id, pinId, -1, pinterestFolder);
+                ledger.insert(id, pinId, -1, folder);
             }
             return true;
         } catch (RuntimeException failure) {
@@ -331,7 +337,7 @@ public final class DownloadLedger {
     public static boolean setAs(Context context, Job job) {
         if (context == null || job == null || !job.canSetAs()) return false;
         Context app = application(context);
-        String error = job.pinterestFolder ? L10n.t("Couldn't open Set as. Check Pictures/100PINT/Pins for the saved file.")
+        String error = job.folder != null ? L10n.f("Couldn't open Set as. Check %s for the saved file.", job.folder)
                 : L10n.t("Couldn't open Set as. Check Downloads for the saved file.");
         boolean scheduled = Utils.runOnBackgroundThread(() -> {
             try {
@@ -350,7 +356,7 @@ public final class DownloadLedger {
                     }
                 }
                 if (mime == null) {
-                    Utils.showToastLong(job.pinterestFolder ? L10n.t("This download isn't a finished image anymore. Check Pictures/100PINT/Pins.")
+                    Utils.showToastLong(job.folder != null ? L10n.f("This download isn't a finished image anymore. Check %s.", job.folder)
                             : L10n.t("This download isn't a finished image anymore. Check Downloads."));
                     return;
                 }
@@ -401,7 +407,7 @@ public final class DownloadLedger {
             if (!current.canRetry()) {
                 Utils.showToastLong(current.state == State.MISSING || current.state == State.FAILED
                         ? L10n.t("Open the pin again to get a fresh download link.")
-                        : current.pinterestFolder ? L10n.t("This request can't be retried. Check Pictures/100PINT/Pins or open the pin again.")
+                        : current.folder != null ? L10n.f("This request can't be retried. Check %s or open the pin again.", current.folder)
                         : L10n.t("This request can't be retried. Check Downloads or open the pin again."));
                 return;
             }
@@ -410,7 +416,7 @@ public final class DownloadLedger {
                 return;
             }
             String name = "Pinterest_" + current.pinId + "_" + Long.toUnsignedString(System.nanoTime()) + current.source.suffix;
-            boolean folder = PinDownloads.inPinterestFolder();
+            String folder = DownloadFolder.current();
             long next = manager().enqueue(PinDownloads.request(current.source, name, folder));
             if (next < 0) throw new IllegalStateException("Download service rejected retry");
             // Enqueue and preference persistence cannot be one transaction. Never remove the
@@ -470,8 +476,8 @@ public final class DownloadLedger {
                     if (source != null && !source.mime.equalsIgnoreCase(mime)) source = null;
                 }
                 // For a public folder, Android reports the requested destination in every state.
-                boolean folder = job.pinterestFolder || localColumn >= 0
-                        && PinDownloads.savedInPinterestFolder(cursor.getString(localColumn));
+                String folder = job.folder != null ? job.folder
+                        : localColumn >= 0 ? DownloadFolder.of(cursor.getString(localColumn)) : null;
                 results.put(id, job.with(state, reason, source, state == State.COMPLETED ? image(mime) : null, folder));
             }
             return Collections.unmodifiableList(new ArrayList<>(results.values()));
@@ -499,13 +505,16 @@ public final class DownloadLedger {
         String text;
         try { text = preferences.getString(RECORDS, ""); }
         catch (ClassCastException invalid) { return jobs; }
-        if (text == null || text.length() > 4096) return jobs;
+        if (text == null || text.length() > RECORDS_LENGTH) return jobs;
         for (String line : text.split("\n")) {
             String[] fields = line.split(",", -1);
-            // A native request saved in Pinterest's folder ends in ",P"; a local outcome in its state.
-            boolean folder = fields.length == 4 && fields[3].equals("P");
-            boolean local = !folder && fields.length == 4 && fields[0].matches("-[0-9]{1,19}");
-            if ((!local && (fields.length != (folder ? 4 : 3) || !fields[0].matches("[0-9]{1,19}"))) ||
+            // A local outcome ends in its state. A native request saved outside Download ends in its
+            // folder: ",P" for Pinterest's, ",F:" and the path for another.
+            boolean local = fields.length == 4 && fields[0].matches("-[0-9]{1,19}");
+            String folder = local || fields.length != 4 ? null
+                    : fields[3].equals("P") ? DownloadFolder.PINTEREST
+                    : fields[3].startsWith("F:") ? DownloadFolder.decode(fields[3].substring(2)) : null;
+            if ((!local && (fields.length != (folder != null ? 4 : 3) || !fields[0].matches("[0-9]{1,19}"))) ||
                     !fields[1].matches("[0-9]{1,30}") || !fields[2].matches("[0-9]{1,19}")) continue;
             try {
                 long id = Long.parseLong(fields[0]);
@@ -579,7 +588,8 @@ public final class DownloadLedger {
         for (Job job : jobs) {
             text.append(job.id).append(',').append(job.pinId).append(',').append(job.createdAt);
             if (job.id < 0) text.append(',').append(job.state.name());
-            else if (job.pinterestFolder) text.append(",P");
+            else if (DownloadFolder.PINTEREST.equals(job.folder)) text.append(",P");
+            else if (job.folder != null) text.append(",F:").append(DownloadFolder.encode(job.folder));
             text.append('\n');
         }
         SharedPreferences.Editor edit = preferences.edit().putString(RECORDS, text.toString());
@@ -593,10 +603,10 @@ public final class DownloadLedger {
         }
     }
 
-    private void insert(long id, String pinId, long replacedId, boolean pinterestFolder) {
+    private void insert(long id, String pinId, long replacedId, String folder) {
         List<Job> jobs = load();
         jobs.removeIf(job -> job.id == id || job.id == replacedId);
-        jobs.add(0, new Job(id, pinId, System.currentTimeMillis(), State.QUEUED, 0, null, null, pinterestFolder));
+        jobs.add(0, new Job(id, pinId, System.currentTimeMillis(), State.QUEUED, 0, null, null, folder));
         store(jobs, trim(jobs));
         publish(jobs);
     }

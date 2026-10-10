@@ -213,7 +213,7 @@ Download pin	Unduh Pin
 Share pin	Bagikan Pin
 Open pin link	Buka tautan Pin
 Download started. Check Downloads.	Unduhan dimulai. Periksa Unduhan.
-Download started. Check Pictures/100PINT/Pins.	Unduhan dimulai. Periksa Pictures/100PINT/Pins.
+Download started. Check %s.	Unduhan dimulai. Periksa %s.
 Couldn't save this pin.	Pin ini tidak dapat disimpan.
 Queued	Dalam antrean
 Downloading	Mengunduh
@@ -234,16 +234,16 @@ The download server couldn't complete the request.	Server unduhan tidak dapat me
 Android couldn't save the file.	Android tidak dapat menyimpan file.
 Download failed.	Unduhan gagal.
 Check Downloads for the saved file.	Periksa file yang disimpan di Unduhan.
-Saved in Pictures/100PINT/Pins.	Disimpan di Pictures/100PINT/Pins.
+Saved in %s.	Disimpan di %s.
 Android no longer has this request. Check Downloads before saving again.	Android tidak lagi memiliki permintaan ini. Periksa Unduhan sebelum menyimpan lagi.
-Android no longer has this request. Check Pictures/100PINT/Pins before saving again.	Android tidak lagi memiliki permintaan ini. Periksa Pictures/100PINT/Pins sebelum menyimpan lagi.
+Android no longer has this request. Check %s before saving again.	Android tidak lagi memiliki permintaan ini. Periksa %s sebelum menyimpan lagi.
 Couldn't check Downloads. Try again.	Tidak dapat memeriksa Unduhan. Coba lagi.
 Resume HushPinterest and turn on Download pins to retry.	Lanjutkan HushPinterest dan aktifkan Unduh pin untuk mencoba lagi.
 Open the pin again to get a fresh download link.	Buka pin lagi untuk mendapatkan tautan unduhan baru.
 This request can't be retried. Check Downloads or open the pin again.	Permintaan ini tidak dapat dicoba lagi. Periksa Unduhan atau buka pin lagi.
-This request can't be retried. Check Pictures/100PINT/Pins or open the pin again.	Permintaan ini tidak dapat dicoba lagi. Periksa Pictures/100PINT/Pins atau buka pin lagi.
+This request can't be retried. Check %s or open the pin again.	Permintaan ini tidak dapat dicoba lagi. Periksa %s atau buka pin lagi.
 Download started, but its history couldn't be saved. Check Downloads.	Unduhan dimulai, tetapi riwayatnya tidak dapat disimpan. Periksa Unduhan.
-Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.	Unduhan dimulai, tetapi riwayatnya tidak dapat disimpan. Periksa Pictures/100PINT/Pins.
+Download started, but its history couldn't be saved. Check %s.	Unduhan dimulai, tetapi riwayatnya tidak dapat disimpan. Periksa %s.
 History removed. Files and active downloads were kept.	Riwayat dihapus. File dan unduhan aktif tetap disimpan.
 Couldn't remove this history entry. Try again.	Tidak dapat menghapus entri riwayat ini. Coba lagi.
 Couldn't open Downloads.	Tidak dapat membuka Unduhan.
@@ -261,9 +261,9 @@ Set as wallpaper	Jadikan wallpaper
 Opens Android's Set as options for this saved image.	Membuka opsi Setel sebagai dari Android untuk gambar tersimpan ini.
 Set as	Setel sebagai
 Couldn't open Set as. Check Downloads for the saved file.	Setel sebagai tidak dapat dibuka. Cari file tersimpan di Download.
-Couldn't open Set as. Check Pictures/100PINT/Pins for the saved file.	Setel sebagai tidak dapat dibuka. Cari file tersimpan di Pictures/100PINT/Pins.
+Couldn't open Set as. Check %s for the saved file.	Setel sebagai tidak dapat dibuka. Cari file tersimpan di %s.
 This download isn't a finished image anymore. Check Downloads.	Unduhan ini bukan lagi gambar yang selesai. Periksa Download.
-This download isn't a finished image anymore. Check Pictures/100PINT/Pins.	Unduhan ini bukan lagi gambar yang selesai. Periksa Pictures/100PINT/Pins.
+This download isn't a finished image anymore. Check %s.	Unduhan ini bukan lagi gambar yang selesai. Periksa %s.
 Resume HushPinterest and turn on Download pins to use this.	Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk memakai ini.
 Remove from history	Hapus dari riwayat
 Removes this history entry. Files and active downloads are kept.	Menghapus entri riwayat ini. File dan unduhan aktif tetap disimpan.
@@ -361,7 +361,7 @@ Stop selection	Hentikan pilihan
 Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Dalam antrean: %d\nDilewati: %d\nTidak didukung: %d\nGagal: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Menghentikan pilihan tidak membatalkan unduhan yang sudah dimulai. Pilihan yang belum dimulai berakhir saat Pinterest ditutup.
 History could not be saved for %d results. Check Downloads.	Riwayat untuk %d hasil tidak dapat disimpan. Periksa Unduhan.
-History could not be saved for %d results. Check Pictures/100PINT/Pins.	Riwayat untuk %d hasil tidak dapat disimpan. Periksa Pictures/100PINT/Pins.
+History could not be saved for %d results. Check %s.	Riwayat untuk %d hasil tidak dapat disimpan. Periksa %s.
 Skipped	Dilewati
 Unsupported	Tidak didukung
 No download was queued. The selection was stopped, canceled or unavailable.	Tidak ada unduhan yang diantrekan. Pilihan dihentikan, dibatalkan, atau tidak tersedia.
@@ -412,3 +412,14 @@ Autoplay videos on cellular data	Otomatis putar video di jaringan seluler
 Turned off, videos don't start on their own on mobile data. Pinterest may still load some of a video ahead of time.	Jika dimatikan, video tidak diputar sendiri saat memakai data seluler. Pinterest mungkin tetap memuat sebagian video lebih dulu.
 Social permissions	Izin fitur sosial
 In Pinterest: %1$s	Di Pinterest: %1$s
+Pick a download folder	Pilih folder unduhan
+Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.	Menyimpan unduhan di folder pilihanmu di dalam Pictures, DCIM, Download, atau Documents.
+%s is picked, but Save in Pinterest's folder is on, so downloads go there.	%s dipilih, tetapi Simpan di folder Pinterest aktif, jadi unduhan masuk ke sana.
+Saving downloads in %s. Tap to pick another folder or go back to Download.	Unduhan disimpan di %s. Ketuk untuk memilih folder lain atau kembali ke Download.
+Pick another folder	Pilih folder lain
+Save in Download again	Simpan lagi di Download
+This phone has no folder picker, so there's no way to choose a folder here.	Ponsel ini tidak memiliki pemilih folder, jadi folder tidak dapat dipilih di sini.
+Couldn't open the folder picker. Try again.	Pemilih folder tidak dapat dibuka. Coba lagi.
+Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Pilih folder di dalam Pictures, DCIM, Download, atau Documents di penyimpanan internal ponsel.
+Downloads will be saved in %s.	Unduhan akan disimpan di %s.
+Downloads will be saved in Download.	Unduhan akan disimpan di Download.

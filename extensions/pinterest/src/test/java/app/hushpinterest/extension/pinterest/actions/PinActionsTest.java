@@ -70,6 +70,7 @@ public class PinActionsTest {
         Settings.EXTERNAL_BROWSER.save(false);
         Settings.DOWNLOAD_PINS.save(false);
         Settings.SAVE_IN_PINTEREST_FOLDER.resetToDefault();
+        DownloadFolder.PICKED.resetToDefault();
         PatchFamilyForTests.capabilities(null);
         PauseForTests.resume();
         Utils.setActivity(null);
@@ -246,15 +247,53 @@ public class PinActionsTest {
         String history = activity.getSharedPreferences(DownloadLedger.STORE, Context.MODE_PRIVATE)
                 .getString(DownloadLedger.RECORDS, "").split("\n")[0];
         assertTrue(history, history.contains(",123456,") && history.endsWith(",P"));
-        assertTrue(PinDownloads.savedInPinterestFolder(expected.toString()));
-        assertTrue(PinDownloads.savedInPinterestFolder("file:///storage/emulated/0/Pictures/100PINT/Pins/" + fileName));
-        assertFalse(PinDownloads.savedInPinterestFolder("file:///storage/emulated/0/Download/" + fileName));
-        assertFalse(PinDownloads.savedInPinterestFolder(null));
+        assertEquals(DownloadFolder.PINTEREST, DownloadFolder.of(expected.toString()));
+        assertEquals(DownloadFolder.PINTEREST, DownloadFolder.of("file:///storage/emulated/0/Pictures/100PINT/Pins/" + fileName));
+        assertNull(DownloadFolder.of("file:///storage/emulated/0/Download/" + fileName));
+        assertNull(DownloadFolder.of(null));
         Settings.SAVE_IN_PINTEREST_FOLDER.save(false);
-        assertEquals("Download started. Check Downloads.", PinDownloads.startedMessage(true, false));
+        assertEquals("Download started. Check Downloads.", PinDownloads.startedMessage(true, null));
         Uri back = Shadow.<ShadowDownloadManager.ShadowRequest>extract(PinDownloads.request(
                 new PinMedia.Source("https://i.pinimg.com/originals/pin.jpg", "image/jpeg", ".jpg"), "pin.jpg")).getDestination();
         assertEquals(Uri.withAppendedPath(Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)), "pin.jpg"), back);
+    }
+
+    /** #5: a folder picked by hand gets the download, its toast and its history line; Pinterest's folder still wins while on. */
+    @Test public void aPickedFolderQueuesThereAndPinterestsFolderStillWins() throws Exception {
+        DownloadFolder.PICKED.save("Pictures/Art");
+        assertTrue(PinDownloads.start(pin, activity));
+        Method await = Utils.class.getDeclaredMethod("awaitBackgroundTasksForTests");
+        await.setAccessible(true);
+        await.invoke(null);
+        ShadowDownloadManager downloads = Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE));
+        assertEquals(1, downloads.getRequestCount());
+        ShadowDownloadManager.ShadowRequest request = Shadow.extract(downloads.getRequest(0));
+        String fileName = request.getDestination().getLastPathSegment();
+        assertTrue(String.valueOf(fileName), fileName != null && fileName.matches("Pinterest_123456_[0-9]+\\.jpg"));
+        assertEquals(Uri.withAppendedPath(Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)),
+                "Art/" + fileName), request.getDestination());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Download started. Check Pictures/Art.", ShadowToast.getTextOfLatestToast());
+        String history = activity.getSharedPreferences(DownloadLedger.STORE, Context.MODE_PRIVATE)
+                .getString(DownloadLedger.RECORDS, "").split("\n")[0];
+        assertTrue(history, history.contains(",123456,") && history.endsWith(",F:Pictures/Art"));
+        assertEquals("Pictures/Art", DownloadFolder.of(request.getDestination().toString()));
+
+        Settings.SAVE_IN_PINTEREST_FOLDER.save(true);
+        assertEquals(DownloadFolder.PINTEREST, DownloadFolder.current());
+        Settings.SAVE_IN_PINTEREST_FOLDER.save(false);
+        // The top of a standard folder, and Download's own subfolders, are places too.
+        DownloadFolder.PICKED.save("Download/Pins");
+        PinMedia.Source source = new PinMedia.Source("https://i.pinimg.com/originals/pin.jpg", "image/jpeg", ".jpg");
+        assertEquals(Uri.withAppendedPath(Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)),
+                "Pins/pin.jpg"), Shadow.<ShadowDownloadManager.ShadowRequest>extract(PinDownloads.request(source, "pin.jpg")).getDestination());
+        DownloadFolder.PICKED.save("DCIM");
+        assertEquals(Uri.withAppendedPath(Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)),
+                "pin.jpg"), Shadow.<ShadowDownloadManager.ShadowRequest>extract(PinDownloads.request(source, "pin.jpg")).getDestination());
+        // A saved value that no longer reads as a folder keeps Download.
+        DownloadFolder.PICKED.save("Music/Pins");
+        assertNull(DownloadFolder.current());
+        assertEquals("Download started, but its history couldn't be saved. Check DCIM.", PinDownloads.startedMessage(false, "DCIM"));
     }
 
     @Test public void aStandInSizeQueuesTheOriginalTheMediaHostHasOrElseItself() throws Exception {

@@ -251,7 +251,7 @@ public final class PinDownloads {
                     if (!active()) { report(after, Result.SKIPPED); return; }
                     DownloadManager manager = (DownloadManager) app.getSystemService(Context.DOWNLOAD_SERVICE);
                     if (manager == null) throw new IllegalStateException("Download service unavailable");
-                    boolean folder = inPinterestFolder();
+                    String folder = DownloadFolder.current();
                     long request = manager.enqueue(request(chosen, fileName(id, chosen), folder));
                     if (request < 0) throw new IllegalStateException("Download service rejected pin");
                     boolean tracked = DownloadLedger.record(app, request, id, folder);
@@ -283,55 +283,34 @@ public final class PinDownloads {
         if (after != null) Utils.runOnMainThread(() -> after.accept(result));
     }
 
-    /** The folder in Pictures that Pinterest's own image save writes to (#5). */
-    static final String PINTEREST_FOLDER = "100PINT/Pins";
-
     static DownloadManager.Request request(PinMedia.Source source, String fileName) {
-        return request(source, fileName, inPinterestFolder());
+        return request(source, fileName, DownloadFolder.current());
     }
 
-    /** [pinterestFolder] is read once by the caller, so the request, its history and its toast agree. */
-    static DownloadManager.Request request(PinMedia.Source source, String fileName, boolean pinterestFolder) {
+    /**
+     * [folder] is read once by the caller, so the request, its history and its toast agree. Null
+     * saves in Download.
+     */
+    static DownloadManager.Request request(PinMedia.Source source, String fileName, String folder) {
         if (PinMedia.mediaUri(source.url) == null) throw new IllegalArgumentException("Not a public Pinterest media URL");
         return new DownloadManager.Request(Uri.parse(source.url))
                 .setMimeType(source.mime)
                 .setTitle(L10n.t("Download pin"))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(pinterestFolder ? Environment.DIRECTORY_PICTURES : Environment.DIRECTORY_DOWNLOADS,
-                        pinterestFolder ? PINTEREST_FOLDER + "/" + fileName : fileName);
+                .setDestinationInExternalPublicDir(DownloadFolder.directory(folder), DownloadFolder.subPath(folder, fileName));
     }
 
     /**
      * The toast after a download is queued. It names the folder the download goes to, since
      * Android's Downloads list shows only the Download folder.
      */
-    static String startedMessage(boolean tracked, boolean pinterestFolder) {
-        if (pinterestFolder) {
-            return tracked ? L10n.t("Download started. Check Pictures/100PINT/Pins.")
-                    : L10n.t("Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.");
+    static String startedMessage(boolean tracked, String folder) {
+        if (folder != null) {
+            return tracked ? L10n.f("Download started. Check %s.", folder)
+                    : L10n.f("Download started, but its history couldn't be saved. Check %s.", folder);
         }
         return tracked ? L10n.t("Download started. Check Downloads.")
                 : L10n.t("Download started, but its history couldn't be saved. Check Downloads.");
-    }
-
-    /**
-     * Whether a request's local URI is in Pinterest's folder. For a public folder Android reports
-     * the requested destination there, finished or not.
-     */
-    static boolean savedInPinterestFolder(String localUri) {
-        if (localUri == null) return false;
-        String path = Uri.parse(localUri).getPath();
-        return path != null && path.contains("/" + PINTEREST_FOLDER + "/");
-    }
-
-    /** Download unless the folder switch is on. A switch that can't be read keeps Download. */
-    static boolean inPinterestFolder() {
-        try {
-            return Settings.SAVE_IN_PINTEREST_FOLDER.get();
-        } catch (Throwable failure) {
-            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "folder switch read", failure);
-            return false;
-        }
     }
 
     /** The diagnostics name for a download Android wouldn't queue; its toast says to try again. */

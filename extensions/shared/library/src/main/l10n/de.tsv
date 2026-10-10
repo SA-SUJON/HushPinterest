@@ -213,7 +213,7 @@ Download pin	Pin herunterladen
 Share pin	Pin teilen
 Open pin link	Pin-Link öffnen
 Download started. Check Downloads.	Download gestartet. Sieh unter Downloads nach.
-Download started. Check Pictures/100PINT/Pins.	Download gestartet. Sieh unter Pictures/100PINT/Pins nach.
+Download started. Check %s.	Download gestartet. Sieh unter %s nach.
 Couldn't save this pin.	Dieser Pin konnte nicht gespeichert werden.
 Queued	In Warteschlange
 Downloading	Wird heruntergeladen
@@ -234,16 +234,16 @@ The download server couldn't complete the request.	Der Download-Server konnte di
 Android couldn't save the file.	Android konnte die Datei nicht speichern.
 Download failed.	Download fehlgeschlagen.
 Check Downloads for the saved file.	Sieh unter Downloads nach der gespeicherten Datei.
-Saved in Pictures/100PINT/Pins.	In Pictures/100PINT/Pins gespeichert.
+Saved in %s.	In %s gespeichert.
 Android no longer has this request. Check Downloads before saving again.	Android hat diese Anfrage nicht mehr. Prüfe Downloads, bevor du erneut speicherst.
-Android no longer has this request. Check Pictures/100PINT/Pins before saving again.	Android hat diese Anfrage nicht mehr. Prüfe Pictures/100PINT/Pins, bevor du erneut speicherst.
+Android no longer has this request. Check %s before saving again.	Android hat diese Anfrage nicht mehr. Prüfe %s, bevor du erneut speicherst.
 Couldn't check Downloads. Try again.	Downloads konnten nicht geprüft werden. Versuche es erneut.
 Resume HushPinterest and turn on Download pins to retry.	Setze HushPinterest fort und aktiviere Pins herunterladen, um es erneut zu versuchen.
 Open the pin again to get a fresh download link.	Öffne den Pin erneut, um einen aktuellen Download-Link zu erhalten.
 This request can't be retried. Check Downloads or open the pin again.	Diese Anfrage kann nicht erneut versucht werden. Prüfe Downloads oder öffne den Pin erneut.
-This request can't be retried. Check Pictures/100PINT/Pins or open the pin again.	Diese Anfrage kann nicht erneut versucht werden. Prüfe Pictures/100PINT/Pins oder öffne den Pin erneut.
+This request can't be retried. Check %s or open the pin again.	Diese Anfrage kann nicht erneut versucht werden. Prüfe %s oder öffne den Pin erneut.
 Download started, but its history couldn't be saved. Check Downloads.	Download gestartet, aber der Verlauf konnte nicht gespeichert werden. Prüfe Downloads.
-Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.	Download gestartet, aber der Verlauf konnte nicht gespeichert werden. Prüfe Pictures/100PINT/Pins.
+Download started, but its history couldn't be saved. Check %s.	Download gestartet, aber der Verlauf konnte nicht gespeichert werden. Prüfe %s.
 History removed. Files and active downloads were kept.	Verlauf entfernt. Dateien und laufende Downloads bleiben erhalten.
 Couldn't remove this history entry. Try again.	Dieser Verlaufseintrag konnte nicht entfernt werden. Versuche es erneut.
 Couldn't open Downloads.	Downloads konnten nicht geöffnet werden.
@@ -261,9 +261,9 @@ Set as wallpaper	Als Hintergrund festlegen
 Opens Android's Set as options for this saved image.	Öffnet Androids Optionen unter „Festlegen als“ für dieses gespeicherte Bild.
 Set as	Festlegen als
 Couldn't open Set as. Check Downloads for the saved file.	„Festlegen als“ konnte nicht geöffnet werden. Sieh in den Downloads nach der gespeicherten Datei.
-Couldn't open Set as. Check Pictures/100PINT/Pins for the saved file.	„Festlegen als“ konnte nicht geöffnet werden. Sieh in Pictures/100PINT/Pins nach der gespeicherten Datei.
+Couldn't open Set as. Check %s for the saved file.	„Festlegen als“ konnte nicht geöffnet werden. Sieh in %s nach der gespeicherten Datei.
 This download isn't a finished image anymore. Check Downloads.	Dieser Download ist kein fertiges Bild mehr. Sieh in den Downloads nach.
-This download isn't a finished image anymore. Check Pictures/100PINT/Pins.	Dieser Download ist kein fertiges Bild mehr. Sieh unter Pictures/100PINT/Pins nach.
+This download isn't a finished image anymore. Check %s.	Dieser Download ist kein fertiges Bild mehr. Sieh unter %s nach.
 Resume HushPinterest and turn on Download pins to use this.	Setze HushPinterest fort und schalte Pins herunterladen ein, um das zu verwenden.
 Remove from history	Aus Verlauf entfernen
 Removes this history entry. Files and active downloads are kept.	Entfernt diesen Verlaufseintrag. Dateien und laufende Downloads bleiben erhalten.
@@ -361,7 +361,7 @@ Stop selection	Auswahl stoppen
 Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Eingereiht: %d\nÜbersprungen: %d\nNicht unterstützt: %d\nFehlgeschlagen: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Bereits gestartete Downloads laufen weiter. Noch nicht gestartete Auswahlen enden beim Schließen von Pinterest.
 History could not be saved for %d results. Check Downloads.	Für %d Ergebnisse konnte kein Verlauf gespeichert werden. Prüfe Downloads.
-History could not be saved for %d results. Check Pictures/100PINT/Pins.	Für %d Ergebnisse konnte kein Verlauf gespeichert werden. Prüfe Pictures/100PINT/Pins.
+History could not be saved for %d results. Check %s.	Für %d Ergebnisse konnte kein Verlauf gespeichert werden. Prüfe %s.
 Skipped	Übersprungen
 Unsupported	Nicht unterstützt
 No download was queued. The selection was stopped, canceled or unavailable.	Kein Download eingereiht. Die Auswahl wurde gestoppt, abgebrochen oder war nicht verfügbar.
@@ -412,3 +412,14 @@ Autoplay videos on cellular data	Videos mit Mobilfunkdaten automatisch abspielen
 Turned off, videos don't start on their own on mobile data. Pinterest may still load some of a video ahead of time.	Ausgeschaltet starten Videos über mobile Daten nicht von selbst. Pinterest lädt eventuell trotzdem schon einen Teil eines Videos vorab.
 Social permissions	Sozialberechtigungen
 In Pinterest: %1$s	In Pinterest: %1$s
+Pick a download folder	Download-Ordner auswählen
+Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.	Speichert Downloads in einem Ordner deiner Wahl in Pictures, DCIM, Download oder Documents.
+%s is picked, but Save in Pinterest's folder is on, so downloads go there.	%s ist ausgewählt, aber „Im Pinterest-Ordner speichern“ ist an, also landen Downloads dort.
+Saving downloads in %s. Tap to pick another folder or go back to Download.	Downloads werden in %s gespeichert. Tippe, um einen anderen Ordner zu wählen oder zu Download zurückzukehren.
+Pick another folder	Anderen Ordner wählen
+Save in Download again	Wieder in Download speichern
+This phone has no folder picker, so there's no way to choose a folder here.	Dieses Handy hat keine Ordnerauswahl, hier lässt sich also kein Ordner wählen.
+Couldn't open the folder picker. Try again.	Die Ordnerauswahl ließ sich nicht öffnen. Versuche es noch einmal.
+Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Wähle einen Ordner in Pictures, DCIM, Download oder Documents im internen Speicher des Handys.
+Downloads will be saved in %s.	Downloads werden in %s gespeichert.
+Downloads will be saved in Download.	Downloads werden in Download gespeichert.

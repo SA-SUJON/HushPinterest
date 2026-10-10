@@ -266,7 +266,10 @@ public class DownloadLedgerTest {
     @Test public void malformedDuplicateAndOversizeMetadataCannotExpandOwnership() {
         preferences().edit().putString(DownloadLedger.RECORDS,
                 "7,123,100\n7,999,200\n-1,123,100\n8,bad,100\n9,123,0\n-5,123,100,SAVED\n"
-                        + "9999999999999999999,123,100\n10,123,9999999999999999999\n11,123,100,extra\n-6,123,100,P\n").commit();
+                        + "9999999999999999999,123,100\n10,123,9999999999999999999\n11,123,100,extra\n-6,123,100,P\n"
+                        // A folder field that isn't one DownloadManager writes to is no folder at all.
+                        + "12,123,100,F:Music/x\n13,123,100,F:Pictures/../x\n14,123,100,F:\n15,123,100,F:Download\n"
+                        + "16,123,100,F:Pictures/a\u0007b\n-17,123,100,F:Pictures/x\n").commit();
         List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();
         assertEquals(1, jobs.size());
         assertEquals(7, jobs.get(0).id);
@@ -274,7 +277,7 @@ public class DownloadLedgerTest {
         assertEquals(DownloadLedger.State.MISSING, jobs.get(0).state);
         assertArrayEquals(new long[]{7}, nativeJobs.queries.get(0));
         nativeJobs.queries.clear();
-        preferences().edit().putString(DownloadLedger.RECORDS, "1,2,3\n".repeat(700)).commit();
+        preferences().edit().putString(DownloadLedger.RECORDS, "1,2,3\n".repeat(DownloadLedger.RECORDS_LENGTH / 6 + 1)).commit();
         assertTrue(new DownloadLedger(app).reconcile().isEmpty());
         assertTrue(nativeJobs.queries.isEmpty());
         preferences().edit().putInt(DownloadLedger.RECORDS, 1).commit();
@@ -435,7 +438,7 @@ public class DownloadLedgerTest {
     @Test public void aRequestKeepsItsFolderAfterAndroidForgetsIt() {
         long id = enqueue("300");
         status(id, DownloadManager.STATUS_SUCCESSFUL);
-        assertTrue(DownloadLedger.record(app, id, "300", true));
+        assertTrue(DownloadLedger.record(app, id, "300", DownloadFolder.PINTEREST));
         String saved = preferences().getString(DownloadLedger.RECORDS, "").split("\n")[0];
         assertTrue(saved.startsWith(id + ",300,"));
         assertTrue(saved.endsWith(",P"));
@@ -450,6 +453,45 @@ public class DownloadLedgerTest {
         assertTrue(first.startsWith(plain + ",301,"));
         assertEquals(3, first.split(",", -1).length);
         assertEquals(0, nativeJobs.removes);
+    }
+
+    /** #5: a folder picked by hand is kept with its request, commas and all, and named once Android forgets it. */
+    @Test public void aPickedFolderIsKeptWithItsRequestAndNamedWhenAndroidForgetsIt() {
+        String folder = "Pictures/Art, 100% mine";
+        long id = enqueue("310");
+        status(id, DownloadManager.STATUS_SUCCESSFUL);
+        assertTrue(DownloadLedger.record(app, id, "310", folder));
+        String saved = preferences().getString(DownloadLedger.RECORDS, "").split("\n")[0];
+        assertTrue(saved, saved.startsWith(id + ",310,") && saved.endsWith(",F:Pictures/Art%2C 100%25 mine"));
+        manager.remove(id); // Simulates removal in system Downloads, not a ledger action.
+        nativeJobs.removes = 0;
+        DownloadLedger.Job job = new DownloadLedger(app).reconcile().get(0);
+        assertEquals(DownloadLedger.State.MISSING, job.state);
+        assertEquals("Android no longer has this request. Check " + folder + " before saving again.", job.reasonText());
+        // A full history of the longest folders, every character escaped, still reads back whole.
+        String longest = "Documents/" + ",".repeat(DownloadFolder.MAX_LENGTH - "Documents/".length());
+        assertEquals(DownloadFolder.MAX_LENGTH, longest.length());
+        for (int i = 0; i < DownloadLedger.LIMIT; i++) {
+            assertTrue(DownloadLedger.record(app, 1_000_000_000_000_000_000L + i, "9".repeat(30), longest));
+        }
+        String full = preferences().getString(DownloadLedger.RECORDS, "");
+        assertTrue(full.length() + " <= " + DownloadLedger.RECORDS_LENGTH, full.length() <= DownloadLedger.RECORDS_LENGTH);
+        List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();
+        assertEquals(DownloadLedger.LIMIT, jobs.size());
+        assertEquals("Android no longer has this request. Check " + longest + " before saving again.", jobs.get(0).reasonText());
+        assertEquals(0, nativeJobs.removes);
+    }
+
+    /** A request whose folder wasn't kept is placed by the destination Android reports for it. */
+    @Test public void aPickedFolderIsReadFromAndroidWhenTheLineDoesNotSayIt() {
+        DownloadFolder.PICKED.save("DCIM/Pins");
+        try {
+            owned("320", DownloadManager.STATUS_SUCCESSFUL);
+        } finally {
+            DownloadFolder.PICKED.save("");
+        }
+        List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();
+        assertEquals("Saved in DCIM/Pins.", jobs.get(0).reasonText());
     }
 
     @Test public void nullDeniedAndPartialQueryFailuresRemainUnavailableAndCloseTheCursor() {

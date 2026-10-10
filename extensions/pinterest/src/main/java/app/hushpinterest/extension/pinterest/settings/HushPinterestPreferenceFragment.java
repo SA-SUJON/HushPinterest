@@ -214,7 +214,9 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        SettingsBackupPreference.onResult(this, requestCode, resultCode, data);
+        if (!DownloadFolderPreference.onResult(this, requestCode, resultCode, data)) {
+            SettingsBackupPreference.onResult(this, requestCode, resultCode, data);
+        }
     }
 
     /** Shows what the switches are saved as, after an import wrote them. */
@@ -315,6 +317,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                 actions.addPreference(mark(toggle(context, Settings.SAVE_IN_PINTEREST_FOLDER, L10n.t("Save in Pinterest's folder"),
                         L10n.t("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of "
                             + "Download.")), SettingsIcons.DOWNLOADS));
+                actions.addPreference(mark(new DownloadFolderPreference(this, context), SettingsIcons.DOWNLOADS));
                 actions.addPreference(mark(new DownloadHistoryPreference(context), SettingsIcons.DOWNLOADS));
             }
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_BOARD, Settings.DOWNLOAD_BOARD,

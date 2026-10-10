@@ -195,12 +195,13 @@ final class GridDownloads {
         }
 
         String summary() {
+            String folder = DownloadFolder.current();
             return L10n.f("Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d", queued, skipped, unsupported, failed)
                     + (known == 0 ? "" : "\n\n" + L10n.f("Skipped because they're already in Download history: %d", known))
                     + (note == null ? "" : "\n\n" + note)
                     + "\n\n" + L10n.t("Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.")
-                    + (untracked == 0 ? "" : "\n\n" + (PinDownloads.inPinterestFolder()
-                            ? L10n.f("History could not be saved for %d results. Check Pictures/100PINT/Pins.", untracked)
+                    + (untracked == 0 ? "" : "\n\n" + (folder != null
+                            ? L10n.f("History could not be saved for %d results. Check %s.", untracked, folder)
                             : L10n.f("History could not be saved for %d results. Check Downloads.", untracked)));
         }
 

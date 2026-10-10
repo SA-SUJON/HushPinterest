@@ -213,7 +213,7 @@ Download pin	Pini indir
 Share pin	Pini paylaş
 Open pin link	Pin bağlantısını aç
 Download started. Check Downloads.	İndirme başladı. İndirilenler’i kontrol et.
-Download started. Check Pictures/100PINT/Pins.	İndirme başladı. Pictures/100PINT/Pins klasörünü kontrol et.
+Download started. Check %s.	İndirme başladı. %s klasörünü kontrol et.
 Couldn't save this pin.	Bu Pin kaydedilemedi.
 Queued	Sırada
 Downloading	İndiriliyor
@@ -234,16 +234,16 @@ The download server couldn't complete the request.	İndirme sunucusu isteği tam
 Android couldn't save the file.	Android dosyayı kaydedemedi.
 Download failed.	İndirme başarısız oldu.
 Check Downloads for the saved file.	Kaydedilen dosya için İndirilenler'e bakın.
-Saved in Pictures/100PINT/Pins.	Pictures/100PINT/Pins klasörüne kaydedildi.
+Saved in %s.	%s klasörüne kaydedildi.
 Android no longer has this request. Check Downloads before saving again.	Android'de bu istek artık yok. Yeniden kaydetmeden önce İndirilenler'i kontrol edin.
-Android no longer has this request. Check Pictures/100PINT/Pins before saving again.	Android'de bu istek artık yok. Yeniden kaydetmeden önce Pictures/100PINT/Pins klasörünü kontrol edin.
+Android no longer has this request. Check %s before saving again.	Android'de bu istek artık yok. Yeniden kaydetmeden önce %s klasörünü kontrol edin.
 Couldn't check Downloads. Try again.	İndirilenler kontrol edilemedi. Yeniden deneyin.
 Resume HushPinterest and turn on Download pins to retry.	Yeniden denemek için HushPinterest'i sürdürün ve Pinleri indir'i açın.
 Open the pin again to get a fresh download link.	Yeni bir indirme bağlantısı almak için pini yeniden açın.
 This request can't be retried. Check Downloads or open the pin again.	Bu istek yeniden denenemiyor. İndirilenler'i kontrol edin veya pini yeniden açın.
-This request can't be retried. Check Pictures/100PINT/Pins or open the pin again.	Bu istek yeniden denenemiyor. Pictures/100PINT/Pins klasörünü kontrol edin veya pini yeniden açın.
+This request can't be retried. Check %s or open the pin again.	Bu istek yeniden denenemiyor. %s klasörünü kontrol edin veya pini yeniden açın.
 Download started, but its history couldn't be saved. Check Downloads.	İndirme başladı ancak geçmişi kaydedilemedi. İndirilenler'i kontrol edin.
-Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.	İndirme başladı ancak geçmişi kaydedilemedi. Pictures/100PINT/Pins klasörünü kontrol edin.
+Download started, but its history couldn't be saved. Check %s.	İndirme başladı ancak geçmişi kaydedilemedi. %s klasörünü kontrol edin.
 History removed. Files and active downloads were kept.	Geçmiş kaldırıldı. Dosyalar ve etkin indirmeler korundu.
 Couldn't remove this history entry. Try again.	Bu geçmiş kaydı kaldırılamadı. Yeniden deneyin.
 Couldn't open Downloads.	İndirilenler açılamadı.
@@ -261,9 +261,9 @@ Set as wallpaper	Duvar kağıdı yap
 Opens Android's Set as options for this saved image.	Bu kayıtlı görsel için Android'in Farklı ayarla seçeneklerini açar.
 Set as	Farklı ayarla
 Couldn't open Set as. Check Downloads for the saved file.	Farklı ayarla açılamadı. Kayıtlı dosya için İndirilenler'e bak.
-Couldn't open Set as. Check Pictures/100PINT/Pins for the saved file.	Farklı ayarla açılamadı. Kayıtlı dosya için Pictures/100PINT/Pins klasörüne bak.
+Couldn't open Set as. Check %s for the saved file.	Farklı ayarla açılamadı. Kayıtlı dosya için %s klasörüne bak.
 This download isn't a finished image anymore. Check Downloads.	Bu indirme artık tamamlanmış bir görsel değil. İndirilenler'e bak.
-This download isn't a finished image anymore. Check Pictures/100PINT/Pins.	Bu indirme artık tamamlanmış bir görsel değil. Pictures/100PINT/Pins klasörüne bak.
+This download isn't a finished image anymore. Check %s.	Bu indirme artık tamamlanmış bir görsel değil. %s klasörüne bak.
 Resume HushPinterest and turn on Download pins to use this.	Bunu kullanmak için HushPinterest'i sürdür ve Pin indirmeyi aç.
 Remove from history	Geçmişten kaldır
 Removes this history entry. Files and active downloads are kept.	Bu geçmiş kaydını kaldırır. Dosyalar ve etkin indirmeler korunur.
@@ -361,7 +361,7 @@ Stop selection	Seçimi durdur
 Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Sırada: %d\nAtlanan: %d\nDesteklenmeyen: %d\nBaşarısız: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Durdurmak başlamış indirmeleri korur. Başlamamış seçimler Pinterest kapandığında sona erer.
 History could not be saved for %d results. Check Downloads.	%d sonuç için geçmiş kaydedilemedi. İndirilenleri kontrol edin.
-History could not be saved for %d results. Check Pictures/100PINT/Pins.	%d sonuç için geçmiş kaydedilemedi. Pictures/100PINT/Pins klasörünü kontrol edin.
+History could not be saved for %d results. Check %s.	%d sonuç için geçmiş kaydedilemedi. %s klasörünü kontrol edin.
 Skipped	Atlandı
 Unsupported	Desteklenmiyor
 No download was queued. The selection was stopped, canceled or unavailable.	İndirme sıraya alınmadı. Seçim durduruldu, iptal edildi veya kullanılamıyordu.
@@ -412,3 +412,14 @@ Autoplay videos on cellular data	Hücresel veri ile videoları otomatik oynat
 Turned off, videos don't start on their own on mobile data. Pinterest may still load some of a video ahead of time.	Kapalıyken videolar mobil veride kendiliğinden başlamaz. Pinterest yine de bir videonun bir kısmını önceden yükleyebilir.
 Social permissions	Sosyal izinler
 In Pinterest: %1$s	Pinterest'te: %1$s
+Pick a download folder	İndirme klasörü seç
+Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.	İndirmeleri Pictures, DCIM, Download veya Documents içinde seçtiğin bir klasöre kaydeder.
+%s is picked, but Save in Pinterest's folder is on, so downloads go there.	%s seçili, ancak Pinterest klasörüne kaydet açık olduğu için indirmeler oraya gider.
+Saving downloads in %s. Tap to pick another folder or go back to Download.	İndirmeler %s içine kaydediliyor. Başka bir klasör seçmek veya Download'a dönmek için dokun.
+Pick another folder	Başka klasör seç
+Save in Download again	Yeniden Download'a kaydet
+This phone has no folder picker, so there's no way to choose a folder here.	Bu telefonda klasör seçici yok, bu yüzden burada klasör seçmenin bir yolu yok.
+Couldn't open the folder picker. Try again.	Klasör seçici açılamadı. Tekrar dene.
+Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Telefonun kendi depolama alanında Pictures, DCIM, Download veya Documents içinde bir klasör seç.
+Downloads will be saved in %s.	İndirmeler %s içine kaydedilecek.
+Downloads will be saved in Download.	İndirmeler Download'a kaydedilecek.
