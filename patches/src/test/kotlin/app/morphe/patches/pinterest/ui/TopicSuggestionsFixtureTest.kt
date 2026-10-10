@@ -138,7 +138,7 @@ class TopicSuggestionsFixtureTest {
         val secondRow = rename(build.row, "Lapp/hushpinterest/test/SecondRow;")
         val measuring = ImmutableClassDef(build.row.type, build.row.accessFlags, build.row.superclass, build.row.interfaces,
             build.row.sourceFile, build.row.annotations, build.row.fields, build.row.methods + onMeasure(build.row.type, AccessFlags.PUBLIC.value))
-        val top = build.ancestors.last()
+        val top = build.ancestors.lastOrNull() ?: build.row
         val finalAncestor = ImmutableClassDef(top.type, top.accessFlags, top.superclass, top.interfaces, top.sourceFile,
             top.annotations, top.fields, top.methods + onMeasure(top.type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value))
         val notAView = ImmutableClassDef(top.type, top.accessFlags, "Ljava/lang/Object;", top.interfaces, top.sourceFile,
@@ -157,7 +157,7 @@ class TopicSuggestionsFixtureTest {
             "no row view" to (extension + build.classes - build.row to "topic row view: expected one exact target, found 0"),
             "two row views" to (extension + build.classes + secondRow to "topic row view: expected one exact target, found 2"),
             "row view measures itself" to (with(measuring) to "measures itself"),
-            "final onMeasure above the row view" to (with(finalAncestor) to "cannot override final"),
+            "final onMeasure above the row view" to (with(finalAncestor) to if (build.ancestors.isEmpty()) "measures itself" else "cannot override final"),
             "row view outside Android's views" to (with(notAView) to "is not an Android view"),
             "missing status stub" to (build.classes + extension.map { owner -> if (owner.type != SETTINGS_STATUS) owner else
                 ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
@@ -180,8 +180,8 @@ class TopicSuggestionsFixtureTest {
         for (build in Fixtures.declaredBuilds().map(::read)) {
             assertTrue("${build.name}: ${build.face.type} is an interface", AccessFlags.INTERFACE.isSet(build.face.accessFlags))
             assertTrue("${build.name}: the row view declares no onMeasure", build.row.methods.none { it.name == "onMeasure" })
-            assertTrue("${build.name}: ${build.ancestors.last().superclass} is a framework view",
-                build.ancestors.last().superclass!!.startsWith("Landroid/widget/") || build.ancestors.last().superclass!!.startsWith("Landroid/view/"))
+            assertTrue("${build.name}: ${(build.ancestors.lastOrNull() ?: build.row).superclass} is a framework view",
+                (build.ancestors.lastOrNull() ?: build.row).superclass!!.startsWith("Landroid/widget/") || (build.ancestors.lastOrNull() ?: build.row).superclass!!.startsWith("Landroid/view/"))
         }
     }
 

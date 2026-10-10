@@ -355,7 +355,7 @@ try {
     # A real Pinterest build, named by its version the way a maintainer names it, against itself. The
     # Application's onCreate keeps its class and name on every build, and every patch starts there.
     $fixtures = if ($env:HUSHPINTEREST_FIXTURE_DIR) { $env:HUSHPINTEREST_FIXTURE_DIR } else { Join-Path $Root 'fixtures' }
-    $pinterestVersion = '14.38.0'
+    $pinterestVersion = '14.39.0'
     Assert-True (@(Get-ChildItem -LiteralPath $fixtures -File -ErrorAction SilentlyContinue |
         Where-Object { $_.Name.Contains($pinterestVersion) -and $_.Extension -eq '.apk' }).Count -eq 1) `
         ("The real-build case needs Pinterest $pinterestVersion in $fixtures, the folder HUSHPINTEREST_FIXTURE_DIR names. " +

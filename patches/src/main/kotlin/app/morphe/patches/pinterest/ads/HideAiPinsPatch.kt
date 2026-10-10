@@ -26,7 +26,7 @@ private const val PATCH = "Hide AI-labeled pins"
  * Off when you patch unless you pick it: it changes what you see, not just what's sold to you.
  *
  * Pinterest's label check reads `ai_disclosures` for 1 (AI modified) and 2 (synthetic performer).
- * 14.38.0 still names the field `ai_disclosures` and both labels.
+ * 14.39.0 still names the field `ai_disclosures` and both labels.
  */
 @Suppress("unused")
 val hideAiPinsPatch = bytecodePatch(

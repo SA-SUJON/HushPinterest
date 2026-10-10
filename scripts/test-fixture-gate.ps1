@@ -42,8 +42,8 @@ function Invoke-FixtureGit([string[]]$Arguments) {
 }
 function Write-Catalog([string]$Package = 'com.pinterest', [switch]$NewestOnly,
         [switch]$MultipleCodes, [switch]$Unpinned) {
-    $targets = @([ordered]@{ version = '14.38.0'; versionCodes = [ordered]@{ UNIVERSAL = 14388010 } })
-    if ($MultipleCodes) { $targets[0].versionCodes['ARMEABI_V7A'] = 14388000 }
+    $targets = @([ordered]@{ version = '14.39.0'; versionCodes = [ordered]@{ UNIVERSAL = 14398020 } })
+    if ($MultipleCodes) { $targets[0].versionCodes['ARMEABI_V7A'] = 14398000 }
     if ($Unpinned) { $targets[0].Remove('versionCodes') }
     if (-not $NewestOnly) { $targets += [ordered]@{ version = '14.37.0'; versionCodes = [ordered]@{ UNIVERSAL = 14378010 } } }
     $packages = [ordered]@{}
@@ -109,8 +109,8 @@ try {
     $env:HUSHPINTEREST_FIXTURE_DIR = Join-Path $testRoot 'absent'
     Assert-HookFails '*which is not a folder*correct the path*'
     $env:HUSHPINTEREST_FIXTURE_DIR = $fixtures
-    Assert-HookFails '*pinterest-14.38.0-14388010.apk, pinterest-14.37.0-14378010.apk*'
-    Write-Fixture 'pinterest-14.38.0-14388010.apk'
+    Assert-HookFails '*pinterest-14.39.0-14398020.apk, pinterest-14.37.0-14378010.apk*'
+    Write-Fixture 'pinterest-14.39.0-14398020.apk'
     Assert-HookFails '*missing retained com.pinterest build(s): pinterest-14.37.0-14378010.apk*'
     Write-Fixture 'pinterest-14.37.0-14378000.apk'
     Assert-HookFails '*pinterest-14.37.0-14378010.apk*'
@@ -135,13 +135,13 @@ try {
     $cases++
 
     Write-Catalog -MultipleCodes
-    Assert-HookFails '*pinterest-14.38.0-14388000.apk*'
-    Write-Fixture 'pinterest-14.38.0-14388000.apk'
+    Assert-HookFails '*pinterest-14.39.0-14398000.apk*'
+    Write-Fixture 'pinterest-14.39.0-14398000.apk'
     Invoke-FixtureHook
     Assert-True (Test-Path -LiteralPath $marker) 'All declared version codes did not allow the build to start.'
     $cases++
     Write-Catalog -Unpinned
-    Assert-HookFails '*requires exact version codes*14.38.0*'
+    Assert-HookFails '*requires exact version codes*14.39.0*'
     Write-Catalog -Package 'com.example.notpinterest'
     Assert-HookFails '*no retained fixture naming rule for com.example.notpinterest*'
     Write-Catalog

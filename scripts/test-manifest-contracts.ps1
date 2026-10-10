@@ -37,10 +37,10 @@ function Metadata-Lines([string]$name, [string]$value) {
 }
 <# The declared build asks for the ad permissions, carries the ad services property beside another
    application property, and declares Google's four consent defaults as true. #>
-function Fixture-Facts([string[]]$features = @(), [string]$build = '14.38.0',
+function Fixture-Facts([string[]]$features = @(), [string]$build = '14.39.0',
         [ValidateSet('Absent', 'Resource', 'True', 'False')][string]$flag = 'Absent', [switch]$NoQueries,
         [switch]$NoConsentDefaults, [switch]$NoAdServices, [switch]$WithSignature) {
-    $code = '14388010'
+    $code = '14398020'
     $lines = [System.Collections.Generic.List[string]]::new()
     $lines.AddRange([string[]]@(
         'N: android=http://schemas.android.com/apk/res/android (line=1)',
@@ -176,7 +176,7 @@ $signatureWritten = @($signatureMetadata.Keys | ForEach-Object {
         attributes = [pscustomobject]@{ 'android:name' = $_; 'android:value' = $signatureMetadata[$_] }; children = @() })) })
 Assert-Manifest ((@($signatureTemplates | Sort-Object -CaseSensitive) -join "`n") -ceq (@($signatureWritten | Sort-Object -CaseSensitive) -join "`n")) `
     "The allowlist approves other signature metadata than the patch writes: $($signatureTemplates -join '; ')"
-foreach ($build in @('14.38.0')) {
+foreach ($build in @('14.39.0')) {
     $stock = Fixture-Facts -build $build
     Assert-Manifest ($stock.components.Count -eq 6 -and $stock.metadata.Count -eq 6 -and $stock.intentFilters.Count -eq 2) `
         'The parser lost a nonexported component or nested declaration.'
@@ -357,8 +357,8 @@ $receipt = [pscustomobject]@{
 }
 $receipt = Copy-Manifest $receipt
 $arguments = @{ ExpectedVersion = '1.0.0'; ExpectedPatchNames = $all; ExpectedPatcherVersion = '1.15.0'
-    ExpectedManagerFloor = '1.33.0'; ExpectedPackageName = 'com.pinterest'; ExpectedPackageVersions = @('14.38.0')
-    ExpectedPackageVersionCodes = @{ '14.38.0' = '14388010' }; ApprovedManifestDelta = @(Read-ManifestDeltaAllowlist -Path $allowlist -SelectedPatchNames $all) }
+    ExpectedManagerFloor = '1.33.0'; ExpectedPackageName = 'com.pinterest'; ExpectedPackageVersions = @('14.39.0')
+    ExpectedPackageVersionCodes = @{ '14.39.0' = '14398020' }; ApprovedManifestDelta = @(Read-ManifestDeltaAllowlist -Path $allowlist -SelectedPatchNames $all) }
 $check = Test-ReleaseReceipt -Receipt $receipt @arguments
 Assert-Manifest $check.Valid "Schema 4 receipt was refused: $($check.Reason)"
 foreach ($property in $valid.Delta.PSObject.Properties) {

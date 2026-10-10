@@ -3646,7 +3646,7 @@ try {
 
     $apkm = Join-Path $commonRoot 'pinterest.apkm'
     $apkmEntries = [ordered]@{
-        'info.json' = '{"versioncode":"14388010"}'
+        'info.json' = '{"versioncode":"14398020"}'
         'base.apk' = 'base'
         'split_config.arm64_v8a.apk' = ('native code ' * 64)
     }

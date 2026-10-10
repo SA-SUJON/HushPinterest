@@ -55,7 +55,7 @@ internal const val GOOGLE_MOBILE_ADS = "GOOGLE_MOBILE_ADS"
  * That launch step returns first while the switch is on, so the SDK never starts and Pinterest's own
  * "started" check keeps every Google ad load, resume and pause path idle (2026-10-05).
  *
- * The four views keep their names in 14.38.0.
+ * The four views keep their names in 14.39.0.
  */
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(

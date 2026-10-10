@@ -430,7 +430,7 @@ try {
 
 # The verifier run end to end, with stand-ins for the tools it starts: a java that answers the
 # version probe and plays DexDiff with the given exit code, an aapt2 that describes Pinterest
-# 14.38.0, and an apksigner that reports a Pinterest signer from patches-list.json. With
+# 14.39.0, and an apksigner that reports a Pinterest signer from patches-list.json. With
 # -JavaGone the apksigner also deletes that java, which leaves it unable to start by the time
 # DexDiff runs, as a JDK replaced mid-run would. A Continue preference around the DexDiff call
 # once turned exactly that into '[registers] success.'.
@@ -467,7 +467,7 @@ exit /b $DexDiffExit
 @echo off
 echo   E: manifest (line=2)
 echo     A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=511908382
-echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="14.38.0" (Raw: "14.38.0")
+echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="14.39.0" (Raw: "14.39.0")
 echo     A: package="$standInPackage" (Raw: "$standInPackage")
 exit /b 0
 "@
