@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import app.hushpinterest.extension.pinterest.actions.DownloadLedger;
+import app.hushpinterest.extension.pinterest.ui.PinterestToasts;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.Utils;
@@ -90,9 +91,11 @@ public final class SettingsEntry {
      * Injected before each return of the application's {@code onCreate}, after Pinterest's own
      * startup. Watches every Pinterest activity, so a pending open lands on whichever one resumes
      * next: signed out, the launcher hands straight over to the login screen. Also where the
-     * release check, when it's on, asks at most once a day, on a worker.
+     * release check, when it's on, asks at most once a day, on a worker. From here on HushPinterest's
+     * messages use Pinterest's own toasts where they can.
      */
     public static void onApplicationCreate(Context context) {
+        PinterestToasts.install();
         try {
             if (!Utils.isMainProcess()) return;
             if (context instanceof Application && !callbacksRegistered) {

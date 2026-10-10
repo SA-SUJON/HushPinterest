@@ -750,6 +750,22 @@ public class Utils {
     }
 
     /**
+     * Shows a message in the app's own style instead of an Android toast. It runs on the main
+     * thread and answers false when it can't show this message, which then goes out as an Android
+     * toast.
+     */
+    public interface ToastPresenter {
+        boolean show(String message, int toastDuration);
+    }
+
+    private static volatile ToastPresenter toastPresenter;
+
+    /** Set by an app's extension that can show that app's own toasts. Null goes back to Android's. */
+    public static void setToastPresenter(@Nullable ToastPresenter presenter) {
+        toastPresenter = presenter;
+    }
+
+    /**
      * Safe to call from any thread.
      *
      * @param messageToToast Message to show.
@@ -758,6 +774,7 @@ public class Utils {
     public static void showToast(String messageToToast, int toastDuration) {
         Objects.requireNonNull(messageToToast);
         runOnMainThreadNowOrLater(() -> {
+            if (presented(messageToToast, toastDuration)) return;
             Context currentContext = context;
 
             if (currentContext == null) {
@@ -767,6 +784,18 @@ public class Utils {
                 Toast.makeText(currentContext, messageToToast, toastDuration).show();
             }
         });
+    }
+
+    /** True when the app's own toast took the message. A presenter that fails leaves it to Android. */
+    private static boolean presented(String message, int toastDuration) {
+        ToastPresenter presenter = toastPresenter;
+        if (presenter == null) return false;
+        try {
+            return presenter.show(message, toastDuration);
+        } catch (Exception | LinkageError ex) {
+            Logger.printException(() -> "The app's own toast failed, showing an Android toast instead", ex);
+            return false;
+        }
     }
 
     /**
