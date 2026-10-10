@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -95,7 +96,9 @@ final class ModuleItems {
     }
 
     /** Commercial-sounding JSON names, for the Debug logging line only. */
-    private static final Pattern COMMERCIAL = Pattern.compile("promot|sponsor|campaign|advertis|^ad_|_ad$|_ads?_|shop|merchant|affiliate");
+    private static final Pattern COMMERCIAL = Pattern.compile(
+            "promot|sponsor|campaign|advertis|^ad_|_ad$|_ads?_|_ads$|shop|merchant|affiliate|featured|boost|third_party|partner"
+                    + "|catalog|integration|match_reason|targeting|price");
 
     /**
      * [module]'s story type and each list it carries after filtering: its size, and for each model
@@ -129,10 +132,11 @@ final class ModuleItems {
         return line.toString();
     }
 
-    /** The commercial fields [model] has set, as {@code [name=value,...]}, or nothing. */
-    private static String markers(Object model) {
+    /** The commercial fields [model] has set, as {@code [name=value,...]} in name order, or nothing. */
+    static String markers(Object model) {
+        if (model == null) return "";
         StringBuilder set = new StringBuilder();
-        for (Map.Entry<String, Field> field : ModelFields.of(model.getClass()).entrySet()) {
+        for (Map.Entry<String, Field> field : new TreeMap<>(ModelFields.of(model.getClass())).entrySet()) {
             if (!COMMERCIAL.matcher(field.getKey()).find()) continue;
             Object value = ModelFields.read(ModelFields.of(model.getClass()), model, field.getKey());
             if (value == null || Boolean.FALSE.equals(value)) continue;

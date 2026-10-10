@@ -9,7 +9,10 @@ package app.hushpinterest.extension.pinterest.ads;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.hushpinterest.extension.shared.Logger;
+import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
+import app.hushpinterest.extension.shared.settings.BaseSettings;
 import app.hushpinterest.extension.pinterest.actions.BoardDownloads;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
@@ -53,6 +56,7 @@ public final class FeedFilter {
         boolean hideAds = ads, hideAi = ai, hideShopping = shopping;
         ModuleItems.Verdict verdict = model -> family(model, hideAds, hideAi, hideShopping);
         String owner = ads ? FamilyNames.HIDE_ADS : ai ? FamilyNames.HIDE_AI_PINS : FamilyNames.HIDE_SHOPPING;
+        boolean debug = debugLogging();
         List<?> shown;
         try {
             List<Object> kept = null;
@@ -75,6 +79,11 @@ public final class FeedFilter {
                 } else if (kept != null) {
                     kept.add(item);
                 }
+                // A kept item with commercial fields set is what a report of an ad that got through needs (#6).
+                if (family == null && debug) {
+                    String marks = ModuleItems.markers(item);
+                    if (!marks.isEmpty()) Logger.printDebug(() -> "Kept " + item.getClass().getSimpleName() + marks);
+                }
             }
             shown = kept == null ? items : kept;
         } catch (Throwable t) {
@@ -84,6 +93,15 @@ public final class FeedFilter {
         // Outside the filter's own failure handling: what's kept for a board never decides what's shown.
         BoardDownloads.record(shown);
         return shown;
+    }
+
+    /** Whether Debug logging is on, read once a page; never throws. */
+    private static boolean debugLogging() {
+        try {
+            return Utils.settingsReady() && BaseSettings.DEBUG.get();
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     /** The first switch on that takes [item] out, in the order ads, AI, shopping, or null to keep it. */
