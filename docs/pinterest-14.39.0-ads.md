@@ -1,26 +1,26 @@
-# Pinterest 14.38.0: Advertising delivery
+# Pinterest 14.39.0: Advertising delivery
 
-Inspected October 9, 2026. Part of the [factory app audit](pinterest-14.38.0-audit.md). Source baseline `932f0c5`. See the audit entry point for the APK identity, live observations, and evidence limits.
+Traced on Pinterest 14.38.0 on October 9, 2026 and remapped to 14.39.0 (version code 14398020) on October 10. Part of the [factory app audit](pinterest-14.39.0-audit.md). Source baseline `6383001`. See the audit entry point for the APK identity, live observations, and evidence limits.
 
 ## Advertising delivery and feed controls
 
-Pinterest 14.38.0 contains connected paths for Pinterest promotions and third-party ads. The original APK's models, request helpers and SDK callers establish the client architecture described here. Factory browsing showed promoted image and video placements in Home, sponsored shopping tiles in search, and sponsored related shopping beneath an ordinary pin. The [runtime study](pinterest-14.38.0-runtime.md) captured attributable application traffic and measured media activity. Its encrypted packets do not establish the account's active ad partners, request payloads or server-side auction behavior. Advertiser names visible on screen do not identify the SDK serving the ad.
+Pinterest 14.39.0 contains connected paths for Pinterest promotions and third-party ads. The original APK's models, request helpers and SDK callers establish the client architecture described here. Factory browsing on 14.38.0 showed promoted image and video placements in Home, sponsored shopping tiles in search, and sponsored related shopping beneath an ordinary pin. The [runtime study](pinterest-14.39.0-runtime.md) captured attributable application traffic and measured media activity. Its encrypted packets do not establish the account's active ad partners, request payloads or server-side auction behavior. Advertiser names visible on screen do not identify the SDK serving the ad.
 
 HushPinterest currently controls three stages: decoded item lists, four native ad views and Google Mobile Ads startup. These stages have different effects. Removing an item from a list prevents selected presentation work after the content has arrived. It doesn't undo the request that fetched it, prove that all impression events were suppressed or stop every possible SDK path.
 
 ### Native delivery pipeline
 
-The following identities were read from the original 14.38.0 APK. They're useful for tracing this version, but the obfuscated names should not become fingerprints by themselves.
+The following identities were read from the original 14.39.0 APK, with the 14.38.0 name in parentheses where it changed. They're useful for tracing this version, but the obfuscated names should not become fingerprints by themselves. Behavior descriptions were traced on 14.38.0. On 14.39.0 each identity was found again by the same string, annotation or caller and checked for the same shape, not traced again instruction by instruction.
 
 | Stage | Native path and evidence | Consequence for patch work |
 |---|---|---|
-| Third-party configuration | `com.pinterest.repository.pin.PinService.getThirdPartyAdConfigSuspend(Continuation)` declares `thirdpartyad/config/`. `Lr10/b;->a(Lm53/c;)Ljava/lang/Object;` calls it and unwraps its `NetworkResponse`. | This is a configuration request, separate from the content feed and event uploads. |
-| Configuration cache | `Lr10/b;->a` serializes the `com.pinterest.api.model.oo` result to `THIRD_PARTY_AD_CONFIG`, stores an expiry derived from the configuration and records the current app version code. `Lo10/c;->b(Lm53/c;)Ljava/lang/Object;` checks the cached version and expiry before using or refreshing it. | Blocking the configuration URL alone doesn't establish that a retained configuration is inactive. |
-| GMA initialization | `Li00/i;->c()V` checks the GMA experiment, registers/checks consent for enum `Lgq2/b;->GOOGLE_MOBILE_ADS`, checks readiness and uses atomic guards before starting initialization work. Direct callers include `MainActivity.onCreate(Bundle)` and `Lcv/i;->run()V`. | This is the startup entry currently guarded by Hide ads. Consent handling and native readiness must remain intact when the switch is off. |
-| Request preparation | `Li00/f;->c(Li00/m;Ljava/util/Map;)V` removes old `x-pinterest-gma` entries through `x-pinterest-gma-5`, then can repopulate them with data selected for the current surface. It also adds `x-pinterest-webview-user-agent`. `Li00/f;->e(Li00/m;String)String` can gzip and Base64-encode the prepared value according to configuration. | These are specific ad-related request fields. Their existence doesn't justify modifying unrelated headers, cookies or authentication. The semantic contents of every token haven't been decoded here. |
-| Content-surface callers | The request helper is called by the home model, `OrganicPinCloseupPresenter.maybeAddGmaHeadersForRelatedPinsPagedList`, `PromotedPinCloseupPresenter.maybeAddGmaHeaders` and board new-ideas paths. `Li00/f;->d(Li00/m;LinkedHashMap)V` also handles `SEARCH_TEXT_ADS` and is called by `OrganicPinCloseupPresenter.maybeAddGmaHeadersForSearchTextAds`. Enum `Li00/m` names HOME, SEARCH, RELATED and BOARD_IDEAS. | GMA preparation participates in ordinary content surfaces. Blocking an entire feed endpoint would also discard organic content. |
-| Ad-bearing model | Pin model `com.pinterest.api.model.pe` has `ad_data`, `is_promoted`, `is_third_party_ad` and `ad_destination_url`. `ad_data.third_party` contains an encoded `ad_payload`, `content_type`, verification data and DSP metadata. | Model filtering provides a common interception point after decoding, including when an ad has a payload but no true Boolean marker. |
-| SDK loading | `Li00/i;->f(...)V` and `->g(...)V` check `Li00/i;->e()Z` and readiness, read `Pin.c4().G0()`, inspect `content_type` for `application/gzip`, obtain `ad_payload` through `model/g.j()` and pass the result toward `ads_mobile_sdk` loading. `Li00/i.e` checks SDK-start state and the experiment. | This is a traced SDK integration, not an inference from a bundled package name. The startup guard and the later load gate are distinct opportunities. |
+| Third-party configuration | `com.pinterest.repository.pin.PinService.getThirdPartyAdConfigSuspend(Continuation)` declares `thirdpartyad/config/`. `Lx10/b;->a(Lm63/c;)Ljava/lang/Object;` (`Lr10/b;`) calls it and unwraps its `NetworkResponse`. | This is a configuration request, separate from the content feed and event uploads. |
+| Configuration cache | `Lx10/b;->a` serializes the `com.pinterest.api.model.mp` (`oo`) result to `THIRD_PARTY_AD_CONFIG`, stores an expiry derived from the configuration and records the current app version code. `Lu10/c;->b(Lm63/c;)Ljava/lang/Object;` (`Lo10/c;`) checks the cached version and expiry before using or refreshing it. | Blocking the configuration URL alone doesn't establish that a retained configuration is inactive. |
+| GMA initialization | `Lo00/j;->c()V` (`Li00/i;`) checks the GMA experiment, registers/checks consent for enum `Ler2/b;->GOOGLE_MOBILE_ADS` (`Lgq2/b;`), checks readiness and uses atomic guards before starting initialization work. Direct callers include `MainActivity.onCreate(Bundle)` and `Liv/h;->run()V` (`Lcv/i;`). | This is the startup entry currently guarded by Hide ads. Consent handling and native readiness must remain intact when the switch is off. |
+| Request preparation | `Lo00/f;->c(Lo00/o;Ljava/util/Map;)V` (`Li00/f;`) removes old `x-pinterest-gma` entries through `x-pinterest-gma-5`, then can repopulate them with data selected for the current surface. It also adds `x-pinterest-webview-user-agent`. `Lo00/f;->e(Lo00/o;String)String` can gzip and Base64-encode the prepared value according to configuration. | These are specific ad-related request fields. Their existence doesn't justify modifying unrelated headers, cookies or authentication. The semantic contents of every token haven't been decoded here. |
+| Content-surface callers | The request helper is called by the home model, `OrganicPinCloseupPresenter.maybeAddGmaHeadersForRelatedPinsPagedList`, `PromotedPinCloseupPresenter.maybeAddGmaHeaders` and board new-ideas paths. `Lo00/f;->d(Lo00/o;LinkedHashMap)V` also handles `SEARCH_TEXT_ADS` and is called by `OrganicPinCloseupPresenter.maybeAddGmaHeadersForSearchTextAds`. Enum `Lo00/o` (`Li00/m`) names HOME, SEARCH, RELATED, BOARD_IDEAS, GULP and NEWS_HUB. | GMA preparation participates in ordinary content surfaces. Blocking an entire feed endpoint would also discard organic content. |
+| Ad-bearing model | Pin model `com.pinterest.api.model.oe` (`pe`) has `ad_data`, `is_promoted`, `is_third_party_ad` and `ad_destination_url`. `ad_data.third_party` contains an encoded `ad_payload`, `content_type`, verification data and DSP metadata. | Model filtering provides a common interception point after decoding, including when an ad has a payload but no true Boolean marker. |
+| SDK loading | `Lo00/j;->f(...)V` and `->g(...)V` check `Lo00/j;->e()Z` and readiness, read `Pin.d4().G0()` (`c4()`), inspect `content_type` for `application/gzip`, obtain `ad_payload` through `model/g.j()` and pass the result toward `ads_mobile_sdk` loading. `Lo00/j.e` checks SDK-start state and the experiment. | This is a traced SDK integration, not an inference from a bundled package name. The startup guard and the later load gate are distinct opportunities. |
 
 The connected path is therefore:
 
@@ -39,39 +39,41 @@ Third-party configuration and cached state
 
 These are API declarations in the original APK. The table distinguishes content, configuration and deliberate user actions so that a future blocker doesn't treat every commercial-looking route as telemetry.
 
-| Path | 14.38.0 service anchor | Role |
+| Path | 14.39.0 service anchor | Role |
 |---|---|---|
 | `feeds/homepins/` | `com.pinterest.feature.home.model.k.b(Map,Map)` and `.d(Map,Map)` | Ordinary home content |
-| `feeds/homevideopins/` | Same owner `.a(Map,Map)` and `.m(Map,Map)` | Video home content |
-| `search/pins/` | `Lzm2/b;->h(String,boolean,boolean,String,Continuation)` | Ordinary search results |
+| `feeds/homevideopins/` | Same owner `.a(Map,Map)` and `.k(Map,Map)` (`.m`) | Video home content |
+| `search/pins/` | `Lxn2/b;->h(String,boolean,boolean,String,Continuation)` (`Lzm2/b;`) | Ordinary search results |
 | `thirdpartyad/config/` | `PinService.getThirdPartyAdConfigSuspend` | Third-party ad configuration |
-| `boards/{boardId}/deal_ads/` | `Lrl2/e;->n(String,String,String,String,String)` | Dedicated board ad-related content |
-| `premiere_ad/videos/` | `Lkd1/d;->a(String,Continuation)` | Premiere-ad video content |
-| `boards/{boardId}/shopping/feed/modularized/` | `Lrl2/e;->k(...)` | Shopping modules |
+| `boards/{boardId}/deal_ads/` | `Lpm2/e;->p(String,String,String,String,String)` (`Lrl2/e;->n`) | Dedicated board ad-related content |
+| `premiere_ad/videos/` | `Lwd1/d;->a(String,Continuation)` (`Lkd1/d;`) | Premiere-ad video content |
+| `boards/{boardId}/shopping/feed/modularized/` | `Lpm2/e;->I(...)` and `->z(...)`, two methods with this path (`Lrl2/e;->k(...)`) | Shopping modules |
 | `aom/closeup/pins/{pinUid}/modules/` | `PinService.getShopTheLookFeed` | Closeup commercial modules |
 | `visual_search/stela/pins/{pinUid}/module/` | `PinService.loadCloseupShoppingModule` | Additional closeup shopping content |
 | `thirdpartyad/{pinId}/report/` | `PinService.reportThirdPartyAdSuspend` | A user's report action |
-| `thirdpartyad/{pinUid}/feedback/` and `promoted/{pinUid}/feedback/` | `Lt70/b;->b(...)` and `->h(...)` | A user's feedback action |
+| `thirdpartyad/{pinUid}/feedback/` and `promoted/{pinUid}/feedback/` | `Ly70/c;->b(...)` and `->f(...)` (`Lt70/b;->b` and `->h`) | A user's feedback action |
 | `/v3/ad_previews/` | `PinBoostApiClientService.getAdPreviews` | Advertiser preview tools |
-| `analytics/pins/{pin_id}/mobile/metrics/` and `analytics/pins/{pin_id}/paid_details/` | `Lz70/a;->a(...)`, `->c(...)`, `->d(...)` | Creator metrics reads |
+| `analytics/pins/{pin_id}/mobile/metrics/` and `analytics/pins/{pin_id}/paid_details/` | `Le80/a;->a(...)`, `->c(...)`, `->d(...)` (`Lz70/a;`) | Creator metrics reads |
 
 In particular, an `analytics` path can retrieve a user's metrics. It is not automatically a passive upload. Report, feedback and undo actions should retain their native behavior.
 
 ### Model fields worth preserving as anchors
 
-The serialized annotation is `Lmp/b;` in 14.38.0. HushPinterest avoids depending on this obfuscated annotation name by finding a String-returning `value()` method. It caches field maps per native model class and walks superclasses. See [ModelFields.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/ModelFields.java#L35).
+The serialized annotation is still `Lmp/b;` in 14.39.0. HushPinterest avoids depending on this obfuscated annotation name by finding a String-returning `value()` method. It caches field maps per native model class and walks superclasses. See [ModelFields.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/ModelFields.java#L35).
+
+The pin model moved from `pe` to `oe`, and its field letters didn't change.
 
 | Native field | JSON name | Type and use |
 |---|---|---|
-| `pe.C1` | `is_promoted` | Boxed Boolean paid-placement marker |
-| `pe.J1` | `is_third_party_ad` | Boxed Boolean third-party marker |
-| `pe.d` | `ad_data` | `com.pinterest.api.model.e`, the ad payload holder |
-| `pe.e` | `ad_destination_url` | String destination marker |
-| `pe.C3` | `tracking_params` | Opaque String tracking metadata |
-| `pe.H1` | `is_shoppable` | Boxed Boolean product classification |
-| `pe.m` | `ai_disclosures` | List of native AI disclosures |
+| `oe.C1` | `is_promoted` | Boxed Boolean paid-placement marker |
+| `oe.J1` | `is_third_party_ad` | Boxed Boolean third-party marker |
+| `oe.d` | `ad_data` | `com.pinterest.api.model.e`, the ad payload holder |
+| `oe.e` | `ad_destination_url` | String destination marker |
+| `oe.C3` | `tracking_params` | Opaque String tracking metadata |
+| `oe.H1` | `is_shoppable` | Boxed Boolean product classification |
+| `oe.m` | `ai_disclosures` | List of native AI disclosures |
 | `n1.y` | `featured_board_metadata` | Typed featured-board metadata |
-| `il.t` | `story_type` | Enum `com.pinterest.api.model.il$c`, including `SHOPPING_SPOTLIGHT` |
+| `ll.t` (`il.t`) | `story_type` | Enum `com.pinterest.api.model.ll$c` (`il$c`), including `SHOPPING_SPOTLIGHT` |
 | `p3.d`, `z5.d` | `story_type` | String form on other models |
 
 The ad-data model contains `third_party`, `third_party_v2`, `ad_attribution_text`, `campaign_objective_type`, `creative_type`, `destination_type`, `disclosure_label`, `disclosure_url`, `grid_cta_data`, `merchant_data` and `local_ads_serving_metadata`. Its first third-party model, `com.pinterest.api.model.g`, has `ad_payload`, `ad_verifications`, `client_type`, `content_type`, `dsp_source`, `extensions` and `sideswipe_pin`.
@@ -86,7 +88,7 @@ These names document the schema. They do not prove a particular response populat
 | Ad-only views | Rewrite or add `setVisibility(int)` and `onMeasure(int,int)` on four named native view classes. | Forces GONE and zero measurement while active. A new ad renderer requires its own proven target. |
 | Google Mobile Ads | Find one nonstatic no-argument void method reading enum field `GOOGLE_MOBILE_ADS`; insert `Ads.skipGoogleAds()` and an early return. | Controls an initialization attempt. It does not actively shut down an existing SDK instance or replay a skipped attempt when a switch changes. |
 
-The holder identities are `e52.d`, `gu1.l0` and `bm2.c` in 14.38.0. The first holder has two eligible constructors in 14.38.0. A constructor's list register is discovered from its parameter types, so added non-list parameters don't require a fixed register number.
+The holder identities are `t52.d`, `tu1.h0` and `zm2.b` in 14.39.0 (`e52.d`, `gu1.l0` and `bm2.c` in 14.38.0). The first holder still has two eligible constructors. A constructor's list register is discovered from its parameter types, so added non-list parameters don't require a fixed register number.
 
 The four ad views are `TextAdView`, `LegacyPromotedCloseupActionButtonModule`, `PromotedPinCloseupFloatingActionBarModule` and `BoardSponsoredCuratorView`. Their complete names are in [FeedListAnchors.kt](../patches/src/main/kotlin/app/morphe/patches/pinterest/ads/FeedListAnchors.kt#L43). An inherited final method prevents an unsafe override.
 
@@ -123,7 +125,7 @@ The APK also contains `AdsQcmAnalytics$QcmFeedImpressionPayload` with `ad_destin
 
 ### Confirmed limits and refresh behavior
 
-The typed spotlight mismatch is narrow and confirmed by the native schema and current Java comparison. `il.t` is an enum, while [Ads.isAd](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/Ads.java#L74) compares `story_type` directly to a String. An `il` item whose only qualifying signal is enum `SHOPPING_SPOTLIGHT` won't match that branch. [Shopping.isShopping](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/Shopping.java#L45) does recognize the enum when its separate switch is on. String story models remain supported by Hide ads. A live paid typed-spotlight item wasn't captured, so this finding doesn't establish a visible ad leak in the surveyed account.
+The typed spotlight mismatch is narrow and confirmed by the native schema and current Java comparison. `ll.t` (`il.t` in 14.38.0) is an enum, while [Ads.isAd](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/Ads.java#L74) compares `story_type` directly to a String. An `ll` item whose only qualifying signal is enum `SHOPPING_SPOTLIGHT` won't match that branch. [Shopping.isShopping](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/Shopping.java#L45) does recognize the enum when its separate switch is on. String story models remain supported by Hide ads. A live paid typed-spotlight item wasn't captured on 14.38.0, so this finding doesn't establish a visible ad leak in the surveyed account.
 
 The GMA lifecycle constraint is also specific. The Hide ads runtime helper decides whether an initialization call can proceed. Changing the switch doesn't itself stop an initialized SDK or re-invoke a skipped call. Native code may attempt initialization again through its own callers. A restart provides a defined initial state for comparison; live toggling needs separate acceptance on an account where GMA is enabled. The current settings summary describes filtering and collapsed panels without this qualification. See [Ads.skipGoogleAds](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/Ads.java#L93) and the [Feed settings row](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/HushPinterestPreferenceFragment.java#L250).
 
@@ -136,8 +138,8 @@ Pause makes runtime switches answer off. Future list constructions retain native
 | P1 | Make spotlight handling consistent with its native type. | Normalize the exact known enum name and String value through a narrow classifier helper. Keep paid placement and general shopping choices separate. | With only Hide ads active, a fixture-shaped typed spotlight matches the intended policy. Editorial/unknown enums remain. String behavior, Pause and the shopping switch remain independent. Record live visibility separately. |
 | P1 | Establish per-surface ad coverage. | Compare factory and patched home, search, related pins, boards, closeup overlays, video, carousel and third-party placements. Use bounded classifier reasons rather than IDs or payload logs. | Each served placement has an active/off/Pause result, pagination and gap checks. A surface that served no ad remains unverified. Visual removal and measured request suppression are reported separately. |
 | P1 | Define GMA switch transitions. | Clarify restart behavior first. Trace a shared native load gateway before considering a live guard; preserve callback completion and native readiness. | Cover on-at-launch, off-at-launch, on-after-start, off-after-skip and Pause. No blank containers, retry loop or broken organic feed. A GMA-ineligible run doesn't establish these results. |
-| P2 | Reduce targeted GMA request signals. | Investigate a guarded return in the uniquely matched `Li00/f.c` and `.d` helpers after native removal of the five GMA keys. Trace cached signal queues and preserve all ordinary request fields. | Active filtering omits targeted GMA fields on fresh/cached requests. Off/Pause restores native preparation. Authentication, media and pagination work. This alone isn't described as blocking Pinterest's own promotions. |
-| P2 | Trace `third_party_v2`. | Map `model/zo`, its getters and renderer/SDK consumers. Retain generic `ad_data` list filtering. | Fixture call sites and a served sample establish reachability before adding a new guard. Ordinary content and inactive settings retain native behavior. |
+| P2 | Reduce targeted GMA request signals. | Investigate a guarded return in the uniquely matched `Lo00/f.c` and `.d` helpers after native removal of the five GMA keys. Trace cached signal queues and preserve all ordinary request fields. | Active filtering omits targeted GMA fields on fresh/cached requests. Off/Pause restores native preparation. Authentication, media and pagination work. This alone isn't described as blocking Pinterest's own promotions. |
+| P2 | Trace `third_party_v2`. | Map `model/zp` (`model/zo`), its getters and renderer/SDK consumers. Retain generic `ad_data` list filtering. | Fixture call sites and a served sample establish reachability before adding a new guard. Ordinary content and inactive settings retain native behavior. |
 | P2 | Expose partial coverage precisely. | Track each holder family and view separately, including every eligible constructor and method. | Missing targets produce a concrete partial-coverage result. Zero holders still refuses. A single installed holder isn't reported as full feed coverage. |
 | P2 | Check nested commercial modules and filtered empty pages. | Trace typed carousel/module list owners and paging consumers. Avoid recursive reflection over arbitrary models. | Keep order, listeners and ordinary nested content. Empty modules collapse. Any refill is bounded, preserves bookmarks and can't loop or skip organic entries. These are investigations, not confirmed rendering bugs. |
 | P2 | Commit removal counts after successful filtering. | Accumulate bounded counts during a page pass and publish them after a successful result. | A later model failure produces no false removal count for restored items. Diagnostics contain no IDs, URLs or model values. |

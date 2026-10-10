@@ -1,10 +1,10 @@
-# Pinterest 14.38.0: Tracking and privacy
+# Pinterest 14.39.0: Tracking and privacy
 
-Inspected October 9, 2026. Part of the [factory app audit](pinterest-14.38.0-audit.md). Source baseline `932f0c5`. See the audit entry point for the APK identity, live observations, and evidence limits.
+Traced on Pinterest 14.38.0 on October 9, 2026 and remapped to 14.39.0 (version code 14398020) on October 10. Part of the [factory app audit](pinterest-14.39.0-audit.md). Source baseline `6383001`. See the audit entry point for the APK identity, live observations, and evidence limits.
 
 ## Tracking, attribution and privacy controls
 
-This section covers the original Pinterest 14.38.0 APK (version code 14388010) and HushPinterest source at `932f0c5`, inspected on October 9, 2026. Native descriptors below belong to that exact Pinterest build, so don't copy one into a fingerprint for another Pinterest build.
+This section covers the original Pinterest 14.39.0 APK (version code 14398020) and HushPinterest source at `6383001`. It was first traced on 14.38.0 on October 9, 2026, and every native descriptor below was found again on 14.39.0 on October 10. Where a name changed, the 14.38.0 one follows in parentheses. Behavior descriptions were traced on 14.38.0. On 14.39.0 each identity was found again by the same string, annotation or caller and checked for the same shape, not traced again instruction by instruction. Descriptors belong to one exact Pinterest build, so don't copy one into a fingerprint for another.
 
 **Confirmed static** means the conclusion follows from an APK instruction, manifest declaration or current Hush source. **Candidate** identifies a useful patch investigation. **Unknown at runtime** means the audit hasn't established that the code ran or that data reached a server. An included SDK, permission or URL string doesn't establish transmission.
 
@@ -34,7 +34,7 @@ The main implementation is [DisableAnalyticsPatch.kt](../patches/src/main/kotlin
 
 Discovery reads method annotations, finds callers and constructs runtime wrappers. It refuses the patch if any required path has no callable target. It doesn't classify arbitrary URLs by the presence of words such as `track` or `log`. See the [endpoint selection and caller preflight](../patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/DisableAnalyticsPatch.kt#L164).
 
-Suppressed calls complete locally using Pinterest's own asynchronous response shapes. Coroutine methods receive `NetworkResponse.Success(Unit)`. The supported `log/` shape receives the app's `Single.just` factory around an empty JSON object. Compatible remaining methods receive a completed Completable. This allows subscribers to finish instead of waiting indefinitely. The deferred tracking queue remains eligible to run so its work can consume those completed responses. See [response construction](../patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/DisableAnalyticsPatch.kt#L274) and the [queue behavior contract](../extensions/pinterest/src/test/java/app/hushpinterest/extension/pinterest/privacy/AnalyticsTest.java#L59).
+Suppressed calls complete locally using Pinterest's own asynchronous response shapes. Coroutine methods receive `NetworkResponse.Success(Unit)`. The supported `log/` shape receives the app's `Single.just` factory around an empty JSON object. Compatible remaining methods receive a completed Completable. This allows subscribers to finish instead of waiting indefinitely. The deferred tracking queue remains eligible to run so its work can consume those completed responses. See [response construction](../patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/DisableAnalyticsPatch.kt#L276) and the [queue behavior contract](../extensions/pinterest/src/test/java/app/hushpinterest/extension/pinterest/privacy/AnalyticsTest.java#L59).
 
 There is a useful maintenance limit here. Direct virtual, interface and static calls are scanned, but reflection, native code, JavaScript, dynamically assembled paths and newly added service annotations need separate inspection. An app update could retain all nine paths and introduce a tenth telemetry service without failing this allowlist. Keep a complete annotation-and-caller inventory for each new APK. [PrivacyCalls.kt](../patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/PrivacyCalls.kt#L29) defines the supported invocation forms.
 
@@ -55,7 +55,7 @@ There is a useful maintenance limit here. Direct virtual, interface and static c
 | `TAG_ADS_APP_INSTALL_LOG` | Ad-related installation reporting |
 | `TAG_ADS_OPEN_MEASUREMENT_SDK_INIT` | Open Measurement initialization |
 
-The patch finds the enum by its preserved labels, then identifies the scheduler through its Runnable, enum field and Map-writing method. It checks the task label before running that method. In 14.38.0, the enum containing `TAG_APPSFLYER_INIT` is `Lx20/u;`. Unknown labels stay eligible, as do auth, account, feed, Firebase Messaging and WorkManager jobs. Source: [task list](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/privacy/Analytics.java#L35), [scheduler discovery](../patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/DisableAnalyticsPatch.kt#L487).
+The patch finds the enum by its preserved labels, then identifies the scheduler through its Runnable, enum field and Map-writing method. It checks the task label before running that method. In 14.39.0, the enum containing `TAG_APPSFLYER_INIT` is `Ld30/v;` (`Lx20/u;` in 14.38.0). Unknown labels stay eligible, as do auth, account, feed, Firebase Messaging and WorkManager jobs. Source: [task list](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/privacy/Analytics.java#L35), [scheduler discovery](../patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/DisableAnalyticsPatch.kt#L487).
 
 Turning Disable analytics off later doesn't retroactively run initialization work already skipped. Compare startup behavior after a restart. Task presence alone doesn't establish that every job runs for every region, account or experiment.
 
@@ -103,7 +103,7 @@ Disable analytics writes all eight metadata values below. “Permanent edit” m
 
 The source writes these values only after the full bytecode preflight succeeds. Duplicate declarations cause refusal before the edit. The existing fixture contract expects the four `google_analytics_default_allow_*` fields to be `true` in both stock target manifests. That is a manifest fact, not an observation of regional consent behavior. See [metadata implementation](../patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/DisableAnalyticsPatch.kt#L72), [preflight dependency](../patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/DisableAnalyticsPatch.kt#L105) and [fixture manifest contract](../patches/src/test/kotlin/app/morphe/patches/pinterest/privacy/AdTrackingManifestTest.kt#L33).
 
-Firebase describes Analytics deactivation as permanent for that version of the app. Crashlytics has a different contract: `setCrashlyticsCollectionEnabled` overrides its manifest default, and `sendUnsentReports` can submit retained reports while automatic collection is disabled. The direct DEX scan found neither call by name and found no `firebase_crashlytics` instruction-string hit in 14.38.0. Treat this as an update check, not a demonstrated escape. Adding a defensive manifest flag doesn't prove that its SDK ships or transmits data. Sources: [Firebase Analytics controls](https://firebase.google.com/docs/analytics/android/configure-data-collection), [Crashlytics Android API](https://firebase.google.com/docs/reference/android/com/google/firebase/crashlytics/FirebaseCrashlytics).
+Firebase describes Analytics deactivation as permanent for that version of the app. Crashlytics has a different contract: `setCrashlyticsCollectionEnabled` overrides its manifest default, and `sendUnsentReports` can submit retained reports while automatic collection is disabled. The direct DEX scan found neither call by name and found no `firebase_crashlytics` instruction-string hit in 14.38.0 or 14.39.0. Treat this as an update check, not a demonstrated escape. Adding a defensive manifest flag doesn't prove that its SDK ships or transmits data. Sources: [Firebase Analytics controls](https://firebase.google.com/docs/analytics/android/configure-data-collection), [Crashlytics Android API](https://firebase.google.com/docs/reference/android/com/google/firebase/crashlytics/FirebaseCrashlytics).
 
 Remove ad tracking permissions removes exactly these declarations:
 
@@ -116,27 +116,27 @@ It doesn't remove Internet access, authentication, cookies, push registration or
 
 ### Identifier and attribution evidence in the original APK
 
-This table records exact 14.38.0 native anchors. Each finding is static. It establishes construction or reading of a value, not server receipt.
+This table records exact 14.39.0 native anchors, with the 14.38.0 name in parentheses where it changed. Each finding is static. It establishes construction or reading of a value, not server receipt.
 
 | Native anchor | Direct observation | Patch implication |
 | --- | --- | --- |
 | `Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;->getId()Ljava/lang/String;` and `->isLimitAdTrackingEnabled()Z` | Public getter boundary used by Google measurement, AppsFlyer, ad code and first-party callers | Current Hide advertising ID hooks every return and supplies zeros / true |
-| `Lv70/g;->intercept(Lr93/b0;)Lr93/r0;`, getter call at instruction 155, header key at 162 | One merged interceptor branch reads the Google ID and adds `X-Pinterest-Advertising-Id`; absent values become an empty string | Existing getter filtering covers this API-header path, not only dedicated telemetry uploads |
+| `La80/g;->intercept(Lra3/b0;)Lra3/s0;` (`Lv70/g;`), getter call at instruction 155, header key at 162 | One merged interceptor branch reads the Google ID and adds `X-Pinterest-Advertising-Id`; absent values become an empty string | Existing getter filtering covers this API-header path, not only dedicated telemetry uploads |
 | Same interceptor, strings at instructions 149, 170, 185, 261 and 266 | Adds `Accept-Language`, `X-Pinterest-WebView-Supported`, `X-Pinterest-AppState` and optional `X-Pinterest-Platform-BID`; WebView capability uses `android_3p_webview_ads` | Classify optional fields before filtering. Platform-BID's meaning and lifetime remain unknown |
 | Same merged interceptor, `AuthenticatedHeaderInterceptor` error text and `Bearer %s` | Other branches enforce authorized domains and handle authentication | A whole-method stub would be unsafe. Target the relevant branch and value |
-| `Lb/l5;->c(Landroid/content/Context;)Ljava/lang/String;`, instructions 14 to 24 | Reads Secure `android_id`, derives a value and caches it through `Lads_mobile_sdk/kv0;->g:AtomicReference` | Candidate for ad-specific caller analysis. The Google Info getter patch doesn't cover it |
-| `Lads_mobile_sdk/uc1;->a()V` and `Ldl/b0;->a(Context)Z` | Call `Lb/l5;->c` | Trace these consumers before deciding whether to suppress, normalize or leave the derived value |
-| `Lz/a1;->C(Landroid/content/Context;)Lfu0/t;` | Combines Android ID, model, manufacturer, Build.SERIAL and package name with `com.linecorp.linesdk.sharedpreference.encryptionsalt`, then derives AES and HmacSHA256 keys | Concrete non-telemetry use. Global Android ID replacement could break decryption of existing local data |
-| `Lads_mobile_sdk/ez;->x(Lk53/a;)Ljava/lang/Object;` | Reads Secure `advertising_id` at instruction 53 | Alternative ID source outside Google Info getter coverage; platform conditions still need classification |
+| `Lb/n5;->c(Landroid/content/Context;)Ljava/lang/String;` (`Lb/l5;`), instructions 14 to 24 | Reads Secure `android_id`, derives a value and caches it through `Lads_mobile_sdk/kv0;->g:AtomicReference` | Candidate for ad-specific caller analysis. The Google Info getter patch doesn't cover it |
+| `Lads_mobile_sdk/uc1;->a()V` and `Ldl/b0;->a(Context)Z` | Call `Lb/n5;->c` | Trace these consumers before deciding whether to suppress, normalize or leave the derived value |
+| `Lxg/r2;->I(Landroid/content/Context;)Llp1/x;` (`Lz/a1;->C`) | Combines Android ID, model, manufacturer, Build.SERIAL and package name with `com.linecorp.linesdk.sharedpreference.encryptionsalt`, then derives AES and HmacSHA256 keys | Concrete non-telemetry use. Global Android ID replacement could break decryption of existing local data |
+| `Lads_mobile_sdk/ez;->x(Lk63/a;)Ljava/lang/Object;` | Reads Secure `advertising_id` at instruction 52 (53 in 14.38.0) | Alternative ID source outside Google Info getter coverage; platform conditions still need classification |
 | `Lcom/appsflyer/internal/AFb1jSDK;->k_(Landroid/content/ContentResolver;)Lcom/appsflyer/internal/AFb1mSDK;` | Checks manufacturer `Amazon`, then reads `limit_ad_tracking` and `advertising_id` | Present alternative-platform path, not evidence of use on Samsung. AppsFlyer transport protection is separate |
-| `Llm0/b;->onInstallReferrerSetupFinished(I)V` | Reads Google Play ReferrerDetails, passes the string to `Llm0/e;->b`, stores the resulting JSON through two preference keys and ends the connection | First-party referrer processing exists independently of AppsFlyer |
-| `Llm0/e;->b(Ljava/lang/String;)Ljava/lang/String;` | Handles `af_dp` with `pid=mweb`, parses decoded `utm_content`, distinguishes organic attribution and retains campaign/source/medium fields | Preserve deferred navigation before removing install attribution |
-| `Llm0/a;->call()Ljava/lang/Object;` | Builds APP_START metadata with entry route, `full_url`, theme, powerscore and optional `mweb_unauth_id` / `amp_client_id` from the incoming URI | Follow the event through the uploader before deciding whether existing hooks already suppress transmission |
-| `Lx30/b;->b(APP_START, ...)` and conditional `Lp30/e;->l(...)` from `Llm0/a;->call` | Event construction reaches reporting abstractions | End-to-end transport coverage remains to be established for this specific route |
+| `Lxm0/b;->onInstallReferrerSetupFinished(I)V` (`Llm0/b;`) | Reads Google Play ReferrerDetails, passes the string to `Lxm0/e;->b`, stores the resulting JSON through two preference keys and ends the connection | First-party referrer processing exists independently of AppsFlyer |
+| `Lxm0/e;->b(Ljava/lang/String;)Ljava/lang/String;` (`Llm0/e;`) | Handles `af_dp` with `pid=mweb`, parses decoded `utm_content`, distinguishes organic attribution and retains campaign/source/medium fields | Preserve deferred navigation before removing install attribution |
+| `Lxm0/a;->call()Ljava/lang/Object;` (`Llm0/a;`) | Builds APP_START metadata with entry route, `full_url`, theme, powerscore and optional `mweb_unauth_id` / `amp_client_id` from the incoming URI | Follow the event through the uploader before deciding whether existing hooks already suppress transmission |
+| `Ld40/b;->d0(APP_START, ...)` and conditional `Lv30/e;->l(...)` from `Lxm0/a;->call` (`Lx30/b;->b` and `Lp30/e;->l`) | Event construction reaches reporting abstractions | End-to-end transport coverage remains to be established for this specific route |
 | `Lcom/appsflyer/internal/AFi1aSDK;->getRevenue(...)` | Reads Play InstallReferrerClient and ReferrerDetails | AppsFlyer attribution consumer |
 | `Lcom/appsflyer/internal/AFj1oSDK$3;->onGetAppsReferrerSetupFinished(I)V` | Reads Xiaomi GetApps referrer details | Platform-specific SDK path; execution on a Google Play install is unproven |
-| `Lx20/u;-><clinit>()V` | Contains `TAG_APPSFLYER_INIT` | Current startup enum anchor |
-| `Luf/a;-><init>(Luf/a;Lri/h;La0/a;Ltf/c;)V` | Contains `https://notify.bugsnag.com` | Default reporting destination is present; this alone doesn't prove an upload |
+| `Ld30/v;-><clinit>()V` (`Lx20/u;`) | Contains `TAG_APPSFLYER_INIT` | Current startup enum anchor |
+| `Luf/a;-><init>(Luf/a;Lqe/b;Lqe/d;Ltf/c;)V` | Contains `https://notify.bugsnag.com` | Default reporting destination is present; this alone doesn't prove an upload |
 
 The request-header branch copies a cached base map before adding current values. Further inspection should enumerate that map's complete contents and each field's purpose. Preserve authorization checks and normal feed operations when testing any narrower privacy hook.
 
@@ -146,7 +146,7 @@ Do not describe every Android ID reader as tracking. The LINE SDK key-derivation
 
 ### Advertising ID behavior
 
-Hide advertising ID supplies `00000000-0000-0000-0000-000000000000` and `true` for tracking limited. It filters the getter's answer after the getter's own read. It doesn't erase old SDK caches or server history. Fourteen caller methods of the ID getter were found in the 14.38.0 DEX scan, including `Lf20/d0;`, `Lf20/k0;`, AppsFlyer, Google measurement code and the request-header branch above. See [bytecode filter](../patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/HideAdvertisingIdPatch.kt#L31), [runtime answers](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/privacy/AdvertisingId.java#L23) and [fixture contract](../patches/src/test/kotlin/app/morphe/patches/pinterest/privacy/AdvertisingIdFixtureTest.kt#L38).
+Hide advertising ID supplies `00000000-0000-0000-0000-000000000000` and `true` for tracking limited. It filters the getter's answer after the getter's own read. It doesn't erase old SDK caches or server history. Fourteen caller methods of the ID getter are in the 14.39.0 DEX, the same count the 14.38.0 scan found. They include methods in `Ll20/b0;` and `Ll20/h0;`, AppsFlyer, Google measurement code and the request-header branch above. See [bytecode filter](../patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/HideAdvertisingIdPatch.kt#L31), [runtime answers](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/privacy/AdvertisingId.java#L23) and [fixture contract](../patches/src/test/kotlin/app/morphe/patches/pinterest/privacy/AdvertisingIdFixtureTest.kt#L38).
 
 Analytics and advertising ID runtime hooks allow original behavior until `Utils.settingsReady()` is true. The extension sets context at the start of Application.onCreate and resolves Pause/safe-mode state before enabling setting reads. Potential calls before that point need separate analysis. Forcing settings initialization before context is available can make the settings class unusable for the rest of the process. See [startup hook](../patches/src/main/kotlin/app/morphe/patches/pinterest/misc/extension/PinterestExtensionPatch.kt#L31) and [settings-readiness contract](../extensions/shared/library/src/main/java/app/hushpinterest/extension/shared/Utils.java#L498).
 
@@ -192,7 +192,7 @@ The source and existing tests establish exact hook boundaries and intended behav
 
 ### Decoded Android network policy
 
-The original `res/xml/network_security_config.xml` sets `base-config cleartextTrafficPermitted="true"`. A more specific domain configuration sets cleartext to false for `pinterest.com`, `pinimg.com`, `branch.io`, `facebook.com`, `appsflyer.com`, `bugsnag.com` and `cedexis.com`, including their subdomains. The broad base rule therefore isn't a claim that these listed services use plain HTTP.
+The original `res/xml/network_security_config.xml`, unchanged in 14.39.0, sets `base-config cleartextTrafficPermitted="true"`. A more specific domain configuration sets cleartext to false for `pinterest.com`, `pinimg.com`, `branch.io`, `facebook.com`, `appsflyer.com`, `bugsnag.com` and `cedexis.com`, including their subdomains. The broad base rule therefore isn't a claim that these listed services use plain HTTP.
 
 The only explicit user-certificate trust anchor is inside `debug-overrides`. This original release isn't debuggable, so that node doesn't establish that a user-installed certificate will enable TLS interception. No trust configuration, certificate or pinning code was changed during the survey. The separate `res/xml/ga_ad_services_config.xml` declares attribution with `allowAllToAccess="true"`; that is an access policy, not evidence that an attribution event occurred.
 
@@ -200,7 +200,7 @@ A narrower base cleartext policy is a possible hardening change. First inventory
 
 ### Initial network capture and the working follow-up
 
-The later [runtime measurement](pinterest-14.38.0-runtime.md) used a guest capture on the active Wi-Fi interface and obtained useful application traffic. It confirmed primary-UID-correlated TLS connections naming Pinterest services and AppsFlyer, with independent per-UID traffic and CPU counters. The earlier failed capture below is retained to explain why its apparent silence was misleading.
+The later [runtime measurement](pinterest-14.39.0-runtime.md), on 14.38.0, used a guest capture on the active Wi-Fi interface and obtained useful application traffic. It confirmed primary-UID-correlated TLS connections naming Pinterest services and AppsFlyer, with independent per-UID traffic and CPU counters. The earlier failed capture below is retained to explain why its apparent silence was misleading.
 
 A whole-emulator packet capture ran during the signed-in factory survey on October 9, 2026, approximately 4:11 PM to 4:29 PM EDT. Pinterest was in the foreground while home, pin, search and settings screens were inspected. Other apps and system services were present. No TLS decryption was performed, and no advertiser destination was opened.
 

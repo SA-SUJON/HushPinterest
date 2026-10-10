@@ -1,8 +1,10 @@
-# Pinterest 14.38.0 runtime observations
+# Pinterest runtime observations
+
+These measurements were taken on October 9, 2026 with the original Pinterest 14.38.0 app (version code 14388010), the build HushPinterest targeted before it moved to 14.39.0 on October 10. They haven't been repeated on 14.39.0. The static checks that carry over were redone on 14.39.0: the seven worker classes in the scheduling table are all still in its DEX, and its network security policy is unchanged. Treat the numbers as the 14.38.0 baseline, and run the same protocol on 14.39.0 before comparing a patched 14.39.0 build against them.
 
 All four emulator measurement phases are complete. Network traffic, background activity and software resource use were measured. Physical battery drain was not measured.
 
-Measured on October 9, 2026. This chapter adds observed network and operating-system activity to the [factory audit](pinterest-14.38.0-audit.md), [advertising analysis](pinterest-14.38.0-ads.md) and [privacy analysis](pinterest-14.38.0-privacy.md).
+Measured on October 9, 2026. This chapter adds observed network and operating-system activity to the [factory audit](pinterest-14.39.0-audit.md), [advertising analysis](pinterest-14.39.0-ads.md) and [privacy analysis](pinterest-14.39.0-privacy.md).
 
 The [public runtime data](pinterest-14.38.0-runtime-data.json) contains the exact phase values, original APK hash and source-summary hashes for later comparisons.
 
@@ -248,7 +250,7 @@ The current evidence supports targeted comparisons. It does not establish the pa
 
 ## Repeating the comparison
 
-Use the saved signed-in baseline and the same original APK version. Record the cache state and exact phase durations. Keep screen settings, host resource limits and network conditions consistent. Preserve the native app's privacy and autoplay settings in the record.
+Use the saved signed-in baseline and the same original APK version. A 14.39.0 comparison needs its own original-app run under this protocol first. Record the cache state and exact phase durations. Keep screen settings, host resource limits and network conditions consistent. Preserve the native app's privacy and autoplay settings in the record.
 
 For each patch configuration, repeat the original workload and retain an unpatched comparison run. Report individual repetitions and variation rather than publishing only the best result. Feed content and server experiments can differ even on the same account, so matching a query or saved content set is preferable to assuming two home feeds are identical.
 

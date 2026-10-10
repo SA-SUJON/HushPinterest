@@ -1,16 +1,18 @@
-# Pinterest 14.38.0 factory app audit
+# Pinterest factory app audit for 14.39.0
 
-Inspected October 9, 2026. This reference combines a signed-in survey of the original Pinterest Android app, targeted analysis of its APK, and a review of HushPinterest's current source. It is intended for maintaining existing patches and choosing new ones.
+This reference combines a signed-in survey of the original Pinterest Android app, targeted analysis of its APK, and a review of HushPinterest's source. It is intended for maintaining existing patches and choosing new ones.
+
+The survey ran on October 9, 2026 with Pinterest 14.38.0 (version code 14388010). HushPinterest moved to 14.39.0 (14398020) on October 10, and the APK facts, native anchors and resource names in these references were checked again against that build the same day. The screens weren't surveyed again, so read every live observation here as 14.38.0 evidence.
 
 ## Read this first
 
 | Reference | Contents |
 |---|---|
-| [Factory app map](pinterest-14.38.0-factory-map.md) | APK identity, signing, manifest, components, package layout and stable update anchors |
-| [Advertising delivery](pinterest-14.38.0-ads.md) | Native content models, third-party ad configuration, GMA headers and payloads, current filters, gaps and acceptance criteria |
-| [Tracking and privacy](pinterest-14.38.0-privacy.md) | All nine telemetry paths, ten startup jobs, eight manifest flags, identifier/referrer/link flows and limits |
-| [Runtime measurements](pinterest-14.38.0-runtime.md) | Attributed network observations, CPU and media timers, background scheduling and battery measurement limits |
-| [Patch coverage and customization](pinterest-14.38.0-patch-reference.md) | All 23 patches, native alternatives, concrete additions and a maintenance checklist |
+| [Factory app map](pinterest-14.39.0-factory-map.md) | APK identity, signing, manifest, components, package layout and stable update anchors |
+| [Advertising delivery](pinterest-14.39.0-ads.md) | Native content models, third-party ad configuration, GMA headers and payloads, current filters, gaps and acceptance criteria |
+| [Tracking and privacy](pinterest-14.39.0-privacy.md) | All nine telemetry paths, ten startup jobs, eight manifest flags, identifier/referrer/link flows and limits |
+| [Runtime measurements](pinterest-14.39.0-runtime.md) | Attributed network observations, CPU and media timers, background scheduling and battery measurement limits |
+| [Patch coverage and customization](pinterest-14.39.0-patch-reference.md) | All 26 patches, native alternatives, concrete additions and a maintenance checklist |
 | This page | Live screen observations, evidence boundaries, key decisions and the next investigation priorities |
 
 The strongest immediate leads are a typed shopping-story mismatch, incomplete reporting of partial ad-hook coverage, GMA initialization and request-header boundaries, and the difference between visible filtering and network suppression. Native settings also cover more ground than the patch list alone suggests. Pinterest already offers theme, comment, notification, personalization and AI-content controls.
@@ -22,11 +24,11 @@ No patch behavior was changed for this audit. The reference distinguishes a code
 | Item | Recorded state |
 |---|---|
 | Pinterest package | `com.pinterest` |
-| Original APK | 14.38.0, version code 14388010 |
-| SHA-256 | `af6b383adb445cebee1ca43f14ac409f91475c1d62e0e11ef52ef52e29fb0553` |
+| Surveyed APK | 14.38.0, version code 14388010, SHA-256 `af6b383adb445cebee1ca43f14ac409f91475c1d62e0e11ef52ef52e29fb0553` |
+| Current target APK | 14.39.0, version code 14398020, SHA-256 `4ecc7f9a34c89fd98d0e2133c294517772857b935969847bfd92b3e25b13e78d`. Static checks only |
 | Original signing certificate SHA-256 | `341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa` |
-| Hush source reviewed | `932f0c5`, with 23 catalog entries |
-| Published bundle at inspection | v0.0.5. Later source changes are not assumed to be in that release |
+| Hush source reviewed | `932f0c5` for the survey, with 23 catalog entries. The references were refreshed at `6383001`, which has 26 |
+| Published bundle at inspection | v0.0.5. v0.0.6 followed on October 10 and still targets 14.38.0. Later source changes are not assumed to be in either release |
 | Live environment | Android 13/API 33 emulator, x86_64, 1080 by 2400 pixels, English (United States), Wi-Fi |
 | App installation | Original signed APK. No Hush extension or selected patches |
 | Account | Signed in manually. Credentials were not part of the audit |
@@ -36,7 +38,7 @@ No patch behavior was changed for this audit. The reference distinguishes a code
 
 This is a factory **binary** baseline with an existing signed-in account. It is not a claim that every account preference is a new-account default. Server experiments, region, account history and app configuration can change the UI without changing the APK. The Labs finding is one reason to avoid treating these screens as universal.
 
-The initial logged-out capture is in the [app map](pinterest-14.38.0-factory-map.md#clean-install-launch-survey). The signed-in survey inspected Home, organic pin details, overflow and Share, Search, Saved, creation entry and the settings described below. It did not save pins, follow people, message recipients, visit advertiser destinations or change account preferences. One neutral search was submitted. Browsing and searching can themselves affect recommendations.
+The initial logged-out capture is in the [app map](pinterest-14.39.0-factory-map.md#clean-install-launch-survey). The signed-in survey inspected Home, organic pin details, overflow and Share, Search, Saved, creation entry and the settings described below. It did not save pins, follow people, message recipients, visit advertiser destinations or change account preferences. One neutral search was submitted. Browsing and searching can themselves affect recommendations.
 
 ### Evidence labels
 
@@ -53,7 +55,7 @@ Raw signed-in screenshots, hierarchy files and packet data remain local because 
 
 ### Measured runtime summary
 
-The [controlled runtime study](pinterest-14.38.0-runtime.md) captured 10,122 packets and correlated visible connections with the app's socket ownership. Startup included Pinterest API/tracking service names and AppsFlyer. Three minutes of feed browsing received about 4.2 MB and recorded 94.722 seconds of video activity. The following ten-minute background intervals were quiet for this app, with 7,272 combined bytes while Home was visible and 2,719 combined bytes with the display off.
+The [controlled runtime study](pinterest-14.39.0-runtime.md), run on 14.38.0, captured 10,122 packets and correlated visible connections with the app's socket ownership. Startup included Pinterest API/tracking service names and AppsFlyer. Three minutes of feed browsing received about 4.2 MB and recorded 94.722 seconds of video activity. The following ten-minute background intervals were quiet for this app, with 7,272 combined bytes while Home was visible and 2,719 combined bytes with the display off.
 
 Those byte totals use Android's primary-app-UID counters and the chapter's recorded counter intervals. They do not identify encrypted request bodies or assign every byte to an ad. A short background sample also cannot rule out the delayed workers found in the scheduler. The emulator provides software activity measurements. Physical battery drain remains unmeasured while the prepared phone is connected to USB power.
 
@@ -77,7 +79,7 @@ flowchart TD
     M[Ad-view hiding] -.-> H
 ```
 
-This diagram summarizes traced stages, not a promise that every ad follows one path. The [ad reference](pinterest-14.38.0-ads.md) gives the actual methods, fields and service paths. In particular, `ad_data.third_party` can carry an encoded payload, while helpers prepare `x-pinterest-gma` through `x-pinterest-gma-5` for several content surfaces. A separate `third_party_v2` model is a coverage lead.
+This diagram summarizes traced stages, not a promise that every ad follows one path. The [ad reference](pinterest-14.39.0-ads.md) gives the actual methods, fields and service paths. In particular, `ad_data.third_party` can carry an encoded payload, while helpers prepare `x-pinterest-gma` through `x-pinterest-gma-5` for several content surfaces. A separate `third_party_v2` model is a coverage lead.
 
 Three outcomes need separate evidence when evaluating an ad patch:
 
@@ -90,6 +92,8 @@ The current shared-list hook supports the first outcome at recognized holders. I
 Pinterest publicly describes multiple image, video and shopping formats across browsing and search. That supports looking beyond one feed-card shape, but the source trace and live capture must establish which format a patch actually reaches. [Pinterest advertising formats](https://business.pinterest.com/advertise/).
 
 ## Signed-in screen survey
+
+Everything in this section was seen on 14.38.0. The resource names under [stable live anchors](#stable-live-anchors-from-this-account) are all still in 14.39.0's resource table.
 
 ### Home, pin actions and Search
 
@@ -182,12 +186,12 @@ These are proposed work items, not completed features. The linked chapters conta
 | P2 | Diff endpoints, SDK transports, startup tags and identifier readers on each APK update | Existing fingerprints can still match while upstream adds new telemetry |
 | P2 | Trace APP_START, first-party referrer storage and optional request headers | The source constructs attribution data outside AppsFlyer. Determine whether final delivery is already covered before adding redundant blocks |
 | P2 | Improve canonical pin-link and regional-host handling | Use typed pin IDs where already available. Preserve signed URLs, functional queries and board/invite routes |
-| P2 | Suppress selected surveys through their native decline path | Shared modal IDs are too broad. Keep security/account dialogs and user-initiated surveys intact |
+| P2 | Check Hide survey prompts on a device | It landed in 0.0.6 and declines the invite through Pinterest's own Maybe later path. Keep security/account dialogs and user-initiated surveys intact |
 | P2 | Make original image quality and downloads network-aware | Current original-media choices can increase data use. Manual intent, retries, cache reuse and API 28 behavior need separate decisions |
 | P2 | Extend native controls with clear scope | Native settings navigation, independent save/follow-up messages, autoplay/prefetch control and notification categories are concrete leads |
-| P3 | Loaded-board actions, long-press download and native toasts | Useful additions with existing research, but current source does not contain the parked implementations |
+| P3 | Native toasts | Useful, with existing research. Download board and Long-press download, the other two leads here, landed in 0.0.6 |
 
-The repository's open issue intake was also checked. [Issue #3](https://github.com/SysAdminDoc/HushPinterest/issues/3) concerns release structure and update discovery, and [issue #4](https://github.com/SysAdminDoc/HushPinterest/issues/4) concerns combining patch sources. Neither is evidence of an ad or privacy defect. The historical version mismatch in #3 is not the current index state, which reports v0.0.5. Issue status and reporter confirmation should remain independent of this documentation work.
+The repository's open issue intake was also checked. [Issue #3](https://github.com/SysAdminDoc/HushPinterest/issues/3) concerns release structure and update discovery, and [issue #4](https://github.com/SysAdminDoc/HushPinterest/issues/4) concerns combining patch sources. Neither is evidence of an ad or privacy defect. The historical version mismatch in #3 is not the current index state, which reported v0.0.5 at the survey and v0.0.6 since October 10. Issue status and reporter confirmation should remain independent of this documentation work.
 
 ## Repeating this audit on the next version
 
@@ -196,13 +200,13 @@ The repository's open issue intake was also checked. [Issue #3](https://github.c
 3. Inventory manifest/components/network policy, DEX annotations, model fields, readable enum names, endpoint declarations, startup labels and default resources. Diff those inventories against this version before changing fingerprints.
 4. Re-resolve semantic anchors. For each target, record class/method signature, parameters, return type, callers, relevant instruction order, registers and expected match count. A string match alone is a lead.
 5. Trace the full path around the proposed edit. Include caches, nested containers, initialization order and the off/Pause path. Do not label user feedback or creator analytics reads as passive telemetry just because the route contains a familiar word.
-6. Run the relevant existing fixture and runtime checks when implementing a change. Their locations are in the [patch reference](pinterest-14.38.0-patch-reference.md#maintenance-checklist). This documentation audit did not rebuild or install a candidate patch bundle.
+6. Run the relevant existing fixture and runtime checks when implementing a change. Their locations are in the [patch reference](pinterest-14.39.0-patch-reference.md#maintenance-checklist). This documentation audit did not rebuild or install a candidate patch bundle.
 7. Repeat the live surface with the actual eligible content. Keep native, patched-on, patched-off, Pause, cold-start and warm-start evidence distinct. Record bytes/timing only when the capture/profiler is validated.
 8. Sanitize the evidence. Publish useful labels, schema keys and method identities. Keep emails, user IDs, tokens, pin history, account databases, full traffic dumps and emulator images local.
 
 ### Stable live anchors from this account
 
-Resource names below all use the `com.pinterest:id/` prefix. Numeric positions and pixel coordinates are not durable anchors.
+Resource names below all use the `com.pinterest:id/` prefix. They were seen on 14.38.0, and every one is still defined in 14.39.0. Numeric positions and pixel coordinates are not durable anchors.
 
 | Area | Observed resource names |
 |---|---|
@@ -218,6 +222,6 @@ These names locate live elements. A generic `list_action`, sheet button or Gesta
 
 ## Remaining evidence gaps
 
-The audit did not cover business-account tooling, paid campaigns, populated-board actions, all video formats, full creation/edit/publish flows, private messaging, actual notification delivery, login-provider compatibility, password recovery, regional consent flows, offline recovery, large-text/TalkBack use or exhaustive remote experiments. The [runtime chapter](pinterest-14.38.0-runtime.md) records the measured network, background and CPU activity and separates software activity from physical battery drain. It did not compare a newly built patched APK against this factory run.
+The audit did not cover business-account tooling, paid campaigns, populated-board actions, all video formats, full creation/edit/publish flows, private messaging, actual notification delivery, login-provider compatibility, password recovery, regional consent flows, offline recovery, large-text/TalkBack use or exhaustive remote experiments. The [runtime chapter](pinterest-14.39.0-runtime.md) records the measured 14.38.0 network, background and CPU activity and separates software activity from physical battery drain. It did not compare a newly built patched APK against this factory run.
 
 Original-media, share-link and push behavior from earlier patch work can remain useful historical evidence, but it must not be relabeled as a fresh factory observation. The named snapshot preserves this audit's signed-in baseline locally for those future comparisons.

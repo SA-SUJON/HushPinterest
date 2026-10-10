@@ -1,22 +1,22 @@
-# Pinterest Android app map for 14.38.0
+# Pinterest Android app map for 14.39.0
 
-The [signed-in factory audit](pinterest-14.38.0-audit.md) extends this map with native settings, advertising delivery, tracking boundaries, all 23 patch mappings and specific patch opportunities. Privacy filtering covers selected known paths; ordinary account and content requests still reach Pinterest. See the [privacy reference](pinterest-14.38.0-privacy.md) for exact coverage.
+The [signed-in factory audit](pinterest-14.39.0-audit.md) extends this map with native settings, advertising delivery, tracking boundaries, all 26 patch mappings and specific patch opportunities. Privacy filtering covers selected known paths; ordinary account and content requests still reach Pinterest. See the [privacy reference](pinterest-14.39.0-privacy.md) for exact coverage.
 
-Last checked: 2026-10-09. This guide maps the original Pinterest package used as HushPinterest's newest patch target. It records static APK facts and the reverse-engineering anchors that are useful when patches move to a new release.
+Last checked: 2026-10-10, against Pinterest 14.39.0. This guide maps the original Pinterest package HushPinterest patches, which has been 14.39.0 since the October 10 port. It records static APK facts and the reverse-engineering anchors that are useful when patches move to a new release. Where an obfuscated name changed, the 14.38.0 name follows in parentheses so the two builds can be compared.
 
 ## Evidence and limits
 
-The factory reference is the universal APK named `pinterest-14.38.0-14388010.apk` in the local `fixtures/` directory. The fixture is intentionally ignored by Git because it is Pinterest's binary. Verify the exact file before analyzing or installing it.
+The factory reference is the universal APK named `pinterest-14.39.0-14398020.apk` in the local `fixtures/` directory. The fixture is intentionally ignored by Git because it is Pinterest's binary. Verify the exact file before analyzing or installing it.
 
 | Fact | Value |
 |---|---|
 | Package | `com.pinterest` |
-| Version | 14.38.0, version code 14388010 |
+| Version | 14.39.0, version code 14398020 |
 | Minimum Android version | Android 10, API 29 |
 | Target and compile SDK | API 36 |
 | Required graphics feature | OpenGL ES 3.0 |
-| APK size | 133,740,741 bytes |
-| SHA-256 | `af6b383adb445cebee1ca43f14ac409f91475c1d62e0e11ef52ef52e29fb0553` |
+| APK size | 133,952,378 bytes |
+| SHA-256 | `4ecc7f9a34c89fd98d0e2133c294517772857b935969847bfd92b3e25b13e78d` |
 | Signing certificate SHA-256 | `341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa` |
 | Signature and source stamp | APK Signature Scheme v3, plus a Google source stamp |
 
@@ -24,7 +24,7 @@ The signing certificate identifies the original Pinterest build. A patched copy 
 
 HushPinterest declares this build only, so a patched Pinterest needs Android 10 (API 29), the same floor as the original APK.
 
-This guide's package, manifest, DEX, resource, and signature facts come from the retained original APK. A first-run launch survey was captured on a clean Android 13 emulator with the original APK. The initial survey reached Pinterest's unauthenticated entry screen. A later [signed-in audit](pinterest-14.38.0-audit.md) adds factory Home, pin, search, sharing, creation-entry and settings observations, detailed ad/tracking traces, and a complete current patch reference.
+This guide's package, manifest, DEX, resource, and signature facts come from the retained original 14.39.0 APK. The first-run launch survey below was captured on a clean Android 13 emulator with the original 14.38.0 APK, the build before it, and hasn't been repeated on 14.39.0. That survey reached Pinterest's unauthenticated entry screen. A later [signed-in audit](pinterest-14.39.0-audit.md) adds factory Home, pin, search, sharing, creation-entry and settings observations from 14.38.0, detailed ad/tracking traces, and a complete current patch reference.
 
 ## Clean-install launch survey
 
@@ -43,24 +43,24 @@ The screen is scrollable. Android's UI hierarchy exposed the email field and bot
 
 <img src="pinterest-14.38.0-first-run.png" alt="Pinterest 14.38.0 first-run account screen on a clean Android 13 emulator" width="360">
 
-This capture records the initial logged-out state. The [follow-up audit](pinterest-14.38.0-audit.md) records the later signed-in state. Credential entry was performed manually and wasn't inspected. Account creation, password recovery, production push delivery and all account/region experiments are not covered by the first-run screenshot.
+This capture records the initial logged-out state. The [follow-up audit](pinterest-14.39.0-audit.md) records the later signed-in state. Credential entry was performed manually and wasn't inspected. Account creation, password recovery, production push delivery and all account/region experiments are not covered by the first-run screenshot.
 
 ## Package layout
 
-The inspected APK contains 7,581 ZIP entries and 278,957,871 uncompressed bytes. Its principal contents are:
+The inspected APK contains 7,386 ZIP entries and 279,606,627 uncompressed bytes. Its principal contents are:
 
 | Area | Count or size | Notes |
 |---|---:|---|
-| DEX files | 8 files, 60,061,368 bytes | `classes.dex` through `classes8.dex`; `classes2.dex` is only 868 bytes |
-| Defined DEX classes | 73,720 | Counted from `apkanalyzer dex packages --defined-only` |
-| Defined methods | 286,020 | Same DEX package tree |
-| Defined fields | 291,791 | Same DEX package tree |
+| DEX files | 8 files, 60,624,564 bytes | `classes.dex` through `classes8.dex`; `classes2.dex` is only 868 bytes |
+| Defined DEX classes | 74,213 | Counted from `apkanalyzer dex packages --defined-only` |
+| Defined methods | 288,433 | Same DEX package tree |
+| Defined fields | 294,182 | Same DEX package tree |
 | Native libraries | 64 files, 137,722,368 bytes | 16 each for `arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64` |
-| Compiled XML entries | 6,430 | Includes layouts and other resource XML |
-| Layout resources | 1,522 | Mostly resource-driven Android UI |
-| Drawable resources | 3,616 in the base drawable directory | Additional density and night-mode variants are separate |
+| Compiled XML entries | 6,439 | Includes layouts and other resource XML |
+| Layout resources | 1,526 | Mostly resource-driven Android UI |
+| Drawable resources | 3,621 in the base drawable directory | Additional density and night-mode variants are separate |
 
-Useful namespaces from the DEX class tree include `com.pinterest.feature` (4,995 classes), `com.pinterest.api` (3,368), `com.google.android` (1,772), `com.pinterest.collage` (942), and `com.pinterest.identity` (425). The APK also contains Pinterest's Gestalt UI package, AndroidX RecyclerView and Compose runtime code, Rive, AppsFlyer, Bugsnag, Google libraries, Chromium Cronet, and AWS SDK classes. Presence in the APK does not prove that a particular screen or service is active in every account state.
+Useful namespaces from the DEX class tree include `com.pinterest.feature` (5,033 classes), `com.pinterest.api` (3,528), `com.google.android` (1,769), `com.pinterest.collage` (947), and `com.pinterest.identity` (421). The APK also contains Pinterest's Gestalt UI package, AndroidX RecyclerView and Compose runtime code, Rive, AppsFlyer, Bugsnag, Google libraries, Chromium Cronet, and AWS SDK classes. Presence in the APK does not prove that a particular screen or service is active in every account state.
 
 Many Pinterest implementation packages and method names are obfuscated. Some app-facing classes, model fields, resource names, design-system classes, and diagnostic `toString()` labels remain readable. Expect short class and member names to change between Pinterest builds.
 
@@ -91,30 +91,30 @@ The `autoVerify` declaration is part of the original APK's manifest. Re-signing 
 
 ### Manifest and permissions
 
-The original manifest sets `allowBackup=false`, is not debuggable, and references a network security configuration. It does not declare `usesCleartextTraffic` directly. Its decoded network configuration permits cleartext by default, forbids it for seven named domain families, and trusts user certificates only in debug overrides. See the [privacy reference](pinterest-14.38.0-privacy.md) for the exact domains and limits. This policy does not prove any cleartext request occurred.
+The original manifest sets `allowBackup=false`, is not debuggable, and references a network security configuration. It does not declare `usesCleartextTraffic` directly. Its decoded network configuration permits cleartext by default, forbids it for seven named domain families, and trusts user certificates only in debug overrides. See the [privacy reference](pinterest-14.39.0-privacy.md) for the exact domains and limits. This policy does not prove any cleartext request occurred.
 
-The manifest declares 32 permissions. They cover network access, media and older shared storage, camera, coarse and fine location, contacts and account lookup, notifications, foreground work, boot recovery, vibration, wake locks, billing, Firebase delivery, Google advertising ID and Android Privacy Sandbox ad services. It also declares Samsung badge and Maps Agent permissions and Pinterest's own credentials permission. Check the manifest in the exact target APK before changing these declarations. Permission presence alone does not establish when Android prompts or whether Pinterest exercises the permission.
+The manifest has 32 `uses-permission` entries, plus `SET_WALLPAPER` and `RECORD_AUDIO` as `uses-permission-sdk-23`. They cover network and Wi-Fi state, media and older shared storage, camera and microphone, coarse and fine location, contacts and account lookup, notifications, foreground work, boot recovery, vibration, wake locks, NFC, wallpaper, screenshot detection (`DETECT_SCREEN_CAPTURE`), billing, the Play install referrer, Firebase delivery, Google advertising ID and Android Privacy Sandbox ad services. It also declares Samsung badge and Maps Agent permissions and Pinterest's own credentials permission. Check the manifest in the exact target APK before changing these declarations. Permission presence alone does not establish when Android prompts or whether Pinterest exercises the permission.
 
 The exported credentials provider is protected by `com.pinterest.account.Credentials`, which Pinterest defines with signature protection. WorkManager's exported job service is protected by `BIND_JOB_SERVICE`. The Google and profile-install receivers also carry their own platform or service permissions.
 
 ## App surfaces and patch anchors
 
-The bottom-navigation enum declares five tab types: Create, Home, Notifications, Profile, and Search. The signed-in factory account actually displayed three bottom buttons, Home, Search and Saved, with Create and Inbox in the Home header. Enum membership is not a screenshot of every live navigation configuration. Its 14.38.0 enum is `de0/a`. The app contains a custom Pinterest Gestalt component library, with RecyclerView-based feed and pin surfaces. Use the UI class and resource shape that owns the behavior being changed. A broadly named activity or container often hosts several unrelated modules.
+The bottom-navigation enum declares five tab types: Create, Home, Notifications, Profile, and Search. The signed-in factory account actually displayed three bottom buttons, Home, Search and Saved, with Create and Inbox in the Home header. Enum membership is not a screenshot of every live navigation configuration. Its 14.39.0 enum is `le0/a` (`de0/a`). The app contains a custom Pinterest Gestalt component library, with RecyclerView-based feed and pin surfaces. Use the UI class and resource shape that owns the behavior being changed. A broadly named activity or container often hosts several unrelated modules.
 
-| Surface | 14.38.0 evidence | Why it is useful |
+| Surface | 14.39.0 evidence | Why it is useful |
 |---|---|---|
-| Feed item lists | `e52.d`, `gu1.l0`, and `bm2.c`; fingerprinted by the `toString()` text `", _items count:"`, `"PagedResponse(bookmark="`, and `"ModelListWithBookmark(models="` | Shared list ingress for feed filtering. The first holder gained a second list constructor in this build. |
-| Pin model | `com.pinterest.api.model.pe` | Read serialized model fields through their JSON annotation names. Obfuscated Java field letters are build-specific. |
-| AI disclosures | Pin field `ai_disclosures`, experiment `scm_gen_ai_label`; enum `ul2.c` uses `1` for AI-modified and `2` for synthetic performer | The labels are typed model data, not a reliable text match. |
-| Image model | `vu2/d1` | `toString()` identifies the image holder; its size choice is a better semantic anchor than an obfuscated field name. |
-| Pin closeup media | `d12/a.a(pe)`, `n42/a`, and size enum `m42/a` | The closeup asks Pinterest for selected image sizes. The API field used here is `orig`; `originals` belongs to another Pinterest request and caused feed failures when substituted. |
-| Bottom navigation | `de0/a`; readable `BottomNavTabModel(type=` text | Find the tab model and its view bindings before changing which buttons appear. |
+| Feed item lists | `t52.d`, `tu1.h0`, and `zm2.b` (`e52.d`, `gu1.l0`, `bm2.c`); fingerprinted by the `toString()` text `", _items count:"`, `"PagedResponse(bookmark="`, and `"ModelListWithBookmark(models="` | Shared list ingress for feed filtering. The first holder has two list constructors, as it did in 14.38.0. |
+| Pin model | `com.pinterest.api.model.oe` (`pe`) | Read serialized model fields through their JSON annotation names. Obfuscated Java field letters are build-specific. |
+| AI disclosures | Pin field `ai_disclosures`, experiment `scm_gen_ai_label`; enum `fs2.c` (`ul2.c`), with `AI_MODIFIED` and `SYNTHETIC_PERFORMER`, uses `1` for AI-modified and `2` for synthetic performer | The labels are typed model data, not a reliable text match. |
+| Image model | `tv2/d1` (`vu2/d1`) | `toString()` identifies the image holder; its size choice is a better semantic anchor than an obfuscated field name. |
+| Pin closeup media | `s12/a.a(oe)`, `c52/a`, and size bucket `b52/a` (`d12/a.a(pe)`, `n42/a`, `m42/a`) | The closeup asks Pinterest for selected image sizes. The API field used here is `orig`; `originals` belongs to another Pinterest request and caused feed failures when substituted. |
+| Bottom navigation | Enum `le0/a` (`de0/a`); readable `BottomNavTabModel(type=` text in `ie0/k` | Find the tab model and its view bindings before changing which buttons appear. |
 | Pin menu | Pinterest's context-menu presenter, layout factory, resource keys, and icon enum | Download and menu filters should extend or suppress the native menu row. The generic menu initializer also serves non-pin objects. |
 | Comments | Two dedicated pin-closeup comments module resource pairs | Anchor to the comments modules, not the whole closeup container or video module. |
 | Analytics requests | Retrofit-style service method annotations for named telemetry paths | The analytics patch finds annotated endpoints and selected launch tasks. Keep auth, feed, messaging, and media requests out of that set. |
-| Profile and About links | Stable `website_link` and `BUSINESS_PROFILE_WEBSITE_LINK` resource names, then a bound `websiteUrlView` listener | Confirms the outbound URL is the website button, not a sign-in or account route. |
+| Profile and About links | The stable `website_link` string and the `BUSINESS_PROFILE_WEBSITE_LINK` element constant, then a bound `websiteUrlView` listener | Confirms the outbound URL is the website button, not a sign-in or account route. |
 
-The image request field names are endpoint-specific. A request field accepted by one Pinterest API is not automatically valid for another. The 14.38.0 feed failed when `originals` was added to its pin request; `orig` is the accepted field for that path. Keep readers tolerant when useful, but verify each request against the real endpoint before changing its requested fields.
+The image request field names are endpoint-specific. A request field accepted by one Pinterest API is not automatically valid for another. In 14.38.0 testing, the feed failed when `originals` was added to its pin request; `orig` is the accepted field for that path. Keep readers tolerant when useful, but verify each request against the real endpoint before changing its requested fields.
 
 ## HushPinterest patch architecture
 
@@ -131,14 +131,14 @@ Most features have two parts:
 
 Manifest-only changes have no runtime switch and remain in the installed APK until it is patched again. Runtime switches and Pause cannot undo manifest edits. `SettingsBackup.ALLOWLIST` is the authority for which settings can be imported or exported; account data, credentials, logs, and signing keys are not settings-backup content.
 
-The 23 source catalog entries are grouped here by the code that owns them:
+The 26 source catalog entries are grouped here by the code that owns them:
 
 | Patch area | Patch names | Main source |
 |---|---|---|
 | Feed and ads | Hide ads; Hide AI-labeled pins; Hide shopping and product pins | `patches/.../ads/`; runtime filters in `extensions/pinterest/.../ads/` |
 | Privacy | Disable analytics; Strip link tracking; Hide advertising ID; Remove ad tracking permissions; Spoof signature for Google sign-in | `patches/.../privacy/`; runtime hooks in `extensions/pinterest/.../privacy/` |
-| Pin actions | Download pins; Open links in your browser; System share sheet | `patches/.../actions/`; runtime transfer and routing under `extensions/pinterest/.../actions/` |
-| Interface | Filter pin menu; Hide comments; Hide header buttons; Hide navigation buttons; Hide save toasts; Hide search history; Hide topic suggestions; No screenshot share menu; Original-quality images; Quiet email reminders; Disable update nag | `patches/.../ui/`; runtime UI controls under `extensions/pinterest/.../ui/` |
+| Pin actions | Download pins; Download board; Long-press download; Open links in your browser; System share sheet | `patches/.../actions/`; runtime transfer and routing under `extensions/pinterest/.../actions/` |
+| Interface | Filter pin menu; Hide comments; Hide header buttons; Hide navigation buttons; Hide save toasts; Hide search history; Hide survey prompts; Hide topic suggestions; No screenshot share menu; Original-quality images; Quiet email reminders; Disable update nag | `patches/.../ui/`; runtime UI controls under `extensions/pinterest/.../ui/` |
 | Settings wiring | HushPinterest settings | `patches/.../misc/settings/` and `extensions/pinterest/.../settings/` |
 
 The inventory is the current `patches-list.json` source catalog. The README is the user-facing feature list. Read the specific patch source and fixture test before relying on a table summary; those files are the implementation authority.
@@ -150,7 +150,7 @@ Use an original Pinterest APK as the baseline. Keep one untouched copy and recor
 From the repository root, Android SDK command-line tools can answer the first questions:
 
 ```powershell
-$apk = '.\fixtures\pinterest-14.38.0-14388010.apk'
+$apk = '.\fixtures\pinterest-14.39.0-14398020.apk'
 apkanalyzer manifest print $apk
 apkanalyzer manifest version-name $apk
 apkanalyzer manifest version-code $apk
@@ -186,7 +186,7 @@ When Pinterest changes version, add and verify the new original fixture before r
 $env:HUSHPINTEREST_FIXTURE_DIR = "$PWD\fixtures"
 ./gradlew :patches:fixtureTest
 ./scripts/verify-all-patches.ps1 `
-    -Apk .\fixtures\pinterest-14.38.0-14388010.apk `
+    -Apk .\fixtures\pinterest-14.39.0-14398020.apk `
     -DesktopJar $env:HUSHPINTEREST_DESKTOP_JAR `
     -WorkDir $env:TEMP
 ```
