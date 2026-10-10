@@ -107,6 +107,7 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_COMMENTS, "Hide comments");
         ROW_TITLES.put(PatchFamily.HIDE_TOPIC_SUGGESTIONS, "Hide topic suggestions");
         ROW_TITLES.put(PatchFamily.QUIET_EMAIL_REMINDER, "Quiet email reminders");
+        ROW_TITLES.put(PatchFamily.HIDE_SURVEY_PROMPTS, "Hide survey prompts");
         ROW_TITLES.put(PatchFamily.HIDE_SAVE_TOASTS, "Hide save toasts");
         ROW_TITLES.put(PatchFamily.ORIGINAL_IMAGES, "Original-quality images");
         ROW_TITLES.put(PatchFamily.DISABLE_UPDATE_NAG, "Disable update nag");

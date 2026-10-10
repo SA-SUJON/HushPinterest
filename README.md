@@ -60,7 +60,7 @@ Setup and backup guide in About is optional. It explains installed patches, runt
 
 ## Patches
 
-There are 25 patches so far.
+There are 26 patches so far.
 
 | Patch | What it does |
 |---|---|
@@ -78,6 +78,7 @@ There are 25 patches so far.
 | `Hide save toasts` | Stops the pop-up Pinterest shows after you save a pin, such as the Saved to your board message or a suggestion to follow the creator. The pin is still saved. Starts off. Turn it on in HushPinterest settings > Interface. |
 | `Hide search history` | Hides your recent searches on the search screen of this phone. It doesn't delete your account's search history. Starts off. Turn it on in HushPinterest settings > Interface. |
 | `Hide shopping and product pins` | Hides shoppable pins, shopping stories and featured boards. Good if you want to browse ideas, not products. Starts off. Turn it on in HushPinterest settings > Feed. |
+| `Hide survey prompts` | Turns down Pinterest's "Got a minute?" survey invite before it pops up, the same way tapping Maybe later does, so the same survey doesn't come back. Advertiser sponsored polls don't pop up either. Starts off. Turn it on in HushPinterest settings > Interface. |
 | `Hide topic suggestions` | Hides the Ideas you might love row of topic bubbles under pins, without leaving a gap. Comments and related pins stay. Starts off. Turn it on in HushPinterest settings > Interface. |
 | `HushPinterest settings` | Adds a HushPinterest page to Pinterest where you turn features on or off, pause HushPinterest, back up your settings and read the licenses. Open it by long-pressing the Pinterest icon. Works as soon as you patch it in, with no switch. |
 | `Long-press download` | Adds a Download button to the round menu you get when you long-press a pin in a grid, so you can save a pin without opening it. Slide onto the button and let go. Needs Download pins on too. Starts off. Turn it on in HushPinterest settings > Pin actions. |

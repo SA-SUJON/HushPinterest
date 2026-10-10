@@ -276,7 +276,7 @@ public class DexDiff {
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 3),
-            Map.entry("longPress", 2), Map.entry("pinInvites", 2));
+            Map.entry("longPress", 2), Map.entry("pinInvites", 2), Map.entry("surveyPrompts", 2));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -4138,6 +4138,207 @@ public class DexDiff {
             return inherited;
         }
 
+        static final String SURVEY_DECLINE = "SURVEY_IN_BROWSER_PROMPT_DECLINE_BUTTON", SURVEY_DECLINE_COUNTER = "%s_%s_%d_%d";
+        static final String ALERT_DISMISS_REASON = "Lcom/pinterest/component/alert/AlertContainer$a;";
+        static final String FUNCTION1 = "Lkotlin/jvm/functions/Function1;";
+        static final String SPONSORED_POLL = "ANDROID_IN_APP_BRAND_SURVEY", POLL_VIEW = "Lcom/pinterest/expressSurvey/view/ExpressSurveyView;";
+
+        /**
+         * Each sponsored poll check in [m] as {arm start, branch target}: a sget-object of the
+         * ANDROID_IN_APP_BRAND_SURVEY constant typed as its own class, a static two-argument check
+         * answering a boolean that takes it second, the move-result and an if-eqz on that answer.
+         */
+        static List<int[]> sponsoredPollArms(Method m) {
+            List<int[]> arms = new ArrayList<>();
+            if (m.getImplementation() == null) return arms;
+            Layout layout = new Layout(m.getImplementation());
+            List<Instruction> body = layout.instructions;
+            for (int k = 0; k + 3 < body.size(); k++) {
+                Instruction read = body.get(k), check = body.get(k + 1), answer = body.get(k + 2), branch = body.get(k + 3);
+                if (read.getOpcode() != Opcode.SGET_OBJECT || !(reference(read) instanceof FieldReference f)
+                        || !f.getName().equals(SPONSORED_POLL) || !f.getType().equals(f.getDefiningClass())) continue;
+                if (check.getOpcode() != Opcode.INVOKE_STATIC || !(reference(check) instanceof MethodReference callee)
+                        || !callee.getReturnType().equals("Z") || callee.getParameterTypes().size() != 2
+                        || !callee.getParameterTypes().get(1).toString().equals(f.getType())
+                        || arguments(check).size() != 2 || arguments(check).get(1) != firstRegister(read)) continue;
+                if (answer.getOpcode() != Opcode.MOVE_RESULT || branch.getOpcode() != Opcode.IF_EQZ
+                        || firstRegister(branch) != firstRegister(answer)) continue;
+                int target = layout.addresses.indexOf(layout.addresses.get(k + 3) + ((OffsetInstruction) branch).getCodeOffset());
+                if (target > k + 4) arms.add(new int[]{k + 4, target});
+            }
+            return arms;
+        }
+
+        /** The survey invite launcher's shape, as the patch finds it: (String, Context, A, ScreenLocation, B, C, Bundle)V on an instance. */
+        static boolean surveyLauncher(Method m) {
+            if (m.getImplementation() == null || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals("V")) return false;
+            List<String> t = m.getParameterTypes().stream().map(Object::toString).toList();
+            return t.size() == 7 && t.get(0).equals("Ljava/lang/String;") && t.get(1).equals("Landroid/content/Context;")
+                    && t.get(3).equals("Lcom/pinterest/framework/screens/ScreenLocation;") && t.get(6).equals("Landroid/os/Bundle;")
+                    && List.of(2, 4, 5).stream().allMatch(k -> t.get(k).startsWith("L") && !t.get(k).startsWith("Ljava/") && !t.get(k).startsWith("Landroid/"));
+        }
+
+        /** An alert's dismiss notifier for [field]: an instance method taking only a dismiss reason that reads the field and invokes it. */
+        static boolean alertNotifier(Method m, FieldReference field) {
+            if (m.getImplementation() == null || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals("V")
+                    || m.getParameterTypes().size() != 1 || !m.getParameterTypes().get(0).toString().equals(ALERT_DISMISS_REASON)) return false;
+            boolean reads = false, invokes = false;
+            for (Instruction i : instructions(m)) {
+                if (i.getOpcode() == Opcode.IGET_OBJECT && String.valueOf(reference(i)).equals(field.toString())) reads = true;
+                if (String.valueOf(reference(i)).equals(FUNCTION1 + "->invoke(Ljava/lang/Object;)Ljava/lang/Object;")) invokes = true;
+            }
+            return reads && invokes;
+        }
+
+        /**
+         * Pinterest's "Got a minute?" survey invite. Its Maybe later handler is the one class whose
+         * methods holding the "%s_%s_%d_%d" counter read SURVEY_IN_BROWSER_PROMPT_DECLINE_BUTTON, an
+         * enum constant typed as its own class, and the one launcher with the patch's shape builds it.
+         * The launcher's one store of a Function1 field whose class has exactly one notifier is the
+         * alert's dismiss listener, built new right above the store, and its invoke reads
+         * CONFIRM_BUTTON_CLICK. The hook goes right after the store, reached only from it: its answer
+         * in a local the clean launcher doesn't read from there on, a branch to the original next
+         * instruction, CANCEL_BUTTON_CLICK in the same local, the notifier with the alert and that
+         * reason, then return-void. Found in the clean target, never from the hook.
+         *
+         * Advertiser sponsored polls: the one launcher caller with a sponsored poll check whose arm
+         * builds a class that builds ExpressSurveyView, and whose skipped part still calls the
+         * launcher. The second hook opens that arm, reached only from the check's if-eqz: its answer
+         * in a local the clean caller doesn't read from there on, a branch to the arm's original
+         * first instruction, then return-void.
+         */
+        void surveyPrompts(Contract c) {
+            String hook = c.strings.get(0), pollHook = c.strings.get(1);
+            Set<String> declines = new TreeSet<>();
+            for (Method m : clean.holding(SURVEY_DECLINE_COUNTER)) for (Instruction i : instructions(m))
+                if (reference(i) instanceof FieldReference f && f.getName().equals(SURVEY_DECLINE) && f.getType().equals(f.getDefiningClass()))
+                    declines.add(m.getDefiningClass());
+            if (declines.size() != 1) fail("the survey Maybe later handler has " + declines.size() + " clean classes, expected 1");
+            List<Method> launchers = new ArrayList<>();
+            for (Method m : clean.methods.values()) if (!m.getDefiningClass().startsWith(OWN) && surveyLauncher(m)) launchers.add(m);
+            Method launcher = unique(launchers, "survey invite launcher");
+            ClassDef reason = clean.classes.get(ALERT_DISMISS_REASON);
+            boolean cancel = false;
+            if (reason != null) for (Field f : reason.getFields()) if (f.getName().equals("CANCEL_BUTTON_CLICK")
+                    && f.getType().equals(ALERT_DISMISS_REASON) && AccessFlags.STATIC.isSet(f.getAccessFlags())) cancel = true;
+            if (!cancel) fail(ALERT_DISMISS_REASON + " has no CANCEL_BUTTON_CLICK in the clean target");
+            boolean placed = false;
+            if (launcher != null && declines.size() == 1 && cancel) {
+                String decline = declines.iterator().next();
+                List<Instruction> was = instructions(launcher);
+                if (was.stream().noneMatch(i -> i.getOpcode() == Opcode.NEW_INSTANCE && String.valueOf(reference(i)).equals(decline)))
+                    fail("the survey invite launcher " + launcher + " no longer builds the Maybe later handler " + decline);
+                List<Integer> stores = new ArrayList<>();
+                List<Method> notifiers = new ArrayList<>();
+                for (int at = 0; at < was.size(); at++) {
+                    if (was.get(at).getOpcode() != Opcode.IPUT_OBJECT || !(reference(was.get(at)) instanceof FieldReference f)
+                            || !f.getType().equals(FUNCTION1) || clean.classes.get(f.getDefiningClass()) == null) continue;
+                    List<Method> own = new ArrayList<>();
+                    for (Method n : clean.classes.get(f.getDefiningClass()).getMethods()) if (alertNotifier(n, f)) own.add(n);
+                    if (own.size() == 1) { stores.add(at); notifiers.add(own.get(0)); }
+                }
+                if (stores.size() != 1) fail("the survey alert's dismiss listener has " + stores.size() + " clean stores, expected 1");
+                else {
+                    int store = stores.get(0);
+                    Method notifier = notifiers.get(0);
+                    TwoRegisterInstruction put = (TwoRegisterInstruction) was.get(store);
+                    Instruction built = store >= 2 ? was.get(store - 2) : null;
+                    String listener = built != null && built.getOpcode() == Opcode.NEW_INSTANCE && firstRegister(built) == put.getRegisterA()
+                            ? String.valueOf(reference(built)) : null;
+                    ClassDef listening = listener == null ? null : clean.classes.get(listener);
+                    boolean confirm = false;
+                    if (listening != null) for (Method n : listening.getMethods()) if (n.getName().equals("invoke") && n.getImplementation() != null)
+                        for (Instruction i : instructions(n)) if (i.getOpcode() == Opcode.SGET_OBJECT
+                                && String.valueOf(reference(i)).equals(ALERT_DISMISS_REASON + "->CONFIRM_BUTTON_CLICK:" + ALERT_DISMISS_REASON)) confirm = true;
+                    boolean confirms = confirm && reference(was.get(store - 1)) instanceof MethodReference ctor
+                            && ctor.getName().equals("<init>") && ctor.getDefiningClass().equals(listener);
+                    int alert = put.getRegisterB();
+                    if (!confirms) fail("the survey alert's dismiss listener in " + launcher + " no longer tells its primary button from the rest");
+                    if (alert > 15) fail("the survey alert is in v" + alert + ", out of reach of a plain invoke in " + launcher);
+                    Method m = actual(launcher);
+                    List<Integer> sites = calls(m, hook, 1);
+                    if (confirms && alert <= 15 && m != null && sites.size() == 1) {
+                        List<Instruction> body = instructions(m);
+                        Layout layout = new Layout(m.getImplementation());
+                        int at = sites.get(0);
+                        int scratch = at + 1 < body.size() ? firstRegister(body.get(at + 1)) : -1;
+                        Instruction branch = at + 2 < body.size() ? body.get(at + 2) : null;
+                        placed = at == store + 1 && at + 6 < body.size() && arguments(body.get(at)).isEmpty()
+                                && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT
+                                && branch.getOpcode() == Opcode.IF_EQZ && firstRegister(branch) == scratch
+                                && layout.addresses.get(at + 2) + ((OffsetInstruction) branch).getCodeOffset() == layout.addresses.get(at + 6)
+                                && body.get(at + 3).getOpcode() == Opcode.SGET_OBJECT && firstRegister(body.get(at + 3)) == scratch
+                                && String.valueOf(reference(body.get(at + 3))).equals(ALERT_DISMISS_REASON + "->CANCEL_BUTTON_CLICK:" + ALERT_DISMISS_REASON)
+                                && body.get(at + 4).getOpcode() == Opcode.INVOKE_VIRTUAL && arguments(body.get(at + 4)).equals(List.of(alert, scratch))
+                                && String.valueOf(reference(body.get(at + 4))).equals(notifier.toString())
+                                && body.get(at + 5).getOpcode() == Opcode.RETURN_VOID
+                                && scratch >= 0 && scratch <= 15 && scratch != alert && scratch < parameter(m, -1)
+                                && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 6, at + 2);
+                        if (!placed) fail(hook + " is not the survey alert's Maybe later dismissal right after its dismiss listener in " + m);
+                        else if (!unread(new FeatureFlow(launcher), was, store + 1, scratch)) {
+                            fail(hook + " borrows v" + scratch + " in " + m + ", which the launcher still reads after its dismiss listener");
+                            placed = false;
+                        }
+                        remove(m, at, at + 6);
+                    }
+                }
+            }
+            boolean pollPlaced = false;
+            if (launcher != null) {
+                String launch = launcher.toString();
+                List<Method> runners = new ArrayList<>();
+                List<int[]> arms = new ArrayList<>();
+                for (Map.Entry<String, Method> entry : clean.methods.entrySet()) {
+                    Method m = entry.getValue();
+                    if (entry.getKey().equals(launch) || m.getDefiningClass().startsWith(OWN)) continue;
+                    boolean reads = false;
+                    for (Instruction i : instructions(m)) if (i.getOpcode() == Opcode.SGET_OBJECT
+                            && reference(i) instanceof FieldReference f && f.getName().equals(SPONSORED_POLL)) { reads = true; break; }
+                    if (!reads || callSites(instructions(m), launch).isEmpty()) continue;
+                    for (int[] arm : sponsoredPollArms(m)) { runners.add(m); arms.add(arm); }
+                }
+                Method runner = unique(runners, "advertiser sponsored poll check");
+                if (runner != null) {
+                    int start = arms.get(0)[0], target = arms.get(0)[1];
+                    List<Instruction> was = instructions(runner);
+                    boolean opens = false;
+                    for (int k = start; k < target; k++) if (was.get(k).getOpcode() == Opcode.NEW_INSTANCE) {
+                        ClassDef modal = clean.classes.get(String.valueOf(reference(was.get(k))));
+                        if (modal != null) for (Method n : modal.getMethods()) for (Instruction i : instructions(n))
+                            if (i.getOpcode() == Opcode.NEW_INSTANCE && String.valueOf(reference(i)).equals(POLL_VIEW)) opens = true;
+                    }
+                    boolean passes = !callSites(was.subList(target, was.size()), launch).isEmpty();
+                    boolean returnsNothing = runner.getReturnType().equals("V");
+                    if (!opens) fail("the sponsored poll check in " + runner + " no longer opens the poll's own pop-up");
+                    if (!passes) fail("the sponsored poll check in " + runner + " no longer leaves other surveys to the invite launcher");
+                    if (!returnsNothing) fail("the sponsored poll check is in " + runner + ", which answers a value");
+                    Method m = actual(runner);
+                    List<Integer> sites = calls(m, pollHook, 1);
+                    if (opens && passes && returnsNothing && m != null && sites.size() == 1) {
+                        List<Instruction> body = instructions(m);
+                        Layout layout = new Layout(m.getImplementation());
+                        int at = sites.get(0);
+                        int scratch = at + 1 < body.size() ? firstRegister(body.get(at + 1)) : -1;
+                        Instruction branch = at + 2 < body.size() ? body.get(at + 2) : null;
+                        pollPlaced = at == start && at + 4 < body.size() && arguments(body.get(at)).isEmpty()
+                                && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT
+                                && branch.getOpcode() == Opcode.IF_EQZ && firstRegister(branch) == scratch
+                                && layout.addresses.get(at + 2) + ((OffsetInstruction) branch).getCodeOffset() == layout.addresses.get(at + 4)
+                                && body.get(at + 3).getOpcode() == Opcode.RETURN_VOID
+                                && scratch >= 0 && scratch < parameter(m, -1)
+                                && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 4, at + 2);
+                        if (!pollPlaced) fail(pollHook + " doesn't open the sponsored poll arm of " + m);
+                        else if (!unread(new FeatureFlow(runner), was, start, scratch)) {
+                            fail(pollHook + " borrows v" + scratch + " in " + m + ", which the sponsored poll arm still reads");
+                            pollPlaced = false;
+                        }
+                        remove(m, at, at + 4);
+                    }
+                }
+            }
+            capability(c.callee, placed && pollPlaced);
+        }
+
         /** Getter and hook pairs: each value a getter returns goes through its hook first, in the same register. */
         void answers(Contract c) {
             Set<Opcode> exits = Set.of(Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_WIDE, Opcode.RETURN_VOID);
@@ -4385,6 +4586,7 @@ public class DexDiff {
                     case "topicSuggestions": topicSuggestions(c); break;
                     case "boardMenu": boardMenu(c); break;
                     case "pinInvites": pinInvites(c); break;
+                    case "surveyPrompts": surveyPrompts(c); break;
                     case "settings": settings(c); break;
                     default: fail("unknown mutation kind " + c.target);
                 }

@@ -46,6 +46,7 @@ public final class FamilyNames {
     public static final String HIDE_COMMENTS = "Hide comments";
     public static final String HIDE_TOPIC_SUGGESTIONS = "Hide topic suggestions";
     public static final String QUIET_EMAIL_REMINDER = "Quiet email reminders";
+    public static final String HIDE_SURVEY_PROMPTS = "Hide survey prompts";
     public static final String HIDE_SAVE_TOASTS = "Hide save toasts";
     public static final String ORIGINAL_IMAGES = "Original-quality images";
     public static final String DISABLE_UPDATE_NAG = "Disable update nag";

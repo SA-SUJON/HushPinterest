@@ -202,6 +202,7 @@ Hide Promote pin menu item	Pin tanıt menü öğesini gizle
 Hide comments	Yorumları gizle
 Hide topic suggestions	Konu önerilerini gizle
 Quiet email reminders	E-posta hatırlatmalarını sustur
+Hide survey prompts	Anket davetlerini gizle
 Disable update nag	Güncelleme uyarısını kapat
 Download pin	Pini indir
 Share pin	Pini paylaş
@@ -334,6 +335,7 @@ Hides Promote pin in pin menus you open from now on. A menu that's already open 
 Hides comments and comment previews under pins. It doesn't change who can comment. The change shows the next time the screen updates.	Pinlerin altındaki yorumları ve yorum önizlemelerini gizler. Kimin yorum yapabileceğini değiştirmez. Değişiklik ekran bir sonraki güncellenişinde görünür.
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Pinlerin altındaki konu baloncuklarından oluşan "Sevebileceğin fikirler" satırını, Pinterest onu bir sonraki gösterdiğinde gizler. Yorumlar ve ilgili Pinler yerinde kalır.
 Dismisses the optional reminder to confirm your email. A reminder that's already open stays. Account checks and sign-in still work as usual.	E-postanı doğrulamanı isteyen isteğe bağlı hatırlatmayı kapatır. Zaten açık olan hatırlatma kalır. Hesap kontrolleri ve giriş her zamanki gibi çalışır.
+Turns down Pinterest's "Got a minute?" survey invite before it pops up, the way Maybe later does, so that survey doesn't come back. Advertiser sponsored polls don't pop up either. An invite that's already open stays.	Pinterest'in "Bir dakikan var mı?" anket davetini, "Belki daha sonra" gibi, görünmeden önce reddeder, böylece o anket geri gelmez. Reklamverenlerin sponsorlu anketleri de açılmaz. Zaten açık olan bir davet kalır.
 Hide save toasts	Kaydetme bildirimlerini gizle
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Bir Pin kaydettiğinde artık panona "Kaydedildi" uyarısı ya da oluşturan kişiyi takip etme önerisi çıkmaz. Pin yine kaydedilir.
 Original-quality images	Orijinal kalitede görseller

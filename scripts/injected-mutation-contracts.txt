@@ -51,6 +51,7 @@ family|hidePinMenuItems|Filter pin menu|pinMenuItems
 family|hideComments|Hide comments|comments
 family|hideTopicSuggestions|Hide topic suggestions|topicSuggestions
 family|quietEmailReminder|Quiet email reminders|emailReminder
+family|hideSurveyPrompts|Hide survey prompts|surveyPrompts
 family|hideSaveToasts|Hide save toasts|saveToasts
 family|originalImages|Original-quality images|imageChooser,closeupImage
 family|disableUpdateNag|Disable update nag|updateNag
@@ -76,6 +77,7 @@ mutation|pinMenuItems|menu|Lapp/hushpinterest/extension/pinterest/ui/InterfaceCo
 mutation|comments|comments|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsMeasureSpec(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsVisible(Z)Z|Lcom/pinterest/activity/pin/view/unifiedcomments/CommentPreviewView;|Lcom/pinterest/activity/pin/view/modules/PinCloseupBaseModule;
 mutation|topicSuggestions|topicSuggestions|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->topicSuggestions(Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->topicSuggestionsMeasureSpec(Landroid/view/View;I)I
 mutation|emailReminder|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->quietEmailReminder()Z|email
+mutation|surveyPrompts|surveyPrompts|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideSurveyPrompts()Z|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideSponsoredPolls()Z
 mutation|saveToasts|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideSaveToast(Ljava/lang/Object;)Z|saveToast
 mutation|imageChooser|imageOrder|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->originalImages()Z
 mutation|closeupImage|closeupImage|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->imageSizes(Ljava/util/Set;)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->closeupImage(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;

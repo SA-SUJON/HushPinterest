@@ -533,6 +533,8 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_COMMENTS.key, "comments and comment previews under pins", "next time the screen updates", "doesn't change who can comment");
         summaryContains(Settings.HIDE_TOPIC_SUGGESTIONS.key, "\"Ideas you might love\" row of topic bubbles under pins", "next time Pinterest shows it", "Comments and related pins stay");
         summaryContains(Settings.QUIET_EMAIL_REMINDER.key, "optional reminder to confirm your email", "already open stays", "sign-in still work as usual");
+        summaryContains(Settings.HIDE_SURVEY_PROMPTS.key, "\"Got a minute?\" survey invite", "the way Maybe later does",
+                "sponsored polls don't pop up", "already open stays");
     }
 
     @Test public void aliasesKeepAccentMatchingGroupingAndTheSpokenResultCount() {

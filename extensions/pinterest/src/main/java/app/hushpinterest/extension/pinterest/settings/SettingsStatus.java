@@ -76,6 +76,8 @@ public final class SettingsStatus {
     public static boolean topicSuggestions() { return false; }
     public static boolean quietEmailReminder() { return false; }
     public static boolean emailReminder() { return false; }
+    public static boolean hideSurveyPrompts() { return false; }
+    public static boolean surveyPrompts() { return false; }
     public static boolean hideSaveToasts() { return false; }
     public static boolean saveToasts() { return false; }
     public static boolean originalImages() { return false; }

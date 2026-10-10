@@ -90,8 +90,8 @@ public final class SettingsBackup {
             Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SEARCH_HISTORY,
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST,
-            Settings.HIDE_COMMENTS, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES,
-            Settings.DISABLE_UPDATE_NAG));
+            Settings.HIDE_COMMENTS, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SURVEY_PROMPTS,
+            Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.DISABLE_UPDATE_NAG));
 
     /**
      * Bounds for the parser, well past anything this class writes, so a file built to be

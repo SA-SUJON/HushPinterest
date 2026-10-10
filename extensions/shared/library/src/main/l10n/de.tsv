@@ -202,6 +202,7 @@ Hide Promote pin menu item	Pin bewerben ausblenden
 Hide comments	Kommentare ausblenden
 Hide topic suggestions	Themenvorschläge ausblenden
 Quiet email reminders	E-Mail-Erinnerungen ausblenden
+Hide survey prompts	Umfrage-Einladungen ausblenden
 Disable update nag	Update-Aufforderung ausblenden
 Download pin	Pin herunterladen
 Share pin	Pin teilen
@@ -334,6 +335,7 @@ Hides Promote pin in pin menus you open from now on. A menu that's already open 
 Hides comments and comment previews under pins. It doesn't change who can comment. The change shows the next time the screen updates.	Blendet Kommentare und Kommentarvorschauen unter Pins aus. Wer kommentieren darf, ändert sich nicht. Die Änderung zeigt sich, wenn sich der Bildschirm das nächste Mal aktualisiert.
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Blendet die Zeile „Ideen, die dir gefallen könnten“ mit Themenblasen unter Pins aus, sobald Pinterest sie das nächste Mal anzeigt. Kommentare und ähnliche Pins bleiben.
 Dismisses the optional reminder to confirm your email. A reminder that's already open stays. Account checks and sign-in still work as usual.	Schließt die optionale Erinnerung, deine E-Mail zu bestätigen. Eine bereits offene Erinnerung bleibt. Kontoprüfungen und Anmeldung funktionieren wie gewohnt.
+Turns down Pinterest's "Got a minute?" survey invite before it pops up, the way Maybe later does, so that survey doesn't come back. Advertiser sponsored polls don't pop up either. An invite that's already open stays.	Lehnt Pinterests Umfrage-Einladung „Hast du eine Minute?“ ab, bevor sie erscheint, so wie „Vielleicht später“, damit diese Umfrage nicht wiederkommt. Gesponserte Umfragen von Werbetreibenden erscheinen auch nicht. Eine Einladung, die schon offen ist, bleibt.
 Hide save toasts	Merken-Hinweise ausblenden
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Beim Merken eines Pins erscheint kein „Gemerkt auf“-Hinweis zu deiner Pinnwand und kein Vorschlag mehr, der Person zu folgen. Der Pin wird trotzdem gemerkt.
 Original-quality images	Bilder in Originalqualität

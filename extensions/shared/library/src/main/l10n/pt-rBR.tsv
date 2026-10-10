@@ -199,6 +199,7 @@ Hide Promote pin menu item	Ocultar opção Promover Pin
 Hide comments	Ocultar comentários
 Hide topic suggestions	Ocultar sugestões de temas
 Quiet email reminders	Ocultar lembretes de e-mail
+Hide survey prompts	Ocultar convites de pesquisa
 Disable update nag	Ocultar aviso de atualização
 Download pin	Baixar Pin
 Share pin	Compartilhar Pin
@@ -331,6 +332,7 @@ Hides Promote pin in pin menus you open from now on. A menu that's already open 
 Hides comments and comment previews under pins. It doesn't change who can comment. The change shows the next time the screen updates.	Oculta os comentários e as prévias de comentários sob os pins. Não muda quem pode comentar. A mudança aparece na próxima vez que a tela for atualizada.
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Oculta a linha "Ideias que você pode amar" com bolhas de temas abaixo dos Pins na próxima vez que o Pinterest a mostrar. Os comentários e os Pins relacionados continuam.
 Dismisses the optional reminder to confirm your email. A reminder that's already open stays. Account checks and sign-in still work as usual.	Dispensa o lembrete opcional para confirmar seu e-mail. Um lembrete já aberto continua. As verificações da conta e o login funcionam como de costume.
+Turns down Pinterest's "Got a minute?" survey invite before it pops up, the way Maybe later does, so that survey doesn't come back. Advertiser sponsored polls don't pop up either. An invite that's already open stays.	Recusa o convite de pesquisa "Tem um minuto?" do Pinterest antes que ele apareça, como faz o "Talvez mais tarde", para que essa pesquisa não volte. Enquetes patrocinadas por anunciantes também não aparecem. Um convite que já está aberto continua.
 Hide save toasts	Ocultar avisos ao salvar
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Salvar um Pin não mostra mais "Salvo em" sua pasta nem a sugestão de seguir quem o criou. O Pin continua salvo.
 Original-quality images	Imagens em qualidade original

@@ -366,6 +366,11 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Quiet email reminders"),
                     L10n.t("Dismisses the optional reminder to confirm your email. A reminder that's already open "
                         + "stays. Account checks and sign-in still work as usual."), SettingsIcons.BELL);
+            patchToggle(ui, context, build, PatchFamily.HIDE_SURVEY_PROMPTS, Settings.HIDE_SURVEY_PROMPTS,
+                    L10n.t("Hide survey prompts"),
+                    L10n.t("Turns down Pinterest's \"Got a minute?\" survey invite before it pops up, the way Maybe later "
+                        + "does, so that survey doesn't come back. Advertiser sponsored polls don't pop up either. An "
+                        + "invite that's already open stays."), SettingsIcons.BELL);
             patchToggle(ui, context, build, PatchFamily.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS,
                     L10n.t("Hide save toasts"),
                     L10n.t("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved."), SettingsIcons.BELL);
