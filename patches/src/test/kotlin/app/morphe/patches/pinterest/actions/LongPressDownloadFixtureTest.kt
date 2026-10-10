@@ -8,6 +8,7 @@ package app.morphe.patches.pinterest.actions
 
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -28,6 +29,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import java.io.File
 
 /**
@@ -35,6 +37,7 @@ import java.io.File
  * class any of the patch's whole-APK rules could pick is loaded, so a target the patch finds once
  * here is the only one in the APK.
  */
+@Category(FixtureTests::class)
 class LongPressDownloadFixtureTest {
     @Test
     fun `the show hook and every stub resolve once and point at real members in each declared build`() {

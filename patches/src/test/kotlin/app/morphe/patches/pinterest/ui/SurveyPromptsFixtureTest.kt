@@ -8,6 +8,7 @@ package app.morphe.patches.pinterest.ui
 
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -39,12 +40,14 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 /**
  * Pinterest's survey invite launcher, its Maybe later handler, the alert, the alert's dismiss
  * reasons and the listeners it stores, plus the launcher's caller that opens sponsored polls and
  * the classes it builds, in each declared APK.
  */
+@Category(FixtureTests::class)
 class SurveyPromptsFixtureTest {
     private class Build(val name: String, val owner: ClassDef, val decline: ClassDef, val runner: ClassDef, val others: List<ClassDef>) {
         val classes get() = listOf(owner, decline, runner) + others

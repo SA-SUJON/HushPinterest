@@ -8,6 +8,7 @@ package app.morphe.patches.pinterest.privacy
 
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -41,6 +42,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import java.io.File
 
 /**
@@ -49,6 +51,7 @@ import java.io.File
  * direct share the patch finds once here is the only one in the APK, along with every class making
  * an outgoing link call, so Strip link tracking runs as it does on a phone.
  */
+@Category(FixtureTests::class)
 class PlainPinLinksFixtureTest {
     @Test
     fun `both hooks resolve once in each declared build, in front of the log event and the app start`() {
