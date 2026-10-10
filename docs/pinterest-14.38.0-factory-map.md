@@ -183,6 +183,8 @@ When Pinterest changes version, add and verify the new original fixture before r
 
 ```powershell
 ./gradlew :patches:test :extensions:pinterest:testDebugUnitTest :extensions:pinterest:lintDebug
+$env:HUSHPINTEREST_FIXTURE_DIR = "$PWD\fixtures"
+./gradlew :patches:fixtureTest
 ./scripts/verify-all-patches.ps1 `
     -Apk .\fixtures\pinterest-14.38.0-14388010.apk `
     -DesktopJar $env:HUSHPINTEREST_DESKTOP_JAR `

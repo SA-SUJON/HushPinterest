@@ -8,6 +8,8 @@ Every HushPinterest release, newest first.
 
 * **Tooling:** The heavy desktop jobs now wait for a slot in the machine's build queue when `BUILD_QUEUE_SCRIPT` names one: CLI patch runs, split bundle merges, the resource table check, the dex and host reference checks and fingerprint ranking. They show up in the queue's status and no longer start beside two Gradle builds. A release receipt asks for release priority. The push hook reads `BUILD_QUEUE_SCRIPT` from the user environment too, and without a build wrapper its Gradle run waits for a slot as well.
 
+* **Tooling:** The patch tests that open the Pinterest APKs now run in their own Gradle task, `:patches:fixtureTest`, and `:patches:test` refuses any test that tries to read one. Each APK is unzipped once per run instead of once per test, and its decoded manifest is kept the same way. The push check runs the fixture task after the quick checks, and the task fails when it runs no tests, or when it skips one while the fixtures are required.
+
 * **Tooling:** Updated four runtime checks to match the current setup, link and download messages.
 
 * **Tooling:** A release now ends with `scripts/verify-published-index.ps1`. It asks GitHub for the latest release and for the patches-bundle.json that main serves, and fails when they disagree, naming any index commit that never got pushed. For most of October 7, v0.0.5 was out while the index still said 0.0.4, so Morphe Manager didn't offer the update to anyone on 0.0.4. Refs #3

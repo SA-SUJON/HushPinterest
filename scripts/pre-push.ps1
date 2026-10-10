@@ -790,12 +790,16 @@ try {
         # guards with it, so a call that is properly guarded stays quiet.
         # The patch module has tests of its own, on the register helpers and the anchors, and
         # nothing before a push ran them: they only ran on the way to generatePatchesList.
+        # The ones that open the vendor APKs are :patches:fixtureTest, which goes last: Gradle stops
+        # at the first failure, so a quick check that fails costs seconds, not a fixture run. The
+        # task itself refuses a run with no tests, or a skip while the fixtures are required.
         $tasks = @(':patches:buildDependencyReport')
         if ($touchesCode) { $tasks += @(
             ':extensions:pinterest:test',
             ':patches:test',
             ':extensions:shared:library:lint',
-            ':extensions:pinterest:lint'
+            ':extensions:pinterest:lint',
+            ':patches:fixtureTest'
         ) }
         # HUSHPINTEREST_BUILD_WRAPPER names a PowerShell script that runs Gradle on this machine,
         # called as <wrapper> -ProjectDir <repository> -Tasks <task>...: a machine that shares its

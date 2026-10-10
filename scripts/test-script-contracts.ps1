@@ -2055,6 +2055,8 @@ try {
     # The test counts the description quotes, which only the strict path reads: a release, or the
     # push that rewrites the index. The copied tree holds no test results, so each folder gets a
     # suite of exactly as many tests as the copied description names, and one fact moves per case.
+    # The patch count is two folders together, :patches:test's and :patches:fixtureTest's: one
+    # fixture test, and the rest in the quick task.
     $factsDescription = [string](Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw |
         ConvertFrom-Json).description
     $runtimeQuoted = [int]([regex]::Match($factsDescription, '\b(\d+) runtime tests passed\b').Groups[1].Value)
@@ -2077,20 +2079,33 @@ try {
     function Invoke-StrictFacts { & $factsScript -Root $factsRoot -SkipUrlCheck 6> $null }
     $runtimeResults = 'extensions/pinterest/build/test-results/testDebugUnitTest'
     $patchResults = 'patches/build/test-results/test'
+    $fixtureResults = 'patches/build/test-results/fixtureTest'
+    Assert-True ($patchQuoted -gt 2) "The copied description quotes too few patch tests to split between the tasks: $patchQuoted"
     try {
         Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
         Invoke-StrictFacts
         Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
             'The strict release check refused test results that match the description.'
 
         # A fixture test that skipped, which Gradle reports as a pass.
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted -Skipped 1
+        Write-FactsResults $fixtureResults 'FixtureTest' 1 -Skipped 1
         Assert-Throws { Invoke-StrictFacts } '*skipped 1 test*' `
             'A release was checked against patch test results with a skipped fixture test.'
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
+
+        # The quick task's results alone, as a run of :patches:test without :patches:fixtureTest
+        # leaves them. Their count can even match: here the quick folder holds every test.
+        Remove-Item -LiteralPath (Join-Path $factsRoot $fixtureResults) -Recurse -Force
+        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Assert-Throws { Invoke-StrictFacts } '*No patch test results*fixtureTest*:patches:fixtureTest*' `
+            'A release was checked with no results from the tests that open the vendor APKs.'
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
 
         # A count the run doesn't have, which is how "All 269 patch tests passed" was written.
-        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted + 1)
+        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
         Assert-Throws { Invoke-StrictFacts } '*patch test count*' `
             'A description quoting a patch test count the run does not have was accepted.'
 
@@ -2099,7 +2114,8 @@ try {
         # were counted as passing. The sources go in first so the results are the newer files.
         $runtimeSource = Join-Path $factsRoot 'extensions/pinterest/src/test/java/fixture/RuntimeTest.java'
         $patchSource = Join-Path $factsRoot 'patches/src/test/kotlin/fixture/PatchTest.kt'
-        foreach ($source in @($runtimeSource, $patchSource)) {
+        $fixtureSource = Join-Path $factsRoot 'patches/src/test/kotlin/fixture/FixtureTest.kt'
+        foreach ($source in @($runtimeSource, $patchSource, $fixtureSource)) {
             New-Item -ItemType Directory -Path (Split-Path -Parent $source) -Force | Out-Null
             Set-Content -LiteralPath $source -Value '' -Encoding ASCII
         }
@@ -2108,19 +2124,34 @@ try {
                 "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$Suite`" tests=`"1`" " +
                 "skipped=`"0`" failures=`"0`" errors=`"0`"><testcase name=`"t1`" classname=`"fixture.$Suite`"/></testsuite>")
         }
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
         Write-FactsResults $runtimeResults 'RuntimeTest' ($runtimeQuoted - 1)
         Add-OrphanResult $runtimeResults 'GoneTest'
         Assert-Throws { Invoke-StrictFacts } '*runtime test results include 1 test class*GoneTest*' `
             'The runtime results of a deleted test class were counted.'
         Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
-        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 2)
         Add-OrphanResult $patchResults 'GonePatchTest'
         Assert-Throws { Invoke-StrictFacts } '*patch test results include 1 test class*GonePatchTest*' `
             'The patch results of a deleted test class were counted.'
+        # The same orphan left in the fixture task's folder.
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 2)
+        Add-OrphanResult $fixtureResults 'GonePatchTest'
+        Assert-Throws { Invoke-StrictFacts } '*patch test results include 1 test class*GonePatchTest*' `
+            'The fixture results of a deleted test class were counted.'
+        # A class with one fixture test among quick ones has results in both folders, and that is
+        # one class with all its tests counted, not an orphan.
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 2)
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
+        Add-OrphanResult $fixtureResults 'PatchTest'
+        Invoke-StrictFacts
+        Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
+            'The strict release check refused a test class whose tests ran in both patch test tasks.'
         # The control: the same sources with no orphan pass.
         Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
         Invoke-StrictFacts
         Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
             'The strict release check refused results that match their sources and the description.'
@@ -2949,6 +2980,9 @@ try {
         $wrapped = Get-Content -LiteralPath $wrapperMarker -Raw
         Assert-True ($wrapped -like "dir=$hookRoot tasks=*:extensions:pinterest:test*:patches:test*") `
             "The build wrapper was not handed the repository and the test tasks: $wrapped"
+        # The tests that open the vendor APKs come last, after the quick tests and the lint.
+        Assert-True ($wrapped.Trim() -like "dir=$hookRoot tasks=*,:patches:test,*:extensions:pinterest:lint,:patches:fixtureTest") `
+            "The build wrapper was not handed :patches:fixtureTest after the quick checks: $wrapped"
 
         # The Gradle file that writes the release bundle. The contract tests hold it to the
         # directory common.ps1 reads the bundle from, and a push that moved only it ran the build
@@ -5411,16 +5445,20 @@ try {
             Assert-True ($now -eq (@($Builds | Sort-Object) -join ', ')) "The $Case changed patches/build/release: $now"
         }
         Copy-Item -LiteralPath $PSScriptRoot -Destination (Join-Path $releaseRepo 'scripts') -Recurse
+        # The patch count is :patches:test's folder and :patches:fixtureTest's together: one fixture
+        # test, and the rest in the quick task.
         foreach ($results in @(
-                @{ Folder = 'extensions/pinterest/build/test-results/testDebugUnitTest'; Suite = 'RuntimeTest'; Quote = '\b(\d+) runtime tests passed\b' },
-                @{ Folder = 'patches/build/test-results/test'; Suite = 'PatchTest'; Quote = '\b(\d+) patch tests passed\b' })) {
+                @{ Folder = 'extensions/pinterest/build/test-results/testDebugUnitTest'; Suite = 'RuntimeTest'; Quote = '\b(\d+) runtime tests passed\b'; Less = 0 },
+                @{ Folder = 'patches/build/test-results/test'; Suite = 'PatchTest'; Quote = '\b(\d+) patch tests passed\b'; Less = 1 },
+                @{ Folder = 'patches/build/test-results/fixtureTest'; Suite = 'FixtureTest'; Quote = '\b(\d+) patch tests passed\b'; Only = 1 })) {
             $quoted = [regex]::Match($releaseDescription, $results.Quote).Groups[1].Value
-            Assert-True ($quoted -match '^[1-9]\d*$') "The copied description quotes no $($results.Suite) count: $releaseDescription"
+            Assert-True ($quoted -match '^[1-9]\d*$' -and [int]$quoted -gt 1) "The copied description quotes no $($results.Suite) count: $releaseDescription"
+            $resultCount = if ($results.Only) { $results.Only } else { [int]$quoted - $results.Less }
             $directory = Join-Path $releaseRepo $results.Folder
             New-Item -ItemType Directory -Path $directory -Force | Out-Null
-            $cases = (1..[int]$quoted | ForEach-Object { "<testcase name=`"t$_`" classname=`"fixture.$($results.Suite)`"/>" }) -join ''
+            $cases = (1..$resultCount | ForEach-Object { "<testcase name=`"t$_`" classname=`"fixture.$($results.Suite)`"/>" }) -join ''
             Set-Content -LiteralPath (Join-Path $directory "TEST-fixture.$($results.Suite).xml") -Encoding UTF8 -Value (
-                "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$($results.Suite)`" tests=`"$quoted`" " +
+                "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$($results.Suite)`" tests=`"$resultCount`" " +
                 "skipped=`"0`" failures=`"0`" errors=`"0`">$cases</testsuite>")
         }
         New-Item -ItemType Directory -Path $hookTemp, (Split-Path -Parent $parkedBundle) -Force | Out-Null
@@ -5691,6 +5729,25 @@ Assert-True ($gradleFile -match 'val releaseBundleName = "patches-\$\{project\.v
 Assert-True ($gradleFile -match 'commandLine\("git", "--no-optional-locks", "status", "--porcelain"\)' -and
     $gradleFile -match '(?s)val sourceDateEpoch: Long = run \{.*?if \(uncommittedChanges\?\.isEmpty\(\) != true\) return@run 0L.*?"log", "-1", "--format=%ct"') `
     'patches/build.gradle.kts stamps the bundle with the commit time without asking git whether the tree has uncommitted changes.'
+# :patches:test leaves the vendor APKs to :patches:fixtureTest. Both tasks name the one category,
+# the quick task refuses a fixture read, and every test source that opens a fixture carries it.
+Assert-True ($gradleFile -match 'val fixtureCategory = "app\.morphe\.FixtureTests"' -and
+    $gradleFile -match 'excludeCategories\(fixtureCategory\)' -and
+    $gradleFile -match 'systemProperty\("hushpinterest\.fixtures", "refuse"\)' -and
+    $gradleFile -match '(?s)register<Test>\("fixtureTest"\).*?includeCategories\(fixtureCategory\).*?maxParallelForks = 1') `
+    'patches/build.gradle.kts no longer splits the fixture tests into :patches:fixtureTest.'
+$fixturesSource = [IO.File]::ReadAllText((Join-Path $Root 'patches/src/test/kotlin/app/morphe/Fixtures.kt'))
+Assert-True ($fixturesSource -match '(?m)^interface FixtureTests\b' -and
+    $fixturesSource -match 'const val TASK_PROPERTY = "hushpinterest\.fixtures"') `
+    'Fixtures.kt no longer declares the FixtureTests category or the property :patches:test refuses fixtures by.'
+$uncategorized = @(Get-ChildItem -LiteralPath (Join-Path $Root 'patches/src/test/kotlin') -Recurse -Filter '*.kt' -File |
+    Where-Object { $_.Name -notin @('Fixtures.kt', 'FixtureDex.kt') } |
+    Where-Object {
+        $text = [IO.File]::ReadAllText($_.FullName)
+        $text -match '\bFixtures\.\w+\s*[({]' -and $text -notmatch '@Category\(FixtureTests::class\)'
+    } | ForEach-Object { $_.Name })
+Assert-True ($uncategorized.Count -eq 0) `
+    "Test sources open the vendor APKs without the FixtureTests category: $($uncategorized -join ', ')"
 
 # Code only: a comment may say where the bundle used to be read from.
 $libsReaders = New-Object System.Collections.Generic.List[string]

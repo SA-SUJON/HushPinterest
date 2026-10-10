@@ -14,6 +14,7 @@
  */
 package app.morphe.patches.shared.compat
 
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import com.android.apksig.ApkVerifier
 import com.android.apksig.apk.ApkUtils
@@ -23,6 +24,7 @@ import java.security.MessageDigest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 /**
  * The signing certificate and version code the bundle declares have to be the ones on Pinterest's
@@ -33,6 +35,7 @@ import org.junit.Test
  * Pinterest ships as one universal APK, not a split bundle, so a fixture here is read directly:
  * nothing to unzip a base APK out of first.
  */
+@Category(FixtureTests::class)
 class AppCompatibilitiesMatchFixturesTest {
 
     @Test

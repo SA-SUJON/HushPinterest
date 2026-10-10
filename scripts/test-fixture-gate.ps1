@@ -125,6 +125,12 @@ try {
     $ran = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
     Assert-True ($ran.Required -eq '1' -and $ran.FixtureDir -eq $fixtures) 'The build did not receive strict fixture mode and an absolute fixture directory.'
     Assert-True (@($ran.Tasks) -contains ':patches:test' -and @($ran.Tasks) -contains ':extensions:pinterest:lint') 'The fixture gate dropped existing Gradle checks.'
+    # The APK tests are a task of their own and run after every quick check, so a quick failure
+    # stops the build before any fixture is opened.
+    $ranTasks = @($ran.Tasks)
+    Assert-True ($ranTasks.Count -gt 1 -and $ranTasks[-1] -eq ':patches:fixtureTest' -and
+        @($ranTasks | Where-Object { $_ -eq ':patches:fixtureTest' }).Count -eq 1) `
+        "The fixture gate did not run :patches:fixtureTest once, after the quick checks: $($ranTasks -join ', ')"
     Assert-True ($env:HUSHPINTEREST_REQUIRE_FIXTURES -eq 'prior-value') 'A successful gate did not restore the strict fixture environment.'
     $cases++
 
