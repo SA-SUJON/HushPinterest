@@ -15,7 +15,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
+import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 
 /**
@@ -87,7 +89,57 @@ final class ModuleItems {
                 HookStatus.threw(owner, "module filter", t);
             }
         }
+        String gone = emptied;
+        Logger.printDebug(() -> describe(module) + (gone != null ? ", left empty" : ""));
         return emptied;
+    }
+
+    /** Commercial-sounding JSON names, for the Debug logging line only. */
+    private static final Pattern COMMERCIAL = Pattern.compile("promot|sponsor|campaign|advertis|^ad_|_ad$|_ads?_|shop|merchant|affiliate");
+
+    /**
+     * [module]'s story type and each list it carries after filtering: its size, and for each model
+     * kept, its class and the commercial fields it has set. Built only with Debug logging on, so a bug
+     * report about an ad that got through says what the module held (#6).
+     */
+    static String describe(Object module) {
+        StringBuilder line = new StringBuilder("Module ");
+        line.append(ModelFields.read(ModelFields.of(module.getClass()), module, Ads.STORY_TYPE));
+        for (Field field : lists(module.getClass())) {
+            Object value;
+            try {
+                value = field.get(module);
+            } catch (IllegalAccessException | RuntimeException unreadable) {
+                continue;
+            }
+            if (!(value instanceof List) || ((List<?>) value).isEmpty()) continue;
+            List<?> entries = (List<?>) value;
+            line.append("; ").append(field.getName()).append(' ').append(entries.size()).append(':');
+            int shown = 0;
+            for (Object entry : entries) {
+                Object model = model(entry);
+                if (model == null) continue;
+                if (shown++ == 8) {
+                    line.append(" ...");
+                    break;
+                }
+                line.append(' ').append(model.getClass().getSimpleName()).append(markers(model));
+            }
+        }
+        return line.toString();
+    }
+
+    /** The commercial fields [model] has set, as {@code [name=value,...]}, or nothing. */
+    private static String markers(Object model) {
+        StringBuilder set = new StringBuilder();
+        for (Map.Entry<String, Field> field : ModelFields.of(model.getClass()).entrySet()) {
+            if (!COMMERCIAL.matcher(field.getKey()).find()) continue;
+            Object value = ModelFields.read(ModelFields.of(model.getClass()), model, field.getKey());
+            if (value == null || Boolean.FALSE.equals(value)) continue;
+            String shown = value instanceof Boolean || value instanceof Number || value instanceof Enum ? String.valueOf(value) : "set";
+            set.append(set.length() == 0 ? "[" : ",").append(field.getKey()).append('=').append(shown);
+        }
+        return set.length() == 0 ? "" : set.append(']').toString();
     }
 
     /** What a removal from inside a module is counted as. English, for the report. */

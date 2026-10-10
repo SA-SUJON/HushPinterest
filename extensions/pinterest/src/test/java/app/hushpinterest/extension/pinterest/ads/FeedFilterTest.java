@@ -402,6 +402,16 @@ public class FeedFilterTest {
     }
 
     @Test
+    public void theDebugLineSaysWhatAModuleHoldsAndWhichAdFieldsAreSet() {
+        Module module = new Module("module", plain, promoted, "a note", adData);
+        String line = ModuleItems.describe(module);
+        assertTrue(line, line.startsWith("Module ideas_for_you; "));
+        assertTrue(line, line.contains("objects 4: Pin Pin[is_promoted=true] Pin[ad_data=set]"));
+        assertTrue(line, line.contains("images 2:"));
+        assertFalse("a promotion id's value stays out: " + line, ModuleItems.describe(new Module("ids", promotionId)).contains("123"));
+    }
+
+    @Test
     public void aReformattedPromotionOrCampaignIdMarksAnAd() {
         ReformattedPin pin = new ReformattedPin();
         assertFalse(Ads.isAd(pin));
