@@ -27,6 +27,8 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
 import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowDownloadManager;
 import org.robolectric.shadows.ShadowToast;
@@ -44,7 +46,7 @@ import app.hushpinterest.extension.shared.settings.HushPinterestPause;
 import app.hushpinterest.extension.shared.settings.PauseForTests;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 30)
+@Config(sdk = 30, shadows = PinActionsTest.PatchedSendable.class)
 public class PinActionsTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
     private Activity activity;
@@ -315,19 +317,21 @@ public class PinActionsTest {
         assertEquals(0, Shadows.shadowOf(manager).getRequestCount());
     }
 
+    /** Pinterest's sendable: the id and kind its (String, int) constructor stores, 0 for a pin. */
     private static final class Sendable {
-        private final String a;
-        private final int c;
+        private final String id;
+        private final int type;
 
         private Sendable(String id, int type) {
-            a = id;
-            c = type;
+            this.id = id;
+            this.type = type;
         }
+    }
 
-        @SuppressWarnings("unused") private String e() { return a; }
-
-        @SuppressWarnings("unused") private Source c() { return Source.PIN; }
-
-        @SuppressWarnings("unused") private int d() { return c; }
+    /** The stubs as the patch writes them: a cast and one read of the constructor's field each. */
+    @Implements(value = SystemShare.class, isInAndroidSdk = false)
+    public static final class PatchedSendable {
+        @Implementation protected static String sendableId(Object sendable) { return ((Sendable) sendable).id; }
+        @Implementation protected static int sendableType(Object sendable) { return ((Sendable) sendable).type; }
     }
 }

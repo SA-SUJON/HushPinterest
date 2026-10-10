@@ -2825,6 +2825,7 @@ public class DexDiff {
                 }
                 if (selector.equals("shareCloseup")) {
                     closeupShareGuard(m, hook);
+                    sendableStubs();
                     return original != null;
                 }
                 if (selector.equals("update")) {
@@ -2879,6 +2880,39 @@ public class DexDiff {
             }
             if (!shaped || !new TreeSet<>(named).equals(expected) || named.size() != expected.size())
                 fail("save toast stub names " + named + " instead of the save toast models " + expected);
+        }
+
+        /**
+         * The closeup share's sendable stubs: each casts its input and returns one field, the id and
+         * the kind the sendable's (String, int) constructor stores from those parameters. Its
+         * accessors change meaning between builds, so nothing else names the pin reliably.
+         */
+        void sendableStubs() {
+            String sendable = "Lcom/pinterest/sendshare/model/SendableObject;";
+            ClassDef owner = clean.classes.get(sendable);
+            List<Method> inits = new ArrayList<>();
+            if (owner != null) for (Method m : owner.getMethods())
+                if (m.getName().equals("<init>") && descriptor(m).equals("(Ljava/lang/String;I)V") && m.getImplementation() != null) inits.add(m);
+            if (inits.size() != 1) { fail("share sendable has no single (String, int) constructor"); return; }
+            Method init = inits.get(0);
+            int registers = init.getImplementation().getRegisterCount();
+            List<String> ids = new ArrayList<>(), kinds = new ArrayList<>();
+            for (Instruction i : instructions(init)) {
+                if (i.getOpcode() == Opcode.IPUT_OBJECT && firstRegister(i) == registers - 2) ids.add(String.valueOf(reference(i)));
+                if (i.getOpcode() == Opcode.IPUT && firstRegister(i) == registers - 1) kinds.add(String.valueOf(reference(i)));
+            }
+            if (ids.size() != 1 || kinds.size() != 1) { fail("share sendable constructor doesn't store one id and one kind"); return; }
+            String own = BASE + "actions/SystemShare;->";
+            Method id = stub(own + "sendableId(Ljava/lang/Object;)Ljava/lang/String;", List.of(Opcode.CHECK_CAST, Opcode.IGET_OBJECT,
+                    Opcode.RETURN_OBJECT), Arrays.asList(sendable, ids.get(0), null));
+            Method kind = stub(own + "sendableType(Ljava/lang/Object;)I", List.of(Opcode.CHECK_CAST, Opcode.IGET, Opcode.RETURN),
+                    Arrays.asList(sendable, kinds.get(0), null));
+            for (Method m : new Method[]{id, kind}) {
+                if (m == null) continue;
+                List<Instruction> body = instructions(m);
+                if (((TwoRegisterInstruction) body.get(1)).getRegisterB() != parameter(m, 0) || firstRegister(body.get(2)) != firstRegister(body.get(1)))
+                    fail(m + " doesn't return the field it reads from its own sendable");
+            }
         }
 
         boolean hasSendableShareSource(Method m) {

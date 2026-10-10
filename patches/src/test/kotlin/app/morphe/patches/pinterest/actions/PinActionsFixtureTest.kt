@@ -20,6 +20,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -27,6 +28,8 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.experimental.categories.Category
 import java.io.File
+
+private const val SENDABLE_TYPE = "Lcom/pinterest/sendshare/model/SendableObject;"
 
 /** Resolves and applies the real native action targets in each declared build. */
 @Category(FixtureTests::class)
@@ -103,6 +106,57 @@ class PinActionsFixtureTest {
             }
             assertTrue("${build.name} ${close.definingClass}->${close.name} is not the close-screen method", target.closesScreen())
         }
+    }
+
+    /**
+     * The closeup sheet's sendable names its pin by fields whose accessors move between builds:
+     * reading `e()` as the id found the kind in 14.39.0, so Pinterest's sheet stayed. The stubs read
+     * the fields the sendable's (String, int) constructor stores instead.
+     */
+    @Test
+    fun `closeup share stubs read the id and kind the sendable's constructor stores in each declared build`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            systemSharePatch.execute(context)
+            val init = classes.single { it.type == SENDABLE_TYPE }.methods.single {
+                it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", "I")
+            }
+            // Parameters take the last registers: the String, then the int.
+            val registers = init.implementation!!.registerCount
+            fun stored(opcode: Opcode, register: Int) = init.implementation!!.instructions.single {
+                it.opcode == opcode && (it as TwoRegisterInstruction).registerA == register
+            }.let { (it as ReferenceInstruction).reference.toString() }
+            val id = stored(Opcode.IPUT_OBJECT, registers - 2)
+            val kind = stored(Opcode.IPUT, registers - 1)
+            if (build.name.startsWith("pinterest-14.39.0-")) {
+                assertEquals("$SENDABLE_TYPE->a:Ljava/lang/String;", id)
+                assertEquals("$SENDABLE_TYPE->c:I", kind)
+            }
+            val share = context.mutableClassDefBy("$EXTENSION_PACKAGE/actions/SystemShare;")
+            for ((stub, read, field) in listOf(
+                Triple("sendableId", Opcode.IGET_OBJECT, id),
+                Triple("sendableType", Opcode.IGET, kind),
+            )) {
+                val body = share.methods.single { it.name == stub }.implementation!!.instructions.toList()
+                assertEquals("${build.name} $stub", listOf(Opcode.CHECK_CAST, read, if (read == Opcode.IGET) Opcode.RETURN else Opcode.RETURN_OBJECT),
+                    body.map { it.opcode })
+                assertEquals("${build.name} $stub", listOf(SENDABLE_TYPE, field), references(body))
+                println("${build.name}: $stub reads $field")
+            }
+        }
+    }
+
+    @Test
+    fun `a sendable without its id and kind constructor refuses system share before host changes`() {
+        val classes = read(Fixtures.declaredBuilds().first())
+        val context = PatchContexts.of(ExtensionDex.classes() + classes.filterNot { it.type == SENDABLE_TYPE })
+        assertThrows(PatchException::class.java) { systemSharePatch.execute(context) }
+        assertFlag(context, "systemShare", 0)
+        assertFlag(context, "pinShare", 0)
+        assertFalse(classes.flatMap { context.mutableClassDefByOrNull(it.type)?.methods ?: emptyList() }.any { method ->
+            references(method.implementation?.instructions?.toList() ?: emptyList()).any { "/SystemShare;->" in it }
+        })
     }
 
     @Test
@@ -224,7 +278,7 @@ class PinActionsFixtureTest {
         val shareFragments = wanted.keys.filter { type -> potentialShareFragments.any { it.type == type } }
         wanted += FixtureDex.classes(build, shareFragments.flatMap { fragment ->
             generateSequence(superclasses[fragment]) { superclasses[it] }.toList()
-        }.toSet())
+        }.toSet() + SENDABLE_TYPE)
         assertEquals("${build.name} Visit owner", 1, dispatchers)
         assertEquals("${build.name} share chooser owner", 1, choosers)
         val menu = wanted.getValue(PIN_MENU)

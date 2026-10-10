@@ -10,9 +10,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Looper;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.Settings;
@@ -58,10 +55,8 @@ public final class SystemShare {
 
     private static String sendablePinUrl(Object sendable) {
         try {
-            if (sendable == null) return null;
-            int type = intValue(sendable, "c", -1, "d", "c");
-            if (type != 0) return null;
-            String id = stringValue(sendable, "e", "a");
+            if (sendable == null || sendableType(sendable) != 0) return null;
+            String id = sendableId(sendable);
             if (id == null || !id.matches("[0-9]{1,30}")) return null;
             return "https://www.pinterest.com/pin/" + id + "/";
         } catch (Throwable failure) {
@@ -70,34 +65,16 @@ public final class SystemShare {
         }
     }
 
-    private static int intValue(Object target, String field, int fallback, String... methods) throws Exception {
-        for (String method : methods) {
-            try {
-                Method reader = target.getClass().getDeclaredMethod(method);
-                reader.setAccessible(true);
-                Object value = reader.invoke(target);
-                if (value instanceof Number) return ((Number) value).intValue();
-            } catch (ReflectiveOperationException missingMethod) {
-                // Try the next known accessor, then the stored field.
-            }
-        }
-        Field stored = target.getClass().getDeclaredField(field);
-        stored.setAccessible(true);
-        Object value = stored.get(target);
-        return value instanceof Number ? ((Number) value).intValue() : fallback;
+    /**
+     * The sendable's id: the String its (String, int) constructor stores. The patch fills this in
+     * with the target build's field, whose name and accessors change every build.
+     */
+    private static String sendableId(Object sendable) {
+        return null;
     }
 
-    private static String stringValue(Object target, String method, String field) throws Exception {
-        try {
-            Method reader = target.getClass().getDeclaredMethod(method);
-            reader.setAccessible(true);
-            Object value = reader.invoke(target);
-            return value instanceof String ? (String) value : null;
-        } catch (ReflectiveOperationException missingMethod) {
-            Field stored = target.getClass().getDeclaredField(field);
-            stored.setAccessible(true);
-            Object value = stored.get(target);
-            return value instanceof String ? (String) value : null;
-        }
+    /** The sendable's kind, 0 for a pin: the int its (String, int) constructor stores. Filled in when patching. */
+    private static int sendableType(Object sendable) {
+        return -1;
     }
 }
