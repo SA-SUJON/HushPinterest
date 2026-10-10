@@ -17,6 +17,7 @@ import java.util.List;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.Settings;
+import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 
@@ -81,12 +82,14 @@ public final class LongPressDownload {
             if (pin == null) return;
             String id = modelId(pin);
             ArrayList<Object> laidOut = menuItems(menu);
+            ViewGroup group = (ViewGroup) menu;
+            Logger.printDebug(() -> "Long-press menu before Download: " + (laidOut == null ? "no list" : laidOut.size() + " laid out")
+                    + ", " + group.getChildCount() + " children");
             if (id == null || laidOut == null || laidOut.isEmpty()) return;
             for (Object laid : laidOut) {
                 if (!(laid instanceof View) || ITEM_TAG.equals(((View) laid).getTag())) return;
             }
             List<Object> buttons = new ArrayList<>(laidOut.subList(1, laidOut.size()));
-            ViewGroup group = (ViewGroup) menu;
             View item = downloadItem(group.getContext());
             if (item == null) return;
             item.setTag(ITEM_TAG);
@@ -99,6 +102,7 @@ public final class LongPressDownload {
             for (Object laid : laidOut) group.removeView((View) laid);
             laidOut.clear();
             layoutItems(menu, buttons);
+            Logger.printDebug(() -> "Long-press menu after Download: " + laidOut.size() + " laid out, " + group.getChildCount() + " children");
             HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "download button added to long-press menu");
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.LONG_PRESS_DOWNLOAD, "add long-press download button", failure);
