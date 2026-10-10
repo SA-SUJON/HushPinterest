@@ -6112,6 +6112,104 @@ foreach ($tracked in $trackedScripts) {
 Assert-True ($unparsed.Count -eq 0) ("These tracked scripts don't parse: " + ($unparsed -join '; '))
 Write-Host "[scripts] all $($trackedScripts.Count) tracked PowerShell files parse"
 
+# --- release stages refuse to run out of order ------------------------------------------------
+#
+# scripts/release/release.ps1 runs one stage a call, and each reads what the stage before it left
+# before it does anything. Each case runs a stage on a scratch repository in a shell of its own, so
+# what the stage puts in its environment stays there. No case reaches the network, Gradle, Python
+# or a key: every refusal here comes before the first of them.
+$stageRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('hushpinterest-stages-' + [guid]::NewGuid().ToString('N'))
+$stageRunner = Join-Path ([System.IO.Path]::GetTempPath()) ('hushpinterest-stage-runner-' + [guid]::NewGuid().ToString('N') + '.ps1')
+$stageShell = (Get-Process -Id $PID).Path
+$stageUtf8 = New-Object System.Text.UTF8Encoding $false
+function Invoke-ReleaseStageCase {
+    param([string]$Stage, [string]$Version = '0.0.7', [switch]$Signing)
+    $ErrorActionPreference = 'Continue'
+    # @(...) around the if: an if hands back its one item, and splatting a lone string passes its characters.
+    $extra = @(if ($Signing) { '-Signing' })
+    $lines = @(& $stageShell -NoProfile -ExecutionPolicy Bypass -File $stageRunner -Script (Join-Path $PSScriptRoot 'release/release.ps1') `
+        -Root $stageRoot -Stage $Stage -Version $Version @extra 2>&1 | ForEach-Object { "$_" })
+    return [pscustomobject]@{ Code = $LASTEXITCODE; Text = ($lines -join "`n") }
+}
+function Set-StageFile([string]$Name, [string]$Text) {
+    $path = Join-Path $stageRoot $Name
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $path) | Out-Null
+    [System.IO.File]::WriteAllText($path, $Text, $stageUtf8)
+}
+function Invoke-StageGit([string[]]$Arguments) {
+    $ErrorActionPreference = 'Continue'
+    & git -C $stageRoot @Arguments 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "git $($Arguments -join ' ') failed in the stage scratch repository." }
+}
+function Assert-StageRefused($Result, [string]$Pattern, [string]$Message) {
+    Assert-True ($Result.Code -ne 0 -and $Result.Text -like "*REFUSED: *$Pattern*") "$Message It said: $($Result.Text)"
+}
+try {
+    [System.IO.File]::WriteAllText($stageRunner, @'
+param([string]$Script, [string]$Root, [string]$Stage, [string]$Version, [switch]$Signing)
+$forward = @{ Root = $Root; Stage = $Stage; Version = $Version }
+if ($Signing) {
+    $key = Join-Path $Root 'build/pinned-key.asc'
+    $forward['SigningFingerprint'] = 'A' * 40
+    $forward['TrustedPublicKeyPath'] = $key
+}
+try { & $Script @forward; exit 0 } catch { Write-Output ('REFUSED: ' + $_.Exception.Message); exit 1 }
+'@, $stageUtf8)
+    New-Item -ItemType Directory -Path $stageRoot | Out-Null
+    Invoke-StageGit @('init', '--quiet')
+    Invoke-StageGit @('symbolic-ref', 'HEAD', 'refs/heads/main')
+    Invoke-StageGit @('config', 'user.name', 'Release stage contract')
+    Invoke-StageGit @('config', 'user.email', 'stages@example.invalid')
+    Invoke-StageGit @('config', 'commit.gpgsign', 'false')
+    Set-StageFile '.gitignore' "build/`n"
+    Set-StageFile 'gradle.properties' "version = 0.0.6`n"
+    Invoke-StageGit @('add', '--all')
+    Invoke-StageGit @('commit', '--quiet', '-m', 'chore: the last release')
+
+    Set-StageFile 'stray.txt' "left over`n"
+    Assert-StageRefused (Invoke-ReleaseStageCase prepare) 'clean checkout*stray.txt' 'prepare ran on a tree with changes.'
+    Remove-Item -LiteralPath (Join-Path $stageRoot 'stray.txt')
+    Assert-StageRefused (Invoke-ReleaseStageCase prepare -Version 0.0.6) "already says 0.0.6, but HEAD*isn't its prepare commit" `
+        'prepare took a version gradle.properties already holds.'
+    Assert-StageRefused (Invoke-ReleaseStageCase prepare -Version 0.0.5) "0.0.5 isn't newer than 0.0.6" 'prepare went back a version.'
+    foreach ($stage in 'preflight', 'gate', 'build') {
+        Assert-StageRefused (Invoke-ReleaseStageCase $stage) 'Run -Stage prepare first.' "$stage ran before the release was prepared."
+    }
+    Assert-StageRefused (Invoke-ReleaseStageCase publish) 'Run release.ps1 -Stage prepare, preflight, gate and build first.' `
+        'publish ran before the release was prepared.'
+
+    # A commit that only borrows the subject, leaving gradle.properties behind, isn't a prepare commit.
+    Invoke-StageGit @('commit', '--quiet', '--allow-empty', '-m', 'release: prepare 0.0.7')
+    Assert-StageRefused (Invoke-ReleaseStageCase preflight) 'Run -Stage prepare first.' 'A commit named like a prepare commit passed for one.'
+    Invoke-StageGit @('reset', '--quiet', '--hard', 'HEAD~1')
+
+    Set-StageFile 'gradle.properties' "version = 0.0.7`n"
+    Invoke-StageGit @('commit', '--quiet', '--all', '-m', 'release: prepare 0.0.7')
+    $prepared = (& git -C $stageRoot rev-parse HEAD).Trim()
+    $again = Invoke-ReleaseStageCase prepare
+    Assert-True ($again.Code -eq 0 -and $again.Text -like "*0.0.7 is already prepared at $prepared*") `
+        "prepare didn't say a prepared release was prepared already: $($again.Text)"
+    Assert-StageRefused (Invoke-ReleaseStageCase gate) "The preflight hasn't passed for $prepared. Run -Stage preflight first." `
+        'gate ran before the preflight passed.'
+    Assert-StageRefused (Invoke-ReleaseStageCase build) "$prepared hasn't gone out through the release gate. Run -Stage gate first." `
+        'build ran before the release gate.'
+    # A stage marker counts only for the commit it names.
+    Set-StageFile 'build/release-stages/0.0.7/gate.json' ('{"stage":"gate","version":"0.0.7","commit":"' + ('0' * 40) + '"}')
+    Assert-StageRefused (Invoke-ReleaseStageCase build) 'Run -Stage gate first.' "build took another commit's gate marker."
+    Set-StageFile 'build/release-stages/0.0.7/preflight.json' ('{"stage":"preflight","version":"0.0.7","commit":"' + $prepared + '","finishedAt":"2026-10-10T00:00:00Z","minutes":4.2}')
+    $again = Invoke-ReleaseStageCase preflight
+    Assert-True ($again.Code -eq 0 -and $again.Text -like "*preflight already passed for $prepared*4.2 min*") `
+        "preflight ran again for a commit it had passed: $($again.Text)"
+    Set-StageFile 'build/pinned-key.asc' "not a key`n"
+    Assert-StageRefused (Invoke-ReleaseStageCase publish -Signing) "there is no patches-0.0.7.mpp*Run release.ps1 -Stage build first." `
+        'publish ran with no built assets.'
+} finally {
+    foreach ($path in $stageRoot, $stageRunner) {
+        if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+}
+Write-Host '[scripts] release stage order contracts passed'
+
 # --- tracked files name no machine -----------------------------------------------------------
 #
 # No tracked file names the working-notes folder .gitignore keeps out, the backup folders on the
