@@ -8,7 +8,10 @@ package app.hushpinterest.extension.pinterest.ads;
 
 import android.view.View;
 
+import androidx.annotation.Nullable;
+
 import java.lang.reflect.Field;
+import java.util.Locale;
 import java.util.Map;
 
 import app.hushpinterest.extension.shared.Utils;
@@ -56,9 +59,13 @@ public final class Ads {
     /** The ad payload: present only on an ad, whatever its flags say. */
     static final String AD_PAYLOAD = "ad_data";
 
-    /** A feed module whose whole content is a shopping placement. */
+    /**
+     * A feed module whose whole content is a shopping placement. Some models keep {@code story_type}
+     * as its JSON text, others as Pinterest's own enum, whose constant keeps this name upper-cased.
+     */
     static final String STORY_TYPE = "story_type";
     static final String SHOPPING_SPOTLIGHT = "shopping_spotlight";
+    static final String SHOPPING_SPOTLIGHT_CONSTANT = SHOPPING_SPOTLIGHT.toUpperCase(Locale.ROOT);
 
     /** Whether the switch is on and the settings can be read; never throws. */
     static boolean active() {
@@ -82,7 +89,16 @@ public final class Ads {
             if (ModelFields.hasText(fields, item, text)) return true;
         }
         if (ModelFields.isSet(fields, item, AD_PAYLOAD)) return true;
-        return SHOPPING_SPOTLIGHT.equals(ModelFields.read(fields, item, STORY_TYPE));
+        return isSpotlight(ModelFields.read(fields, item, STORY_TYPE));
+    }
+
+    /**
+     * True only for the shopping spotlight story: the exact JSON text, or an enum constant of exactly
+     * that name. Every other story, editorial or unknown, is not an ad by its type alone.
+     */
+    static boolean isSpotlight(@Nullable Object story) {
+        if (story instanceof String) return SHOPPING_SPOTLIGHT.equals(story);
+        return story instanceof Enum && SHOPPING_SPOTLIGHT_CONSTANT.equals(((Enum<?>) story).name());
     }
 
     /**

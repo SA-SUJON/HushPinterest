@@ -7,6 +7,7 @@
 package app.hushpinterest.extension.pinterest.ads;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -87,6 +88,24 @@ public class FeedFilterTest {
         }
     }
 
+    /** Pinterest's typed story kinds, as one story model keeps them (an enum, not the JSON text). */
+    enum StoryKind { SHOPPING_SPOTLIGHT, IDEAS_FOR_YOU, SOMETHING_NEWER }
+
+    /** The story model whose story_type is Pinterest's enum. */
+    static final class TypedStory {
+        @Json("id") String id;
+        @Json("story_type") StoryKind storyType;
+
+        TypedStory(String id, StoryKind storyType) {
+            this.id = id;
+            this.storyType = storyType;
+        }
+
+        @Override public String toString() {
+            return id;
+        }
+    }
+
     private final Pin plain = new Pin("plain");
     private final Pin promoted = new Pin("promoted");
     private final Pin thirdParty = new Pin("thirdParty");
@@ -115,6 +134,7 @@ public class FeedFilterTest {
         PauseForTests.resume();
         Settings.HIDE_ADS.resetToDefault();
         Settings.HIDE_AI_PINS.resetToDefault();
+        Settings.HIDE_SHOPPING.resetToDefault();
         ModelFields.clearForTests();
         HookStatus.clear();
     }
@@ -175,6 +195,47 @@ public class FeedFilterTest {
     public void itemsOfOtherShapesStay() {
         List<Object> mixed = new ArrayList<>(Arrays.asList("a string", 42, plain, promoted));
         assertEquals("[a string, 42, plain]", FeedFilter.filter(mixed).toString());
+    }
+
+    private List<Object> typedStories() {
+        return new ArrayList<>(Arrays.asList(new TypedStory("typedSpotlight", StoryKind.SHOPPING_SPOTLIGHT),
+                new TypedStory("typedIdeas", StoryKind.IDEAS_FOR_YOU), new TypedStory("typedNewer", StoryKind.SOMETHING_NEWER),
+                new TypedStory("typedNone", null), spotlight, ideas));
+    }
+
+    @Test
+    public void hideAdsAloneTakesATypedSpotlightLikeItsTextAndKeepsOtherTypedStories() {
+        Settings.HIDE_AI_PINS.save(false);
+        assertFalse(Settings.HIDE_SHOPPING.get());
+        assertEquals("[typedIdeas, typedNewer, typedNone, ideas]", FeedFilter.filter(typedStories()).toString());
+        assertTrue(Ads.isSpotlight(StoryKind.SHOPPING_SPOTLIGHT));
+        assertTrue(Ads.isSpotlight("shopping_spotlight"));
+        assertFalse(Ads.isSpotlight(StoryKind.IDEAS_FOR_YOU));
+        assertFalse(Ads.isSpotlight(null));
+    }
+
+    @Test
+    public void aTypedSpotlightStaysWithHideAdsOffOrPaused() {
+        Settings.HIDE_ADS.save(false);
+        List<Object> off = typedStories();
+        assertSame(off, FeedFilter.filter(off));
+        Settings.HIDE_ADS.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        List<Object> paused = typedStories();
+        assertSame(paused, FeedFilter.filter(paused));
+    }
+
+    @Test
+    public void hideShoppingStillTakesTheTypedSpotlightOnItsOwn() {
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.FEED_ADS, PatchFamily.Capability.FEED_SHOPPING));
+        Settings.HIDE_ADS.save(false);
+        Settings.HIDE_SHOPPING.save(true);
+        List<Object> page = new ArrayList<>(Arrays.asList(new TypedStory("typedSpotlight", StoryKind.SHOPPING_SPOTLIGHT),
+                new TypedStory("typedIdeas", StoryKind.IDEAS_FOR_YOU)));
+        assertEquals("[typedIdeas]", FeedFilter.filter(page).toString());
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("shopping placement removed"));
+        assertFalse(report, report.contains("promoted pin removed"));
     }
 
     @Test

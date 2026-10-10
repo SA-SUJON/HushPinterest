@@ -26,17 +26,26 @@ class ShoppingFixtureTest {
             var shoppable = false
             var featured = false
             var spotlight = false
+            val spotlightEnums = mutableSetOf<String>()
+            val storyTypes = mutableSetOf<String>()
             FixtureDex.forEach(build) { dex ->
                 dex.classes.filter { it.type.startsWith("Lcom/pinterest/api/model/") }.forEach { model ->
                     val json = model.fields.associateBy { it.json() }
                     if ("ai_disclosures" in json && json["is_shoppable"]?.type == "Ljava/lang/Boolean;") shoppable = true
                     if ("featured_board_metadata" in json) featured = true
-                    if (model.fields.any { it.name == "SHOPPING_SPOTLIGHT" && it.json() == "shopping_spotlight" }) spotlight = true
+                    if (model.fields.any { it.name == "SHOPPING_SPOTLIGHT" && it.json() == "shopping_spotlight" }) {
+                        spotlight = true
+                        if (model.superclass == "Ljava/lang/Enum;") spotlightEnums += model.type
+                    }
+                    json["story_type"]?.let { storyTypes += it.type }
                 }
             }
             assertTrue("${build.name}: no shoppable pin label", shoppable)
             assertTrue("${build.name}: no featured board metadata", featured)
             assertTrue("${build.name}: no typed shopping spotlight", spotlight)
+            // Hide ads reads this enum's constant name (Ads.isSpotlight), not just the JSON text.
+            assertTrue("${build.name}: no story_type field typed as the spotlight enum ($storyTypes)",
+                storyTypes.any { it in spotlightEnums })
         }
     }
 }
