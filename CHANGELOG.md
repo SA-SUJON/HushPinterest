@@ -5,6 +5,7 @@ Every HushPinterest release, newest first.
 ## Unreleased
 
 * **Pinterest:** Pinterest 14.39.0 is now the supported version. All 26 patches apply to it, and 14.38.0 is no longer a target.
+* **Pinterest:** Hide advertising ID now keeps Pinterest's browser ID out of Google's Block Store too. Pinterest kept it there so it would outlast an uninstall and come back on a new phone, which let a fresh install send the old ID before you'd signed in. With the switch on, Pinterest finds no saved ID, and when it tries to save one it deletes the stored copy instead, so a reinstall starts fresh. The browser cookie for the install you're using keeps working the way it did.
 * **Pinterest:** The settings home ends with a Support HushPinterest row. Tapping it opens the Ko-fi page in your browser, and if no app can open it you get a message with the address instead. Its text is translated into German, Spanish, Indonesian, Brazilian Portuguese and Turkish.
 * **Pinterest:** Download board no longer saves a board's pins a second time once they've dropped off Download history. The history still shows the newest 32 entries, and it now remembers the 500 before those. Removing a pin from Download history forgets its older downloads too.
 * **Pinterest:** Morphe Manager and the patch index now show the HushPinterest icon next to the source instead of the owner's GitHub picture.

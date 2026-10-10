@@ -35,7 +35,7 @@ family|hideAiPins|Hide AI-labeled pins|feedAiPins
 family|hideShopping|Hide shopping and product pins|feedShopping
 family|disableAnalytics|Disable analytics|analyticsTasks,analyticsUploads
 family|stripLinkTracking|Strip link tracking|linkTracking,plainPinLinks
-family|hideAdvertisingId|Hide advertising ID|advertisingId
+family|hideAdvertisingId|Hide advertising ID|advertisingId,browserId
 family|removeAdTrackingPermissions|Remove ad tracking permissions|
 family|spoofSignature|Spoof signature for Google sign-in|
 family|downloadPins|Download pins|pinDownloads
@@ -64,6 +64,7 @@ mutation|analyticsTasks,analyticsUploads|analytics|Lapp/hushpinterest/extension/
 mutation|linkTracking|links|Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->putStringExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;|Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->putTextExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;|Landroid/content/ClipData;->newPlainText(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->newPlainText(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;
 mutation|plainPinLinks|pinInvites|Lapp/hushpinterest/extension/pinterest/privacy/PlainPinLinks;->invite(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V|Lapp/hushpinterest/extension/pinterest/privacy/PlainPinLinks;->directShare(Ljava/lang/Object;Ljava/lang/Object;Landroid/content/Intent;)V
 mutation|advertisingId|answers|Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;->getId()Ljava/lang/String;|Lapp/hushpinterest/extension/pinterest/privacy/AdvertisingId;->id(Ljava/lang/String;)Ljava/lang/String;|Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;->isLimitAdTrackingEnabled()Z|Lapp/hushpinterest/extension/pinterest/privacy/AdvertisingId;->limitTracking(Z)Z
+mutation|browserId|browserId|Lapp/hushpinterest/extension/pinterest/privacy/AdvertisingId;->skipBrowserId(Ljava/lang/String;)Z|Lapp/hushpinterest/extension/pinterest/privacy/AdvertisingId;->saveBrowserId(Ljava/lang/Object;Ljava/lang/String;[BLjava/lang/Object;)Ljava/lang/Object;
 mutation|pinDownloads|downloads|Lapp/hushpinterest/extension/pinterest/actions/PinDownloads;->attach(Ljava/lang/Object;)V|Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;
 mutation|boardMenu|boardMenu|Lapp/hushpinterest/extension/pinterest/actions/BoardDownloads;->menu(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 mutation|longPressMenu|longPress|Lapp/hushpinterest/extension/pinterest/actions/LongPressDownload;->show(Ljava/lang/Object;Ljava/lang/Object;)V|Lcom/pinterest/ui/menu/ContextMenuView;

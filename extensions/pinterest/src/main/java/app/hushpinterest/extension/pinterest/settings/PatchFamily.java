@@ -146,6 +146,7 @@ public enum PatchFamily {
         LINK_TRACKING(STRIP_LINK_TRACKING, "linkTracking", "Strip link tracking"),
         PLAIN_PIN_LINKS(STRIP_LINK_TRACKING, "plainPinLinks", "Plain pin links"),
         ADVERTISING_ID(HIDE_ADVERTISING_ID, "advertisingId", "Hide advertising ID"),
+        BROWSER_ID(HIDE_ADVERTISING_ID, "browserId", "Block Store browser ID"),
         PIN_DOWNLOADS(DOWNLOAD_PINS, "pinDownloads", "Download pins"),
         BOARD_MENU(DOWNLOAD_BOARD, "boardMenu", "board menus"),
         BOARD_PINS(DOWNLOAD_BOARD, "boardPins", "loaded board pins"),

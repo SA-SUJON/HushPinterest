@@ -671,6 +671,13 @@ try {
         'feature-profile-duplicate' = $false
         'feature-profile-wrong-argument' = $false
         'feature-profile-bad-fallback' = $false
+        'feature-browser-id-good' = $true
+        'feature-browser-id-missing' = $false
+        'feature-browser-id-misrouted' = $false
+        'feature-browser-id-bad-fallback' = $false
+        'feature-browser-id-changed-original' = $false
+        'feature-browser-id-false-capability' = $false
+        'feature-browser-id-bad-stub' = $false
         'feature-feed-ads' = $true
         'feature-feed-ai' = $true
         'feature-feed-shopping' = $true
@@ -730,6 +737,7 @@ try {
         $cleanName = if ($name -eq 'feature-links-partial') { 'feature-links-partial-clean' }
             elseif ($name -eq 'feature-links-doubled-host-good') { 'feature-links-doubled-clean' }
             elseif ($name -like 'feature-profile-*') { 'feature-profile-clean' }
+            elseif ($name -like 'feature-browser-id-*') { 'feature-browser-id-clean' }
             elseif ($name -like 'feature-guard-interior-*') { 'feature-guard-interior-clean' }
             elseif ($name -eq 'feature-optional-unrelated') { 'feature-optional-unrelated-clean' }
             elseif ($name -eq 'feature-optional-absent') { 'feature-optional-clean' } else { 'feature-clean' }
@@ -763,6 +771,17 @@ try {
         }
         if ($name -eq 'feature-links-disabled-misses-fallback' -or $name -like 'feature-links-copied-*-bad' -or $name -like 'feature-links-integer-*-bad') {
             Assert-True ($text.Contains('fallback after its disabled family control')) "An original call disconnected from the disabled family path passed as a fallback.`n$text"
+        }
+        $browserIdReason = switch ($name) {
+            'feature-browser-id-missing' { 'skipBrowserId(Ljava/lang/String;)Z has 0 calls' }
+            'feature-browser-id-misrouted' { 'misrouted call' }
+            'feature-browser-id-bad-fallback' { "isn't a guarded prefix" }
+            'feature-browser-id-changed-original' { 'beyond its validated mutations' }
+            'feature-browser-id-false-capability' { 'browserId flag is false, clean target requires true' }
+            'feature-browser-id-bad-stub' { 'where the clean APK has' }
+        }
+        if ($browserIdReason) {
+            Assert-True ($text.Contains($browserIdReason)) "The Block Store fixture $name wasn't refused for its own fault ($browserIdReason).`n$text"
         }
     }
     $duplicateFlags = Invoke-DexDiff -Clean (Get-FeatureApk 'feature-clean') -Patched (New-DexApk -Name 'feature-duplicate-flags' -Entries ([ordered]@{

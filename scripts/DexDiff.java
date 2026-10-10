@@ -276,7 +276,7 @@ public class DexDiff {
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 3),
-            Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2));
+            Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -4370,6 +4370,104 @@ public class DexDiff {
             capability(c.callee, all);
         }
 
+        static final String BLOCK_STORE = "Lcom/google/android/gms/auth/blockstore/";
+
+        /**
+         * A Block Store wrapper's instance read, save and delete of a keyed record, the same shape the
+         * patch looks for, or null unless the class has exactly one of each on one continuation type.
+         */
+        static Method[] blockStore(ClassDef cd) {
+            Method read = null, save = null, delete = null;
+            int reads = 0, saves = 0, deletes = 0;
+            Set<String> continuations = new HashSet<>();
+            for (Method m : cd.getMethods()) {
+                if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || m.getImplementation() == null) continue;
+                if (storeCall(m, List.of("Ljava/lang/String;"), "Ljava/io/Serializable;", BLOCK_STORE + "RetrieveBytesRequest;")) { read = m; reads++; }
+                else if (storeCall(m, List.of("Ljava/lang/String;", "[B"), "Ljava/lang/Object;", BLOCK_STORE + "StoreBytesData;")) { save = m; saves++; }
+                else if (storeCall(m, List.of("Ljava/util/List;"), "Ljava/lang/Object;", BLOCK_STORE + "DeleteBytesRequest;")) { delete = m; deletes++; }
+                else continue;
+                continuations.add(m.getParameterTypes().get(m.getParameterTypes().size() - 1).toString());
+            }
+            return reads == 1 && saves == 1 && deletes == 1 && continuations.size() == 1 ? new Method[]{read, save, delete} : null;
+        }
+
+        static boolean storeCall(Method m, List<String> leading, String returns, String request) {
+            List<String> types = new ArrayList<>();
+            for (CharSequence p : m.getParameterTypes()) types.add(p.toString());
+            if (!m.getReturnType().equals(returns) || types.size() != leading.size() + 1
+                    || !types.subList(0, leading.size()).equals(leading) || !types.get(leading.size()).startsWith("L")) return false;
+            for (Instruction i : instructions(m)) {
+                Reference r = reference(i);
+                if (r instanceof TypeReference && ((TypeReference) r).getType().equals(request)) return true;
+                if (r instanceof MethodReference && (((MethodReference) r).getDefiningClass().equals(request)
+                        || ((MethodReference) r).getReturnType().equals(request)
+                        || ((MethodReference) r).getParameterTypes().stream().anyMatch(p -> p.toString().equals(request)))) return true;
+                if (r instanceof FieldReference && (((FieldReference) r).getDefiningClass().equals(request)
+                        || ((FieldReference) r).getType().equals(request))) return true;
+            }
+            return false;
+        }
+
+        /**
+         * Pinterest's browser ID in Block Store: the read answers no record when its hook says so and
+         * the save returns what its hook hands back unless that's null, both ahead of the method's own
+         * first instruction, and the extension's delete stub calls the wrapper's own delete.
+         */
+        void browserId(Contract c) {
+            List<ClassDef> stores = new ArrayList<>();
+            for (ClassDef cd : clean.classes.values()) if (!cd.getType().startsWith(OWN) && blockStore(cd) != null) stores.add(cd);
+            ClassDef owner = uniqueClass(stores, "Block Store wrapper");
+            if (owner == null) { capability(c.callee, false); return; }
+            Method[] store = blockStore(owner);
+            boolean read = browserIdPrefix(actual(store[0]), c.strings.get(0), true);
+            boolean save = browserIdPrefix(actual(store[1]), c.strings.get(1), false);
+            String continuation = store[0].getParameterTypes().get(1).toString();
+            Method stub = stub(BASE + "privacy/AdvertisingId;->deleteBrowserId(Ljava/lang/Object;Ljava/util/List;Ljava/lang/Object;)Ljava/lang/Object;",
+                    List.of(Opcode.CHECK_CAST, Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT),
+                    Arrays.asList(owner.getType(), continuation, store[2].toString(), null, null));
+            boolean deletes = stub != null;
+            if (stub != null) {
+                List<Instruction> body = instructions(stub);
+                if (firstRegister(body.get(1)) != parameter(stub, 2)
+                        || !arguments(body.get(2)).equals(List.of(parameter(stub, 0), parameter(stub, 1), parameter(stub, 2)))
+                        || firstRegister(body.get(3)) != firstRegister(body.get(4))) {
+                    fail(stub + " doesn't hand its store, keys and continuation to " + store[2]); deletes = false;
+                }
+            }
+            capability(c.callee, read && save && deletes);
+        }
+
+        /**
+         * The hook call at index 0, then a move-result and an if-eqz on one local that lands on the
+         * original first instruction. The read hook takes the key and its enabled arm answers null;
+         * the save hook takes this, key, bytes and continuation and its enabled arm returns its answer.
+         */
+        boolean browserIdPrefix(Method m, String hook, boolean read) {
+            List<Integer> sites = calls(m, hook, 1);
+            if (m == null || sites.size() != 1) return false;
+            List<Instruction> body = instructions(m);
+            Layout layout = new Layout(m.getImplementation());
+            int resume = read ? 5 : 4;
+            List<Integer> expected = read ? List.of(parameter(m, 0))
+                    : List.of(parameter(m, -1), parameter(m, 0), parameter(m, 1), parameter(m, 2));
+            int register = body.size() > 1 ? firstRegister(body.get(1)) : -1;
+            Instruction branch = body.size() > 2 ? body.get(2) : null;
+            boolean placed = sites.get(0) == 0 && body.size() > resume && arguments(body.get(0)).equals(expected)
+                    && body.get(1).getOpcode() == (read ? Opcode.MOVE_RESULT : Opcode.MOVE_RESULT_OBJECT)
+                    && branch.getOpcode() == Opcode.IF_EQZ && firstRegister(branch) == register
+                    && layout.addresses.get(2) + ((OffsetInstruction) branch).getCodeOffset() == layout.addresses.get(resume)
+                    && register >= 0 && register < parameter(m, -1);
+            if (placed && read) placed = body.get(3).getOpcode() == Opcode.CONST_4 && firstRegister(body.get(3)) == register
+                    && ((NarrowLiteralInstruction) body.get(3)).getNarrowLiteral() == 0
+                    && body.get(4).getOpcode() == Opcode.RETURN_OBJECT && firstRegister(body.get(4)) == register;
+            if (placed && !read) placed = body.get(3).getOpcode() == Opcode.RETURN_OBJECT && firstRegister(body.get(3)) == register;
+            // Nothing else may jump into the prefix.
+            for (int at = 1; placed && at < resume; at++) placed = onlyFrom(m, at, at - 1);
+            if (!placed) { fail(hook + " isn't a guarded prefix with " + (read ? "a null" : "its own") + " answer ahead of " + m); return false; }
+            remove(m, 0, resume);
+            return true;
+        }
+
         /** Engage's one client gateway: the service read, the pass-through hook, then the SDK's own null test. */
         boolean engageGateway(String hook) {
             List<Method> gateways = new ArrayList<>();
@@ -4581,6 +4679,7 @@ public class DexDiff {
                     case "links": links(c); break;
                     case "analytics": analytics(c); break;
                     case "answers": answers(c); break;
+                    case "browserId": browserId(c); break;
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;
                     case "topicSuggestions": topicSuggestions(c); break;

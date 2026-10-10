@@ -47,6 +47,7 @@ public final class SettingsStatus {
     public static boolean plainPinLinks() { return false; }
     public static boolean hideAdvertisingId() { return false; }
     public static boolean advertisingId() { return false; }
+    public static boolean browserId() { return false; }
     public static boolean removeAdTrackingPermissions() { return false; }
     public static boolean spoofSignature() { return false; }
     public static boolean downloadPins() { return false; }

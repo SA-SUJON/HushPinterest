@@ -287,7 +287,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(privacy, context, build, PatchFamily.HIDE_ADVERTISING_ID, Settings.HIDE_ADVERTISING_ID,
                     L10n.t("Hide advertising ID"), L10n.t("Pinterest sees an empty advertising ID with ad tracking "
                         + "limited, as if you deleted your ad ID in Android "
-                        + "settings."), SettingsIcons.BLOCK);
+                        + "settings. Pinterest also stops keeping its browser ID in Google's Block Store, "
+                        + "where it would outlast a reinstall."), SettingsIcons.BLOCK);
             // A patch-time fact with no switch: an explanation, so it takes the info mark.
             if (build.contains(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS)) {
                 privacy.addPreference(mark(info(context, L10n.t("Remove ad tracking permissions"),

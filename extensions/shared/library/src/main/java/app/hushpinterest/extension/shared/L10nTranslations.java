@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(776);
+        Map<String, String> table = new HashMap<>(778);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -143,6 +143,8 @@ public final class L10nTranslations {
                 "Zur\u00fcck");
         table.put("Back up before changing builds",
                 "Vor dem Wechsel des Builds sichern");
+        table.put("Block Store browser ID",
+                "Browser-ID im Block Store");
         table.put("Boost pin",
                 "Pin bewerben");
         table.put("Browse settings",
@@ -177,11 +179,11 @@ public final class L10nTranslations {
                 "Abgeschlossen");
         table.put("Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. Pin links from Pinterest's country sites become that same link too. When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.",
                 "Kopierte und geteilte pin.it-Links werden zum eigenen pinterest.com-Link des Pins und verraten so nicht, wer sie geteilt hat. Pin-Links von Pinterests L\u00e4nderseiten werden ebenfalls zu diesem Link. Kennt HushPinterest den Pin noch nicht, wird ein kopierter Link im Hintergrund bei Pinterest nachgefragt und kurz darauf ersetzt.");
-        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Kopiere einen Kurzbericht oder speichere den vollst\u00e4ndigen Bericht unter %1$s. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Pr\u00fcfe ihn vor dem Teilen auf andere private Texte.");
     }
 
     private static void fillDe1(Map<String, String> table) {
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Kopiere einen Kurzbericht oder speichere den vollst\u00e4ndigen Bericht unter %1$s. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Pr\u00fcfe ihn vor dem Teilen auf andere private Texte.");
         table.put("Copy a short report to the clipboard.",
                 "Kurzen Bericht in die Zwischenablage kopieren.");
         table.put("Copy media link",
@@ -300,11 +302,11 @@ public final class L10nTranslations {
                 "Die Datenerfassung von Firebase und Google Analytics ist ausgeschaltet");
         table.put("Full report saved to %1$s",
                 "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
-        table.put("GPL-3.0, with the notices of the projects this is built on",
-                "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("GPL-3.0, with the notices of the projects this is built on",
+                "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub weist Anfragen aus diesem Netz gerade ab. Versuche es sp\u00e4ter noch einmal.");
         table.put("GitHub sent back something HushPinterest couldn't read. Try again later.",
@@ -423,11 +425,11 @@ public final class L10nTranslations {
                 "Links");
         table.put("Links, updates, backup and more",
                 "Links, Updates, Sicherung und mehr");
-        table.put("Long-press download",
-                "Download per langem Dr\u00fccken");
     }
 
     private static void fillDe3(Map<String, String> table) {
+        table.put("Long-press download",
+                "Download per langem Dr\u00fccken");
         table.put("Media link",
                 "Medienlink");
         table.put("Media link copied.",
@@ -532,8 +534,8 @@ public final class L10nTranslations {
                 "Pinterest hat f\u00fcr diesen Pin nur ein Streaming-Video angeboten, keine Datei zum Herunterladen.");
         table.put("Pinterest password help",
                 "Pinterest-Hilfe zum Passwort");
-        table.put("Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.",
-                "Pinterest sieht eine leere Werbe-ID mit eingeschr\u00e4nktem Werbe-Tracking, so als h\u00e4ttest du deine Werbe-ID in den Android-Einstellungen gel\u00f6scht.");
+        table.put("Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings. Pinterest also stops keeping its browser ID in Google's Block Store, where it would outlast a reinstall.",
+                "Pinterest sieht eine leere Werbe-ID mit eingeschr\u00e4nktem Werbe-Tracking, so als h\u00e4ttest du deine Werbe-ID in den Android-Einstellungen gel\u00f6scht. Au\u00dferdem h\u00f6rt Pinterest auf, seine Browser-ID in Googles Block Store aufzubewahren, wo sie eine Neuinstallation \u00fcberdauern w\u00fcrde.");
         table.put("Pinterest's access to the ad ID and Android's ad services is removed",
                 "Pinterests Zugriff auf die Werbe-ID und die Werbedienste von Android ist entfernt");
         table.put("Pinterest's ad personalization and data choices for your account. Disable analytics doesn't change them.",
@@ -546,11 +548,11 @@ public final class L10nTranslations {
                 "Die originale Signatur von Pinterest wurde der App hinzugef\u00fcgt");
         table.put("Pinterest's own settings",
                 "Pinterests eigene Einstellungen");
-        table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
-                "Die Webadressen von Pinterest sind in den Android-Einstellungen f\u00fcr diese App ausgew\u00e4hlt, deshalb \u00f6ffnen sich ihre Links hier.");
     }
 
     private static void fillDe4(Map<String, String> table) {
+        table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
+                "Die Webadressen von Pinterest sind in den Android-Einstellungen f\u00fcr diese App ausgew\u00e4hlt, deshalb \u00f6ffnen sich ihre Links hier.");
         table.put("Plain pin links",
                 "Einfache Pin-Links");
         table.put("Privacy",
@@ -669,11 +671,11 @@ public final class L10nTranslations {
                 "\u00dcbersprungen, weil schon im Download-Verlauf: %d");
         table.put("Social permissions",
                 "Sozialberechtigungen");
-        table.put("Source code and issues",
-                "Quellcode und Issues");
     }
 
     private static void fillDe5(Map<String, String> table) {
+        table.put("Source code and issues",
+                "Quellcode und Issues");
         table.put("Spoof signature for Google sign-in",
                 "Signatur f\u00fcr Google-Anmeldung vort\u00e4uschen");
         table.put("Starts a new download. Android manages it.",
@@ -792,11 +794,11 @@ public final class L10nTranslations {
                 "Import r\u00fcckg\u00e4ngig machen");
         table.put("Undoing import",
                 "Import wird r\u00fcckg\u00e4ngig gemacht");
-        table.put("Unknown",
-                "Unbekannt");
     }
 
     private static void fillDe6(Map<String, String> table) {
+        table.put("Unknown",
+                "Unbekannt");
         table.put("Unsupported",
                 "Nicht unterst\u00fctzt");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
@@ -856,7 +858,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(776);
+        Map<String, String> table = new HashMap<>(778);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -952,6 +954,8 @@ public final class L10nTranslations {
                 "Atr\u00e1s");
         table.put("Back up before changing builds",
                 "Haz una copia de seguridad antes de cambiar de compilaci\u00f3n");
+        table.put("Block Store browser ID",
+                "ID de navegador en Block Store");
         table.put("Boost pin",
                 "Impulsar Pin");
         table.put("Browse settings",
@@ -986,11 +990,11 @@ public final class L10nTranslations {
                 "Completado");
         table.put("Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. Pin links from Pinterest's country sites become that same link too. When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.",
                 "Los enlaces de pin.it copiados y compartidos pasan a ser el enlace de pinterest.com del propio pin, as\u00ed no dicen qui\u00e9n los comparti\u00f3. Los enlaces de pines de los sitios de Pinterest de cada pa\u00eds tambi\u00e9n pasan a ser ese mismo enlace. Si HushPinterest a\u00fan no conoce el pin, un enlace copiado se consulta con Pinterest en segundo plano y se cambia un momento despu\u00e9s.");
-        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Copia un informe r\u00e1pido o guarda el completo en %1$s. Se omiten enlaces, ID, cookies y tokens de inicio de sesi\u00f3n. Revisa si contiene otros datos privados antes de compartirlo.");
     }
 
     private static void fillEs1(Map<String, String> table) {
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Copia un informe r\u00e1pido o guarda el completo en %1$s. Se omiten enlaces, ID, cookies y tokens de inicio de sesi\u00f3n. Revisa si contiene otros datos privados antes de compartirlo.");
         table.put("Copy a short report to the clipboard.",
                 "Copia un informe breve en el portapapeles.");
         table.put("Copy media link",
@@ -1109,11 +1113,11 @@ public final class L10nTranslations {
                 "La recopilaci\u00f3n de Firebase y Google Analytics est\u00e1 desactivada");
         table.put("Full report saved to %1$s",
                 "Informe completo guardado en %1$s");
-        table.put("GPL-3.0, with the notices of the projects this is built on",
-                "GPL-3.0, con los avisos de los proyectos en los que se basa");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("GPL-3.0, with the notices of the projects this is built on",
+                "GPL-3.0, con los avisos de los proyectos en los que se basa");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub est\u00e1 rechazando por ahora las consultas desde esta red. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
         table.put("GitHub sent back something HushPinterest couldn't read. Try again later.",
@@ -1232,11 +1236,11 @@ public final class L10nTranslations {
                 "Enlaces");
         table.put("Links, updates, backup and more",
                 "Enlaces, actualizaciones, copia de seguridad y m\u00e1s");
-        table.put("Long-press download",
-                "Descarga con pulsaci\u00f3n larga");
     }
 
     private static void fillEs3(Map<String, String> table) {
+        table.put("Long-press download",
+                "Descarga con pulsaci\u00f3n larga");
         table.put("Media link",
                 "Enlace del archivo");
         table.put("Media link copied.",
@@ -1341,8 +1345,8 @@ public final class L10nTranslations {
                 "Pinterest solo ofreci\u00f3 un video en streaming para este pin, no un archivo que se pueda descargar.");
         table.put("Pinterest password help",
                 "Ayuda de Pinterest con la contrase\u00f1a");
-        table.put("Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.",
-                "Pinterest ve un ID de publicidad vac\u00edo con el seguimiento de anuncios limitado, como si hubieras borrado tu ID de publicidad en los ajustes de Android.");
+        table.put("Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings. Pinterest also stops keeping its browser ID in Google's Block Store, where it would outlast a reinstall.",
+                "Pinterest ve un ID de publicidad vac\u00edo con el seguimiento de anuncios limitado, como si hubieras borrado tu ID de publicidad en los ajustes de Android. Pinterest tambi\u00e9n deja de guardar su ID de navegador en el Block Store de Google, donde sobrevivir\u00eda a una reinstalaci\u00f3n.");
         table.put("Pinterest's access to the ad ID and Android's ad services is removed",
                 "el acceso de Pinterest al ID de publicidad y a los servicios de publicidad de Android est\u00e1 eliminado");
         table.put("Pinterest's ad personalization and data choices for your account. Disable analytics doesn't change them.",
@@ -1355,11 +1359,11 @@ public final class L10nTranslations {
                 "La firma original de Pinterest se a\u00f1adi\u00f3 a la app");
         table.put("Pinterest's own settings",
                 "Configuraci\u00f3n propia de Pinterest");
-        table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
-                "Las direcciones web de Pinterest est\u00e1n seleccionadas para esta app en los ajustes de Android, as\u00ed que sus enlaces se abren aqu\u00ed.");
     }
 
     private static void fillEs4(Map<String, String> table) {
+        table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
+                "Las direcciones web de Pinterest est\u00e1n seleccionadas para esta app en los ajustes de Android, as\u00ed que sus enlaces se abren aqu\u00ed.");
         table.put("Plain pin links",
                 "Enlaces de pin simples");
         table.put("Privacy",
@@ -1478,11 +1482,11 @@ public final class L10nTranslations {
                 "Omitidos porque ya est\u00e1n en el Historial de descargas: %d");
         table.put("Social permissions",
                 "Permisos sociales");
-        table.put("Source code and issues",
-                "C\u00f3digo fuente e incidencias");
     }
 
     private static void fillEs5(Map<String, String> table) {
+        table.put("Source code and issues",
+                "C\u00f3digo fuente e incidencias");
         table.put("Spoof signature for Google sign-in",
                 "Falsear la firma para iniciar sesi\u00f3n con Google");
         table.put("Starts a new download. Android manages it.",
@@ -1601,11 +1605,11 @@ public final class L10nTranslations {
                 "Deshacer importaci\u00f3n");
         table.put("Undoing import",
                 "Deshaciendo importaci\u00f3n");
-        table.put("Unknown",
-                "Desconocido");
     }
 
     private static void fillEs6(Map<String, String> table) {
+        table.put("Unknown",
+                "Desconocido");
         table.put("Unsupported",
                 "No compatible");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
@@ -1665,7 +1669,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(776);
+        Map<String, String> table = new HashMap<>(778);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1761,6 +1765,8 @@ public final class L10nTranslations {
                 "Kembali");
         table.put("Back up before changing builds",
                 "Cadangkan sebelum mengganti build");
+        table.put("Block Store browser ID",
+                "ID browser di Block Store");
         table.put("Boost pin",
                 "Promosikan Pin");
         table.put("Browse settings",
@@ -1795,11 +1801,11 @@ public final class L10nTranslations {
                 "Selesai");
         table.put("Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. Pin links from Pinterest's country sites become that same link too. When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.",
                 "Tautan pin.it yang disalin dan dibagikan menjadi tautan pinterest.com milik pin itu sendiri, sehingga tidak menunjukkan siapa yang membagikannya. Tautan pin dari situs Pinterest untuk tiap negara juga menjadi tautan yang sama. Jika HushPinterest belum mengenal pin tersebut, tautan yang disalin diperiksa ke Pinterest di latar belakang lalu diganti sesaat kemudian.");
-        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Salin laporan singkat atau simpan laporan lengkap ke %1$s. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.");
     }
 
     private static void fillIn1(Map<String, String> table) {
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Salin laporan singkat atau simpan laporan lengkap ke %1$s. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.");
         table.put("Copy a short report to the clipboard.",
                 "Salin laporan singkat ke papan klip.");
         table.put("Copy media link",
@@ -1918,11 +1924,11 @@ public final class L10nTranslations {
                 "Pengumpulan data Firebase dan Google Analytics dinonaktifkan");
         table.put("Full report saved to %1$s",
                 "Laporan lengkap disimpan ke %1$s");
-        table.put("GPL-3.0, with the notices of the projects this is built on",
-                "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("GPL-3.0, with the notices of the projects this is built on",
+                "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub sedang menolak pemeriksaan dari jaringan ini. Coba lagi nanti.");
         table.put("GitHub sent back something HushPinterest couldn't read. Try again later.",
@@ -2041,11 +2047,11 @@ public final class L10nTranslations {
                 "Tautan");
         table.put("Links, updates, backup and more",
                 "Tautan, pembaruan, cadangan, dan lainnya");
-        table.put("Long-press download",
-                "Unduh dengan tekan lama");
     }
 
     private static void fillIn3(Map<String, String> table) {
+        table.put("Long-press download",
+                "Unduh dengan tekan lama");
         table.put("Media link",
                 "Tautan media");
         table.put("Media link copied.",
@@ -2150,8 +2156,8 @@ public final class L10nTranslations {
                 "Pinterest hanya menawarkan video streaming untuk pin ini, bukan file yang bisa diunduh.");
         table.put("Pinterest password help",
                 "Bantuan kata sandi Pinterest");
-        table.put("Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.",
-                "Pinterest melihat ID iklan kosong dengan pelacakan iklan dibatasi, seolah Anda menghapus ID iklan di setelan Android.");
+        table.put("Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings. Pinterest also stops keeping its browser ID in Google's Block Store, where it would outlast a reinstall.",
+                "Pinterest melihat ID iklan kosong dengan pelacakan iklan dibatasi, seolah Anda menghapus ID iklan di setelan Android. Pinterest juga berhenti menyimpan ID browser miliknya di Block Store Google, tempat ID itu akan tetap ada walau aplikasi dipasang ulang.");
         table.put("Pinterest's access to the ad ID and Android's ad services is removed",
                 "akses Pinterest ke ID iklan dan layanan iklan Android dihapus");
         table.put("Pinterest's ad personalization and data choices for your account. Disable analytics doesn't change them.",
@@ -2164,11 +2170,11 @@ public final class L10nTranslations {
                 "Tanda tangan asli Pinterest ditambahkan ke aplikasi");
         table.put("Pinterest's own settings",
                 "Pengaturan Pinterest sendiri");
-        table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
-                "Alamat web Pinterest dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.");
     }
 
     private static void fillIn4(Map<String, String> table) {
+        table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
+                "Alamat web Pinterest dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.");
         table.put("Plain pin links",
                 "Tautan pin biasa");
         table.put("Privacy",
@@ -2287,11 +2293,11 @@ public final class L10nTranslations {
                 "Dilewati karena sudah ada di Riwayat unduhan: %d");
         table.put("Social permissions",
                 "Izin fitur sosial");
-        table.put("Source code and issues",
-                "Kode sumber dan laporan masalah");
     }
 
     private static void fillIn5(Map<String, String> table) {
+        table.put("Source code and issues",
+                "Kode sumber dan laporan masalah");
         table.put("Spoof signature for Google sign-in",
                 "Palsukan tanda tangan untuk login Google");
         table.put("Starts a new download. Android manages it.",
@@ -2410,11 +2416,11 @@ public final class L10nTranslations {
                 "Urungkan impor");
         table.put("Undoing import",
                 "Mengurungkan impor");
-        table.put("Unknown",
-                "Tidak diketahui");
     }
 
     private static void fillIn6(Map<String, String> table) {
+        table.put("Unknown",
+                "Tidak diketahui");
         table.put("Unsupported",
                 "Tidak didukung");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
@@ -2474,7 +2480,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(776);
+        Map<String, String> table = new HashMap<>(778);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2570,6 +2576,8 @@ public final class L10nTranslations {
                 "Voltar");
         table.put("Back up before changing builds",
                 "Fa\u00e7a backup antes de trocar de compila\u00e7\u00e3o");
+        table.put("Block Store browser ID",
+                "ID de navegador no Block Store");
         table.put("Boost pin",
                 "Impulsionar Pin");
         table.put("Browse settings",
@@ -2604,11 +2612,11 @@ public final class L10nTranslations {
                 "Conclu\u00eddo");
         table.put("Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. Pin links from Pinterest's country sites become that same link too. When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.",
                 "Links do pin.it copiados e compartilhados viram o link do pr\u00f3prio pin no pinterest.com, ent\u00e3o n\u00e3o dizem quem os compartilhou. Links de pins dos sites do Pinterest de cada pa\u00eds tamb\u00e9m viram esse mesmo link. Quando o HushPinterest ainda n\u00e3o conhece o pin, um link copiado \u00e9 verificado com o Pinterest em segundo plano e trocado logo depois.");
-        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Copie um relat\u00f3rio r\u00e1pido ou salve o completo em %1$s. Links, IDs, cookies e tokens de login s\u00e3o omitidos. Confira outros textos privados antes de compartilhar.");
     }
 
     private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Copie um relat\u00f3rio r\u00e1pido ou salve o completo em %1$s. Links, IDs, cookies e tokens de login s\u00e3o omitidos. Confira outros textos privados antes de compartilhar.");
         table.put("Copy a short report to the clipboard.",
                 "Copie um relat\u00f3rio curto para a \u00e1rea de transfer\u00eancia.");
         table.put("Copy media link",
@@ -2727,11 +2735,11 @@ public final class L10nTranslations {
                 "A coleta do Firebase e do Google Analytics est\u00e1 desativada");
         table.put("Full report saved to %1$s",
                 "Relat\u00f3rio completo salvo em %1$s");
-        table.put("GPL-3.0, with the notices of the projects this is built on",
-                "GPL-3.0, com os avisos dos projetos em que o HushPinterest se baseia");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("GPL-3.0, with the notices of the projects this is built on",
+                "GPL-3.0, com os avisos dos projetos em que o HushPinterest se baseia");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "O GitHub est\u00e1 recusando consultas desta rede por enquanto. Tente novamente mais tarde.");
         table.put("GitHub sent back something HushPinterest couldn't read. Try again later.",
@@ -2850,11 +2858,11 @@ public final class L10nTranslations {
                 "Links");
         table.put("Links, updates, backup and more",
                 "Links, atualiza\u00e7\u00f5es, backup e mais");
-        table.put("Long-press download",
-                "Baixar com toque longo");
     }
 
     private static void fillPt_rBR3(Map<String, String> table) {
+        table.put("Long-press download",
+                "Baixar com toque longo");
         table.put("Media link",
                 "Link da m\u00eddia");
         table.put("Media link copied.",
@@ -2959,8 +2967,8 @@ public final class L10nTranslations {
                 "O Pinterest s\u00f3 ofereceu um v\u00eddeo em streaming para este pin, n\u00e3o um arquivo que possa ser baixado.");
         table.put("Pinterest password help",
                 "Ajuda do Pinterest com a senha");
-        table.put("Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.",
-                "O Pinterest v\u00ea um ID de publicidade vazio, com o rastreamento de an\u00fancios limitado, como se voc\u00ea tivesse apagado seu ID de publicidade nas configura\u00e7\u00f5es do Android.");
+        table.put("Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings. Pinterest also stops keeping its browser ID in Google's Block Store, where it would outlast a reinstall.",
+                "O Pinterest v\u00ea um ID de publicidade vazio, com o rastreamento de an\u00fancios limitado, como se voc\u00ea tivesse apagado seu ID de publicidade nas configura\u00e7\u00f5es do Android. O Pinterest tamb\u00e9m deixa de guardar o pr\u00f3prio ID de navegador no Block Store do Google, onde ele sobreviveria a uma reinstala\u00e7\u00e3o.");
         table.put("Pinterest's access to the ad ID and Android's ad services is removed",
                 "o acesso do Pinterest ao ID de publicidade e aos servi\u00e7os de an\u00fancios do Android foi removido");
         table.put("Pinterest's ad personalization and data choices for your account. Disable analytics doesn't change them.",
@@ -2973,11 +2981,11 @@ public final class L10nTranslations {
                 "A assinatura original do Pinterest foi adicionada ao app");
         table.put("Pinterest's own settings",
                 "Configura\u00e7\u00f5es do pr\u00f3prio Pinterest");
-        table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
-                "Os endere\u00e7os web do Pinterest est\u00e3o selecionados para este app nas configura\u00e7\u00f5es do Android, ent\u00e3o os links deles abrem aqui.");
     }
 
     private static void fillPt_rBR4(Map<String, String> table) {
+        table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
+                "Os endere\u00e7os web do Pinterest est\u00e3o selecionados para este app nas configura\u00e7\u00f5es do Android, ent\u00e3o os links deles abrem aqui.");
         table.put("Plain pin links",
                 "Links de pin simples");
         table.put("Privacy",
@@ -3096,11 +3104,11 @@ public final class L10nTranslations {
                 "Pulados porque j\u00e1 est\u00e3o no Hist\u00f3rico de downloads: %d");
         table.put("Social permissions",
                 "Permiss\u00f5es para redes sociais");
-        table.put("Source code and issues",
-                "C\u00f3digo-fonte e relatos de problemas");
     }
 
     private static void fillPt_rBR5(Map<String, String> table) {
+        table.put("Source code and issues",
+                "C\u00f3digo-fonte e relatos de problemas");
         table.put("Spoof signature for Google sign-in",
                 "Falsificar assinatura para login com Google");
         table.put("Starts a new download. Android manages it.",
@@ -3219,11 +3227,11 @@ public final class L10nTranslations {
                 "Desfazer importa\u00e7\u00e3o");
         table.put("Undoing import",
                 "Desfazendo importa\u00e7\u00e3o");
-        table.put("Unknown",
-                "Desconhecido");
     }
 
     private static void fillPt_rBR6(Map<String, String> table) {
+        table.put("Unknown",
+                "Desconhecido");
         table.put("Unsupported",
                 "N\u00e3o compat\u00edvel");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
@@ -3283,7 +3291,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(776);
+        Map<String, String> table = new HashMap<>(778);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3379,6 +3387,8 @@ public final class L10nTranslations {
                 "Geri");
         table.put("Back up before changing builds",
                 "Derlemeyi de\u011fi\u015ftirmeden \u00f6nce yedekleyin");
+        table.put("Block Store browser ID",
+                "Block Store taray\u0131c\u0131 kimli\u011fi");
         table.put("Boost pin",
                 "Pini tan\u0131t");
         table.put("Browse settings",
@@ -3413,11 +3423,11 @@ public final class L10nTranslations {
                 "Tamamland\u0131");
         table.put("Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. Pin links from Pinterest's country sites become that same link too. When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.",
                 "Kopyalanan ve payla\u015f\u0131lan pin.it ba\u011flant\u0131lar\u0131 pinin kendi pinterest.com ba\u011flant\u0131s\u0131na d\u00f6n\u00fc\u015f\u00fcr, b\u00f6ylece onlar\u0131 kimin payla\u015ft\u0131\u011f\u0131n\u0131 g\u00f6stermez. Pinterest'in \u00fclke sitelerindeki pin ba\u011flant\u0131lar\u0131 da ayn\u0131 ba\u011flant\u0131ya d\u00f6n\u00fc\u015f\u00fcr. HushPinterest pini hen\u00fcz tan\u0131m\u0131yorsa kopyalanan ba\u011flant\u0131 arka planda Pinterest'e sorulur ve k\u0131sa bir s\u00fcre sonra de\u011fi\u015ftirilir.");
-        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "H\u0131zl\u0131 bir rapor kopyalay\u0131n veya tam raporu %1$s konumuna kaydedin. Ba\u011flant\u0131lar, kimlikler, \u00e7erezler ve giri\u015f belirte\u00e7leri d\u0131\u015far\u0131da b\u0131rak\u0131l\u0131r. Payla\u015fmadan \u00f6nce di\u011fer \u00f6zel metinleri kontrol edin.");
     }
 
     private static void fillTr1(Map<String, String> table) {
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "H\u0131zl\u0131 bir rapor kopyalay\u0131n veya tam raporu %1$s konumuna kaydedin. Ba\u011flant\u0131lar, kimlikler, \u00e7erezler ve giri\u015f belirte\u00e7leri d\u0131\u015far\u0131da b\u0131rak\u0131l\u0131r. Payla\u015fmadan \u00f6nce di\u011fer \u00f6zel metinleri kontrol edin.");
         table.put("Copy a short report to the clipboard.",
                 "K\u0131sa raporu panoya kopyalar.");
         table.put("Copy media link",
@@ -3536,11 +3546,11 @@ public final class L10nTranslations {
                 "Firebase ve Google Analytics veri toplama kapal\u0131");
         table.put("Full report saved to %1$s",
                 "Tam rapor \u015furaya kaydedildi: %1$s");
-        table.put("GPL-3.0, with the notices of the projects this is built on",
-                "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("GPL-3.0, with the notices of the projects this is built on",
+                "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub \u015fu an bu a\u011fdan gelen sorgular\u0131 geri \u00e7eviriyor. Daha sonra tekrar dene.");
         table.put("GitHub sent back something HushPinterest couldn't read. Try again later.",
@@ -3659,11 +3669,11 @@ public final class L10nTranslations {
                 "Ba\u011flant\u0131lar");
         table.put("Links, updates, backup and more",
                 "Ba\u011flant\u0131lar, g\u00fcncellemeler, yedekleme ve daha fazlas\u0131");
-        table.put("Long-press download",
-                "Uzun basarak indirme");
     }
 
     private static void fillTr3(Map<String, String> table) {
+        table.put("Long-press download",
+                "Uzun basarak indirme");
         table.put("Media link",
                 "Medya ba\u011flant\u0131s\u0131");
         table.put("Media link copied.",
@@ -3768,8 +3778,8 @@ public final class L10nTranslations {
                 "Pinterest bu pin i\u00e7in yaln\u0131zca ak\u0131\u015f videosu sundu, indirilebilir bir dosya sunmad\u0131.");
         table.put("Pinterest password help",
                 "Pinterest parola yard\u0131m\u0131");
-        table.put("Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.",
-                "Pinterest, reklam takibi s\u0131n\u0131rl\u0131 olarak bo\u015f bir reklam kimli\u011fi g\u00f6r\u00fcr. Reklam kimli\u011fini Android ayarlar\u0131ndan silmi\u015fsin gibi olur.");
+        table.put("Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings. Pinterest also stops keeping its browser ID in Google's Block Store, where it would outlast a reinstall.",
+                "Pinterest, reklam takibi s\u0131n\u0131rl\u0131 olarak bo\u015f bir reklam kimli\u011fi g\u00f6r\u00fcr. Reklam kimli\u011fini Android ayarlar\u0131ndan silmi\u015fsin gibi olur. Pinterest ayr\u0131ca taray\u0131c\u0131 kimli\u011fini Google'\u0131n Block Store'unda tutmay\u0131 b\u0131rak\u0131r. Orada kalsa uygulamay\u0131 yeniden y\u00fcklesen bile silinmezdi.");
         table.put("Pinterest's access to the ad ID and Android's ad services is removed",
                 "Pinterest'in reklam kimli\u011fine ve Android reklam hizmetlerine eri\u015fimi kald\u0131r\u0131ld\u0131");
         table.put("Pinterest's ad personalization and data choices for your account. Disable analytics doesn't change them.",
@@ -3782,11 +3792,11 @@ public final class L10nTranslations {
                 "Pinterest'in orijinal imzas\u0131 uygulamaya eklendi");
         table.put("Pinterest's own settings",
                 "Pinterest'in kendi ayarlar\u0131");
-        table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
-                "Pinterest'\u0131n web adresleri Android ayarlar\u0131nda bu uygulama i\u00e7in se\u00e7ili, bu y\u00fczden ba\u011flant\u0131lar\u0131 burada a\u00e7\u0131l\u0131r.");
     }
 
     private static void fillTr4(Map<String, String> table) {
+        table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
+                "Pinterest'\u0131n web adresleri Android ayarlar\u0131nda bu uygulama i\u00e7in se\u00e7ili, bu y\u00fczden ba\u011flant\u0131lar\u0131 burada a\u00e7\u0131l\u0131r.");
         table.put("Plain pin links",
                 "Sade pin ba\u011flant\u0131lar\u0131");
         table.put("Privacy",
@@ -3905,11 +3915,11 @@ public final class L10nTranslations {
                 "\u0130ndirme ge\u00e7mi\u015finde oldu\u011fu i\u00e7in atlananlar: %d");
         table.put("Social permissions",
                 "Sosyal izinler");
-        table.put("Source code and issues",
-                "Kaynak kodu ve sorunlar");
     }
 
     private static void fillTr5(Map<String, String> table) {
+        table.put("Source code and issues",
+                "Kaynak kodu ve sorunlar");
         table.put("Spoof signature for Google sign-in",
                 "Google ile oturum a\u00e7ma i\u00e7in imzay\u0131 taklit et");
         table.put("Starts a new download. Android manages it.",
@@ -4028,11 +4038,11 @@ public final class L10nTranslations {
                 "\u0130\u00e7e aktarmay\u0131 geri al");
         table.put("Undoing import",
                 "\u0130\u00e7e aktarma geri al\u0131n\u0131yor");
-        table.put("Unknown",
-                "Bilinmiyor");
     }
 
     private static void fillTr6(Map<String, String> table) {
+        table.put("Unknown",
+                "Bilinmiyor");
         table.put("Unsupported",
                 "Desteklenmiyor");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",

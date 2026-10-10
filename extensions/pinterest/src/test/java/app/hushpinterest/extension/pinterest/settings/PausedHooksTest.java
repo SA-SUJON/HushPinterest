@@ -236,7 +236,8 @@ public class PausedHooksTest {
                 }));
         probes.put(Settings.HIDE_ADVERTISING_ID, Arrays.asList(
                 () -> !"real".equals(AdvertisingId.id("real")),
-                () -> AdvertisingId.limitTracking(false)));
+                () -> AdvertisingId.limitTracking(false),
+                () -> AdvertisingId.skipBrowserId("pid")));
         probes.put(Settings.DOWNLOAD_PINS, Collections.singletonList(PausedHooksTest::queuesPinDownload));
         probes.put(Settings.DOWNLOAD_BOARD, Collections.singletonList(() -> BoardDownloads.record(Collections.singletonList(BOARD_PIN))));
         probes.put(Settings.LONG_PRESS_DOWNLOAD, Collections.singletonList(PausedHooksTest::addsLongPressDownload));

@@ -25,9 +25,11 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction23x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction32x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference;
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference;
 import com.android.tools.smali.dexlib2.writer.pool.DexPool;
 
 import java.io.File;
@@ -310,6 +312,80 @@ public final class FeatureDexFixture {
         }
     }
 
+    private static final String INFO = "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;";
+    private static final String ADVERTISING = BASE + "privacy/AdvertisingId;";
+    private static final String STORE = "Lfixture/BlockStore;";
+    private static final String CONTINUATION = "Lfixture/Continuation;";
+
+    /** A Block Store call's own body: it names Google's request or data type and answers nothing. */
+    private static List<Instruction> record(String request) {
+        return List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference("Lcom/google/android/gms/auth/blockstore/" + request)),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+    }
+
+    /** Google's advertising ID getters and a Block Store wrapper, with Hide advertising ID's hooks unless clean. */
+    private static void browserId(Map<String, List<Method>> classes, String variant) {
+        boolean patched = !variant.equals("clean");
+        List<Instruction> id = new ArrayList<>(List.of(literal("fixture-ad-id", 0)));
+        List<Instruction> limit = new ArrayList<>(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0)));
+        if (patched) {
+            id.add(invoke(Opcode.INVOKE_STATIC, ref(ADVERTISING, "id", STRING, STRING), 0));
+            id.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
+            limit.add(invoke(Opcode.INVOKE_STATIC, ref(ADVERTISING, "limitTracking", "Z", "Z"), 0));
+            limit.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
+        }
+        id.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+        limit.add(new ImmutableInstruction11x(Opcode.RETURN, 0));
+        classes.put(INFO, List.of(method(INFO, "getId", STRING, false, 2, id), method(INFO, "isLimitAdTrackingEnabled", "Z", false, 2, limit)));
+        ImmutableMethodReference skip = ref(ADVERTISING, "skipBrowserId", "Z", STRING);
+        // The read is v0, v1, then this, key and continuation.
+        List<Instruction> read = new ArrayList<>();
+        if (patched && !variant.equals("missing") && !variant.equals("misrouted")) {
+            read.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 3, 1, skip));
+            read.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
+            read.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, variant.equals("bad-fallback") ? 3 : 4));
+            read.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
+            read.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+        }
+        read.addAll(record("RetrieveBytesRequest;"));
+        // The save is v0, then this, key, bytes and continuation.
+        List<Instruction> save = new ArrayList<>();
+        if (patched) {
+            save.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 1, 4,
+                    ref(ADVERTISING, "saveBrowserId", OBJECT, OBJECT, STRING, "[B", OBJECT)));
+            save.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
+            save.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 3));
+            save.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+        }
+        save.addAll(record("StoreBytesData;"));
+        if (variant.equals("changed-original")) save.set(save.size() - 2, new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference(OBJECT)));
+        ImmutableMethodReference delete = ref(STORE, "delete", OBJECT, LIST, CONTINUATION);
+        List<Method> store = new ArrayList<>(List.of(
+                method(STORE, "read", "Ljava/io/Serializable;", false, 5, read, STRING, CONTINUATION),
+                method(STORE, "save", OBJECT, false, 5, save, STRING, "[B", CONTINUATION),
+                method(STORE, "delete", OBJECT, false, 4, record("DeleteBytesRequest;"), LIST, CONTINUATION)));
+        if (variant.equals("misrouted")) store.add(method(STORE, "unrelated", VOID, true, 1,
+                List.of(literal("pid", 0), invoke(Opcode.INVOKE_STATIC, skip, 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end())));
+        classes.put(STORE, store);
+        if (!patched) return;
+        List<Instruction> answer = List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1));
+        List<Instruction> flag = List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 1));
+        List<Instruction> skipped = List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 0));
+        List<Instruction> saved = List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+        // The patch's rewrite of the extension's delete stub: the wrapper's own delete on the save's continuation.
+        List<Instruction> deleted = List.of(new ImmutableInstruction21c(Opcode.CHECK_CAST, 1, new ImmutableTypeReference(STORE)),
+                new ImmutableInstruction21c(Opcode.CHECK_CAST, 3, new ImmutableTypeReference(CONTINUATION)),
+                invoke(Opcode.INVOKE_VIRTUAL, variant.equals("bad-stub") ? ref(STORE, "remove", OBJECT, LIST, CONTINUATION) : delete, 1, 2, 3),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+        classes.put(ADVERTISING, List.of(method(ADVERTISING, "id", STRING, true, 2, answer, STRING),
+                method(ADVERTISING, "limitTracking", "Z", true, 2, flag, "Z"),
+                method(ADVERTISING, "skipBrowserId", "Z", true, 2, skipped, STRING),
+                method(ADVERTISING, "saveBrowserId", OBJECT, true, 5, saved, OBJECT, STRING, "[B", OBJECT),
+                method(ADVERTISING, "deleteBrowserId", OBJECT, true, 4, deleted, OBJECT, LIST, OBJECT)));
+    }
+
     private static void links(Map<String, List<Method>> classes, boolean patched, String variant, boolean clipboard) {
         ImmutableMethodReference nativeIntent = ref(INTENT, "putExtra", INTENT, STRING, STRING);
         ImmutableMethodReference intentHook = ref(TRACKING, "putStringExtra", INTENT, INTENT, STRING, STRING);
@@ -531,6 +607,16 @@ public final class FeatureDexFixture {
             Map<String, List<Method>> profile = new LinkedHashMap<>(settings);
             profileWebsites(profile, variant);
             write(root, "feature-profile-" + variant, profile, true, "externalBrowser");
+        }
+        Map<String, List<Method>> browserClean = new LinkedHashMap<>(clean);
+        browserId(browserClean, "clean");
+        write(root, "feature-browser-id-clean", browserClean, false);
+        for (String variant : List.of("good", "missing", "misrouted", "bad-fallback", "changed-original", "false-capability", "bad-stub")) {
+            reset(); enable("hideAdvertisingId");
+            if (variant.equals("false-capability")) FLAGS.put("browserId", false);
+            Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
+            browserId(classes, variant);
+            write(root, "feature-browser-id-" + variant, classes, true, "hideAdvertisingId");
         }
         reset();
         write(root, "feature-status-copy", new LinkedHashMap<>(Map.of(STATUS, settings.get(STATUS))), false);
