@@ -14,7 +14,7 @@ import app.morphe.patcher.string
  * API response and a model list with a bookmark. Each is renamed in every build, but each still
  * describes itself in `toString()` with its Kotlin name, so that text finds the class.
  *
- * In 14.38.0 they're `e52.d` (with two list constructors), `gu1.l0` and `bm2.c`. The same three
+ * In 14.39.0 they're `t52.d` (with two list constructors), `tu1.h0` and `zm2.b`. The same three
  * texts mark them in 14.23 to 14.34 according to the Pinterest patch sources in
  * sources/pinterest-sources.json.
  */
