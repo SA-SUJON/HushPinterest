@@ -71,7 +71,7 @@ internal fun BytecodePatchContext.declaredInHierarchy(
  * Adds an alias of [MAIN_ACTIVITY] that answers [APPLICATION_PREFERENCES], which is what makes
  * Android's App info page for Pinterest show "Additional settings in the app". The alias opens
  * Pinterest's own launcher activity with that action, and the extension opens the settings from there.
- * The settings extension needs API 28, so the patched APK also declares that floor, preserving any
+ * The settings extension needs API 29, so the patched APK also declares that floor, preserving any
  * higher minimum Pinterest already requires.
  */
 internal val settingsManifestPatch = resourcePatch {
@@ -102,7 +102,7 @@ internal val settingsManifestPatch = resourcePatch {
                 sdk.getAttribute("android:minSdkVersion").toIntOrNull()?.takeIf { it > 0 }
                     ?: throw PatchException("AndroidManifest.xml has an invalid minSdkVersion")
             }
-            sdk.setAttribute("android:minSdkVersion", maxOf(stockMinSdk, 28).toString())
+            sdk.setAttribute("android:minSdkVersion", maxOf(stockMinSdk, 29).toString())
 
             val alias = document.createElement("activity-alias").apply {
                 setAttribute("android:name", SETTINGS_ALIAS_NAME)

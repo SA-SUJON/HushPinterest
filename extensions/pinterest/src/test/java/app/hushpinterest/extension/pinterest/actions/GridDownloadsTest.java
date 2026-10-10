@@ -11,7 +11,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Looper;
 import android.view.View;
 import android.widget.ListView;
@@ -29,10 +28,13 @@ import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowToast;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.PatchFamilyForTests;
@@ -72,8 +74,6 @@ public class GridDownloadsTest {
         var running = GridDownloads.class.getDeclaredField("RUNNING");
         running.setAccessible(true);
         ((AtomicBoolean) running.get(null)).set(false);
-        var fragment = activity.getFragmentManager().findFragmentByTag("hushpinterest_save_pin");
-        if (fragment != null) fragment.onActivityResult(48122, Activity.RESULT_CANCELED, null);
         settle();
         Settings.DOWNLOAD_PINS.save(false);
         PatchFamilyForTests.capabilities(null);
@@ -107,7 +107,6 @@ public class GridDownloadsTest {
         for (int i = 0; i < 10; i++) {
             await.invoke(null);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
-            activity.getFragmentManager().executePendingTransactions();
         }
     }
 
@@ -169,7 +168,7 @@ public class GridDownloadsTest {
         assertEquals(2, history.size());
         assertEquals("3", history.get(0).pinId);
         assertEquals(DownloadLedger.State.UNSUPPORTED, history.get(0).state);
-        assertTrue(ShadowToast.getTextOfLatestToast().contains("Queued: 1\nSaved: 0\nSkipped: 0\nUnsupported: 1\nFailed: 0"));
+        assertTrue(ShadowToast.getTextOfLatestToast().contains("Queued: 1\nSkipped: 0\nUnsupported: 1\nFailed: 0"));
     }
 
     @Test public void pauseBetweenSelectionAndQueueSkipsEverySelectedPin() throws Exception {
@@ -185,33 +184,12 @@ public class GridDownloadsTest {
         assertTrue(history.stream().allMatch(job -> job.state == DownloadLedger.State.SKIPPED && job.id < 0));
     }
 
-    @Test @Config(sdk = 28) public void androidNineCancelsOnePickerBeforeStartingTheNextAndRecordsBoth() throws Exception {
-        View origin = cell(pin("1"), 0);
-        cell(pin("2"), 100);
-        choose(origin, 0, 1).getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-        settle();
-        Intent first = Shadows.shadowOf(activity).getNextStartedActivity();
-        assertNotNull("First picker; feedback=" + ShadowToast.getTextOfLatestToast(), first);
-        assertEquals(Intent.ACTION_CREATE_DOCUMENT, first.getAction());
-        assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
-        activity.getFragmentManager().findFragmentByTag("hushpinterest_save_pin").onActivityResult(48122, Activity.RESULT_CANCELED, null);
-        settle();
-        Intent second = Shadows.shadowOf(activity).getNextStartedActivity();
-        assertEquals(Intent.ACTION_CREATE_DOCUMENT, second.getAction());
-        activity.getFragmentManager().findFragmentByTag("hushpinterest_save_pin").onActivityResult(48122, Activity.RESULT_CANCELED, null);
-        settle();
-        List<DownloadLedger.Job> history = new DownloadLedger(activity).reconcile();
-        assertEquals(2, history.size());
-        assertTrue(history.stream().allMatch(job -> job.state == DownloadLedger.State.SKIPPED));
-    }
-
     @Test public void localResultsSurviveReloadAndNeverBecomeRetryableRequests() {
-        for (DownloadLedger.State state : List.of(DownloadLedger.State.SAVED, DownloadLedger.State.SKIPPED,
+        for (DownloadLedger.State state : List.of(DownloadLedger.State.SKIPPED,
                 DownloadLedger.State.UNSUPPORTED, DownloadLedger.State.FAILED)) assertTrue(DownloadLedger.recordResult(activity, "5", state));
         List<DownloadLedger.Job> history = new DownloadLedger(activity).reconcile();
-        assertEquals(4, history.size());
+        assertEquals(3, history.size());
         assertTrue(history.stream().allMatch(job -> job.id < 0 && !job.canRetry()));
-        assertTrue(history.stream().anyMatch(job -> job.state == DownloadLedger.State.SAVED));
     }
 
     @Test @Config(shadows = DownloadLedgerTest.NativeDownloads.class)
@@ -225,7 +203,7 @@ public class GridDownloadsTest {
         List<DownloadLedger.Job> local = new DownloadLedger(activity).reconcile();
         assertEquals(DownloadLedger.State.FAILED, local.get(0).state);
         assertTrue(downloads.queries.isEmpty());
-        assertTrue(ShadowToast.getTextOfLatestToast().contains("Queued: 0\nSaved: 0\nSkipped: 0\nUnsupported: 0\nFailed: 1"));
+        assertTrue(ShadowToast.getTextOfLatestToast().contains("Queued: 0\nSkipped: 0\nUnsupported: 0\nFailed: 1"));
         downloads.rejectEnqueue = false;
         assertTrue(PinDownloads.start(pin("2"), activity));
         settle();
@@ -250,19 +228,40 @@ public class GridDownloadsTest {
         assertTrue(new DownloadLedger(activity).reconcile().isEmpty());
     }
 
-    @Test @Config(sdk = 28) public void stoppingSelectionKeepsCurrentPickerAndSkipsRemainingPins() throws Exception {
-        View origin = cell(pin("1"), 0);
-        cell(pin("2"), 100);
-        choose(origin, 0, 1).getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-        settle();
-        assertEquals(Intent.ACTION_CREATE_DOCUMENT, Shadows.shadowOf(activity).getNextStartedActivity().getAction());
-        AlertDialog progress = ShadowAlertDialog.getLatestAlertDialog();
-        progress.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
-        assertNotNull(activity.getFragmentManager().findFragmentByTag("hushpinterest_save_pin"));
-        activity.getFragmentManager().findFragmentByTag("hushpinterest_save_pin").onActivityResult(48122, Activity.RESULT_CANCELED, null);
-        settle();
-        assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
-        assertEquals(2, new DownloadLedger(activity).reconcile().size());
-        assertTrue(ShadowToast.getTextOfLatestToast().contains("Skipped: 2"));
+    /** Stop lands while the first pin's original lookup is still out, so that pin is queued and the rest skipped. */
+    @Test public void stoppingSelectionKeepsTheStartedDownloadAndSkipsRemainingPins() throws Exception {
+        CountDownLatch asked = new CountDownLatch(1), answer = new CountDownLatch(1);
+        PinTransfer.Connection previous = OriginalLookup.connection;
+        OriginalLookup.connection = uri -> {
+            asked.countDown();
+            try {
+                answer.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+            }
+            throw new IOException("media host held for the test");
+        };
+        try {
+            View origin = cell(Map.of("id", "1", "images", Map.of("736x", Map.of("url", MediaHostForTests.STAND_IN))), 0);
+            cell(pin("2"), 100);
+            choose(origin, 0, 1).getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue("the first pin never asked the media host", asked.await(5, TimeUnit.SECONDS));
+            ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+        } finally {
+            answer.countDown();
+        }
+        try {
+            settle();
+        } finally {
+            OriginalLookup.connection = previous;
+        }
+        assertEquals(1, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+        List<DownloadLedger.Job> history = new DownloadLedger(activity).reconcile();
+        assertEquals(2, history.size());
+        assertEquals("2", history.get(0).pinId);
+        assertEquals(DownloadLedger.State.SKIPPED, history.get(0).state);
+        assertTrue(ShadowToast.getTextOfLatestToast(), ShadowToast.getTextOfLatestToast().contains("Queued: 1\nSkipped: 1\n"));
     }
 }

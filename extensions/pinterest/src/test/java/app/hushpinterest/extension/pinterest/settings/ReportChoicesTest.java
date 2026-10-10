@@ -119,13 +119,11 @@ public class ReportChoicesTest {
         assertEquals("Diagnostic report copied to the clipboard.", ShadowToast.getTextOfLatestToast());
     }
 
-    @Test @Config(sdk = {28, 29, 30})
+    @Test @Config(sdk = {29, 30})
     public void saveChoiceAndPreferenceNameTheWritersDirectory() throws Exception {
         SettingsDialog settings = SettingsL10nTest.show(activity());
         Preference export = SettingsL10nTest.pageOf(settings).findPreference("action_export_diagnostic_report");
-        String directory = Build.VERSION.SDK_INT < 29
-                ? new java.io.File(activity().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "Morphe").getAbsolutePath()
-                : Environment.DIRECTORY_DOWNLOADS + "/Morphe";
+        String directory = Environment.DIRECTORY_DOWNLOADS + "/Morphe";
         String isolated = app.hushpinterest.extension.shared.L10n.isolate(directory);
         assertNotNull("no export row", export);
         assertTrue(export.getSummary().toString(), export.getSummary().toString().contains(isolated));

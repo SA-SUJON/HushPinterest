@@ -68,22 +68,14 @@ public class ExportDiagnosticReportPreference extends Preference {
 
     /** The same destination as the writer, with the report's privacy reminder. */
     public CharSequence destinationSummary() {
-        String directory = LogBufferManager.fileExportDirectory(getContext());
-        if (directory == null) {
-            return L10n.t(getContext(), "Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies "
-                    + "and sign-in tokens are left out. Check it for other private text before you share it.");
-        }
         return L10n.f(getContext(), "Copy a quick report or save the full one to %1$s. Links, IDs, cookies "
                 + "and sign-in tokens are left out. Check it for other private text before you share it.",
-                L10n.isolate(directory));
+                L10n.isolate(LogBufferManager.fileExportDirectory()));
     }
 
     /** The full-file choice's description for a bundle that draws its own rows. */
     public CharSequence fullReportSummary() {
-        String directory = LogBufferManager.fileExportDirectory(getContext());
-        return directory == null
-                ? L10n.t(getContext(), "Report storage is unavailable right now. You can still copy a quick report.")
-                : L10n.f(getContext(), "Save the full report in %1$s.", L10n.isolate(directory));
+        return L10n.f(getContext(), "Save the full report in %1$s.", L10n.isolate(LogBufferManager.fileExportDirectory()));
     }
 
     /** The two choices, quick copy first, full file second. */

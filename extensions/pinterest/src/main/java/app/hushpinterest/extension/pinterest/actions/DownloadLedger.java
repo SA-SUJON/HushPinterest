@@ -47,7 +47,7 @@ public final class DownloadLedger {
     static final String RECORDS = "requests_v1";
     static final String EARLIER = "earlier_v1";
     /** One earlier history line: a request ID, or a negative picker-save key, then the pin ID. */
-    private static final Pattern EARLIER_LINE = Pattern.compile("(-?[0-9]{1,19}),([0-9]{1,30})");
+    private static final Pattern EARLIER_LINE = Pattern.compile("([0-9]{1,19}),([0-9]{1,30})");
     static final String SENDER_PERMISSION = "android.permission.SEND_DOWNLOAD_COMPLETED_INTENTS";
     private static final Object LOCK = new Object();
     private static final Object RECEIVER_LOCK = new Object();
@@ -63,7 +63,7 @@ public final class DownloadLedger {
         preferences = app.getSharedPreferences(STORE, Context.MODE_PRIVATE);
     }
 
-    public enum State { QUEUED, RUNNING, PAUSED, FAILED, COMPLETED, MISSING, UNAVAILABLE, SAVED, SKIPPED, UNSUPPORTED }
+    public enum State { QUEUED, RUNNING, PAUSED, FAILED, COMPLETED, MISSING, UNAVAILABLE, SKIPPED, UNSUPPORTED }
 
     public static final class Job {
         // Negative keys identify local outcomes, never DownloadManager requests.
@@ -114,7 +114,6 @@ public final class DownloadLedger {
                 case FAILED: return L10n.t("Failed");
                 case COMPLETED: return L10n.t("Completed");
                 case MISSING: return L10n.t("Missing");
-                case SAVED: return L10n.t("Saved");
                 case SKIPPED: return L10n.t("Skipped");
                 case UNSUPPORTED: return L10n.t("Unsupported");
                 default: return L10n.t("Unavailable");
@@ -122,7 +121,6 @@ public final class DownloadLedger {
         }
 
         public String reasonText() {
-            if (state == State.SAVED) return L10n.t("Saved to the location you chose.");
             if (state == State.SKIPPED) return L10n.t("No download was queued. The selection was stopped, canceled or unavailable.");
             if (state == State.UNSUPPORTED) return L10n.t("Pinterest didn't supply supported media for this pin.");
             if (state == State.PAUSED) {
@@ -159,7 +157,7 @@ public final class DownloadLedger {
 
     /** Call after native enqueue on its worker. Only the returned ID is an ownership claim. */
     public static boolean record(Context context, long id, String pinId) {
-        if (context == null || Build.VERSION.SDK_INT < 29 || !Utils.isMainProcess() ||
+        if (context == null || !Utils.isMainProcess() ||
                 id < 0 || pinId == null || !pinId.matches("[0-9]{1,30}")) return false;
         try {
             DownloadLedger ledger = new DownloadLedger(context);
@@ -176,15 +174,13 @@ public final class DownloadLedger {
     /** Records a terminal batch outcome without inventing a native download ID or retaining its URL. */
     static boolean recordResult(Context context, String pinId, State state) {
         if (context == null || !Utils.isMainProcess() || pinId == null || !pinId.matches("[0-9]{1,30}") ||
-                !(state == State.SAVED || state == State.SKIPPED || state == State.UNSUPPORTED || state == State.FAILED)) return false;
+                !(state == State.SKIPPED || state == State.UNSUPPORTED || state == State.FAILED)) return false;
         try {
             DownloadLedger ledger = new DownloadLedger(context);
             synchronized (LOCK) {
                 List<Job> jobs = ledger.load();
                 long key = -Math.max(2, System.currentTimeMillis());
                 for (Job job : jobs) if (job.id <= key) key = job.id - 1;
-                // A clock set back could otherwise reuse a key the earlier history still holds.
-                for (Job job : ledger.earlier()) if (job.id <= key) key = job.id - 1;
                 if (key >= -1) throw new IllegalStateException("Local history keys exhausted");
                 jobs.add(0, new Job(key, pinId, System.currentTimeMillis(), state, 0, null));
                 ledger.store(jobs, ledger.trim(jobs));
@@ -198,12 +194,12 @@ public final class DownloadLedger {
     }
 
     /**
-     * The pins whose saved history holds a request handed to Android's Downloads or a file saved
-     * through the picker, counting the earlier ones the visible history no longer shows. Skipped,
-     * unsupported and failed results don't count, and neither does a request Android reports failed
-     * or missing, so those pins can be tried again. A request Android can't be asked about still
-     * counts, so a pin isn't saved twice. Asks Android's Downloads about this app's own requests
-     * only, so call it off the main thread.
+     * The pins whose saved history holds a request handed to Android's Downloads, counting the
+     * earlier ones the visible history no longer shows. Skipped, unsupported and failed results
+     * don't count, and neither does a request Android reports failed or missing, so those pins can
+     * be tried again. A request Android can't be asked about still counts, so a pin isn't saved
+     * twice. Asks Android's Downloads about this app's own requests only, so call it off the main
+     * thread.
      */
     static Set<String> downloadedPinIds(Context context) {
         Set<String> ids = new HashSet<>();
@@ -217,7 +213,7 @@ public final class DownloadLedger {
                 for (Job job : ledger.earlier()) if (shown.add(job.id)) jobs.add(job);
                 for (Job job : ledger.query(jobs)) {
                     boolean requested = job.id >= 0 && job.state != State.FAILED && job.state != State.MISSING;
-                    if (requested || job.state == State.SAVED) ids.add(job.pinId);
+                    if (requested) ids.add(job.pinId);
                 }
             }
         } catch (RuntimeException failure) {
@@ -228,7 +224,7 @@ public final class DownloadLedger {
 
     /** Reconciles missed broadcasts without changing Android's retries, notifications or jobs. */
     public static void onStart(Context context) {
-        if (context == null || Build.VERSION.SDK_INT < 29 || !Utils.isMainProcess()) return;
+        if (context == null || !Utils.isMainProcess()) return;
         Context app = application(context);
         try {
             synchronized (RECEIVER_LOCK) {
@@ -362,7 +358,7 @@ public final class DownloadLedger {
 
     private void retryNow(long id) {
         synchronized (LOCK) {
-            if (Build.VERSION.SDK_INT < 29 || !Utils.settingsReady() || !PatchFamily.Capability.PIN_DOWNLOADS.installed()) {
+            if (!Utils.settingsReady() || !PatchFamily.Capability.PIN_DOWNLOADS.installed()) {
                 Utils.showToastLong(L10n.t("Open the pin again to get a fresh download link."));
                 return;
             }
@@ -488,7 +484,7 @@ public final class DownloadLedger {
                 long time = Long.parseLong(fields[2]);
                 if (time <= 0) continue;
                 State state = local ? State.valueOf(fields[3]) : State.UNAVAILABLE;
-                if (local && (id >= -1 || !(state == State.SAVED || state == State.SKIPPED || state == State.UNSUPPORTED || state == State.FAILED))) continue;
+                if (local && (id >= -1 || !(state == State.SKIPPED || state == State.UNSUPPORTED || state == State.FAILED))) continue;
                 boolean duplicate = false;
                 for (Job job : jobs) if (job.id == id) { duplicate = true; break; }
                 if (!duplicate) jobs.add(new Job(id, fields[1], time, state, 0, null));
@@ -501,25 +497,24 @@ public final class DownloadLedger {
     }
 
     /**
-     * The requests and saves older than the visible history, newest first: `id,pinId` lines, with
-     * a negative ID for a picker save. Nothing else is kept for them, and Android is asked about
-     * the requests again whenever they're read.
+     * The requests older than the visible history, newest first: `id,pinId` lines. Nothing else is
+     * kept for them, and Android is asked about them again whenever they're read.
      */
     private List<Job> earlier() {
         List<Job> jobs = new ArrayList<>();
         String text;
         try { text = preferences.getString(EARLIER, ""); }
         catch (ClassCastException invalid) { return jobs; }
-        // A 19-digit ID, a 30-digit pin ID, a sign and two separators per line.
-        if (text == null || text.length() > EARLIER_LIMIT * 52) return jobs;
+        // A 19-digit ID, a 30-digit pin ID and two separators per line.
+        if (text == null || text.length() > EARLIER_LIMIT * 51) return jobs;
         Set<Long> seen = new HashSet<>();
         for (String line : text.split("\n")) {
             Matcher fields = EARLIER_LINE.matcher(line);
             if (!fields.matches()) continue;
             try {
                 long id = Long.parseLong(fields.group(1));
-                if (id == -1 || !seen.add(id)) continue;
-                jobs.add(new Job(id, fields.group(2), 0, id < 0 ? State.SAVED : State.UNAVAILABLE, 0, null));
+                if (!seen.add(id)) continue;
+                jobs.add(new Job(id, fields.group(2), 0, State.UNAVAILABLE, 0, null));
                 if (jobs.size() == EARLIER_LIMIT) break;
             } catch (NumberFormatException invalid) {
                 // Invalid private metadata cannot become an ID to query.
@@ -529,9 +524,9 @@ public final class DownloadLedger {
     }
 
     /**
-     * Cuts [jobs] to the visible history. Returns the earlier requests and saves with the cut ones
-     * that still count put in front, or null when none of them do and the earlier ones stay as
-     * they are. Skipped, unsupported and failed results are dropped, since they never count.
+     * Cuts [jobs] to the visible history. Returns the earlier requests with the cut ones put in
+     * front, or null when the cut held none and the earlier ones stay as they are. Skipped,
+     * unsupported and failed results are dropped, since they never count.
      */
     private List<Job> trim(List<Job> jobs) {
         if (jobs.size() <= LIMIT) return null;
@@ -547,8 +542,8 @@ public final class DownloadLedger {
         return kept;
     }
 
-    /** A request handed to Android's Downloads or a picker save: the rows that can stop a pin saving twice. */
-    private static boolean counts(Job job) { return job.id >= 0 || job.state == State.SAVED; }
+    /** A request handed to Android's Downloads: the only rows that can stop a pin saving twice. */
+    private static boolean counts(Job job) { return job.id >= 0; }
 
     /** Writes the visible history, and [earlier] too unless it's null, in one commit. */
     private void store(List<Job> jobs, List<Job> earlier) {

@@ -31,22 +31,22 @@ class SettingsManifestTest {
     val temporary = TemporaryFolder()
 
     @Test
-    fun `stock floors below API 28 are raised`() {
-        for (stock in listOf(1, 21, 27)) {
-            assertEquals("stock minSdk $stock", "28", sdk(patchManifest("<uses-sdk android:minSdkVersion=\"$stock\" />"))
+    fun `stock floors below API 29 are raised`() {
+        for (stock in listOf(1, 21, 28)) {
+            assertEquals("stock minSdk $stock", "29", sdk(patchManifest("<uses-sdk android:minSdkVersion=\"$stock\" />"))
                 .getAttribute("android:minSdkVersion"))
         }
     }
 
     @Test
-    fun `a stock floor at API 28 stays there`() {
-        assertEquals("28", sdk(patchManifest("<uses-sdk android:minSdkVersion=\"28\" />"))
+    fun `a stock floor at API 29 stays there`() {
+        assertEquals("29", sdk(patchManifest("<uses-sdk android:minSdkVersion=\"29\" />"))
             .getAttribute("android:minSdkVersion"))
     }
 
     @Test
     fun `higher stock floors are preserved`() {
-        for (stock in listOf(29, 36)) {
+        for (stock in listOf(30, 36)) {
             assertEquals("stock minSdk $stock", stock.toString(),
                 sdk(patchManifest("<uses-sdk android:minSdkVersion=\"$stock\" />"))
                     .getAttribute("android:minSdkVersion"))
@@ -57,7 +57,7 @@ class SettingsManifestTest {
     fun `a missing uses-sdk is inserted before the application`() {
         val document = patchManifest("")
         val sdk = sdk(document)
-        assertEquals("28", sdk.getAttribute("android:minSdkVersion"))
+        assertEquals("29", sdk.getAttribute("android:minSdkVersion"))
         val application = document.getElementsByTagName("application").item(0)
         assertTrue(sdk.compareDocumentPosition(application).toInt()
             .and(org.w3c.dom.Node.DOCUMENT_POSITION_FOLLOWING.toInt()) != 0)
@@ -66,7 +66,7 @@ class SettingsManifestTest {
     @Test
     fun `a missing minimum is raised without changing other sdk attributes`() {
         val sdk = sdk(patchManifest("<uses-sdk android:targetSdkVersion=\"36\" android:maxSdkVersion=\"99\" />"))
-        assertEquals("28", sdk.getAttribute("android:minSdkVersion"))
+        assertEquals("29", sdk.getAttribute("android:minSdkVersion"))
         assertEquals("36", sdk.getAttribute("android:targetSdkVersion"))
         assertEquals("99", sdk.getAttribute("android:maxSdkVersion"))
     }

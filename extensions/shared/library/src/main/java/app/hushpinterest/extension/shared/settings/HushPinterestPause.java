@@ -234,7 +234,7 @@ public final class HushPinterestPause {
             return false;
         }
         boolean markedByHandler = parts.length > 2 && CRASHED.equals(parts[2]);
-        // Android 9 and 10 keep no exit reasons, so there only the handler's mark can say.
+        // Android 10 keeps no exit reasons, so there only the handler's mark can say.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return markedByHandler;
         ApplicationExitInfo exit = firstExitSince(context, pid, started);
         if (exit != null) {

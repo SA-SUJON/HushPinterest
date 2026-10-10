@@ -212,11 +212,7 @@ Download pin	Unduh Pin
 Share pin	Bagikan Pin
 Open pin link	Buka tautan Pin
 Download started. Check Downloads.	Unduhan dimulai. Periksa Unduhan.
-Pin saved.	Pin disimpan.
 Couldn't save this pin.	Pin ini tidak dapat disimpan.
-Another pin is being saved. Try again when it's finished.	Pin lain sedang disimpan. Coba lagi setelah selesai.
-The file may have saved. Check your chosen save location.	File mungkin sudah tersimpan. Periksa lokasi penyimpanan yang dipilih.
-Couldn't remove the incomplete file. Check your chosen save location.	File yang belum selesai tidak dapat dihapus. Periksa lokasi penyimpanan yang dipilih.
 Queued	Dalam antrean
 Downloading	Mengunduh
 Paused	Dijeda
@@ -265,23 +261,6 @@ Remove from history	Hapus dari riwayat
 Removes this history entry. Files and active downloads are kept.	Menghapus entri riwayat ini. File dan unduhan aktif tetap disimpan.
 Open Downloads	Buka Unduhan
 Refresh	Muat ulang
-Saving	Menyimpan
-Interrupted	Terhenti
-Access unavailable	Akses tidak tersedia
-Save cleanup pending	Pembersihan penyimpanan tertunda
-This save is still running. Try again when it's finished.	Penyimpanan ini masih berjalan. Coba lagi setelah selesai.
-Couldn't check your chosen save location. Open your Files app to inspect it.	Lokasi penyimpanan yang dipilih tidak dapat diperiksa. Buka aplikasi File untuk memeriksanya.
-Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.	Pembersihan penyimpanan tidak dapat dipastikan. File tetap disimpan. Coba hapus entri riwayat ini lagi.
-Check your chosen save location before saving again. HushPinterest won't resume or delete this file.	Periksa lokasi penyimpanan yang dipilih sebelum menyimpan lagi. HushPinterest tidak akan melanjutkan atau menghapus file ini.
-Save history removed. The file was kept.	Riwayat penyimpanan dihapus. File tetap disimpan.
-Couldn't record the save location. No file data was written.	Lokasi penyimpanan tidak dapat dicatat. Tidak ada data file yang ditulis.
-Save history is full. Remove an old entry before saving another pin.	Riwayat penyimpanan penuh. Hapus entri lama sebelum menyimpan Pin lain.
-Pending saves	Penyimpanan tertunda
-Check unfinished file picker saves. Files are kept.	Periksa penyimpanan yang belum selesai dari pemilih file. File tetap disimpan.
-Checking pending saves...	Memeriksa penyimpanan tertunda...
-No pending HushPinterest saves.	Tidak ada penyimpanan HushPinterest yang tertunda.
-Only unfinished saves are listed. Check your chosen location before saving again.	Hanya penyimpanan yang belum selesai ditampilkan. Periksa lokasi yang dipilih sebelum menyimpan lagi.
-Pin saved. Check Pending saves if its history remains.	Pin disimpan. Periksa Penyimpanan tertunda jika riwayatnya masih ada.
 Download unavailable	Unduhan tidak tersedia
 Supplied media details	Detail media yang diberikan
 Copy media link	Salin tautan media
@@ -304,10 +283,6 @@ Pinterest hasn't supplied an image to download.	Pinterest belum memberikan gamba
 HushPinterest can't download this type of image.	HushPinterest tidak bisa mengunduh jenis gambar ini.
 This media link isn't a public Pinterest link HushPinterest can use.	Tautan media ini bukan tautan publik Pinterest yang bisa dipakai HushPinterest.
 Couldn't start the download. Check system Downloads and try again.	Unduhan tidak dapat dimulai. Periksa Unduhan sistem dan coba lagi.
-Couldn't open a save location. Try again from the pin.	Lokasi penyimpanan tidak dapat dibuka. Coba lagi dari Pin.
-Couldn't complete the save. Check your connection and chosen save location.	Penyimpanan tidak dapat diselesaikan. Periksa koneksi dan lokasi penyimpanan yang dipilih.
-Couldn't write to the chosen save location. Check its access and available space.	Tidak dapat menulis ke lokasi penyimpanan yang dipilih. Periksa akses dan ruang yang tersedia.
-Couldn't download this pin. Check your connection and try again.	Pin ini tidak dapat diunduh. Periksa koneksi dan coba lagi.
 Couldn't prepare this pin for download. Open the pin again and try again.	Pin ini tidak dapat disiapkan untuk diunduh. Buka Pin lagi dan coba kembali.
 %1$s (%2$s to %3$s)	%1$s (%2$s menjadi %3$s)
 Your choice is saved, but this build doesn't include the patch for it.	Pilihan Anda tersimpan, tetapi build ini tidak menyertakan patch-nya.
@@ -324,8 +299,6 @@ On	Aktif
 Off	Nonaktif
 Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap ke %1$s. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.
 Save the full report in %1$s.	Simpan laporan lengkap di %1$s.
-Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat. Penyimpanan laporan saat ini tidak tersedia. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.
-Report storage is unavailable right now. You can still copy a quick report.	Penyimpanan laporan saat ini tidak tersedia. Anda masih dapat menyalin laporan singkat.
 Hides Play Store pop-ups asking you to update Pinterest. A pop-up that's already open stays.	Menyembunyikan pop-up Play Store yang meminta Anda memperbarui Pinterest. Pop-up yang sudah terbuka tetap ada.
 Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.	Menghentikan Pinterest menyarankan Anda membagikan tangkapan layar. Tangkapan layar tetap berfungsi. Mulai ulang Pinterest untuk melihat perubahannya.
 Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.	Menyembunyikan pencarian terbaru Anda. Riwayat pencarian akun Anda tidak dihapus. Perubahan terlihat saat layar diperbarui berikutnya.
@@ -375,17 +348,14 @@ Select visible pins (up to %d)	Pilih Pin yang terlihat (maksimal %d)
 Queue selected	Antrekan pilihan
 Couldn't open the pin selection. Try again from the grid.	Tidak dapat membuka pilihan Pin. Coba lagi dari kisi.
 Stop selection	Hentikan pilihan
-Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Dalam antrean: %d\nTersimpan: %d\nDilewati: %d\nTidak didukung: %d\nGagal: %d
+Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Dalam antrean: %d\nDilewati: %d\nTidak didukung: %d\nGagal: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Menghentikan pilihan tidak membatalkan unduhan yang sudah dimulai. Pilihan yang belum dimulai berakhir saat Pinterest ditutup.
-History could not be saved for %d results. Check Downloads or your chosen files.	Riwayat untuk %d hasil tidak dapat disimpan. Periksa Unduhan atau file yang Anda pilih.
-Saved	Tersimpan
+History could not be saved for %d results. Check Downloads.	Riwayat untuk %d hasil tidak dapat disimpan. Periksa Unduhan.
 Skipped	Dilewati
 Unsupported	Tidak didukung
-Saved to the location you chose.	Disimpan ke lokasi yang Anda pilih.
 No download was queued. The selection was stopped, canceled or unavailable.	Tidak ada unduhan yang diantrekan. Pilihan dihentikan, dibatalkan, atau tidak tersedia.
 Pinterest didn't supply supported media for this pin.	Pinterest tidak menyediakan media yang didukung untuk Pin ini.
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Unduh satu pin, atau pilih beberapa pin dalam kisi. Menyimpan video dan gambar asli, atau ukuran terbesar yang dimiliki Pinterest.
-Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 memakai pemilih file. Hasil pilihan Pin yang terlihat muncul di sini.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Hanya 32 unduhan dan hasil pilihan terbaru yang ditampilkan. File yang tersimpan tetap disimpan.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Unduh papan

@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import app.hushpinterest.extension.pinterest.actions.DownloadLedger;
-import app.hushpinterest.extension.pinterest.actions.PendingSaveJournal;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.Utils;
@@ -105,7 +104,6 @@ public final class SettingsEntry {
         }
         ReleaseCheck.onPinterestStart();
         DownloadLedger.onStart(context);
-        if (PatchFamily.Capability.PIN_DOWNLOADS.installed()) PendingSaveJournal.onStart(context);
         publishShortcut(context);
     }
 
@@ -177,8 +175,8 @@ public final class SettingsEntry {
 
     /**
      * Publishes [shortcut] at the front. From Android 11 a push evicts the lowest-ranked dynamic
-     * shortcut when Pinterest's own fill the limit. Android 9 and 10 have no push, so an add does the
-     * same: it updates the shortcut in place when [present], and otherwise makes room first by
+     * shortcut when Pinterest's own fill the limit. Android 10 has no push, so an add does the same:
+     * it updates the shortcut in place when [present], and otherwise makes room first by
      * taking off the last one, as a push would, since an add past the limit throws.
      */
     private static void push(ShortcutManager manager, ShortcutInfo shortcut, boolean present) {

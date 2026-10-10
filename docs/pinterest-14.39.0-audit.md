@@ -187,7 +187,7 @@ These are proposed work items, not completed features. The linked chapters conta
 | P2 | Trace APP_START, first-party referrer storage and optional request headers | The source constructs attribution data outside AppsFlyer. Determine whether final delivery is already covered before adding redundant blocks |
 | P2 | Improve canonical pin-link and regional-host handling | Use typed pin IDs where already available. Preserve signed URLs, functional queries and board/invite routes |
 | P2 | Check Hide survey prompts on a device | It landed in 0.0.6 and declines the invite through Pinterest's own Maybe later path. Keep security/account dialogs and user-initiated surveys intact |
-| P2 | Make original image quality and downloads network-aware | Current original-media choices can increase data use. Manual intent, retries, cache reuse and API 28 behavior need separate decisions |
+| P2 | Make original image quality and downloads network-aware | Current original-media choices can increase data use. Manual intent, retries and cache reuse need separate decisions |
 | P2 | Extend native controls with clear scope | Native settings navigation, independent save/follow-up messages, autoplay/prefetch control and notification categories are concrete leads |
 | P3 | Native toasts | Useful, with existing research. Download board and Long-press download, the other two leads here, landed in 0.0.6 |
 

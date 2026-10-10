@@ -145,13 +145,6 @@ public class DownloadHistoryPreferenceTest {
         assertUsable(dialog);
     }
 
-    @Test @Config(sdk = 28) public void androidNineExplainsWhyPickerFilesAreAbsent() throws Exception {
-        AlertDialog dialog = open();
-        assertEquals(text("Android 9 uses the file picker. Results from visible-pin selections appear here."), message(dialog));
-        assertEquals(View.GONE, jobs(dialog).getVisibility());
-        assertUsable(dialog);
-    }
-
     @Test public void theScreenShowsTheBoundedOwnedRequestsWithDatesStatusAndSafeReasons() throws Exception {
         for (int i = 0; i < 40; i++) owned(Integer.toString(1000 + i), DownloadManager.STATUS_PENDING);
         long failed = owned("123", DownloadManager.STATUS_FAILED);

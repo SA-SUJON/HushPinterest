@@ -7,8 +7,8 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        // Pinterest 449 declares minSdk 28, and this library only ever runs inside it.
-        minSdk = 28
+        // Pinterest 14.39.0 declares minSdk 29, and this library only ever runs inside it.
+        minSdk = 29
     }
 
     compileOptions {
@@ -16,7 +16,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // The payload is injected into Pinterest, whose floor is API 28. javac compiles against a
+    // The payload is injected into Pinterest, whose floor is API 29. javac compiles against a
     // modern JDK and Robolectric runs on one, so a library call or a type above that floor is
     // green all the way to a phone, where D8 has left it as a stub that throws. NewApi is the
     // only check here that reads the SDK_INT guards instead of flagging every guarded call.

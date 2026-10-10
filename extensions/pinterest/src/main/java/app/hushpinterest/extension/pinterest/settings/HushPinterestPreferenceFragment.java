@@ -25,7 +25,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
@@ -312,7 +311,6 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                         + "and original images, or the largest size Pinterest has."), SettingsIcons.DOWNLOADS);
             if (build.contains(PatchFamily.DOWNLOAD_PINS)) {
                 actions.addPreference(mark(new DownloadHistoryPreference(context), SettingsIcons.DOWNLOADS));
-                if (Build.VERSION.SDK_INT == 28) actions.addPreference(mark(new PendingSavesPreference(context), SettingsIcons.DOWNLOADS));
             }
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_BOARD, Settings.DOWNLOAD_BOARD,
                     L10n.t("Download board"), L10n.t("Adds Download board to a board's menu. It saves the pins Pinterest "

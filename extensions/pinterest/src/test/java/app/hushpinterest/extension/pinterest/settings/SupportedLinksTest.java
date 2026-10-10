@@ -244,7 +244,7 @@ public class SupportedLinksTest {
 
     /** Android 11 and older have no selection to read; the app's own settings page still opens. */
     @Test
-    @Config(sdk = {28, 30})
+    @Config(sdk = {29, 30})
     public void android11OpensTheAppsPage() throws Exception {
         Preference row = show(false).findPreference(KEY);
         assertEquals("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
@@ -258,7 +258,7 @@ public class SupportedLinksTest {
 
     /** With no settings page at all, a tap says so instead of closing Pinterest. */
     @Test
-    @Config(sdk = {28, 30})
+    @Config(sdk = {29, 30})
     public void withNoSettingsPageATapSaysSo() throws Exception {
         Preference row = show(false).findPreference(KEY);
         shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true);

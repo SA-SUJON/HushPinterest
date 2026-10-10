@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import app.hushpinterest.extension.shared.SettingsContextRule;
@@ -28,11 +27,9 @@ import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 
@@ -47,7 +44,6 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowContentResolver;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -59,11 +55,9 @@ import java.util.Map;
 public class LogBufferManagerExportTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
-    @Test @Config(sdk = {28, 29, 30}) public void thePreferenceNamesTheDirectoryUsedByItsWriter() {
+    @Test @Config(sdk = {29, 30}) public void thePreferenceNamesTheDirectoryUsedByItsWriter() {
         Context context = RuntimeEnvironment.getApplication();
-        String directory = Build.VERSION.SDK_INT < 29
-                ? new java.io.File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "Morphe").getAbsolutePath()
-                : Environment.DIRECTORY_DOWNLOADS + "/Morphe";
+        String directory = Environment.DIRECTORY_DOWNLOADS + "/Morphe";
         ExportDiagnosticReportPreference preference = new ExportDiagnosticReportPreference(context);
 
         assertEquals("Copy a quick report or save the full one to "
@@ -183,84 +177,6 @@ public class LogBufferManagerExportTest {
         assertEquals(report, secondBody.toString(StandardCharsets.UTF_8.name()));
     }
 
-    /**
-     * Android 9 has no Downloads collection in MediaStore, so the report goes into the app's own
-     * folder on shared storage, which needs no permission there, and the path handed back is where
-     * it went.
-     */
-    @Test @Config(sdk = 28) public void onAndroid9TheReportGoesIntoTheAppsOwnFolder() throws Exception {
-        Context context = RuntimeEnvironment.getApplication();
-        String report = "MORPHE DIAGNOSTIC REPORT\nschema: 1\n";
-
-        String first = LogBufferManager.writeToFile(context, report);
-        String second = LogBufferManager.writeToFile(context, report);
-
-        java.io.File folder = new java.io.File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "Morphe");
-        for (String saved : new String[]{first, second}) {
-            java.io.File file = new java.io.File(saved);
-            assertEquals(folder.getAbsolutePath(), file.getParent());
-            assertTrue(saved, file.getName().startsWith("morphe-diagnostics-") && file.getName().endsWith(".txt"));
-            assertEquals(report, new String(java.nio.file.Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
-        }
-        assertNotEquals(first, second);
-    }
-
-    @Test @Config(sdk = 28) public void android9SaveFeedbackNamesTheFileInThePreferenceDirectory() throws Exception {
-        Context context = RuntimeEnvironment.getApplication();
-        File folder = new File(LogBufferManager.fileExportDirectory(context));
-        String[] existing = folder.list();
-        java.util.List<String> before = existing == null ? java.util.Collections.emptyList() : java.util.Arrays.asList(existing);
-
-        LogBufferManager.exportToFile();
-        app.hushpinterest.extension.shared.Utils.awaitBackgroundTasksForTests();
-        org.robolectric.shadows.ShadowLooper.idleMainLooper();
-
-        File[] created = folder.listFiles(file -> !before.contains(file.getName()));
-        assertNotNull("the export created no folder", created);
-        assertEquals("the export didn't create exactly one report", 1, created.length);
-        assertEquals("Full report saved to " + app.hushpinterest.extension.shared.L10n.isolate(created[0].getAbsolutePath()),
-                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
-        String summary = new ExportDiagnosticReportPreference(context).getSummary().toString();
-        assertTrue(summary, summary.contains(app.hushpinterest.extension.shared.L10n.isolate(created[0].getParent())));
-    }
-
-    @Test @Config(sdk = 28) public void unavailableAndroid9StorageDoesNotPromiseAFolderOrReportASave() throws Exception {
-        Context context = withExternalDownloads(null);
-        ExportDiagnosticReportPreference preference = new ExportDiagnosticReportPreference(context);
-        assertEquals("Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies "
-                + "and sign-in tokens are left out. Check it for other private text before you share it.", preference.getSummary());
-        assertEquals("Report storage is unavailable right now. You can still copy a quick report.", preference.fullReportSummary());
-        assertThrows(IOException.class, () -> LogBufferManager.writeToFile(context, "report"));
-        app.hushpinterest.extension.shared.Utils.setContext(context);
-        assertExportFails();
-    }
-
-    @Test @Config(sdk = 28) public void anUnavailableReportDirectoryLeavesTheExistingFileAlone() throws Exception {
-        File downloads = new File(RuntimeEnvironment.getApplication().getCacheDir(), "diagnostic-storage");
-        assertTrue(downloads.mkdirs());
-        File existing = new File(downloads, "Morphe");
-        java.nio.file.Files.write(existing.toPath(), "keep this file".getBytes(StandardCharsets.UTF_8));
-        Context context = withExternalDownloads(downloads);
-        app.hushpinterest.extension.shared.Utils.setContext(context);
-
-        assertExportFails();
-
-        assertEquals("keep this file", new String(java.nio.file.Files.readAllBytes(existing.toPath()), StandardCharsets.UTF_8));
-    }
-
-    private static Context withExternalDownloads(File downloads) {
-        return new ContextWrapper(RuntimeEnvironment.getApplication()) {
-            @Override public File getExternalFilesDir(String type) {
-                assertEquals(Environment.DIRECTORY_DOWNLOADS, type);
-                return downloads;
-            }
-
-            @Override public Context getApplicationContext() {
-                return this;
-            }
-        };
-    }
-
     @Test @Config(sdk = {29, 30}) public void aFailedWriteRemovesThePendingEntryAndAllowsAnotherSave() throws Exception {
         Context context = RuntimeEnvironment.getApplication();
         Downloads downloads = Robolectric.setupContentProvider(Downloads.class, MediaStore.AUTHORITY);
@@ -347,7 +263,7 @@ public class LogBufferManagerExportTest {
      * secret reaches the clipboard or the saved file, and the build lines, timestamps and stack
      * frames a maintainer reads the report for arrive intact.
      */
-    @Test @Config(sdk = {28, 29, 30}) public void neitherExportCarriesASyntheticCredential() throws Exception {
+    @Test @Config(sdk = {29, 30}) public void neitherExportCarriesASyntheticCredential() throws Exception {
         Context context = RuntimeEnvironment.getApplication();
         app.hushpinterest.extension.shared.Utils.setContext(context);
         app.hushpinterest.extension.shared.settings.BaseSettings.DEBUG_LOG_FILTERS.save("all");
@@ -390,26 +306,13 @@ public class LogBufferManagerExportTest {
             String copied = String.valueOf(clipboard.getPrimaryClip().getItemAt(0).getText());
 
             ByteArrayOutputStream body = new ByteArrayOutputStream();
-            if (Build.VERSION.SDK_INT >= 29) {
-                Downloads downloads = Robolectric.setupContentProvider(Downloads.class, MediaStore.AUTHORITY);
-                Shadows.shadowOf(context.getContentResolver()).registerOutputStream(downloads.uriFor(1), body);
-            }
+            Downloads downloads = Robolectric.setupContentProvider(Downloads.class, MediaStore.AUTHORITY);
+            Shadows.shadowOf(context.getContentResolver()).registerOutputStream(downloads.uriFor(1), body);
             org.robolectric.shadows.ShadowToast.reset();
             LogBufferManager.exportToFile();
             app.hushpinterest.extension.shared.Utils.awaitBackgroundTasksForTests();
             org.robolectric.shadows.ShadowLooper.idleMainLooper();
-            String saved;
-            if (Build.VERSION.SDK_INT < 29) {
-                String toast = org.robolectric.shadows.ShadowToast.getTextOfLatestToast();
-                String prefix = "Full report saved to " + (char) 0x2068;
-                assertNotNull("the export said nothing", toast);
-                assertTrue(toast, toast.startsWith(prefix) && toast.endsWith(String.valueOf((char) 0x2069)));
-                File report = new File(toast.substring(prefix.length(), toast.length() - 1));
-                assertEquals(LogBufferManager.fileExportDirectory(context), report.getParent());
-                saved = new String(java.nio.file.Files.readAllBytes(report.toPath()), StandardCharsets.UTF_8);
-            } else {
-                saved = body.toString(StandardCharsets.UTF_8.name());
-            }
+            String saved = body.toString(StandardCharsets.UTF_8.name());
 
             String[][] exports = {{"clipboard", copied}, {"file", saved}};
             for (String[] export : exports) {

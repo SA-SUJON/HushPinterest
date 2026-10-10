@@ -9,7 +9,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.DialogPreference;
 import android.text.format.DateFormat;
@@ -102,7 +101,7 @@ public final class DownloadHistoryPreference extends DialogPreference {
     }
 
     private boolean retryEnabled() {
-        return Build.VERSION.SDK_INT >= 29 && Utils.settingsReady()
+        return Utils.settingsReady()
                 && PatchFamily.Capability.PIN_DOWNLOADS.installed() && Settings.DOWNLOAD_PINS.get();
     }
 
@@ -174,9 +173,7 @@ public final class DownloadHistoryPreference extends DialogPreference {
                     list.setAdapter(new ChoiceCards(ScreenColors.DEFAULT, names, details));
                     list.setVisibility(jobs.isEmpty() ? View.GONE : View.VISIBLE);
                     message.setText(L10n.t(getContext(), found == null ? "Couldn't check Downloads. Try again."
-                            : jobs.isEmpty() ? Build.VERSION.SDK_INT < 29
-                                ? "Android 9 uses the file picker. Results from visible-pin selections appear here."
-                                : "No HushPinterest downloads in this history."
+                            : jobs.isEmpty() ? "No HushPinterest downloads in this history."
                             : jobs.stream().anyMatch(job -> job.id < 0)
                                 ? "Only the 32 most recent downloads and selection results are listed. Saved files are kept."
                                 : "Only the 32 most recent HushPinterest requests are listed. Manage active downloads in Downloads."));
@@ -233,7 +230,7 @@ public final class DownloadHistoryPreference extends DialogPreference {
             status.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             String guidance = "";
             if (job.canRetry() && !retryEnabled()) {
-                guidance = L10n.t(getContext(), Build.VERSION.SDK_INT >= 29 && Utils.settingsReady()
+                guidance = L10n.t(getContext(), Utils.settingsReady()
                         && PatchFamily.Capability.PIN_DOWNLOADS.installed()
                         ? "Resume HushPinterest and turn on Download pins to retry."
                         : "Open the pin again to get a fresh download link.");

@@ -306,9 +306,9 @@ public class HushPinterestPauseTest {
         assertNull(HushPinterestPause.read(new File(context.getFilesDir(), "never-written")));
     }
 
-    /** Android 9 and 10 keep no exit reasons, so there the handler's mark alone decides. */
-    @Test @Config(sdk = 28)
-    public void android9GoesByTheHandlersMarkAlone() {
+    /** Android 10 keeps no exit reasons, so there the handler's mark alone decides. */
+    @Test @Config(sdk = 29)
+    public void android10GoesByTheHandlersMarkAlone() {
         assertTrue(HushPinterestPause.diedYoungFromACrash(context, "5199 1000 crashed"));
         assertFalse(HushPinterestPause.diedYoungFromACrash(context, "5199 1000"));
         assertFalse(HushPinterestPause.diedYoungFromACrash(context, "not a pid"));

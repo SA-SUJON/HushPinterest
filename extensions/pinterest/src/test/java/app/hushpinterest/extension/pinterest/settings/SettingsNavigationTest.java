@@ -90,7 +90,7 @@ public class SettingsNavigationTest {
         PauseForTests.resume();
     }
 
-    @Test @Config(sdk = {28, 30, 33, 36})
+    @Test @Config(sdk = {29, 30, 33, 36})
     public void homeAndEveryCategoryAreReachableWithoutRemovingTheModel() {
         assertNotNull(page.navigation);
         // Status, Browse settings, four feature categories, More settings and Support HushPinterest.
@@ -447,7 +447,7 @@ public class SettingsNavigationTest {
     }
 
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
-    @Config(sdk = {28, 30, 33, 36}, qualifiers = "ar-rXB-ldrtl-w390dp-h844dp-night-xhdpi")
+    @Config(sdk = {29, 30, 33, 36}, qualifiers = "ar-rXB-ldrtl-w390dp-h844dp-night-xhdpi")
     public void aPausedPageKeepsItsLineWholeAtLargeRightToLeftText() throws Exception {
         BaseSettings.PAUSED.save(true);
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
@@ -713,7 +713,7 @@ public class SettingsNavigationTest {
         return null;
     }
 
-    @Test @Config(sdk = {28, 30, 33, 36})
+    @Test @Config(sdk = {29, 30, 33, 36})
     public void recreationKeepsTheCategoryAndSearchQuery() {
         page.navigation.open(page.findPreference(Settings.CHECK_FOR_RELEASES.key));
         recreate();

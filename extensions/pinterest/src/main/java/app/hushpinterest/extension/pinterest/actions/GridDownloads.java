@@ -165,7 +165,7 @@ final class GridDownloads {
         final boolean recordStops;
         AlertDialog progress;
         boolean stopped;
-        int position, queued, saved, skipped, unsupported, failed, untracked;
+        int position, queued, skipped, unsupported, failed, untracked;
 
         Batch(Activity activity, List<Object> pins, String title, String note, int known, boolean recordStops) {
             this.activity = new WeakReference<>(activity);
@@ -195,11 +195,11 @@ final class GridDownloads {
         }
 
         String summary() {
-            return L10n.f("Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d", queued, saved, skipped, unsupported, failed)
+            return L10n.f("Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d", queued, skipped, unsupported, failed)
                     + (known == 0 ? "" : "\n\n" + L10n.f("Skipped because they're already in Download history: %d", known))
                     + (note == null ? "" : "\n\n" + note)
                     + "\n\n" + L10n.t("Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.")
-                    + (untracked == 0 ? "" : "\n\n" + L10n.f("History could not be saved for %d results. Check Downloads or your chosen files.", untracked));
+                    + (untracked == 0 ? "" : "\n\n" + L10n.f("History could not be saved for %d results. Check Downloads.", untracked));
         }
 
         void next() {
@@ -228,7 +228,6 @@ final class GridDownloads {
             switch (outcome) {
                 case QUEUED: queued++; break;
                 case QUEUED_UNTRACKED: queued++; untracked++; break;
-                case SAVED: saved++; break;
                 case SKIPPED: skipped++; break;
                 case UNSUPPORTED: unsupported++; break;
                 default: failed++;

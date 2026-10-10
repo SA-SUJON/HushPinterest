@@ -174,7 +174,7 @@ public class SettingsDialogTest {
     }
 
     @Test
-    @Config(sdk = {28, 30, 33, 36})
+    @Config(sdk = {29, 30, 33, 36})
     public void aFailedMountOffersReadableFocusedActionsAndRetryCreatesOneChild() {
         SettingsDialog healthy = show(controller.get());
         int healthyListeners = preferenceListeners();

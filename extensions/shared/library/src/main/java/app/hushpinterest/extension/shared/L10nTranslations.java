@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(836);
+        Map<String, String> table = new HashMap<>(776);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -97,8 +97,6 @@ public final class L10nTranslations {
                 "KI-markierte Pins in Listen");
         table.put("About",
                 "Info");
-        table.put("Access unavailable",
-                "Zugriff nicht verf\u00fcgbar");
         table.put("Account management",
                 "Kontoverwaltung");
         table.put("Accounts",
@@ -117,8 +115,6 @@ public final class L10nTranslations {
                 "Analyseberichte");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 und \u00e4lter melden nicht, welche Links sich hier \u00f6ffnen. Tippe, um die Einstellungen dieser App zu \u00f6ffnen, dann auf \u201eStandardm\u00e4\u00dfig \u00f6ffnen\u201c.");
-        table.put("Android 9 uses the file picker. Results from visible-pin selections appear here.",
-                "Android 9 nutzt die Dateiauswahl. Ergebnisse der Auswahl sichtbarer Pins erscheinen hier.");
         table.put("Android couldn't resume the download.",
                 "Android konnte den Download nicht fortsetzen.");
         table.put("Android couldn't save the file.",
@@ -137,8 +133,6 @@ public final class L10nTranslations {
                 "Android versucht den Download erneut.");
         table.put("Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.",
                 "Die Android-Einstellungen f\u00fcr diese App lie\u00dfen sich nicht \u00f6ffnen. \u00d6ffne die App-Info \u00fcber das Pinterest-Symbol, dann \u201eStandardm\u00e4\u00dfig \u00f6ffnen\u201c.");
-        table.put("Another pin is being saved. Try again when it's finished.",
-                "Ein anderer Pin wird gespeichert. Versuche es danach erneut.");
         table.put("App theme",
                 "App-Farbschema");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
@@ -165,23 +159,14 @@ public final class L10nTranslations {
                 "Jetzt pr\u00fcfen");
         table.put("Check recent downloads started by HushPinterest.",
                 "Pr\u00fcfe die letzten von HushPinterest gestarteten Downloads.");
-        table.put("Check unfinished file picker saves. Files are kept.",
-                "Pr\u00fcfe unvollendete Speichervorg\u00e4nge aus der Dateiauswahl. Dateien werden behalten.");
-        table.put("Check your chosen save location before saving again. HushPinterest won't resume or delete this file.",
-                "Pr\u00fcfe deinen gew\u00e4hlten Speicherort, bevor du erneut speicherst. HushPinterest setzt diese Datei nicht fort und l\u00f6scht sie nicht.");
         table.put("Checking GitHub now.",
                 "GitHub wird gerade gefragt.");
         table.put("Checking download history...",
                 "Download-Verlauf wird gepr\u00fcft...");
-        table.put("Checking pending saves...",
-                "Ausstehende Speichervorg\u00e4nge werden gepr\u00fcft...");
         table.put("Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.",
                 "W\u00e4hle eine Einstellungsdatei. Pr\u00fcfe vor dem Import den Namen und die alten und neuen Werte jedes Schalters. Deine Auswahl gilt f\u00fcr alle Konten in dieser Pinterest-App.");
         table.put("Clear diagnostic data",
                 "Diagnosedaten l\u00f6schen");
-    }
-
-    private static void fillDe1(Map<String, String> table) {
         table.put("Clear search",
                 "Suche l\u00f6schen");
         table.put("Clears the saved log and patch check results that a report would include.",
@@ -194,8 +179,9 @@ public final class L10nTranslations {
                 "Kopierte und geteilte pin.it-Links werden zum eigenen pinterest.com-Link des Pins und verraten so nicht, wer sie geteilt hat. Pin-Links von Pinterests L\u00e4nderseiten werden ebenfalls zu diesem Link. Kennt HushPinterest den Pin noch nicht, wird ein kopierter Link im Hintergrund bei Pinterest nachgefragt und kurz darauf ersetzt.");
         table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Kopiere einen Kurzbericht oder speichere den vollst\u00e4ndigen Bericht unter %1$s. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Pr\u00fcfe ihn vor dem Teilen auf andere private Texte.");
-        table.put("Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Kopiere einen Kurzbericht. Berichtsspeicher ist derzeit nicht verf\u00fcgbar. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Pr\u00fcfe ihn vor dem Teilen auf andere private Texte.");
+    }
+
+    private static void fillDe1(Map<String, String> table) {
         table.put("Copy a short report to the clipboard.",
                 "Kurzen Bericht in die Zwischenablage kopieren.");
         table.put("Copy media link",
@@ -204,14 +190,8 @@ public final class L10nTranslations {
                 "Kurzbericht kopieren");
         table.put("Couldn't check Downloads. Try again.",
                 "Downloads konnten nicht gepr\u00fcft werden. Versuche es erneut.");
-        table.put("Couldn't check your chosen save location. Open your Files app to inspect it.",
-                "Der gew\u00e4hlte Speicherort konnte nicht gepr\u00fcft werden. \u00d6ffne deine Dateien-App, um ihn zu pr\u00fcfen.");
-        table.put("Couldn't complete the save. Check your connection and chosen save location.",
-                "Der Speichervorgang konnte nicht abgeschlossen werden. Pr\u00fcfe deine Verbindung und den gew\u00e4hlten Speicherort.");
         table.put("Couldn't copy the media link. Open the pin again and try again.",
                 "Der Medienlink konnte nicht kopiert werden. \u00d6ffne den Pin erneut und versuche es noch einmal.");
-        table.put("Couldn't download this pin. Check your connection and try again.",
-                "Dieser Pin konnte nicht heruntergeladen werden. Pr\u00fcfe deine Verbindung und versuch es erneut.");
         table.put("Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.",
                 "Die Einstellungen lie\u00dfen sich nicht importieren, und deine vorherigen lie\u00dfen sich nicht wiederherstellen. Pr\u00fcfe die Schalter auf diesem Bildschirm.");
         table.put("Couldn't import the settings. Nothing was changed.",
@@ -220,8 +200,6 @@ public final class L10nTranslations {
                 "Downloads konnten nicht ge\u00f6ffnet werden.");
         table.put("Couldn't open Set as. Check Downloads for the saved file.",
                 "\u201eFestlegen als\u201c konnte nicht ge\u00f6ffnet werden. Sieh in den Downloads nach der gespeicherten Datei.");
-        table.put("Couldn't open a save location. Try again from the pin.",
-                "Ein Speicherort konnte nicht ge\u00f6ffnet werden. Versuch es erneut vom Pin aus.");
         table.put("Couldn't open that file. Nothing was changed.",
                 "Diese Datei lie\u00df sich nicht \u00f6ffnen. Es wurde nichts ge\u00e4ndert.");
         table.put("Couldn't open the file picker. Try again.",
@@ -238,10 +216,6 @@ public final class L10nTranslations {
                 "Die Diagnosedaten lie\u00dfen sich nicht wiederherstellen. Versuche es noch einmal.");
         table.put("Couldn't reach GitHub. Try again later.",
                 "GitHub war nicht erreichbar. Versuche es sp\u00e4ter noch einmal.");
-        table.put("Couldn't record the save location. No file data was written.",
-                "Der Speicherort konnte nicht erfasst werden. Es wurden keine Dateidaten geschrieben.");
-        table.put("Couldn't remove the incomplete file. Check your chosen save location.",
-                "Die unvollst\u00e4ndige Datei konnte nicht entfernt werden. Pr\u00fcfe den gew\u00e4hlten Speicherort.");
         table.put("Couldn't remove this history entry. Try again.",
                 "Dieser Verlaufseintrag konnte nicht entfernt werden. Versuche es erneut.");
         table.put("Couldn't save the settings file. Try again.",
@@ -264,8 +238,6 @@ public final class L10nTranslations {
                 "Der Import konnte weder r\u00fcckg\u00e4ngig gemacht noch die importierten Schalter wiederhergestellt werden. Pr\u00fcfe die Schalter auf diesem Bildschirm.");
         table.put("Couldn't undo the import. Your imported switches are unchanged.",
                 "Der Import konnte nicht r\u00fcckg\u00e4ngig gemacht werden. Die importierten Schalter sind unver\u00e4ndert.");
-        table.put("Couldn't write to the chosen save location. Check its access and available space.",
-                "Am gew\u00e4hlten Speicherort konnte nicht geschrieben werden. Pr\u00fcfe den Zugriff und den freien Speicherplatz.");
         table.put("Debug logging",
                 "Debug-Protokollierung");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -302,9 +274,6 @@ public final class L10nTranslations {
                 "Download nicht verf\u00fcgbar");
         table.put("Download visible pins",
                 "Sichtbare Pins herunterladen");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Downloading",
                 "Wird heruntergeladen");
         table.put("Every pin loaded from this board is already in Download history.",
@@ -333,6 +302,9 @@ public final class L10nTranslations {
                 "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub weist Anfragen aus diesem Netz gerade ab. Versuche es sp\u00e4ter noch einmal.");
         table.put("GitHub sent back something HushPinterest couldn't read. Try again later.",
@@ -399,8 +371,8 @@ public final class L10nTranslations {
                 "Blendet die kleinen Symbolschaltfl\u00e4chen am Ende der oberen Leiste aus. Zur\u00fcck, Textschaltfl\u00e4chen und Kontosteuerung bleiben. Die \u00c4nderung zeigt sich, wenn sich die Leiste das n\u00e4chste Mal aktualisiert.");
         table.put("Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.",
                 "Blendet deine letzten Suchanfragen aus. Der Suchverlauf deines Kontos wird nicht gel\u00f6scht. Die \u00c4nderung zeigt sich, wenn sich der Bildschirm das n\u00e4chste Mal aktualisiert.");
-        table.put("History could not be saved for %d results. Check Downloads or your chosen files.",
-                "F\u00fcr %d Ergebnisse konnte kein Verlauf gespeichert werden. Pr\u00fcfe Downloads oder deine gew\u00e4hlten Dateien.");
+        table.put("History could not be saved for %d results. Check Downloads.",
+                "F\u00fcr %d Ergebnisse konnte kein Verlauf gespeichert werden. Pr\u00fcfe Downloads.");
         table.put("History removed. Files and active downloads were kept.",
                 "Verlauf entfernt. Dateien und laufende Downloads bleiben erhalten.");
         table.put("HushPinterest %1$s is out. Update it in Morphe Manager.",
@@ -425,9 +397,6 @@ public final class L10nTranslations {
                 "HushPinterest ist wieder aktiv, sobald Pinterest neu startet.");
         table.put("If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.",
                 "Wenn du dich \u00fcber Google registriert hast oder dein Pinterest-Passwort nicht kennst, w\u00e4hle auf der Anmeldeseite von Pinterest \u201ePasswort vergessen?\u201c. Gib die E-Mail-Adresse ein, die bereits mit diesem Konto verkn\u00fcpft ist. Lege dann \u00fcber den Link in der E-Mail ein Pinterest-Passwort fest. Es ist unabh\u00e4ngig von deinem Google-Passwort. Du musst die Google-Verkn\u00fcpfung nicht trennen.");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Import",
                 "Importieren");
         table.put("Import settings",
@@ -442,8 +411,6 @@ public final class L10nTranslations {
                 "Installierte Patches und Schalter");
         table.put("Interface",
                 "Oberfl\u00e4che");
-        table.put("Interrupted",
-                "Unterbrochen");
         table.put("It supports Pinterest %1$s.",
                 "Es unterst\u00fctzt Pinterest %1$s.");
         table.put("Jump to a section",
@@ -458,6 +425,9 @@ public final class L10nTranslations {
                 "Links, Updates, Sicherung und mehr");
         table.put("Long-press download",
                 "Download per langem Dr\u00fccken");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Media link",
                 "Medienlink");
         table.put("Media link copied.",
@@ -476,8 +446,6 @@ public final class L10nTranslations {
                 "Kein Download eingereiht. Die Auswahl wurde gestoppt, abgebrochen oder war nicht verf\u00fcgbar.");
         table.put("No matching settings",
                 "Keine passenden Einstellungen");
-        table.put("No pending HushPinterest saves.",
-                "Keine ausstehenden HushPinterest-Speichervorg\u00e4nge.");
         table.put("No pins from this board have loaded yet. Scroll through the board, then try again.",
                 "Von dieser Pinnwand wurden noch keine Pins geladen. Scrolle durch die Pinnwand und versuche es dann noch einmal.");
         table.put("No screenshot share menu",
@@ -506,8 +474,6 @@ public final class L10nTranslations {
                 "Nur die 32 neuesten Downloads und Auswahlergebnisse werden angezeigt. Gespeicherte Dateien bleiben erhalten.");
         table.put("Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.",
                 "Nur die Pins, die Pinterest f\u00fcr diese Pinnwand bisher geladen hat, sind dabei, bis zu %d. Um mehr einzuschlie\u00dfen, scrolle zuerst auf der Pinnwand weiter nach unten.");
-        table.put("Only unfinished saves are listed. Check your chosen location before saving again.",
-                "Nur unvollendete Speichervorg\u00e4nge werden aufgef\u00fchrt. Pr\u00fcfe den gew\u00e4hlten Ort, bevor du erneut speicherst.");
         table.put("Open Downloads",
                 "Downloads \u00f6ffnen");
         table.put("Open Pinterest's settings from the gear on your Saved tab. HushPinterest doesn't change any of these.",
@@ -544,21 +510,12 @@ public final class L10nTranslations {
                 "Pausiert");
         table.put("Paused by Android.",
                 "Von Android pausiert.");
-        table.put("Pending saves",
-                "Ausstehende Speichervorg\u00e4nge");
         table.put("Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.",
                 "W\u00e4hle die Patches in Morphe Manager aus, wenn du die App patchst. Die Schalter hier steuern nur Patches, die in deinem Build enthalten sind. Ein Schalter f\u00fcgt keinen Patch hinzu und entfernt keinen. Pause beh\u00e4lt deine gespeicherte Auswahl, aber alles, was beim Patchen festgelegt wurde, bleibt in der App.");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
                 "Pin-Aktionen");
-        table.put("Pin saved.",
-                "Pin gespeichert.");
-        table.put("Pin saved. Check Pending saves if its history remains.",
-                "Pin gespeichert. Pr\u00fcfe Ausstehende Speichervorg\u00e4nge, falls der Verlaufseintrag bleibt.");
         table.put("Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.",
                 "Pinterest kann die Werbe-ID-Berechtigung von Google und die Werbedienste von Android nicht mehr nutzen. Das wurde beim Patchen festgelegt. Patche erneut ohne diesen Patch, um sie zur\u00fcckzubekommen.");
         table.put("Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.",
@@ -591,6 +548,9 @@ public final class L10nTranslations {
                 "Pinterests eigene Einstellungen");
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Die Webadressen von Pinterest sind in den Android-Einstellungen f\u00fcr diese App ausgew\u00e4hlt, deshalb \u00f6ffnen sich ihre Links hier.");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Plain pin links",
                 "Einfache Pin-Links");
         table.put("Privacy",
@@ -605,8 +565,8 @@ public final class L10nTranslations {
                 "Auswahl einreihen");
         table.put("Queued",
                 "In Warteschlange");
-        table.put("Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d",
-                "Eingereiht: %d\nGespeichert: %d\n\u00dcbersprungen: %d\nNicht unterst\u00fctzt: %d\nFehlgeschlagen: %d");
+        table.put("Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d",
+                "Eingereiht: %d\n\u00dcbersprungen: %d\nNicht unterst\u00fctzt: %d\nFehlgeschlagen: %d");
         table.put("Quiet email reminders",
                 "E-Mail-Erinnerungen ausblenden");
         table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
@@ -635,8 +595,6 @@ public final class L10nTranslations {
                 "Entfernt diesen Verlaufseintrag. Dateien und laufende Downloads bleiben erhalten.");
         table.put("Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them unless Plain pin links is on.",
                 "Entfernt Tracking-Zus\u00e4tze aus Links, die du kopierst oder teilst. Kurze pin.it-Links bleiben, wie Pinterest sie erstellt hat, au\u00dfer Einfache Pin-Links ist an.");
-        table.put("Report storage is unavailable right now. You can still copy a quick report.",
-                "Berichtsspeicher ist derzeit nicht verf\u00fcgbar. Du kannst weiterhin einen Kurzbericht kopieren.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Stellt die Schalter vor dem letzten Import wieder her. Das \u00c4ndern eines Schalters oder ein Neustart von Pinterest beendet diese M\u00f6glichkeit.");
         table.put("Resume",
@@ -651,33 +609,16 @@ public final class L10nTranslations {
                 "Download erneut starten");
         table.put("Reverse image search",
                 "Umgekehrte Bildersuche");
-        table.put("Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.",
-                "Die Speicherbereinigung konnte nicht best\u00e4tigt werden. Die Datei wurde behalten. Versuch erneut, diesen Verlaufseintrag zu entfernen.");
-        table.put("Save cleanup pending",
-                "Speicherbereinigung ausstehend");
         table.put("Save full report",
                 "Vollst\u00e4ndigen Bericht speichern");
-        table.put("Save history is full. Remove an old entry before saving another pin.",
-                "Der Speicherverlauf ist voll. Entferne einen alten Eintrag, bevor du einen weiteren Pin speicherst.");
-        table.put("Save history removed. The file was kept.",
-                "Speicherverlauf entfernt. Die Datei wurde behalten.");
         table.put("Save media",
                 "Medien speichern");
         table.put("Save the full report in %1$s.",
                 "Speichere den vollst\u00e4ndigen Bericht unter %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Speichert deine Schalter in einer Datei. Sie gelten f\u00fcr alle Konten in dieser Pinterest-App. Pause und Debug-Protokollierung sind nicht enthalten, die Suche nach neuen Versionen auch nicht.");
-        table.put("Saved",
-                "Gespeichert");
-        table.put("Saved to the location you chose.",
-                "Am gew\u00e4hlten Ort gespeichert.");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Gespeichert. Starte Pinterest neu, um diese \u00c4nderung zu \u00fcbernehmen.");
-        table.put("Saving",
-                "Wird gespeichert");
         table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
                 "Beim Merken eines Pins erscheint kein \u201eGemerkt auf\u201c-Hinweis zu deiner Pinnwand und kein Vorschlag mehr, der Person zu folgen. Der Pin wird trotzdem gemerkt.");
         table.put("Saving the settings file",
@@ -730,6 +671,9 @@ public final class L10nTranslations {
                 "Sozialberechtigungen");
         table.put("Source code and issues",
                 "Quellcode und Issues");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("Spoof signature for Google sign-in",
                 "Signatur f\u00fcr Google-Anmeldung vort\u00e4uschen");
         table.put("Starts a new download. Android manages it.",
@@ -794,15 +738,10 @@ public final class L10nTranslations {
                 "Der Download-Server konnte die Anfrage nicht abschlie\u00dfen.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.",
                 "Die Datei %1$s lie\u00df sich nicht entfernen. L\u00f6sche sie aus %2$s, um HushPinterest wieder einzuschalten.");
-    }
-
-    private static void fillDe6(Map<String, String> table) {
         table.put("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.",
                 "Die Datei %1$s lie\u00df sich nicht entfernen. L\u00f6sche sie aus %2$s und tippe dann noch einmal auf Fortsetzen.");
         table.put("The file already exists.",
                 "Die Datei existiert bereits.");
-        table.put("The file may have saved. Check your chosen save location.",
-                "Die Datei wurde m\u00f6glicherweise gespeichert. Pr\u00fcfe den gew\u00e4hlten Speicherort.");
         table.put("The newest HushPinterest release is %1$s.",
                 "Die neueste Version von HushPinterest ist %1$s.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
@@ -829,8 +768,6 @@ public final class L10nTranslations {
                 "Dieses Handy hat keine Dateiauswahl, hier l\u00e4sst sich also keine Datei w\u00e4hlen.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
                 "Diese Anfrage kann nicht erneut versucht werden. Pr\u00fcfe Downloads oder \u00f6ffne den Pin erneut.");
-        table.put("This save is still running. Try again when it's finished.",
-                "Dieser Speichervorgang l\u00e4uft noch. Versuch es erneut, wenn er beendet ist.");
         table.put("Toolbar icons",
                 "Symbole der Werkzeugleiste");
         table.put("Try a different word or clear the search.",
@@ -857,6 +794,9 @@ public final class L10nTranslations {
                 "Import wird r\u00fcckg\u00e4ngig gemacht");
         table.put("Unknown",
                 "Unbekannt");
+    }
+
+    private static void fillDe6(Map<String, String> table) {
         table.put("Unsupported",
                 "Nicht unterst\u00fctzt");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
@@ -916,7 +856,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(836);
+        Map<String, String> table = new HashMap<>(776);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -966,8 +906,6 @@ public final class L10nTranslations {
                 "pines con etiqueta de IA en las listas");
         table.put("About",
                 "Acerca de");
-        table.put("Access unavailable",
-                "Acceso no disponible");
         table.put("Account management",
                 "Administraci\u00f3n de la cuenta");
         table.put("Accounts",
@@ -986,8 +924,6 @@ public final class L10nTranslations {
                 "Env\u00edos de estad\u00edsticas");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 y las versiones anteriores no indican qu\u00e9 enlaces se abren aqu\u00ed. Toca para abrir los ajustes de esta app y luego Abrir de forma predeterminada.");
-        table.put("Android 9 uses the file picker. Results from visible-pin selections appear here.",
-                "Android 9 usa el selector de archivos. Aqu\u00ed aparecen los resultados de las selecciones de pines visibles.");
         table.put("Android couldn't resume the download.",
                 "Android no pudo reanudar la descarga.");
         table.put("Android couldn't save the file.",
@@ -1006,8 +942,6 @@ public final class L10nTranslations {
                 "Android volver\u00e1 a intentar la descarga.");
         table.put("Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.",
                 "No se abrieron los ajustes de Android para esta app. Abre Informaci\u00f3n de la app desde el icono de Pinterest y luego Abrir de forma predeterminada.");
-        table.put("Another pin is being saved. Try again when it's finished.",
-                "Se est\u00e1 guardando otro pin. Int\u00e9ntalo de nuevo cuando termine.");
         table.put("App theme",
                 "Tema de la aplicaci\u00f3n");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
@@ -1034,23 +968,14 @@ public final class L10nTranslations {
                 "Comprobar ahora");
         table.put("Check recent downloads started by HushPinterest.",
                 "Consulta las descargas recientes iniciadas por HushPinterest.");
-        table.put("Check unfinished file picker saves. Files are kept.",
-                "Revisa los guardados sin terminar del selector de archivos. Se conservan los archivos.");
-        table.put("Check your chosen save location before saving again. HushPinterest won't resume or delete this file.",
-                "Revisa la ubicaci\u00f3n elegida antes de guardar de nuevo. HushPinterest no reanudar\u00e1 ni eliminar\u00e1 este archivo.");
         table.put("Checking GitHub now.",
                 "Consultando GitHub ahora.");
         table.put("Checking download history...",
                 "Consultando el historial de descargas...");
-        table.put("Checking pending saves...",
-                "Comprobando guardados pendientes...");
         table.put("Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.",
                 "Elige un archivo de ajustes. Revisa el nombre y los valores anteriores y nuevos de cada ajuste antes de importar. Tus elecciones se aplican a todas las cuentas de esta app de Pinterest.");
         table.put("Clear diagnostic data",
                 "Borrar datos de diagn\u00f3stico");
-    }
-
-    private static void fillEs1(Map<String, String> table) {
         table.put("Clear search",
                 "Borrar b\u00fasqueda");
         table.put("Clears the saved log and patch check results that a report would include.",
@@ -1063,8 +988,9 @@ public final class L10nTranslations {
                 "Los enlaces de pin.it copiados y compartidos pasan a ser el enlace de pinterest.com del propio pin, as\u00ed no dicen qui\u00e9n los comparti\u00f3. Los enlaces de pines de los sitios de Pinterest de cada pa\u00eds tambi\u00e9n pasan a ser ese mismo enlace. Si HushPinterest a\u00fan no conoce el pin, un enlace copiado se consulta con Pinterest en segundo plano y se cambia un momento despu\u00e9s.");
         table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Copia un informe r\u00e1pido o guarda el completo en %1$s. Se omiten enlaces, ID, cookies y tokens de inicio de sesi\u00f3n. Revisa si contiene otros datos privados antes de compartirlo.");
-        table.put("Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Copia un informe r\u00e1pido. El almacenamiento de informes no est\u00e1 disponible ahora. Se omiten enlaces, ID, cookies y tokens de inicio de sesi\u00f3n. Revisa otros datos privados antes de compartirlo.");
+    }
+
+    private static void fillEs1(Map<String, String> table) {
         table.put("Copy a short report to the clipboard.",
                 "Copia un informe breve en el portapapeles.");
         table.put("Copy media link",
@@ -1073,14 +999,8 @@ public final class L10nTranslations {
                 "Copiar informe r\u00e1pido");
         table.put("Couldn't check Downloads. Try again.",
                 "No se pudo consultar Descargas. Int\u00e9ntalo de nuevo.");
-        table.put("Couldn't check your chosen save location. Open your Files app to inspect it.",
-                "No se pudo comprobar la ubicaci\u00f3n elegida. Abre tu aplicaci\u00f3n de archivos para revisarla.");
-        table.put("Couldn't complete the save. Check your connection and chosen save location.",
-                "No se pudo completar el guardado. Revisa la conexi\u00f3n y la ubicaci\u00f3n elegida.");
         table.put("Couldn't copy the media link. Open the pin again and try again.",
                 "No se pudo copiar el enlace del archivo. Vuelve a abrir el Pin e int\u00e9ntalo de nuevo.");
-        table.put("Couldn't download this pin. Check your connection and try again.",
-                "No se pudo descargar este Pin. Revisa la conexi\u00f3n e int\u00e9ntalo de nuevo.");
         table.put("Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.",
                 "No se pudo importar la configuraci\u00f3n ni restaurar la que ten\u00edas. Revisa los interruptores de esta pantalla.");
         table.put("Couldn't import the settings. Nothing was changed.",
@@ -1089,8 +1009,6 @@ public final class L10nTranslations {
                 "No se pudo abrir Descargas.");
         table.put("Couldn't open Set as. Check Downloads for the saved file.",
                 "No se pudo abrir Usar como. Busca el archivo guardado en Descargas.");
-        table.put("Couldn't open a save location. Try again from the pin.",
-                "No se pudo abrir una ubicaci\u00f3n de guardado. Int\u00e9ntalo de nuevo desde el Pin.");
         table.put("Couldn't open that file. Nothing was changed.",
                 "No se pudo abrir ese archivo. No se cambi\u00f3 nada.");
         table.put("Couldn't open the file picker. Try again.",
@@ -1107,10 +1025,6 @@ public final class L10nTranslations {
                 "No se pudieron restaurar los datos de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
         table.put("Couldn't reach GitHub. Try again later.",
                 "No se pudo contactar con GitHub. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
-        table.put("Couldn't record the save location. No file data was written.",
-                "No se pudo registrar la ubicaci\u00f3n. No se escribi\u00f3 ning\u00fan dato en el archivo.");
-        table.put("Couldn't remove the incomplete file. Check your chosen save location.",
-                "No se pudo eliminar el archivo incompleto. Revisa la ubicaci\u00f3n que elegiste.");
         table.put("Couldn't remove this history entry. Try again.",
                 "No se pudo eliminar esta entrada del historial. Int\u00e9ntalo de nuevo.");
         table.put("Couldn't save the settings file. Try again.",
@@ -1133,8 +1047,6 @@ public final class L10nTranslations {
                 "No se pudo deshacer la importaci\u00f3n ni restaurar los ajustes importados. Revisa los ajustes de esta pantalla.");
         table.put("Couldn't undo the import. Your imported switches are unchanged.",
                 "No se pudo deshacer la importaci\u00f3n. Tus ajustes importados no cambiaron.");
-        table.put("Couldn't write to the chosen save location. Check its access and available space.",
-                "No se pudo escribir en la ubicaci\u00f3n elegida. Revisa el acceso y el espacio disponible.");
         table.put("Debug logging",
                 "Registro de depuraci\u00f3n");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -1171,9 +1083,6 @@ public final class L10nTranslations {
                 "Descarga no disponible");
         table.put("Download visible pins",
                 "Descargar pines visibles");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Downloading",
                 "Descargando");
         table.put("Every pin loaded from this board is already in Download history.",
@@ -1202,6 +1111,9 @@ public final class L10nTranslations {
                 "Informe completo guardado en %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, con los avisos de los proyectos en los que se basa");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub est\u00e1 rechazando por ahora las consultas desde esta red. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
         table.put("GitHub sent back something HushPinterest couldn't read. Try again later.",
@@ -1268,8 +1180,8 @@ public final class L10nTranslations {
                 "Oculta los botones peque\u00f1os con icono al final de la barra superior. Atr\u00e1s, los botones de texto y los controles de la cuenta se quedan. El cambio se ve la pr\u00f3xima vez que se actualice la barra.");
         table.put("Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.",
                 "Oculta tus b\u00fasquedas recientes. No borra el historial de b\u00fasqueda de tu cuenta. El cambio se ve la pr\u00f3xima vez que se actualice la pantalla.");
-        table.put("History could not be saved for %d results. Check Downloads or your chosen files.",
-                "No se pudo guardar el historial de %d resultados. Revisa Descargas o los archivos elegidos.");
+        table.put("History could not be saved for %d results. Check Downloads.",
+                "No se pudo guardar el historial de %d resultados. Revisa Descargas.");
         table.put("History removed. Files and active downloads were kept.",
                 "Historial eliminado. Se conservaron los archivos y las descargas activas.");
         table.put("HushPinterest %1$s is out. Update it in Morphe Manager.",
@@ -1294,9 +1206,6 @@ public final class L10nTranslations {
                 "HushPinterest vuelve a activarse cuando Pinterest se reinicie.");
         table.put("If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.",
                 "Si te registraste con Google o no sabes tu contrase\u00f1a de Pinterest, elige \u00bfOlvidaste tu contrase\u00f1a? en la p\u00e1gina de inicio de sesi\u00f3n de Pinterest. Introduce el correo ya vinculado a esa cuenta y usa el enlace enviado a tu correo para establecer una contrase\u00f1a de Pinterest. Es distinta de tu contrase\u00f1a de Google. No necesitas desvincular Google.");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Import",
                 "Importar");
         table.put("Import settings",
@@ -1311,8 +1220,6 @@ public final class L10nTranslations {
                 "Parches instalados e interruptores");
         table.put("Interface",
                 "Interfaz");
-        table.put("Interrupted",
-                "Interrumpido");
         table.put("It supports Pinterest %1$s.",
                 "Es compatible con Pinterest %1$s.");
         table.put("Jump to a section",
@@ -1327,6 +1234,9 @@ public final class L10nTranslations {
                 "Enlaces, actualizaciones, copia de seguridad y m\u00e1s");
         table.put("Long-press download",
                 "Descarga con pulsaci\u00f3n larga");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Media link",
                 "Enlace del archivo");
         table.put("Media link copied.",
@@ -1345,8 +1255,6 @@ public final class L10nTranslations {
                 "No se puso ninguna descarga en cola. La selecci\u00f3n se detuvo, se cancel\u00f3 o no estaba disponible.");
         table.put("No matching settings",
                 "No hay ajustes coincidentes");
-        table.put("No pending HushPinterest saves.",
-                "No hay guardados pendientes de HushPinterest.");
         table.put("No pins from this board have loaded yet. Scroll through the board, then try again.",
                 "Todav\u00eda no se carg\u00f3 ning\u00fan pin de este tablero. Despl\u00e1zate por el tablero y vuelve a intentarlo.");
         table.put("No screenshot share menu",
@@ -1375,8 +1283,6 @@ public final class L10nTranslations {
                 "Solo se muestran las 32 descargas y resultados de selecci\u00f3n m\u00e1s recientes. Se conservan los archivos guardados.");
         table.put("Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.",
                 "Solo se incluyen los pines que Pinterest carg\u00f3 hasta ahora de este tablero, hasta %d. Para incluir m\u00e1s, despl\u00e1zate primero m\u00e1s abajo en el tablero.");
-        table.put("Only unfinished saves are listed. Check your chosen location before saving again.",
-                "Solo se muestran los guardados sin terminar. Revisa la ubicaci\u00f3n elegida antes de guardar de nuevo.");
         table.put("Open Downloads",
                 "Abrir Descargas");
         table.put("Open Pinterest's settings from the gear on your Saved tab. HushPinterest doesn't change any of these.",
@@ -1413,21 +1319,12 @@ public final class L10nTranslations {
                 "En pausa");
         table.put("Paused by Android.",
                 "Android lo puso en pausa.");
-        table.put("Pending saves",
-                "Guardados pendientes");
         table.put("Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.",
                 "Elige los parches en Morphe Manager cuando parchees la app. Los interruptores de aqu\u00ed solo controlan los parches que est\u00e1n en tu versi\u00f3n. Cambiar un interruptor no a\u00f1ade ni quita ning\u00fan parche. Pausa conserva tus elecciones guardadas, pero lo que se defini\u00f3 al parchear se queda en la app.");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
                 "Acciones del pin");
-        table.put("Pin saved.",
-                "Pin guardado.");
-        table.put("Pin saved. Check Pending saves if its history remains.",
-                "Pin guardado. Revisa Guardados pendientes si a\u00fan aparece en el historial.");
         table.put("Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.",
                 "Pinterest ya no puede usar el permiso de ID de publicidad de Google ni los servicios de anuncios de Android. Esto se defini\u00f3 al parchear. Vuelve a parchear sin \u00e9l para recuperarlos.");
         table.put("Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.",
@@ -1460,6 +1357,9 @@ public final class L10nTranslations {
                 "Configuraci\u00f3n propia de Pinterest");
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Las direcciones web de Pinterest est\u00e1n seleccionadas para esta app en los ajustes de Android, as\u00ed que sus enlaces se abren aqu\u00ed.");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Plain pin links",
                 "Enlaces de pin simples");
         table.put("Privacy",
@@ -1474,8 +1374,8 @@ public final class L10nTranslations {
                 "Poner selecci\u00f3n en cola");
         table.put("Queued",
                 "En cola");
-        table.put("Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d",
-                "En cola: %d\nGuardados: %d\nOmitidos: %d\nNo compatibles: %d\nFallidos: %d");
+        table.put("Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d",
+                "En cola: %d\nOmitidos: %d\nNo compatibles: %d\nFallidos: %d");
         table.put("Quiet email reminders",
                 "Ocultar recordatorios de correo");
         table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
@@ -1504,8 +1404,6 @@ public final class L10nTranslations {
                 "Elimina esta entrada del historial. Se conservan los archivos y las descargas activas.");
         table.put("Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them unless Plain pin links is on.",
                 "Quita las etiquetas de seguimiento de los enlaces que copias o compartes. Los enlaces cortos pin.it se quedan como los cre\u00f3 Pinterest, salvo que Enlaces de pin simples est\u00e9 activado.");
-        table.put("Report storage is unavailable right now. You can still copy a quick report.",
-                "El almacenamiento de informes no est\u00e1 disponible ahora. A\u00fan puedes copiar un informe r\u00e1pido.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Restaura los ajustes anteriores a la \u00faltima importaci\u00f3n. Cambiar un ajuste o reiniciar Pinterest termina la opci\u00f3n de deshacer.");
         table.put("Resume",
@@ -1520,33 +1418,16 @@ public final class L10nTranslations {
                 "Reintentar descarga");
         table.put("Reverse image search",
                 "B\u00fasqueda inversa de im\u00e1genes");
-        table.put("Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.",
-                "No se pudo confirmar la limpieza del guardado. Se conserv\u00f3 el archivo. Intenta quitar esta entrada del historial de nuevo.");
-        table.put("Save cleanup pending",
-                "Limpieza del guardado pendiente");
         table.put("Save full report",
                 "Guardar informe completo");
-        table.put("Save history is full. Remove an old entry before saving another pin.",
-                "El historial de guardados est\u00e1 lleno. Quita una entrada antigua antes de guardar otro Pin.");
-        table.put("Save history removed. The file was kept.",
-                "Se quit\u00f3 el historial del guardado. Se conserv\u00f3 el archivo.");
         table.put("Save media",
                 "Guardar contenido multimedia");
         table.put("Save the full report in %1$s.",
                 "Guarda el informe completo en %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Guarda tus interruptores en un archivo. Cubren todas las cuentas de esta app de Pinterest. La pausa y el Registro de depuraci\u00f3n no se incluyen, y la b\u00fasqueda de nuevas versiones tampoco.");
-        table.put("Saved",
-                "Guardado");
-        table.put("Saved to the location you chose.",
-                "Guardado en la ubicaci\u00f3n elegida.");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Guardado. Reinicia Pinterest para aplicar este cambio.");
-        table.put("Saving",
-                "Guardando");
         table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
                 "Al guardar un Pin ya no aparece \u00abGuardado en\u00bb tu tablero ni una sugerencia para seguir a quien lo cre\u00f3. El Pin se guarda igual.");
         table.put("Saving the settings file",
@@ -1599,6 +1480,9 @@ public final class L10nTranslations {
                 "Permisos sociales");
         table.put("Source code and issues",
                 "C\u00f3digo fuente e incidencias");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("Spoof signature for Google sign-in",
                 "Falsear la firma para iniciar sesi\u00f3n con Google");
         table.put("Starts a new download. Android manages it.",
@@ -1663,15 +1547,10 @@ public final class L10nTranslations {
                 "El servidor de descarga no pudo completar la solicitud.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.",
                 "No se pudo eliminar el archivo %1$s. B\u00f3rralo de %2$s para volver a activar HushPinterest.");
-    }
-
-    private static void fillEs6(Map<String, String> table) {
         table.put("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.",
                 "No se pudo eliminar el archivo %1$s. B\u00f3rralo de %2$s y luego vuelve a tocar Reanudar.");
         table.put("The file already exists.",
                 "El archivo ya existe.");
-        table.put("The file may have saved. Check your chosen save location.",
-                "Puede que el archivo se haya guardado. Revisa la ubicaci\u00f3n que elegiste.");
         table.put("The newest HushPinterest release is %1$s.",
                 "La versi\u00f3n m\u00e1s reciente de HushPinterest es la %1$s.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
@@ -1698,8 +1577,6 @@ public final class L10nTranslations {
                 "Este tel\u00e9fono no tiene selector de archivos, as\u00ed que aqu\u00ed no hay forma de elegir un archivo.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
                 "Esta solicitud no puede repetirse. Revisa Descargas o abre el pin de nuevo.");
-        table.put("This save is still running. Try again when it's finished.",
-                "Este guardado sigue en curso. Int\u00e9ntalo de nuevo cuando termine.");
         table.put("Toolbar icons",
                 "Iconos de la barra de herramientas");
         table.put("Try a different word or clear the search.",
@@ -1726,6 +1603,9 @@ public final class L10nTranslations {
                 "Deshaciendo importaci\u00f3n");
         table.put("Unknown",
                 "Desconocido");
+    }
+
+    private static void fillEs6(Map<String, String> table) {
         table.put("Unsupported",
                 "No compatible");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
@@ -1785,7 +1665,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(836);
+        Map<String, String> table = new HashMap<>(776);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1835,8 +1715,6 @@ public final class L10nTranslations {
                 "pin berlabel AI di daftar");
         table.put("About",
                 "Tentang");
-        table.put("Access unavailable",
-                "Akses tidak tersedia");
         table.put("Account management",
                 "Manajemen akun");
         table.put("Accounts",
@@ -1855,8 +1733,6 @@ public final class L10nTranslations {
                 "Pengiriman data analitik");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 dan versi sebelumnya tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk membuka pengaturan aplikasi ini, lalu Buka secara default.");
-        table.put("Android 9 uses the file picker. Results from visible-pin selections appear here.",
-                "Android 9 memakai pemilih file. Hasil pilihan Pin yang terlihat muncul di sini.");
         table.put("Android couldn't resume the download.",
                 "Android tidak dapat melanjutkan unduhan.");
         table.put("Android couldn't save the file.",
@@ -1875,8 +1751,6 @@ public final class L10nTranslations {
                 "Android akan mencoba mengunduh lagi.");
         table.put("Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.",
                 "Pengaturan Android untuk aplikasi ini tidak terbuka. Buka Info aplikasi dari ikon Pinterest, lalu Buka secara default.");
-        table.put("Another pin is being saved. Try again when it's finished.",
-                "Pin lain sedang disimpan. Coba lagi setelah selesai.");
         table.put("App theme",
                 "Tema aplikasi");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
@@ -1903,23 +1777,14 @@ public final class L10nTranslations {
                 "Periksa sekarang");
         table.put("Check recent downloads started by HushPinterest.",
                 "Periksa unduhan terbaru yang dimulai oleh HushPinterest.");
-        table.put("Check unfinished file picker saves. Files are kept.",
-                "Periksa penyimpanan yang belum selesai dari pemilih file. File tetap disimpan.");
-        table.put("Check your chosen save location before saving again. HushPinterest won't resume or delete this file.",
-                "Periksa lokasi penyimpanan yang dipilih sebelum menyimpan lagi. HushPinterest tidak akan melanjutkan atau menghapus file ini.");
         table.put("Checking GitHub now.",
                 "Sedang memeriksa GitHub.");
         table.put("Checking download history...",
                 "Memeriksa riwayat unduhan...");
-        table.put("Checking pending saves...",
-                "Memeriksa penyimpanan tertunda...");
         table.put("Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.",
                 "Pilih file setelan. Tinjau nama serta nilai lama dan baru setiap sakelar sebelum mengimpor. Pilihan berlaku untuk semua akun di aplikasi Pinterest ini.");
         table.put("Clear diagnostic data",
                 "Hapus data diagnostik");
-    }
-
-    private static void fillIn1(Map<String, String> table) {
         table.put("Clear search",
                 "Hapus pencarian");
         table.put("Clears the saved log and patch check results that a report would include.",
@@ -1932,8 +1797,9 @@ public final class L10nTranslations {
                 "Tautan pin.it yang disalin dan dibagikan menjadi tautan pinterest.com milik pin itu sendiri, sehingga tidak menunjukkan siapa yang membagikannya. Tautan pin dari situs Pinterest untuk tiap negara juga menjadi tautan yang sama. Jika HushPinterest belum mengenal pin tersebut, tautan yang disalin diperiksa ke Pinterest di latar belakang lalu diganti sesaat kemudian.");
         table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Salin laporan singkat atau simpan laporan lengkap ke %1$s. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.");
-        table.put("Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Salin laporan singkat. Penyimpanan laporan saat ini tidak tersedia. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.");
+    }
+
+    private static void fillIn1(Map<String, String> table) {
         table.put("Copy a short report to the clipboard.",
                 "Salin laporan singkat ke papan klip.");
         table.put("Copy media link",
@@ -1942,14 +1808,8 @@ public final class L10nTranslations {
                 "Salin laporan singkat");
         table.put("Couldn't check Downloads. Try again.",
                 "Tidak dapat memeriksa Unduhan. Coba lagi.");
-        table.put("Couldn't check your chosen save location. Open your Files app to inspect it.",
-                "Lokasi penyimpanan yang dipilih tidak dapat diperiksa. Buka aplikasi File untuk memeriksanya.");
-        table.put("Couldn't complete the save. Check your connection and chosen save location.",
-                "Penyimpanan tidak dapat diselesaikan. Periksa koneksi dan lokasi penyimpanan yang dipilih.");
         table.put("Couldn't copy the media link. Open the pin again and try again.",
                 "Tautan media tidak dapat disalin. Buka Pin lagi dan coba lagi.");
-        table.put("Couldn't download this pin. Check your connection and try again.",
-                "Pin ini tidak dapat diunduh. Periksa koneksi dan coba lagi.");
         table.put("Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.",
                 "Pengaturan tidak dapat diimpor, dan pengaturan sebelumnya tidak dapat dikembalikan. Periksa sakelar di layar ini.");
         table.put("Couldn't import the settings. Nothing was changed.",
@@ -1958,8 +1818,6 @@ public final class L10nTranslations {
                 "Tidak dapat membuka Unduhan.");
         table.put("Couldn't open Set as. Check Downloads for the saved file.",
                 "Setel sebagai tidak dapat dibuka. Cari file tersimpan di Download.");
-        table.put("Couldn't open a save location. Try again from the pin.",
-                "Lokasi penyimpanan tidak dapat dibuka. Coba lagi dari Pin.");
         table.put("Couldn't open that file. Nothing was changed.",
                 "File itu tidak dapat dibuka. Tidak ada yang diubah.");
         table.put("Couldn't open the file picker. Try again.",
@@ -1976,10 +1834,6 @@ public final class L10nTranslations {
                 "Data diagnostik tidak dapat dikembalikan. Coba lagi.");
         table.put("Couldn't reach GitHub. Try again later.",
                 "GitHub tidak dapat dihubungi. Coba lagi nanti.");
-        table.put("Couldn't record the save location. No file data was written.",
-                "Lokasi penyimpanan tidak dapat dicatat. Tidak ada data file yang ditulis.");
-        table.put("Couldn't remove the incomplete file. Check your chosen save location.",
-                "File yang belum selesai tidak dapat dihapus. Periksa lokasi penyimpanan yang dipilih.");
         table.put("Couldn't remove this history entry. Try again.",
                 "Tidak dapat menghapus entri riwayat ini. Coba lagi.");
         table.put("Couldn't save the settings file. Try again.",
@@ -2002,8 +1856,6 @@ public final class L10nTranslations {
                 "Tidak dapat mengurungkan impor atau memulihkan sakelar yang diimpor. Periksa sakelar di layar ini.");
         table.put("Couldn't undo the import. Your imported switches are unchanged.",
                 "Tidak dapat mengurungkan impor. Sakelar yang diimpor tidak berubah.");
-        table.put("Couldn't write to the chosen save location. Check its access and available space.",
-                "Tidak dapat menulis ke lokasi penyimpanan yang dipilih. Periksa akses dan ruang yang tersedia.");
         table.put("Debug logging",
                 "Pencatatan debug");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -2040,9 +1892,6 @@ public final class L10nTranslations {
                 "Unduhan tidak tersedia");
         table.put("Download visible pins",
                 "Unduh Pin yang terlihat");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Downloading",
                 "Mengunduh");
         table.put("Every pin loaded from this board is already in Download history.",
@@ -2071,6 +1920,9 @@ public final class L10nTranslations {
                 "Laporan lengkap disimpan ke %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub sedang menolak pemeriksaan dari jaringan ini. Coba lagi nanti.");
         table.put("GitHub sent back something HushPinterest couldn't read. Try again later.",
@@ -2137,8 +1989,8 @@ public final class L10nTranslations {
                 "Menyembunyikan tombol ikon kecil di ujung bilah atas. Kembali, tombol teks, dan kontrol akun tetap ada. Perubahan terlihat saat bilah diperbarui berikutnya.");
         table.put("Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.",
                 "Menyembunyikan pencarian terbaru Anda. Riwayat pencarian akun Anda tidak dihapus. Perubahan terlihat saat layar diperbarui berikutnya.");
-        table.put("History could not be saved for %d results. Check Downloads or your chosen files.",
-                "Riwayat untuk %d hasil tidak dapat disimpan. Periksa Unduhan atau file yang Anda pilih.");
+        table.put("History could not be saved for %d results. Check Downloads.",
+                "Riwayat untuk %d hasil tidak dapat disimpan. Periksa Unduhan.");
         table.put("History removed. Files and active downloads were kept.",
                 "Riwayat dihapus. File dan unduhan aktif tetap disimpan.");
         table.put("HushPinterest %1$s is out. Update it in Morphe Manager.",
@@ -2163,9 +2015,6 @@ public final class L10nTranslations {
                 "HushPinterest aktif lagi saat Pinterest dimulai ulang.");
         table.put("If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.",
                 "Jika Anda mendaftar melalui Google atau tidak tahu kata sandi Pinterest Anda, pilih Lupa kata sandi di halaman login Pinterest. Masukkan email yang sudah terhubung ke akun tersebut, lalu gunakan tautan yang dikirim ke email Anda untuk menetapkan kata sandi Pinterest. Kata sandi ini berbeda dari kata sandi Google Anda. Anda tidak perlu memutuskan hubungan dengan Google.");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Import",
                 "Impor");
         table.put("Import settings",
@@ -2180,8 +2029,6 @@ public final class L10nTranslations {
                 "Patch yang terpasang dan sakelar");
         table.put("Interface",
                 "Antarmuka");
-        table.put("Interrupted",
-                "Terhenti");
         table.put("It supports Pinterest %1$s.",
                 "Rilis ini mendukung Pinterest %1$s.");
         table.put("Jump to a section",
@@ -2196,6 +2043,9 @@ public final class L10nTranslations {
                 "Tautan, pembaruan, cadangan, dan lainnya");
         table.put("Long-press download",
                 "Unduh dengan tekan lama");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Media link",
                 "Tautan media");
         table.put("Media link copied.",
@@ -2214,8 +2064,6 @@ public final class L10nTranslations {
                 "Tidak ada unduhan yang diantrekan. Pilihan dihentikan, dibatalkan, atau tidak tersedia.");
         table.put("No matching settings",
                 "Tidak ada pengaturan yang cocok");
-        table.put("No pending HushPinterest saves.",
-                "Tidak ada penyimpanan HushPinterest yang tertunda.");
         table.put("No pins from this board have loaded yet. Scroll through the board, then try again.",
                 "Belum ada Pin dari papan ini yang dimuat. Gulir papan, lalu coba lagi.");
         table.put("No screenshot share menu",
@@ -2244,8 +2092,6 @@ public final class L10nTranslations {
                 "Hanya 32 unduhan dan hasil pilihan terbaru yang ditampilkan. File yang tersimpan tetap disimpan.");
         table.put("Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.",
                 "Hanya Pin yang sejauh ini sudah dimuat Pinterest untuk papan ini yang disertakan, maksimal %d. Untuk menyertakan lebih banyak, gulir papan lebih jauh ke bawah dulu.");
-        table.put("Only unfinished saves are listed. Check your chosen location before saving again.",
-                "Hanya penyimpanan yang belum selesai ditampilkan. Periksa lokasi yang dipilih sebelum menyimpan lagi.");
         table.put("Open Downloads",
                 "Buka Unduhan");
         table.put("Open Pinterest's settings from the gear on your Saved tab. HushPinterest doesn't change any of these.",
@@ -2282,21 +2128,12 @@ public final class L10nTranslations {
                 "Dijeda");
         table.put("Paused by Android.",
                 "Dijeda oleh Android.");
-        table.put("Pending saves",
-                "Penyimpanan tertunda");
         table.put("Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.",
                 "Pilih patch di Morphe Manager saat Anda menambal aplikasi. Sakelar di sini hanya mengatur patch yang ada di build Anda. Mengubah sakelar tidak menambah atau menghapus patch. Jeda menyimpan pilihan Anda, tetapi apa pun yang diatur saat menambal tetap ada di aplikasi.");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
                 "Tindakan Pin");
-        table.put("Pin saved.",
-                "Pin disimpan.");
-        table.put("Pin saved. Check Pending saves if its history remains.",
-                "Pin disimpan. Periksa Penyimpanan tertunda jika riwayatnya masih ada.");
         table.put("Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.",
                 "Pinterest tidak lagi bisa memakai izin ID iklan Google atau layanan iklan Android. Ini diatur saat Anda menambal. Tambal ulang tanpanya untuk mengembalikannya.");
         table.put("Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.",
@@ -2329,6 +2166,9 @@ public final class L10nTranslations {
                 "Pengaturan Pinterest sendiri");
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Alamat web Pinterest dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Plain pin links",
                 "Tautan pin biasa");
         table.put("Privacy",
@@ -2343,8 +2183,8 @@ public final class L10nTranslations {
                 "Antrekan pilihan");
         table.put("Queued",
                 "Dalam antrean");
-        table.put("Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d",
-                "Dalam antrean: %d\nTersimpan: %d\nDilewati: %d\nTidak didukung: %d\nGagal: %d");
+        table.put("Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d",
+                "Dalam antrean: %d\nDilewati: %d\nTidak didukung: %d\nGagal: %d");
         table.put("Quiet email reminders",
                 "Sembunyikan pengingat email");
         table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
@@ -2373,8 +2213,6 @@ public final class L10nTranslations {
                 "Menghapus entri riwayat ini. File dan unduhan aktif tetap disimpan.");
         table.put("Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them unless Plain pin links is on.",
                 "Menghapus tag pelacakan dari tautan yang Anda salin atau bagikan. Tautan pendek pin.it tetap seperti buatan Pinterest, kecuali Tautan pin biasa aktif.");
-        table.put("Report storage is unavailable right now. You can still copy a quick report.",
-                "Penyimpanan laporan saat ini tidak tersedia. Anda masih dapat menyalin laporan singkat.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Pulihkan sakelar sebelum impor terakhir. Mengubah sakelar atau memulai ulang Pinterest mengakhiri Urungkan.");
         table.put("Resume",
@@ -2389,33 +2227,16 @@ public final class L10nTranslations {
                 "Coba unduh lagi");
         table.put("Reverse image search",
                 "Pencarian gambar terbalik");
-        table.put("Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.",
-                "Pembersihan penyimpanan tidak dapat dipastikan. File tetap disimpan. Coba hapus entri riwayat ini lagi.");
-        table.put("Save cleanup pending",
-                "Pembersihan penyimpanan tertunda");
         table.put("Save full report",
                 "Simpan laporan lengkap");
-        table.put("Save history is full. Remove an old entry before saving another pin.",
-                "Riwayat penyimpanan penuh. Hapus entri lama sebelum menyimpan Pin lain.");
-        table.put("Save history removed. The file was kept.",
-                "Riwayat penyimpanan dihapus. File tetap disimpan.");
         table.put("Save media",
                 "Simpan media");
         table.put("Save the full report in %1$s.",
                 "Simpan laporan lengkap di %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Simpan sakelar Anda ke sebuah file. Sakelar ini mencakup semua akun di aplikasi Pinterest ini. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.");
-        table.put("Saved",
-                "Tersimpan");
-        table.put("Saved to the location you chose.",
-                "Disimpan ke lokasi yang Anda pilih.");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Tersimpan. Mulai ulang Pinterest untuk menerapkan perubahan ini.");
-        table.put("Saving",
-                "Menyimpan");
         table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
                 "Menyimpan Pin tidak lagi memunculkan \"Disimpan ke\" papanmu atau saran untuk mengikuti pembuatnya. Pin tetap tersimpan.");
         table.put("Saving the settings file",
@@ -2468,6 +2289,9 @@ public final class L10nTranslations {
                 "Izin fitur sosial");
         table.put("Source code and issues",
                 "Kode sumber dan laporan masalah");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("Spoof signature for Google sign-in",
                 "Palsukan tanda tangan untuk login Google");
         table.put("Starts a new download. Android manages it.",
@@ -2532,15 +2356,10 @@ public final class L10nTranslations {
                 "Server unduhan tidak dapat menyelesaikan permintaan.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.",
                 "File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushPinterest lagi.");
-    }
-
-    private static void fillIn6(Map<String, String> table) {
         table.put("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.",
                 "File %1$s tidak dapat dihapus. Hapus file itu dari %2$s, lalu ketuk Lanjutkan lagi.");
         table.put("The file already exists.",
                 "File sudah ada.");
-        table.put("The file may have saved. Check your chosen save location.",
-                "File mungkin sudah tersimpan. Periksa lokasi penyimpanan yang dipilih.");
         table.put("The newest HushPinterest release is %1$s.",
                 "Rilis HushPinterest terbaru adalah %1$s.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
@@ -2567,8 +2386,6 @@ public final class L10nTranslations {
                 "Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
                 "Permintaan ini tidak dapat dicoba lagi. Periksa Unduhan atau buka pin lagi.");
-        table.put("This save is still running. Try again when it's finished.",
-                "Penyimpanan ini masih berjalan. Coba lagi setelah selesai.");
         table.put("Toolbar icons",
                 "Ikon bilah alat");
         table.put("Try a different word or clear the search.",
@@ -2595,6 +2412,9 @@ public final class L10nTranslations {
                 "Mengurungkan impor");
         table.put("Unknown",
                 "Tidak diketahui");
+    }
+
+    private static void fillIn6(Map<String, String> table) {
         table.put("Unsupported",
                 "Tidak didukung");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
@@ -2654,7 +2474,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(836);
+        Map<String, String> table = new HashMap<>(776);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2704,8 +2524,6 @@ public final class L10nTranslations {
                 "pins com selo de IA nas listas");
         table.put("About",
                 "Sobre");
-        table.put("Access unavailable",
-                "Acesso indispon\u00edvel");
         table.put("Account management",
                 "Gerenciamento de conta");
         table.put("Accounts",
@@ -2724,8 +2542,6 @@ public final class L10nTranslations {
                 "Envios de an\u00e1lises");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "O Android 11 e as vers\u00f5es anteriores n\u00e3o informam quais links abrem aqui. Toque para abrir as configura\u00e7\u00f5es deste app e depois Abrir por padr\u00e3o.");
-        table.put("Android 9 uses the file picker. Results from visible-pin selections appear here.",
-                "O Android 9 usa o seletor de arquivos. Os resultados das sele\u00e7\u00f5es de Pins vis\u00edveis aparecem aqui.");
         table.put("Android couldn't resume the download.",
                 "O Android n\u00e3o conseguiu retomar o download.");
         table.put("Android couldn't save the file.",
@@ -2744,8 +2560,6 @@ public final class L10nTranslations {
                 "O Android tentar\u00e1 baixar novamente.");
         table.put("Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.",
                 "As configura\u00e7\u00f5es do Android para este app n\u00e3o abriram. Abra Informa\u00e7\u00f5es do app pelo \u00edcone do Pinterest e depois Abrir por padr\u00e3o.");
-        table.put("Another pin is being saved. Try again when it's finished.",
-                "Outro Pin est\u00e1 sendo salvo. Tente novamente quando terminar.");
         table.put("App theme",
                 "Tema do aplicativo");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
@@ -2772,23 +2586,14 @@ public final class L10nTranslations {
                 "Verificar agora");
         table.put("Check recent downloads started by HushPinterest.",
                 "Confira os downloads recentes iniciados pelo HushPinterest.");
-        table.put("Check unfinished file picker saves. Files are kept.",
-                "Confira salvamentos inacabados do seletor de arquivos. Os arquivos s\u00e3o mantidos.");
-        table.put("Check your chosen save location before saving again. HushPinterest won't resume or delete this file.",
-                "Confira o local escolhido antes de salvar de novo. O HushPinterest n\u00e3o vai retomar nem excluir este arquivo.");
         table.put("Checking GitHub now.",
                 "Consultando o GitHub agora.");
         table.put("Checking download history...",
                 "Consultando o hist\u00f3rico de downloads...");
-        table.put("Checking pending saves...",
-                "Verificando salvamentos pendentes...");
         table.put("Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.",
                 "Escolha um arquivo de configura\u00e7\u00f5es. Confira o nome e os valores antigos e novos de cada ajuste antes de importar. Suas escolhas valem para todas as contas neste app do Pinterest.");
         table.put("Clear diagnostic data",
                 "Limpar dados de diagn\u00f3stico");
-    }
-
-    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Clear search",
                 "Limpar busca");
         table.put("Clears the saved log and patch check results that a report would include.",
@@ -2801,8 +2606,9 @@ public final class L10nTranslations {
                 "Links do pin.it copiados e compartilhados viram o link do pr\u00f3prio pin no pinterest.com, ent\u00e3o n\u00e3o dizem quem os compartilhou. Links de pins dos sites do Pinterest de cada pa\u00eds tamb\u00e9m viram esse mesmo link. Quando o HushPinterest ainda n\u00e3o conhece o pin, um link copiado \u00e9 verificado com o Pinterest em segundo plano e trocado logo depois.");
         table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Copie um relat\u00f3rio r\u00e1pido ou salve o completo em %1$s. Links, IDs, cookies e tokens de login s\u00e3o omitidos. Confira outros textos privados antes de compartilhar.");
-        table.put("Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Copie um relat\u00f3rio r\u00e1pido. O armazenamento de relat\u00f3rios est\u00e1 indispon\u00edvel agora. Links, IDs, cookies e tokens de login s\u00e3o omitidos. Confira outros textos privados antes de compartilhar.");
+    }
+
+    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Copy a short report to the clipboard.",
                 "Copie um relat\u00f3rio curto para a \u00e1rea de transfer\u00eancia.");
         table.put("Copy media link",
@@ -2811,14 +2617,8 @@ public final class L10nTranslations {
                 "Copiar relat\u00f3rio r\u00e1pido");
         table.put("Couldn't check Downloads. Try again.",
                 "N\u00e3o foi poss\u00edvel consultar Downloads. Tente novamente.");
-        table.put("Couldn't check your chosen save location. Open your Files app to inspect it.",
-                "N\u00e3o foi poss\u00edvel verificar o local escolhido. Abra seu app de arquivos para conferir.");
-        table.put("Couldn't complete the save. Check your connection and chosen save location.",
-                "N\u00e3o foi poss\u00edvel concluir o salvamento. Confira a conex\u00e3o e o local escolhido.");
         table.put("Couldn't copy the media link. Open the pin again and try again.",
                 "N\u00e3o foi poss\u00edvel copiar o link da m\u00eddia. Abra o Pin de novo e tente outra vez.");
-        table.put("Couldn't download this pin. Check your connection and try again.",
-                "N\u00e3o foi poss\u00edvel baixar este Pin. Confira a conex\u00e3o e tente de novo.");
         table.put("Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.",
                 "N\u00e3o foi poss\u00edvel importar as configura\u00e7\u00f5es nem restaurar as que voc\u00ea tinha. Confira as op\u00e7\u00f5es nesta tela.");
         table.put("Couldn't import the settings. Nothing was changed.",
@@ -2827,8 +2627,6 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel abrir Downloads.");
         table.put("Couldn't open Set as. Check Downloads for the saved file.",
                 "N\u00e3o foi poss\u00edvel abrir Definir como. Procure o arquivo salvo em Downloads.");
-        table.put("Couldn't open a save location. Try again from the pin.",
-                "N\u00e3o foi poss\u00edvel abrir um local para salvar. Tente de novo a partir do Pin.");
         table.put("Couldn't open that file. Nothing was changed.",
                 "N\u00e3o foi poss\u00edvel abrir esse arquivo. Nada foi alterado.");
         table.put("Couldn't open the file picker. Try again.",
@@ -2845,10 +2643,6 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel restaurar os dados de diagn\u00f3stico. Tente de novo.");
         table.put("Couldn't reach GitHub. Try again later.",
                 "N\u00e3o foi poss\u00edvel conectar-se ao GitHub. Tente novamente mais tarde.");
-        table.put("Couldn't record the save location. No file data was written.",
-                "N\u00e3o foi poss\u00edvel registrar o local. Nenhum dado foi gravado no arquivo.");
-        table.put("Couldn't remove the incomplete file. Check your chosen save location.",
-                "N\u00e3o foi poss\u00edvel remover o arquivo incompleto. Confira o local escolhido.");
         table.put("Couldn't remove this history entry. Try again.",
                 "N\u00e3o foi poss\u00edvel remover esta entrada do hist\u00f3rico. Tente novamente.");
         table.put("Couldn't save the settings file. Try again.",
@@ -2871,8 +2665,6 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel desfazer a importa\u00e7\u00e3o nem restaurar os ajustes importados. Confira os ajustes nesta tela.");
         table.put("Couldn't undo the import. Your imported switches are unchanged.",
                 "N\u00e3o foi poss\u00edvel desfazer a importa\u00e7\u00e3o. Seus ajustes importados n\u00e3o mudaram.");
-        table.put("Couldn't write to the chosen save location. Check its access and available space.",
-                "N\u00e3o foi poss\u00edvel gravar no local escolhido. Confira o acesso e o espa\u00e7o dispon\u00edvel.");
         table.put("Debug logging",
                 "Registro de depura\u00e7\u00e3o");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -2909,9 +2701,6 @@ public final class L10nTranslations {
                 "Download indispon\u00edvel");
         table.put("Download visible pins",
                 "Baixar Pins vis\u00edveis");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Downloading",
                 "Baixando");
         table.put("Every pin loaded from this board is already in Download history.",
@@ -2940,6 +2729,9 @@ public final class L10nTranslations {
                 "Relat\u00f3rio completo salvo em %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, com os avisos dos projetos em que o HushPinterest se baseia");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "O GitHub est\u00e1 recusando consultas desta rede por enquanto. Tente novamente mais tarde.");
         table.put("GitHub sent back something HushPinterest couldn't read. Try again later.",
@@ -3006,8 +2798,8 @@ public final class L10nTranslations {
                 "Oculta os bot\u00f5es de \u00edcone pequenos no fim da barra superior. Voltar, bot\u00f5es de texto e controles da conta continuam. A mudan\u00e7a aparece na pr\u00f3xima vez que a barra for atualizada.");
         table.put("Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.",
                 "Oculta suas buscas recentes. N\u00e3o apaga o hist\u00f3rico de busca da sua conta. A mudan\u00e7a aparece na pr\u00f3xima vez que a tela for atualizada.");
-        table.put("History could not be saved for %d results. Check Downloads or your chosen files.",
-                "N\u00e3o foi poss\u00edvel salvar o hist\u00f3rico de %d resultados. Confira Downloads ou os arquivos escolhidos.");
+        table.put("History could not be saved for %d results. Check Downloads.",
+                "N\u00e3o foi poss\u00edvel salvar o hist\u00f3rico de %d resultados. Confira Downloads.");
         table.put("History removed. Files and active downloads were kept.",
                 "Hist\u00f3rico removido. Os arquivos e downloads ativos foram mantidos.");
         table.put("HushPinterest %1$s is out. Update it in Morphe Manager.",
@@ -3032,9 +2824,6 @@ public final class L10nTranslations {
                 "O HushPinterest ser\u00e1 reativado quando o Pinterest for reiniciado.");
         table.put("If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.",
                 "Se voc\u00ea se cadastrou pelo Google ou n\u00e3o sabe sua senha do Pinterest, escolha Esqueceu sua senha? na p\u00e1gina de login do Pinterest. Informe o e-mail j\u00e1 vinculado a essa conta e use o link enviado por e-mail para definir uma senha do Pinterest. Ela \u00e9 diferente da sua senha do Google. Voc\u00ea n\u00e3o precisa desvincular o Google.");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Import",
                 "Importar");
         table.put("Import settings",
@@ -3049,8 +2838,6 @@ public final class L10nTranslations {
                 "Patches instalados e op\u00e7\u00f5es");
         table.put("Interface",
                 "Interface");
-        table.put("Interrupted",
-                "Interrompido");
         table.put("It supports Pinterest %1$s.",
                 "Compat\u00edvel com o Pinterest %1$s.");
         table.put("Jump to a section",
@@ -3065,6 +2852,9 @@ public final class L10nTranslations {
                 "Links, atualiza\u00e7\u00f5es, backup e mais");
         table.put("Long-press download",
                 "Baixar com toque longo");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Media link",
                 "Link da m\u00eddia");
         table.put("Media link copied.",
@@ -3083,8 +2873,6 @@ public final class L10nTranslations {
                 "Nenhum download foi adicionado \u00e0 fila. A sele\u00e7\u00e3o foi parada, cancelada ou estava indispon\u00edvel.");
         table.put("No matching settings",
                 "Nenhuma configura\u00e7\u00e3o encontrada");
-        table.put("No pending HushPinterest saves.",
-                "Nenhum salvamento pendente do HushPinterest.");
         table.put("No pins from this board have loaded yet. Scroll through the board, then try again.",
                 "Nenhum Pin desta pasta foi carregado ainda. Role a pasta e tente de novo.");
         table.put("No screenshot share menu",
@@ -3113,8 +2901,6 @@ public final class L10nTranslations {
                 "Apenas os 32 downloads e resultados de sele\u00e7\u00e3o mais recentes s\u00e3o listados. Os arquivos salvos s\u00e3o mantidos.");
         table.put("Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.",
                 "S\u00f3 entram os Pins que o Pinterest j\u00e1 carregou desta pasta, no m\u00e1ximo %d. Para incluir mais, role a pasta mais para baixo antes.");
-        table.put("Only unfinished saves are listed. Check your chosen location before saving again.",
-                "S\u00f3 os salvamentos inacabados s\u00e3o listados. Confira o local escolhido antes de salvar de novo.");
         table.put("Open Downloads",
                 "Abrir Downloads");
         table.put("Open Pinterest's settings from the gear on your Saved tab. HushPinterest doesn't change any of these.",
@@ -3151,21 +2937,12 @@ public final class L10nTranslations {
                 "Pausado");
         table.put("Paused by Android.",
                 "Pausado pelo Android.");
-        table.put("Pending saves",
-                "Salvamentos pendentes");
         table.put("Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.",
                 "Escolha os patches no Morphe Manager ao aplicar os patches ao app. As op\u00e7\u00f5es daqui s\u00f3 controlam os patches que est\u00e3o na sua vers\u00e3o. Mudar uma op\u00e7\u00e3o n\u00e3o adiciona nem remove patches. Pausar mant\u00e9m suas escolhas salvas, mas o que foi definido ao aplicar os patches continua no app.");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
                 "A\u00e7\u00f5es do Pin");
-        table.put("Pin saved.",
-                "Pin salvo.");
-        table.put("Pin saved. Check Pending saves if its history remains.",
-                "Pin salvo. Confira Salvamentos pendentes se o hist\u00f3rico ainda aparecer.");
         table.put("Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.",
                 "O Pinterest n\u00e3o pode mais usar a permiss\u00e3o de ID de publicidade do Google nem os servi\u00e7os de an\u00fancios do Android. Isso foi definido ao aplicar os patches. Aplique de novo sem ele para recuper\u00e1-los.");
         table.put("Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.",
@@ -3198,6 +2975,9 @@ public final class L10nTranslations {
                 "Configura\u00e7\u00f5es do pr\u00f3prio Pinterest");
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Os endere\u00e7os web do Pinterest est\u00e3o selecionados para este app nas configura\u00e7\u00f5es do Android, ent\u00e3o os links deles abrem aqui.");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Plain pin links",
                 "Links de pin simples");
         table.put("Privacy",
@@ -3212,8 +2992,8 @@ public final class L10nTranslations {
                 "Adicionar sele\u00e7\u00e3o \u00e0 fila");
         table.put("Queued",
                 "Na fila");
-        table.put("Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d",
-                "Na fila: %d\nSalvos: %d\nIgnorados: %d\nN\u00e3o compat\u00edveis: %d\nFalhas: %d");
+        table.put("Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d",
+                "Na fila: %d\nIgnorados: %d\nN\u00e3o compat\u00edveis: %d\nFalhas: %d");
         table.put("Quiet email reminders",
                 "Ocultar lembretes de e-mail");
         table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
@@ -3242,8 +3022,6 @@ public final class L10nTranslations {
                 "Remove esta entrada do hist\u00f3rico. Os arquivos e downloads ativos s\u00e3o mantidos.");
         table.put("Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them unless Plain pin links is on.",
                 "Remove os c\u00f3digos de rastreamento dos links que voc\u00ea copia ou compartilha. Os links curtos pin.it continuam como o Pinterest os criou, a menos que Links de pin simples esteja ativado.");
-        table.put("Report storage is unavailable right now. You can still copy a quick report.",
-                "O armazenamento de relat\u00f3rios est\u00e1 indispon\u00edvel agora. Voc\u00ea ainda pode copiar um relat\u00f3rio r\u00e1pido.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Restaure os ajustes anteriores \u00e0 \u00faltima importa\u00e7\u00e3o. Alterar um ajuste ou reiniciar o Pinterest encerra a op\u00e7\u00e3o de desfazer.");
         table.put("Resume",
@@ -3258,33 +3036,16 @@ public final class L10nTranslations {
                 "Tentar baixar novamente");
         table.put("Reverse image search",
                 "Pesquisa reversa de imagens");
-        table.put("Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.",
-                "N\u00e3o foi poss\u00edvel confirmar a limpeza do salvamento. O arquivo foi mantido. Tente remover esta entrada do hist\u00f3rico de novo.");
-        table.put("Save cleanup pending",
-                "Limpeza do salvamento pendente");
         table.put("Save full report",
                 "Salvar relat\u00f3rio completo");
-        table.put("Save history is full. Remove an old entry before saving another pin.",
-                "O hist\u00f3rico de salvamentos est\u00e1 cheio. Remova uma entrada antiga antes de salvar outro Pin.");
-        table.put("Save history removed. The file was kept.",
-                "Hist\u00f3rico do salvamento removido. O arquivo foi mantido.");
         table.put("Save media",
                 "Salvar m\u00eddia");
         table.put("Save the full report in %1$s.",
                 "Salve o relat\u00f3rio completo em %1$s.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Salve suas op\u00e7\u00f5es em um arquivo. Elas valem para todas as contas deste app do Pinterest. Pausa e Registro de depura\u00e7\u00e3o n\u00e3o s\u00e3o inclu\u00eddos, nem a verifica\u00e7\u00e3o de novas vers\u00f5es.");
-        table.put("Saved",
-                "Salvo");
-        table.put("Saved to the location you chose.",
-                "Salvo no local escolhido.");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Salvo. Reinicie o Pinterest para aplicar esta altera\u00e7\u00e3o.");
-        table.put("Saving",
-                "Salvando");
         table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
                 "Salvar um Pin n\u00e3o mostra mais \"Salvo em\" sua pasta nem a sugest\u00e3o de seguir quem o criou. O Pin continua salvo.");
         table.put("Saving the settings file",
@@ -3337,6 +3098,9 @@ public final class L10nTranslations {
                 "Permiss\u00f5es para redes sociais");
         table.put("Source code and issues",
                 "C\u00f3digo-fonte e relatos de problemas");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Spoof signature for Google sign-in",
                 "Falsificar assinatura para login com Google");
         table.put("Starts a new download. Android manages it.",
@@ -3401,15 +3165,10 @@ public final class L10nTranslations {
                 "O servidor de download n\u00e3o conseguiu concluir a solicita\u00e7\u00e3o.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.",
                 "N\u00e3o foi poss\u00edvel remover o arquivo %1$s. Exclua-o de %2$s para reativar o HushPinterest.");
-    }
-
-    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.",
                 "N\u00e3o foi poss\u00edvel remover o arquivo %1$s. Exclua-o de %2$s e toque em Retomar de novo.");
         table.put("The file already exists.",
                 "O arquivo j\u00e1 existe.");
-        table.put("The file may have saved. Check your chosen save location.",
-                "O arquivo pode ter sido salvo. Confira o local escolhido.");
         table.put("The newest HushPinterest release is %1$s.",
                 "A vers\u00e3o mais nova do HushPinterest \u00e9 %1$s.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
@@ -3436,8 +3195,6 @@ public final class L10nTranslations {
                 "Este dispositivo n\u00e3o tem seletor de arquivos, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel escolher um arquivo aqui.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
                 "N\u00e3o \u00e9 poss\u00edvel repetir esta solicita\u00e7\u00e3o. Confira Downloads ou abra o pin novamente.");
-        table.put("This save is still running. Try again when it's finished.",
-                "Este salvamento ainda est\u00e1 em andamento. Tente de novo quando terminar.");
         table.put("Toolbar icons",
                 "\u00cdcones da barra de ferramentas");
         table.put("Try a different word or clear the search.",
@@ -3464,6 +3221,9 @@ public final class L10nTranslations {
                 "Desfazendo importa\u00e7\u00e3o");
         table.put("Unknown",
                 "Desconhecido");
+    }
+
+    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Unsupported",
                 "N\u00e3o compat\u00edvel");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
@@ -3523,7 +3283,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(836);
+        Map<String, String> table = new HashMap<>(776);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3573,8 +3333,6 @@ public final class L10nTranslations {
                 "listelerdeki yapay zeka etiketli pinler");
         table.put("About",
                 "Hakk\u0131nda");
-        table.put("Access unavailable",
-                "Eri\u015fim kullan\u0131lam\u0131yor");
         table.put("Account management",
                 "Hesap y\u00f6netimi");
         table.put("Accounts",
@@ -3593,8 +3351,6 @@ public final class L10nTranslations {
                 "Analiz veri g\u00f6nderimi");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 ve \u00f6ncesi burada hangi ba\u011flant\u0131lar\u0131n a\u00e7\u0131ld\u0131\u011f\u0131n\u0131 bildirmez. Bu uygulaman\u0131n ayarlar\u0131n\u0131 a\u00e7mak i\u00e7in dokunun, ard\u0131ndan Varsay\u0131lan olarak a\u00e7'a gidin.");
-        table.put("Android 9 uses the file picker. Results from visible-pin selections appear here.",
-                "Android 9 dosya se\u00e7iciyi kullan\u0131r. G\u00f6r\u00fcnen Pin se\u00e7imlerinin sonu\u00e7lar\u0131 burada g\u00f6r\u00fcn\u00fcr.");
         table.put("Android couldn't resume the download.",
                 "Android indirmeyi s\u00fcrd\u00fcremedi.");
         table.put("Android couldn't save the file.",
@@ -3613,8 +3369,6 @@ public final class L10nTranslations {
                 "Android indirmeyi yeniden deneyecek.");
         table.put("Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.",
                 "Bu uygulaman\u0131n Android ayarlar\u0131 a\u00e7\u0131lamad\u0131. Pinterest simgesinden Uygulama bilgileri'ni, ard\u0131ndan Varsay\u0131lan olarak a\u00e7'\u0131 a\u00e7\u0131n.");
-        table.put("Another pin is being saved. Try again when it's finished.",
-                "Ba\u015fka bir Pin kaydediliyor. Bitince tekrar dene.");
         table.put("App theme",
                 "Uygulama temas\u0131");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
@@ -3641,23 +3395,14 @@ public final class L10nTranslations {
                 "\u015eimdi denetle");
         table.put("Check recent downloads started by HushPinterest.",
                 "HushPinterest'in ba\u015flatt\u0131\u011f\u0131 son indirmeleri kontrol edin.");
-        table.put("Check unfinished file picker saves. Files are kept.",
-                "Dosya se\u00e7icisindeki tamamlanmam\u0131\u015f kaydetmeleri kontrol edin. Dosyalar korunur.");
-        table.put("Check your chosen save location before saving again. HushPinterest won't resume or delete this file.",
-                "Tekrar kaydetmeden \u00f6nce se\u00e7ti\u011finiz konumu kontrol edin. HushPinterest bu dosyay\u0131 devam ettirmez veya silmez.");
         table.put("Checking GitHub now.",
                 "GitHub \u015fu anda denetleniyor.");
         table.put("Checking download history...",
                 "\u0130ndirme ge\u00e7mi\u015fi kontrol ediliyor...");
-        table.put("Checking pending saves...",
-                "Bekleyen kaydetmeler kontrol ediliyor...");
         table.put("Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.",
                 "Bir ayar dosyas\u0131 se\u00e7in. \u0130\u00e7e aktarmadan \u00f6nce her anahtar\u0131n ad\u0131n\u0131, eski ve yeni de\u011ferlerini inceleyin. Se\u00e7imleriniz bu Pinterest uygulamas\u0131ndaki t\u00fcm hesaplara uygulan\u0131r.");
         table.put("Clear diagnostic data",
                 "Tan\u0131lama verilerini temizle");
-    }
-
-    private static void fillTr1(Map<String, String> table) {
         table.put("Clear search",
                 "Aramay\u0131 temizle");
         table.put("Clears the saved log and patch check results that a report would include.",
@@ -3670,8 +3415,9 @@ public final class L10nTranslations {
                 "Kopyalanan ve payla\u015f\u0131lan pin.it ba\u011flant\u0131lar\u0131 pinin kendi pinterest.com ba\u011flant\u0131s\u0131na d\u00f6n\u00fc\u015f\u00fcr, b\u00f6ylece onlar\u0131 kimin payla\u015ft\u0131\u011f\u0131n\u0131 g\u00f6stermez. Pinterest'in \u00fclke sitelerindeki pin ba\u011flant\u0131lar\u0131 da ayn\u0131 ba\u011flant\u0131ya d\u00f6n\u00fc\u015f\u00fcr. HushPinterest pini hen\u00fcz tan\u0131m\u0131yorsa kopyalanan ba\u011flant\u0131 arka planda Pinterest'e sorulur ve k\u0131sa bir s\u00fcre sonra de\u011fi\u015ftirilir.");
         table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "H\u0131zl\u0131 bir rapor kopyalay\u0131n veya tam raporu %1$s konumuna kaydedin. Ba\u011flant\u0131lar, kimlikler, \u00e7erezler ve giri\u015f belirte\u00e7leri d\u0131\u015far\u0131da b\u0131rak\u0131l\u0131r. Payla\u015fmadan \u00f6nce di\u011fer \u00f6zel metinleri kontrol edin.");
-        table.put("Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "H\u0131zl\u0131 bir rapor kopyalay\u0131n. Rapor depolama \u015fu anda kullan\u0131lam\u0131yor. Ba\u011flant\u0131lar, kimlikler, \u00e7erezler ve giri\u015f belirte\u00e7leri d\u0131\u015far\u0131da b\u0131rak\u0131l\u0131r. Payla\u015fmadan \u00f6nce di\u011fer \u00f6zel metinleri kontrol edin.");
+    }
+
+    private static void fillTr1(Map<String, String> table) {
         table.put("Copy a short report to the clipboard.",
                 "K\u0131sa raporu panoya kopyalar.");
         table.put("Copy media link",
@@ -3680,14 +3426,8 @@ public final class L10nTranslations {
                 "H\u0131zl\u0131 raporu kopyala");
         table.put("Couldn't check Downloads. Try again.",
                 "\u0130ndirilenler kontrol edilemedi. Yeniden deneyin.");
-        table.put("Couldn't check your chosen save location. Open your Files app to inspect it.",
-                "Se\u00e7ti\u011finiz kaydetme konumu kontrol edilemedi. \u0130ncelemek i\u00e7in Dosyalar uygulaman\u0131z\u0131 a\u00e7\u0131n.");
-        table.put("Couldn't complete the save. Check your connection and chosen save location.",
-                "Kaydetme tamamlanamad\u0131. Ba\u011flant\u0131n\u0131z\u0131 ve se\u00e7ti\u011finiz konumu kontrol edin.");
         table.put("Couldn't copy the media link. Open the pin again and try again.",
                 "Medya ba\u011flant\u0131s\u0131 kopyalanamad\u0131. Pin'i yeniden a\u00e7\u0131p tekrar dene.");
-        table.put("Couldn't download this pin. Check your connection and try again.",
-                "Bu Pin indirilemedi. Ba\u011flant\u0131n\u0131z\u0131 kontrol edip tekrar deneyin.");
         table.put("Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.",
                 "Ayarlar i\u00e7e aktar\u0131lamad\u0131 ve \u00f6nceki ayarlar\u0131n geri y\u00fcklenemedi. Bu ekrandaki anahtarlar\u0131 kontrol et.");
         table.put("Couldn't import the settings. Nothing was changed.",
@@ -3696,8 +3436,6 @@ public final class L10nTranslations {
                 "\u0130ndirilenler a\u00e7\u0131lamad\u0131.");
         table.put("Couldn't open Set as. Check Downloads for the saved file.",
                 "Farkl\u0131 ayarla a\u00e7\u0131lamad\u0131. Kay\u0131tl\u0131 dosya i\u00e7in \u0130ndirilenler'e bak.");
-        table.put("Couldn't open a save location. Try again from the pin.",
-                "Kaydetme konumu a\u00e7\u0131lamad\u0131. Pin'den tekrar deneyin.");
         table.put("Couldn't open that file. Nothing was changed.",
                 "Bu dosya a\u00e7\u0131lamad\u0131. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("Couldn't open the file picker. Try again.",
@@ -3714,10 +3452,6 @@ public final class L10nTranslations {
                 "Tan\u0131lama verileri geri getirilemedi. Tekrar dene.");
         table.put("Couldn't reach GitHub. Try again later.",
                 "GitHub'a ula\u015f\u0131lamad\u0131. Daha sonra tekrar dene.");
-        table.put("Couldn't record the save location. No file data was written.",
-                "Kaydetme konumu kaydedilemedi. Dosyaya veri yaz\u0131lmad\u0131.");
-        table.put("Couldn't remove the incomplete file. Check your chosen save location.",
-                "Tamamlanmam\u0131\u015f dosya kald\u0131r\u0131lamad\u0131. Se\u00e7ti\u011finiz kay\u0131t konumunu kontrol edin.");
         table.put("Couldn't remove this history entry. Try again.",
                 "Bu ge\u00e7mi\u015f kayd\u0131 kald\u0131r\u0131lamad\u0131. Yeniden deneyin.");
         table.put("Couldn't save the settings file. Try again.",
@@ -3740,8 +3474,6 @@ public final class L10nTranslations {
                 "\u0130\u00e7e aktarma geri al\u0131namad\u0131 ve i\u00e7e aktar\u0131lan anahtarlar geri y\u00fcklenemedi. Bu ekrandaki anahtarlar\u0131 kontrol edin.");
         table.put("Couldn't undo the import. Your imported switches are unchanged.",
                 "\u0130\u00e7e aktarma geri al\u0131namad\u0131. \u0130\u00e7e aktar\u0131lan anahtarlar\u0131n\u0131z de\u011fi\u015fmedi.");
-        table.put("Couldn't write to the chosen save location. Check its access and available space.",
-                "Se\u00e7ilen konuma yaz\u0131lamad\u0131. Eri\u015fimi ve kullan\u0131labilir alan\u0131 kontrol edin.");
         table.put("Debug logging",
                 "Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -3778,9 +3510,6 @@ public final class L10nTranslations {
                 "\u0130ndirme kullan\u0131lam\u0131yor");
         table.put("Download visible pins",
                 "G\u00f6r\u00fcnen Pinleri indir");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Downloading",
                 "\u0130ndiriliyor");
         table.put("Every pin loaded from this board is already in Download history.",
@@ -3809,6 +3538,9 @@ public final class L10nTranslations {
                 "Tam rapor \u015furaya kaydedildi: %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub \u015fu an bu a\u011fdan gelen sorgular\u0131 geri \u00e7eviriyor. Daha sonra tekrar dene.");
         table.put("GitHub sent back something HushPinterest couldn't read. Try again later.",
@@ -3875,8 +3607,8 @@ public final class L10nTranslations {
                 "\u00dcst \u00e7ubu\u011fun sonundaki k\u00fc\u00e7\u00fck simge d\u00fc\u011fmelerini gizler. Geri, metin d\u00fc\u011fmeleri ve hesap denetimleri kal\u0131r. De\u011fi\u015fiklik \u00e7ubuk bir sonraki g\u00fcncelleni\u015finde g\u00f6r\u00fcn\u00fcr.");
         table.put("Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.",
                 "Son aramalar\u0131n\u0131 gizler. Hesab\u0131n\u0131n arama ge\u00e7mi\u015fini silmez. De\u011fi\u015fiklik ekran bir sonraki g\u00fcncelleni\u015finde g\u00f6r\u00fcn\u00fcr.");
-        table.put("History could not be saved for %d results. Check Downloads or your chosen files.",
-                "%d sonu\u00e7 i\u00e7in ge\u00e7mi\u015f kaydedilemedi. \u0130ndirilenleri veya se\u00e7ti\u011finiz dosyalar\u0131 kontrol edin.");
+        table.put("History could not be saved for %d results. Check Downloads.",
+                "%d sonu\u00e7 i\u00e7in ge\u00e7mi\u015f kaydedilemedi. \u0130ndirilenleri kontrol edin.");
         table.put("History removed. Files and active downloads were kept.",
                 "Ge\u00e7mi\u015f kald\u0131r\u0131ld\u0131. Dosyalar ve etkin indirmeler korundu.");
         table.put("HushPinterest %1$s is out. Update it in Morphe Manager.",
@@ -3901,9 +3633,6 @@ public final class L10nTranslations {
                 "HushPinterest, Pinterest yeniden ba\u015flad\u0131\u011f\u0131nda tekrar a\u00e7\u0131l\u0131r.");
         table.put("If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.",
                 "Google \u00fczerinden kaydolduysan\u0131z veya Pinterest parolan\u0131z\u0131 bilmiyorsan\u0131z, Pinterest'in giri\u015f sayfas\u0131nda Parolan\u0131z\u0131 m\u0131 unuttunuz? se\u00e7ene\u011fini se\u00e7in. Bu hesaba zaten ba\u011fl\u0131 e-posta adresini girin, ard\u0131ndan e-postan\u0131za g\u00f6nderilen ba\u011flant\u0131yla bir Pinterest parolas\u0131 belirleyin. Bu parola Google parolan\u0131zdan ayr\u0131d\u0131r. Google ba\u011flant\u0131s\u0131n\u0131 kald\u0131rman\u0131z gerekmez.");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Import",
                 "\u0130\u00e7e aktar");
         table.put("Import settings",
@@ -3918,8 +3647,6 @@ public final class L10nTranslations {
                 "Y\u00fckl\u00fc yamalar ve anahtarlar");
         table.put("Interface",
                 "Aray\u00fcz");
-        table.put("Interrupted",
-                "Kesildi");
         table.put("It supports Pinterest %1$s.",
                 "Pinterest %1$s s\u00fcr\u00fcmlerini destekler.");
         table.put("Jump to a section",
@@ -3934,6 +3661,9 @@ public final class L10nTranslations {
                 "Ba\u011flant\u0131lar, g\u00fcncellemeler, yedekleme ve daha fazlas\u0131");
         table.put("Long-press download",
                 "Uzun basarak indirme");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Media link",
                 "Medya ba\u011flant\u0131s\u0131");
         table.put("Media link copied.",
@@ -3952,8 +3682,6 @@ public final class L10nTranslations {
                 "\u0130ndirme s\u0131raya al\u0131nmad\u0131. Se\u00e7im durduruldu, iptal edildi veya kullan\u0131lam\u0131yordu.");
         table.put("No matching settings",
                 "E\u015fle\u015fen ayar yok");
-        table.put("No pending HushPinterest saves.",
-                "Bekleyen HushPinterest kaydetmesi yok.");
         table.put("No pins from this board have loaded yet. Scroll through the board, then try again.",
                 "Bu panodan hen\u00fcz Pin y\u00fcklenmedi. Panoda biraz kayd\u0131r, sonra tekrar dene.");
         table.put("No screenshot share menu",
@@ -3982,8 +3710,6 @@ public final class L10nTranslations {
                 "Yaln\u0131zca en son 32 indirme ve se\u00e7im sonucu listelenir. Kaydedilen dosyalar korunur.");
         table.put("Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.",
                 "Yaln\u0131zca Pinterest'in bu pano i\u00e7in \u015fimdiye kadar y\u00fckledi\u011fi Pinler dahil edilir, en fazla %d. Daha fazlas\u0131n\u0131 eklemek i\u00e7in \u00f6nce panoda daha a\u015fa\u011f\u0131 kayd\u0131r.");
-        table.put("Only unfinished saves are listed. Check your chosen location before saving again.",
-                "Yaln\u0131zca tamamlanmam\u0131\u015f kaydetmeler listelenir. Tekrar kaydetmeden \u00f6nce se\u00e7ti\u011finiz konumu kontrol edin.");
         table.put("Open Downloads",
                 "\u0130ndirilenler'i a\u00e7");
         table.put("Open Pinterest's settings from the gear on your Saved tab. HushPinterest doesn't change any of these.",
@@ -4020,21 +3746,12 @@ public final class L10nTranslations {
                 "Duraklat\u0131ld\u0131");
         table.put("Paused by Android.",
                 "Android taraf\u0131ndan duraklat\u0131ld\u0131.");
-        table.put("Pending saves",
-                "Bekleyen kaydetmeler");
         table.put("Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.",
                 "Uygulamay\u0131 yamalarken yamalar\u0131 Morphe Manager'da se\u00e7. Buradaki anahtarlar yaln\u0131zca s\u00fcr\u00fcm\u00fcnde bulunan yamalar\u0131 kontrol eder. Bir anahtar\u0131 de\u011fi\u015ftirmek yama eklemez veya kald\u0131rmaz. Duraklat kay\u0131tl\u0131 se\u00e7imlerini korur, ama yamalarken ayarlanan her \u015fey uygulamada kal\u0131r.");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Pin %s",
                 "Pin %s");
         table.put("Pin actions",
                 "Pin i\u015flemleri");
-        table.put("Pin saved.",
-                "Pin kaydedildi.");
-        table.put("Pin saved. Check Pending saves if its history remains.",
-                "Pin kaydedildi. Ge\u00e7mi\u015f kayd\u0131 kal\u0131rsa Bekleyen kaydetmeler b\u00f6l\u00fcm\u00fcn\u00fc kontrol edin.");
         table.put("Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.",
                 "Pinterest art\u0131k Google'\u0131n reklam kimli\u011fi iznini veya Android'in reklam hizmetlerini kullanamaz. Bu, yamalarken ayarland\u0131. Geri getirmek i\u00e7in bu yama olmadan yeniden yamala.");
         table.put("Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.",
@@ -4067,6 +3784,9 @@ public final class L10nTranslations {
                 "Pinterest'in kendi ayarlar\u0131");
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Pinterest'\u0131n web adresleri Android ayarlar\u0131nda bu uygulama i\u00e7in se\u00e7ili, bu y\u00fczden ba\u011flant\u0131lar\u0131 burada a\u00e7\u0131l\u0131r.");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Plain pin links",
                 "Sade pin ba\u011flant\u0131lar\u0131");
         table.put("Privacy",
@@ -4081,8 +3801,8 @@ public final class L10nTranslations {
                 "Se\u00e7ilenleri s\u0131raya al");
         table.put("Queued",
                 "S\u0131rada");
-        table.put("Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d",
-                "S\u0131rada: %d\nKaydedilen: %d\nAtlanan: %d\nDesteklenmeyen: %d\nBa\u015far\u0131s\u0131z: %d");
+        table.put("Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d",
+                "S\u0131rada: %d\nAtlanan: %d\nDesteklenmeyen: %d\nBa\u015far\u0131s\u0131z: %d");
         table.put("Quiet email reminders",
                 "E-posta hat\u0131rlatmalar\u0131n\u0131 sustur");
         table.put("Read HushPinterest releases on GitHub. Nothing is downloaded here.",
@@ -4111,8 +3831,6 @@ public final class L10nTranslations {
                 "Bu ge\u00e7mi\u015f kayd\u0131n\u0131 kald\u0131r\u0131r. Dosyalar ve etkin indirmeler korunur.");
         table.put("Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them unless Plain pin links is on.",
                 "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n ba\u011flant\u0131lardan takip etiketlerini kald\u0131r\u0131r. Sade pin ba\u011flant\u0131lar\u0131 kapal\u0131ysa k\u0131sa pin.it ba\u011flant\u0131lar\u0131 Pinterest'in olu\u015fturdu\u011fu gibi kal\u0131r.");
-        table.put("Report storage is unavailable right now. You can still copy a quick report.",
-                "Rapor depolama \u015fu anda kullan\u0131lam\u0131yor. Yine de h\u0131zl\u0131 bir rapor kopyalayabilirsiniz.");
         table.put("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.",
                 "Son i\u00e7e aktarmadan \u00f6nceki anahtarlar\u0131 geri y\u00fckleyin. Bir anahtar\u0131 d\u00fczenlemek veya Pinterest'i yeniden ba\u015flatmak geri almay\u0131 sona erdirir.");
         table.put("Resume",
@@ -4127,33 +3845,16 @@ public final class L10nTranslations {
                 "\u0130ndirmeyi yeniden dene");
         table.put("Reverse image search",
                 "Tersine g\u00f6rsel arama");
-        table.put("Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.",
-                "Kaydetme temizli\u011fi do\u011frulanamad\u0131. Dosya korundu. Bu ge\u00e7mi\u015f kayd\u0131n\u0131 kald\u0131rmay\u0131 tekrar deneyin.");
-        table.put("Save cleanup pending",
-                "Kaydetme temizli\u011fi bekliyor");
         table.put("Save full report",
                 "Tam raporu kaydet");
-        table.put("Save history is full. Remove an old entry before saving another pin.",
-                "Kaydetme ge\u00e7mi\u015fi dolu. Ba\u015fka bir Pin kaydetmeden \u00f6nce eski bir kayd\u0131 kald\u0131r\u0131n.");
-        table.put("Save history removed. The file was kept.",
-                "Kaydetme ge\u00e7mi\u015fi kald\u0131r\u0131ld\u0131. Dosya korundu.");
         table.put("Save media",
                 "Medyay\u0131 kaydet");
         table.put("Save the full report in %1$s.",
                 "Tam raporu %1$s konumuna kaydedin.");
         table.put("Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.",
                 "Anahtarlar\u0131n\u0131 bir dosyaya kaydet. Anahtarlar bu Pinterest uygulamas\u0131ndaki t\u00fcm hesaplar i\u00e7in ge\u00e7erlidir. Duraklatma ve Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc dahil edilmez, s\u00fcr\u00fcm denetimi de edilmez.");
-        table.put("Saved",
-                "Kaydedildi");
-        table.put("Saved to the location you chose.",
-                "Se\u00e7ti\u011finiz konuma kaydedildi.");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Kaydedildi. Bu de\u011fi\u015fikli\u011fi uygulamak i\u00e7in Pinterest'\u0131 yeniden ba\u015flat.");
-        table.put("Saving",
-                "Kaydediliyor");
         table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
                 "Bir Pin kaydetti\u011finde art\u0131k panona \"Kaydedildi\" uyar\u0131s\u0131 ya da olu\u015fturan ki\u015fiyi takip etme \u00f6nerisi \u00e7\u0131kmaz. Pin yine kaydedilir.");
         table.put("Saving the settings file",
@@ -4206,6 +3907,9 @@ public final class L10nTranslations {
                 "Sosyal izinler");
         table.put("Source code and issues",
                 "Kaynak kodu ve sorunlar");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("Spoof signature for Google sign-in",
                 "Google ile oturum a\u00e7ma i\u00e7in imzay\u0131 taklit et");
         table.put("Starts a new download. Android manages it.",
@@ -4270,15 +3974,10 @@ public final class L10nTranslations {
                 "\u0130ndirme sunucusu iste\u011fi tamamlayamad\u0131.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.",
                 "%1$s dosyas\u0131 kald\u0131r\u0131lamad\u0131. HushPinterest'u yeniden a\u00e7mak i\u00e7in onu %2$s i\u00e7inden sil.");
-    }
-
-    private static void fillTr6(Map<String, String> table) {
         table.put("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.",
                 "%1$s dosyas\u0131 kald\u0131r\u0131lamad\u0131. Onu %2$s i\u00e7inden sil, sonra yeniden Devam et'e dokun.");
         table.put("The file already exists.",
                 "Dosya zaten var.");
-        table.put("The file may have saved. Check your chosen save location.",
-                "Dosya kaydedilmi\u015f olabilir. Se\u00e7ti\u011finiz kay\u0131t konumunu kontrol edin.");
         table.put("The newest HushPinterest release is %1$s.",
                 "En yeni HushPinterest s\u00fcr\u00fcm\u00fc %1$s.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
@@ -4305,8 +4004,6 @@ public final class L10nTranslations {
                 "Bu telefonda dosya se\u00e7ici yok, bu y\u00fczden burada dosya se\u00e7menin bir yolu yok.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
                 "Bu istek yeniden denenemiyor. \u0130ndirilenler'i kontrol edin veya pini yeniden a\u00e7\u0131n.");
-        table.put("This save is still running. Try again when it's finished.",
-                "Bu kaydetme i\u015flemi s\u00fcr\u00fcyor. Tamamland\u0131\u011f\u0131nda tekrar deneyin.");
         table.put("Toolbar icons",
                 "Ara\u00e7 \u00e7ubu\u011fu simgeleri");
         table.put("Try a different word or clear the search.",
@@ -4333,6 +4030,9 @@ public final class L10nTranslations {
                 "\u0130\u00e7e aktarma geri al\u0131n\u0131yor");
         table.put("Unknown",
                 "Bilinmiyor");
+    }
+
+    private static void fillTr6(Map<String, String> table) {
         table.put("Unsupported",
                 "Desteklenmiyor");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",

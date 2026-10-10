@@ -188,7 +188,7 @@ Shared pin links use `www.pinterest.com`. Downloads use media addresses Pinteres
 
 ## Reporting a problem
 
-Full diagnostic reports go to the shared `Download/Morphe` folder. The summary and save result show the actual destination, or explain when storage is unavailable. Reports remain bounded and redact links, IDs and sign-in secrets.
+Full diagnostic reports go to the shared `Download/Morphe` folder. The summary names that folder, and the save result shows where the file actually went or says the save failed. Reports remain bounded and redact links, IDs and sign-in secrets.
 
 Reports include local push checks for notification permission, notification blocking, delegation, messaging components and the Firebase Analytics manifest flag. These checks don't send a test notification or prove that Pinterest can deliver one. An absent delegate is optional, and unknown delegate packages are redacted.
 

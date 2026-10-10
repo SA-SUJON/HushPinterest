@@ -212,11 +212,7 @@ Download pin	Descargar pin
 Share pin	Compartir pin
 Open pin link	Abrir enlace del pin
 Download started. Check Downloads.	Descarga iniciada. Revisa Descargas.
-Pin saved.	Pin guardado.
 Couldn't save this pin.	No se pudo guardar este pin.
-Another pin is being saved. Try again when it's finished.	Se está guardando otro pin. Inténtalo de nuevo cuando termine.
-The file may have saved. Check your chosen save location.	Puede que el archivo se haya guardado. Revisa la ubicación que elegiste.
-Couldn't remove the incomplete file. Check your chosen save location.	No se pudo eliminar el archivo incompleto. Revisa la ubicación que elegiste.
 Queued	En cola
 Downloading	Descargando
 Paused	En pausa
@@ -265,23 +261,6 @@ Remove from history	Eliminar del historial
 Removes this history entry. Files and active downloads are kept.	Elimina esta entrada del historial. Se conservan los archivos y las descargas activas.
 Open Downloads	Abrir Descargas
 Refresh	Actualizar
-Saving	Guardando
-Interrupted	Interrumpido
-Access unavailable	Acceso no disponible
-Save cleanup pending	Limpieza del guardado pendiente
-This save is still running. Try again when it's finished.	Este guardado sigue en curso. Inténtalo de nuevo cuando termine.
-Couldn't check your chosen save location. Open your Files app to inspect it.	No se pudo comprobar la ubicación elegida. Abre tu aplicación de archivos para revisarla.
-Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.	No se pudo confirmar la limpieza del guardado. Se conservó el archivo. Intenta quitar esta entrada del historial de nuevo.
-Check your chosen save location before saving again. HushPinterest won't resume or delete this file.	Revisa la ubicación elegida antes de guardar de nuevo. HushPinterest no reanudará ni eliminará este archivo.
-Save history removed. The file was kept.	Se quitó el historial del guardado. Se conservó el archivo.
-Couldn't record the save location. No file data was written.	No se pudo registrar la ubicación. No se escribió ningún dato en el archivo.
-Save history is full. Remove an old entry before saving another pin.	El historial de guardados está lleno. Quita una entrada antigua antes de guardar otro Pin.
-Pending saves	Guardados pendientes
-Check unfinished file picker saves. Files are kept.	Revisa los guardados sin terminar del selector de archivos. Se conservan los archivos.
-Checking pending saves...	Comprobando guardados pendientes...
-No pending HushPinterest saves.	No hay guardados pendientes de HushPinterest.
-Only unfinished saves are listed. Check your chosen location before saving again.	Solo se muestran los guardados sin terminar. Revisa la ubicación elegida antes de guardar de nuevo.
-Pin saved. Check Pending saves if its history remains.	Pin guardado. Revisa Guardados pendientes si aún aparece en el historial.
 Download unavailable	Descarga no disponible
 Supplied media details	Detalles del contenido proporcionado
 Copy media link	Copiar enlace del archivo
@@ -304,10 +283,6 @@ Pinterest hasn't supplied an image to download.	Pinterest no ha proporcionado un
 HushPinterest can't download this type of image.	HushPinterest no puede descargar este tipo de imagen.
 This media link isn't a public Pinterest link HushPinterest can use.	Este enlace de medios no es un enlace público de Pinterest que HushPinterest pueda usar.
 Couldn't start the download. Check system Downloads and try again.	No se pudo iniciar la descarga. Revisa las descargas del sistema e inténtalo de nuevo.
-Couldn't open a save location. Try again from the pin.	No se pudo abrir una ubicación de guardado. Inténtalo de nuevo desde el Pin.
-Couldn't complete the save. Check your connection and chosen save location.	No se pudo completar el guardado. Revisa la conexión y la ubicación elegida.
-Couldn't write to the chosen save location. Check its access and available space.	No se pudo escribir en la ubicación elegida. Revisa el acceso y el espacio disponible.
-Couldn't download this pin. Check your connection and try again.	No se pudo descargar este Pin. Revisa la conexión e inténtalo de nuevo.
 Couldn't prepare this pin for download. Open the pin again and try again.	No se pudo preparar este Pin para descargarlo. Ábrelo de nuevo e inténtalo otra vez.
 %1$s (%2$s to %3$s)	%1$s (de %2$s a %3$s)
 Your choice is saved, but this build doesn't include the patch for it.	Tu elección está guardada, pero esta versión no incluye el parche para ella.
@@ -324,8 +299,6 @@ On	Activado
 Off	Desactivado
 Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido o guarda el completo en %1$s. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa si contiene otros datos privados antes de compartirlo.
 Save the full report in %1$s.	Guarda el informe completo en %1$s.
-Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido. El almacenamiento de informes no está disponible ahora. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa otros datos privados antes de compartirlo.
-Report storage is unavailable right now. You can still copy a quick report.	El almacenamiento de informes no está disponible ahora. Aún puedes copiar un informe rápido.
 Hides Play Store pop-ups asking you to update Pinterest. A pop-up that's already open stays.	Oculta los avisos de Play Store que te piden actualizar Pinterest. Un aviso que ya está abierto se queda.
 Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.	Evita que Pinterest te sugiera compartir una captura de pantalla. Las capturas siguen funcionando. Reinicia Pinterest para ver el cambio.
 Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.	Oculta tus búsquedas recientes. No borra el historial de búsqueda de tu cuenta. El cambio se ve la próxima vez que se actualice la pantalla.
@@ -375,17 +348,14 @@ Select visible pins (up to %d)	Seleccionar pines visibles (hasta %d)
 Queue selected	Poner selección en cola
 Couldn't open the pin selection. Try again from the grid.	No se pudo abrir la selección de pines. Inténtalo de nuevo desde la cuadrícula.
 Stop selection	Detener selección
-Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	En cola: %d\nGuardados: %d\nOmitidos: %d\nNo compatibles: %d\nFallidos: %d
+Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	En cola: %d\nOmitidos: %d\nNo compatibles: %d\nFallidos: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Detener conserva las descargas iniciadas. Las selecciones sin iniciar terminan al cerrar Pinterest.
-History could not be saved for %d results. Check Downloads or your chosen files.	No se pudo guardar el historial de %d resultados. Revisa Descargas o los archivos elegidos.
-Saved	Guardado
+History could not be saved for %d results. Check Downloads.	No se pudo guardar el historial de %d resultados. Revisa Descargas.
 Skipped	Omitido
 Unsupported	No compatible
-Saved to the location you chose.	Guardado en la ubicación elegida.
 No download was queued. The selection was stopped, canceled or unavailable.	No se puso ninguna descarga en cola. La selección se detuvo, se canceló o no estaba disponible.
 Pinterest didn't supply supported media for this pin.	Pinterest no proporcionó contenido compatible para este pin.
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Descarga un pin o selecciona varios en una cuadrícula. Guarda videos e imágenes originales, o el mayor tamaño que tenga Pinterest.
-Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 usa el selector de archivos. Aquí aparecen los resultados de las selecciones de pines visibles.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Solo se muestran las 32 descargas y resultados de selección más recientes. Se conservan los archivos guardados.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Descargar tablero

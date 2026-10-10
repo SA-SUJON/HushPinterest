@@ -111,11 +111,4 @@ public class PushReadinessTest {
         assertTrue(report, report.contains("notification_delegate: other package (redacted)"));
         assertFalse(report, report.contains("account123"));
     }
-
-    @Test @Config(sdk = 28) public void android9DoesNotCallNewerApis() {
-        String report = String.join("\n", PushReadiness.REPORT.lines());
-        assertTrue(report, report.contains("notification_permission: not required before Android 13"));
-        assertTrue(report, report.contains("notification_delegate: not available before Android 10"));
-        assertTrue(report, report.contains("live delivery not proven"));
-    }
 }

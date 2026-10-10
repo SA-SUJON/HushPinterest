@@ -78,7 +78,7 @@ public class SettingsAccessibilityTest {
     }
 
     @Test
-    @Config(sdk = {28, 30, 33, 36})
+    @Config(sdk = {29, 30, 33, 36})
     public void everySectionTitleIsAHeadingAndNothingElseIs() {
         int headings = 0;
         for (View row : rows(SettingsL10nTest.show(controller.get()))) {
@@ -90,7 +90,7 @@ public class SettingsAccessibilityTest {
     }
 
     @Test
-    @Config(sdk = {28, 30, 33, 36})
+    @Config(sdk = {29, 30, 33, 36})
     public void aSwitchRowSaysItIsASwitchAndWhetherItIsOn() {
         View row = rowFor(SettingsL10nTest.show(controller.get()), Settings.HIDE_ADS.key);
         AccessibilityNodeInfo info = node(row);
@@ -184,7 +184,7 @@ public class SettingsAccessibilityTest {
      * text cut the ends off the longest summaries on this screen.
      */
     @Test
-    @Config(sdk = {28, 30, 33, 36})
+    @Config(sdk = {29, 30, 33, 36})
     public void everyRowWrapsItsWholeText() {
         for (View row : rows(SettingsL10nTest.show(controller.get()))) {
             TextView title = row.findViewById(android.R.id.title);
@@ -198,7 +198,7 @@ public class SettingsAccessibilityTest {
     }
 
     @Test
-    @Config(sdk = {28, 30, 33, 36})
+    @Config(sdk = {29, 30, 33, 36})
     public void nothingToTapIsSmallerThan48dp() {
         SettingsDialog dialog = SettingsL10nTest.show(controller.get());
         int floor = dp(48);

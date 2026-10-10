@@ -197,7 +197,7 @@ public class SetupGuidancePreferenceTest {
         assertTrue(guide.isShowing());
     }
 
-    @Test @Config(sdk = {28, 30})
+    @Test @Config(sdk = {29, 30})
     public void olderAndroidShowsItsReportingLimitAndOpensOnlyThisAppsInfo() {
         show();
         AlertDialog guide = open();
@@ -276,7 +276,7 @@ public class SetupGuidancePreferenceTest {
         assertTrue(open().isShowing());
     }
 
-    @Test @Config(sdk = {28, 36}, qualifiers = "+ar-rXB-ldrtl")
+    @Test @Config(sdk = {29, 36}, qualifiers = "+ar-rXB-ldrtl")
     public void allTextAndButtonLabelsWrapAtDoubleFontSizeInRtlAndTheLastActionCanBeReached() throws Exception {
         RuntimeEnvironment.setFontScale(2f);
         show();

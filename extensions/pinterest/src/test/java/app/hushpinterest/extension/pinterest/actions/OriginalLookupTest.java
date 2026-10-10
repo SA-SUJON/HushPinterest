@@ -33,7 +33,7 @@ public class OriginalLookupTest {
 
     @Test public void theFirstOriginalTheMediaHostHasWinsAndEveryQuestionIsAHeadWithoutRedirects() {
         host.answer(ORIGINALS + ".png", 200, "image/png");
-        PinMedia.Source found = OriginalLookup.find(standIn, null);
+        PinMedia.Source found = OriginalLookup.find(standIn);
         assertEquals(ORIGINALS + ".png", found.url);
         assertEquals("image/png", found.mime);
         assertEquals(".png", found.suffix);
@@ -50,26 +50,18 @@ public class OriginalLookupTest {
         host.answer(ORIGINALS + ".jpg", 200, "text/html")
                 .answer(ORIGINALS + ".png", 302, "image/png")
                 .answer(ORIGINALS + ".gif", 200, "image/png");
-        assertSame(standIn, OriginalLookup.find(standIn, null));
+        assertSame(standIn, OriginalLookup.find(standIn));
         assertEquals(List.of(ORIGINALS + ".jpg", ORIGINALS + ".png", ORIGINALS + ".gif", ORIGINALS + ".webp"), addresses());
         host.asked.clear();
         host.answer(ORIGINALS + ".webp", 200, "Image/WebP; charset=binary");
-        assertEquals(ORIGINALS + ".webp", OriginalLookup.find(standIn, null).url);
+        assertEquals(ORIGINALS + ".webp", OriginalLookup.find(standIn).url);
     }
 
     @Test public void anUnreachableHostStopsAtTheFirstFailureAndKeepsTheStandIn() {
         host.fail(ORIGINALS + ".jpg", new SocketTimeoutException("slow"))
                 .answer(ORIGINALS + ".png", 200, "image/png");
-        assertSame(standIn, OriginalLookup.find(standIn, null));
+        assertSame(standIn, OriginalLookup.find(standIn));
         assertEquals(List.of(ORIGINALS + ".jpg"), addresses());
-    }
-
-    @Test public void aTypeAlreadyChosenOnlyAsksForThatType() {
-        host.answer(ORIGINALS + ".png", 200, "image/png");
-        assertSame(standIn, OriginalLookup.find(standIn, ".jpg"));
-        assertEquals(List.of(ORIGINALS + ".jpg"), addresses());
-        host.answer(ORIGINALS + ".jpg", 200, "image/jpeg");
-        assertEquals(ORIGINALS + ".jpg", OriginalLookup.find(standIn, ".jpg").url);
     }
 
     @Test public void anAddressWithoutTheHashPathIsNeverAskedAbout() {
@@ -82,7 +74,7 @@ public class OriginalLookupTest {
                 "https://example.com/736x/0b/b2/5b/0bb25b05de960e1fee5da5e9c4e8f12e.jpg"}) {
             PinMedia.Source source = new PinMedia.Source(url, "image/jpeg", ".jpg");
             assertTrue(url, PinMedia.originals(source).isEmpty());
-            assertSame(url, source, OriginalLookup.find(source, null));
+            assertSame(url, source, OriginalLookup.find(source));
         }
         assertTrue(host.asked.isEmpty());
     }

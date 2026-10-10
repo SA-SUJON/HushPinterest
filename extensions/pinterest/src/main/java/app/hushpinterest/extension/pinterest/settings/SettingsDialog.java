@@ -125,9 +125,8 @@ public final class SettingsDialog extends DialogFragment {
             window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(ScreenColors.DEFAULT.background));
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             // With three-button navigation Android lays a grey scrim under the buttons; the
-            // screen is black edge to edge, so the scrim only shows as a grey band. Android 9 has
-            // no scrim to turn off.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.setNavigationBarContrastEnforced(false);
+            // screen is black edge to edge, so the scrim only shows as a grey band.
+            window.setNavigationBarContrastEnforced(false);
             window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
         return dialog;
@@ -204,7 +203,7 @@ public final class SettingsDialog extends DialogFragment {
                 android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
                 view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
             } else {
-                // Android 9 and 10 have no inset types, and these are the same bars there.
+                // Android 10 has no inset types, and these are the same bars there.
                 view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
                         insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
             }

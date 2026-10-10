@@ -238,26 +238,20 @@ public final class LogBufferManager {
         }
     }
 
-    /** The writer's folder, or null when Android 9's app storage is unavailable. */
-    public static String fileExportDirectory(Context context) {
-        if (context == null) return null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return Environment.DIRECTORY_DOWNLOADS + "/Morphe";
-        }
-        File downloads = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-        return downloads == null ? null : new File(downloads, "Morphe").getAbsolutePath();
+    /** The writer's folder in the shared Downloads collection. */
+    public static String fileExportDirectory() {
+        return Environment.DIRECTORY_DOWNLOADS + "/Morphe";
     }
 
     static String writeToFile(Context context, String exportText) throws Exception {
         if (context == null) throw new IOException("Application context unavailable");
         String fileName = "morphe-diagnostics-" + fileTimestamp() + "-"
                 + Long.toHexString(System.nanoTime()) + ".txt";
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return writeToAppFolder(context, fileName, exportText);
         ContentResolver resolver = context.getContentResolver();
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
         values.put(MediaStore.MediaColumns.MIME_TYPE, "text/plain");
-        values.put(MediaStore.MediaColumns.RELATIVE_PATH, fileExportDirectory(context));
+        values.put(MediaStore.MediaColumns.RELATIVE_PATH, fileExportDirectory());
         values.put(MediaStore.MediaColumns.IS_PENDING, 1);
         Uri pendingUri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
         if (pendingUri == null) throw new IOException("Could not create report file");
@@ -276,28 +270,6 @@ public final class LogBufferManager {
             deleteIncomplete(resolver, pendingUri, error);
             throw error;
         }
-    }
-
-    /**
-     * Android 9 has no Downloads collection in MediaStore, and the shared Download folder takes a
-     * storage permission there that Pinterest may not hold. The report goes into Pinterest's own folder
-     * on shared storage instead, which a file manager or a computer can open without one.
-     */
-    private static String writeToAppFolder(Context context, String fileName, String exportText) throws IOException {
-        String directory = fileExportDirectory(context);
-        if (directory == null) throw new IOException("Shared storage is unavailable");
-        File folder = new File(directory);
-        if (!folder.isDirectory() && !folder.mkdirs()) throw new IOException("Could not create report folder");
-        File report = new File(folder, fileName);
-        try (OutputStream output = new FileOutputStream(report)) {
-            writeText(output, exportText);
-        } catch (IOException error) {
-            if (!report.delete() && report.exists()) {
-                error.addSuppressed(new IOException("Could not remove incomplete report"));
-            }
-            throw error;
-        }
-        return report.getAbsolutePath();
     }
 
     private static String providerLocation(ContentResolver resolver, Uri uri) throws IOException {
@@ -582,7 +554,7 @@ public final class LogBufferManager {
                 app.hushpinterest.extension.shared.diagnostics.DiagnosticCategory.PATCH_ERRORS.value)) {
             return "";
         }
-        // Android 9 and 10 keep no exit reasons.
+        // Android 10 keeps no exit reasons.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return "";
         try {
             Context context = Utils.getContext();

@@ -212,11 +212,7 @@ Download pin	Pini indir
 Share pin	Pini paylaş
 Open pin link	Pin bağlantısını aç
 Download started. Check Downloads.	İndirme başladı. İndirilenler’i kontrol et.
-Pin saved.	Pin kaydedildi.
 Couldn't save this pin.	Bu Pin kaydedilemedi.
-Another pin is being saved. Try again when it's finished.	Başka bir Pin kaydediliyor. Bitince tekrar dene.
-The file may have saved. Check your chosen save location.	Dosya kaydedilmiş olabilir. Seçtiğiniz kayıt konumunu kontrol edin.
-Couldn't remove the incomplete file. Check your chosen save location.	Tamamlanmamış dosya kaldırılamadı. Seçtiğiniz kayıt konumunu kontrol edin.
 Queued	Sırada
 Downloading	İndiriliyor
 Paused	Duraklatıldı
@@ -265,23 +261,6 @@ Remove from history	Geçmişten kaldır
 Removes this history entry. Files and active downloads are kept.	Bu geçmiş kaydını kaldırır. Dosyalar ve etkin indirmeler korunur.
 Open Downloads	İndirilenler'i aç
 Refresh	Yenile
-Saving	Kaydediliyor
-Interrupted	Kesildi
-Access unavailable	Erişim kullanılamıyor
-Save cleanup pending	Kaydetme temizliği bekliyor
-This save is still running. Try again when it's finished.	Bu kaydetme işlemi sürüyor. Tamamlandığında tekrar deneyin.
-Couldn't check your chosen save location. Open your Files app to inspect it.	Seçtiğiniz kaydetme konumu kontrol edilemedi. İncelemek için Dosyalar uygulamanızı açın.
-Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.	Kaydetme temizliği doğrulanamadı. Dosya korundu. Bu geçmiş kaydını kaldırmayı tekrar deneyin.
-Check your chosen save location before saving again. HushPinterest won't resume or delete this file.	Tekrar kaydetmeden önce seçtiğiniz konumu kontrol edin. HushPinterest bu dosyayı devam ettirmez veya silmez.
-Save history removed. The file was kept.	Kaydetme geçmişi kaldırıldı. Dosya korundu.
-Couldn't record the save location. No file data was written.	Kaydetme konumu kaydedilemedi. Dosyaya veri yazılmadı.
-Save history is full. Remove an old entry before saving another pin.	Kaydetme geçmişi dolu. Başka bir Pin kaydetmeden önce eski bir kaydı kaldırın.
-Pending saves	Bekleyen kaydetmeler
-Check unfinished file picker saves. Files are kept.	Dosya seçicisindeki tamamlanmamış kaydetmeleri kontrol edin. Dosyalar korunur.
-Checking pending saves...	Bekleyen kaydetmeler kontrol ediliyor...
-No pending HushPinterest saves.	Bekleyen HushPinterest kaydetmesi yok.
-Only unfinished saves are listed. Check your chosen location before saving again.	Yalnızca tamamlanmamış kaydetmeler listelenir. Tekrar kaydetmeden önce seçtiğiniz konumu kontrol edin.
-Pin saved. Check Pending saves if its history remains.	Pin kaydedildi. Geçmiş kaydı kalırsa Bekleyen kaydetmeler bölümünü kontrol edin.
 Download unavailable	İndirme kullanılamıyor
 Supplied media details	Sağlanan medya ayrıntıları
 Copy media link	Medya bağlantısını kopyala
@@ -304,10 +283,6 @@ Pinterest hasn't supplied an image to download.	Pinterest indirilecek bir görse
 HushPinterest can't download this type of image.	HushPinterest bu tür bir görseli indiremiyor.
 This media link isn't a public Pinterest link HushPinterest can use.	Bu medya bağlantısı, HushPinterest'in kullanabileceği herkese açık bir Pinterest bağlantısı değil.
 Couldn't start the download. Check system Downloads and try again.	İndirme başlatılamadı. Sistemin İndirilenler bölümünü kontrol edip tekrar deneyin.
-Couldn't open a save location. Try again from the pin.	Kaydetme konumu açılamadı. Pin'den tekrar deneyin.
-Couldn't complete the save. Check your connection and chosen save location.	Kaydetme tamamlanamadı. Bağlantınızı ve seçtiğiniz konumu kontrol edin.
-Couldn't write to the chosen save location. Check its access and available space.	Seçilen konuma yazılamadı. Erişimi ve kullanılabilir alanı kontrol edin.
-Couldn't download this pin. Check your connection and try again.	Bu Pin indirilemedi. Bağlantınızı kontrol edip tekrar deneyin.
 Couldn't prepare this pin for download. Open the pin again and try again.	Bu Pin indirmeye hazırlanamadı. Pin'i yeniden açıp tekrar deneyin.
 %1$s (%2$s to %3$s)	%1$s (%2$s yerine %3$s)
 Your choice is saved, but this build doesn't include the patch for it.	Seçimin kaydedildi ama bu sürüm onun yamasını içermiyor.
@@ -324,8 +299,6 @@ On	Açık
 Off	Kapalı
 Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Hızlı bir rapor kopyalayın veya tam raporu %1$s konumuna kaydedin. Bağlantılar, kimlikler, çerezler ve giriş belirteçleri dışarıda bırakılır. Paylaşmadan önce diğer özel metinleri kontrol edin.
 Save the full report in %1$s.	Tam raporu %1$s konumuna kaydedin.
-Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Hızlı bir rapor kopyalayın. Rapor depolama şu anda kullanılamıyor. Bağlantılar, kimlikler, çerezler ve giriş belirteçleri dışarıda bırakılır. Paylaşmadan önce diğer özel metinleri kontrol edin.
-Report storage is unavailable right now. You can still copy a quick report.	Rapor depolama şu anda kullanılamıyor. Yine de hızlı bir rapor kopyalayabilirsiniz.
 Hides Play Store pop-ups asking you to update Pinterest. A pop-up that's already open stays.	Play Store'un Pinterest'i güncellemeni isteyen açılır uyarılarını gizler. Zaten açık olan uyarı kalır.
 Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.	Pinterest'in ekran görüntüsü paylaşmanı önermesini durdurur. Ekran görüntüleri yine çalışır. Değişikliği görmek için Pinterest'i yeniden başlat.
 Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.	Son aramalarını gizler. Hesabının arama geçmişini silmez. Değişiklik ekran bir sonraki güncellenişinde görünür.
@@ -375,17 +348,14 @@ Select visible pins (up to %d)	Görünen Pinleri seç (en fazla %d)
 Queue selected	Seçilenleri sıraya al
 Couldn't open the pin selection. Try again from the grid.	Pin seçimi açılamadı. Izgaradan tekrar deneyin.
 Stop selection	Seçimi durdur
-Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Sırada: %d\nKaydedilen: %d\nAtlanan: %d\nDesteklenmeyen: %d\nBaşarısız: %d
+Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Sırada: %d\nAtlanan: %d\nDesteklenmeyen: %d\nBaşarısız: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Durdurmak başlamış indirmeleri korur. Başlamamış seçimler Pinterest kapandığında sona erer.
-History could not be saved for %d results. Check Downloads or your chosen files.	%d sonuç için geçmiş kaydedilemedi. İndirilenleri veya seçtiğiniz dosyaları kontrol edin.
-Saved	Kaydedildi
+History could not be saved for %d results. Check Downloads.	%d sonuç için geçmiş kaydedilemedi. İndirilenleri kontrol edin.
 Skipped	Atlandı
 Unsupported	Desteklenmiyor
-Saved to the location you chose.	Seçtiğiniz konuma kaydedildi.
 No download was queued. The selection was stopped, canceled or unavailable.	İndirme sıraya alınmadı. Seçim durduruldu, iptal edildi veya kullanılamıyordu.
 Pinterest didn't supply supported media for this pin.	Pinterest bu Pin için desteklenen bir medya sağlamadı.
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Bir pini indir veya ızgaradan birkaç pin seç. Videoları ve orijinal görselleri, yoksa Pinterest'in sunduğu en büyük boyutu kaydeder.
-Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 dosya seçiciyi kullanır. Görünen Pin seçimlerinin sonuçları burada görünür.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Yalnızca en son 32 indirme ve seçim sonucu listelenir. Kaydedilen dosyalar korunur.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Panoyu indir

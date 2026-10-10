@@ -23,14 +23,9 @@ final class OriginalLookup {
     /** Tests replace it so they never reach the network. */
     static volatile PinTransfer.Connection connection = PinTransfer.NETWORK;
 
-    /**
-     * The original image behind a stand-in size when the media host has one, otherwise the
-     * stand-in itself. With a suffix, only an original of that type counts, for a file whose name
-     * and type were already chosen.
-     */
-    static PinMedia.Source find(PinMedia.Source standIn, String suffix) {
+    /** The original image behind a stand-in size when the media host has one, otherwise the stand-in itself. */
+    static PinMedia.Source find(PinMedia.Source standIn) {
         for (PinMedia.Source original : PinMedia.originals(standIn)) {
-            if (suffix != null && !suffix.equals(original.suffix)) continue;
             try {
                 if (PinTransfer.present(original, connection)) {
                     HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "original image found on media host");
