@@ -283,13 +283,28 @@ public final class PinDownloads {
         if (after != null) Utils.runOnMainThread(() -> after.accept(result));
     }
 
+    /** The folder in Pictures that Pinterest's own image save writes to (#5). */
+    static final String PINTEREST_FOLDER = "100PINT/Pins";
+
     static DownloadManager.Request request(PinMedia.Source source, String fileName) {
         if (PinMedia.mediaUri(source.url) == null) throw new IllegalArgumentException("Not a public Pinterest media URL");
+        boolean pinterestFolder = inPinterestFolder();
         return new DownloadManager.Request(Uri.parse(source.url))
                 .setMimeType(source.mime)
                 .setTitle(L10n.t("Download pin"))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+                .setDestinationInExternalPublicDir(pinterestFolder ? Environment.DIRECTORY_PICTURES : Environment.DIRECTORY_DOWNLOADS,
+                        pinterestFolder ? PINTEREST_FOLDER + "/" + fileName : fileName);
+    }
+
+    /** Download unless the folder switch is on. A switch that can't be read keeps Download. */
+    private static boolean inPinterestFolder() {
+        try {
+            return Settings.SAVE_IN_PINTEREST_FOLDER.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "folder switch read", failure);
+            return false;
+        }
     }
 
     /** The diagnostics name for a download Android wouldn't queue; its toast says to try again. */

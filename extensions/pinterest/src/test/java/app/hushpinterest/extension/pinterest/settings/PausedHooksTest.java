@@ -24,6 +24,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.net.Uri;
+import android.os.Environment;
 import android.view.View;
 
 import org.junit.After;
@@ -35,6 +36,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowDownloadManager;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -239,6 +242,7 @@ public class PausedHooksTest {
                 () -> AdvertisingId.limitTracking(false),
                 () -> AdvertisingId.skipBrowserId("pid")));
         probes.put(Settings.DOWNLOAD_PINS, Collections.singletonList(PausedHooksTest::queuesPinDownload));
+        probes.put(Settings.SAVE_IN_PINTEREST_FOLDER, Collections.singletonList(PausedHooksTest::savesInPinterestsFolder));
         probes.put(Settings.DOWNLOAD_BOARD, Collections.singletonList(() -> BoardDownloads.record(Collections.singletonList(BOARD_PIN))));
         probes.put(Settings.LONG_PRESS_DOWNLOAD, Collections.singletonList(PausedHooksTest::addsLongPressDownload));
         probes.put(Settings.EXTERNAL_BROWSER, Collections.singletonList(() -> withActivity(activity -> {
@@ -329,23 +333,47 @@ public class PausedHooksTest {
 
     /** Robolectric records the queued request without transferring data or opening a socket. */
     private static boolean queuesPinDownload() {
-        return withActivity(activity -> {
-            DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-            int before = Shadows.shadowOf(manager).getRequestCount();
-            try {
-                Method start = PinDownloads.class.getDeclaredMethod("start", Object.class, Context.class);
-                start.setAccessible(true);
-                boolean queued = (Boolean) start.invoke(null, PIN, activity);
-                Method await = Utils.class.getDeclaredMethod("awaitBackgroundTasksForTests");
-                await.setAccessible(true);
-                await.invoke(null);
-                boolean changed = Shadows.shadowOf(manager).getRequestCount() != before;
-                assertEquals("download result must match a queued media request", queued, changed);
-                return changed;
-            } catch (ReflectiveOperationException failure) {
-                throw new AssertionError(failure);
-            }
-        });
+        return withActivity(activity -> queuedDownload(activity) != null);
+    }
+
+    /**
+     * Save in Pinterest's folder only moves where Download pins saves, so like the long-press button
+     * its probe turns that switch on for its own run. It answers whether the download it queued went
+     * to Pictures/100PINT/Pins.
+     */
+    private static boolean savesInPinterestsFolder() {
+        boolean pins = Settings.DOWNLOAD_PINS.savedValue();
+        if (!pins) Settings.DOWNLOAD_PINS.save(true);
+        try {
+            return withActivity(activity -> {
+                ShadowDownloadManager.ShadowRequest request = queuedDownload(activity);
+                Uri destination = request == null ? null : request.getDestination();
+                return destination != null && destination.equals(Uri.withAppendedPath(Uri.fromFile(
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)),
+                        "100PINT/Pins/" + destination.getLastPathSegment()));
+            });
+        } finally {
+            if (!pins) Settings.DOWNLOAD_PINS.save(false);
+        }
+    }
+
+    /** Starts a pin download and returns the request it queued, or null when none was. */
+    private static ShadowDownloadManager.ShadowRequest queuedDownload(Activity activity) {
+        ShadowDownloadManager manager = Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE));
+        int before = manager.getRequestCount();
+        try {
+            Method start = PinDownloads.class.getDeclaredMethod("start", Object.class, Context.class);
+            start.setAccessible(true);
+            boolean queued = (Boolean) start.invoke(null, PIN, activity);
+            Method await = Utils.class.getDeclaredMethod("awaitBackgroundTasksForTests");
+            await.setAccessible(true);
+            await.invoke(null);
+            boolean changed = manager.getRequestCount() != before;
+            assertEquals("download result must match a queued media request", queued, changed);
+            return changed ? Shadow.extract(manager.getRequest(manager.getRequestCount() - 1)) : null;
+        } catch (ReflectiveOperationException failure) {
+            throw new AssertionError(failure);
+        }
     }
 
     private static boolean quietsSdkConnection() {

@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(778);
+        Map<String, String> table = new HashMap<>(782);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -613,6 +613,8 @@ public final class L10nTranslations {
                 "Umgekehrte Bildersuche");
         table.put("Save full report",
                 "Vollst\u00e4ndigen Bericht speichern");
+        table.put("Save in Pinterest's folder",
+                "Im Pinterest-Ordner speichern");
         table.put("Save media",
                 "Medien speichern");
         table.put("Save the full report in %1$s.",
@@ -621,6 +623,8 @@ public final class L10nTranslations {
                 "Speichert deine Schalter in einer Datei. Sie gelten f\u00fcr alle Konten in dieser Pinterest-App. Pause und Debug-Protokollierung sind nicht enthalten, die Suche nach neuen Versionen auch nicht.");
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Gespeichert. Starte Pinterest neu, um diese \u00c4nderung zu \u00fcbernehmen.");
+        table.put("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.",
+                "Speichert Downloads in Pictures/100PINT/Pins, dem Ordner, den Pinterest selbst f\u00fcr gespeicherte Bilder nutzt, statt in Download.");
         table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
                 "Beim Merken eines Pins erscheint kein \u201eGemerkt auf\u201c-Hinweis zu deiner Pinnwand und kein Vorschlag mehr, der Person zu folgen. Der Pin wird trotzdem gemerkt.");
         table.put("Saving the settings file",
@@ -667,13 +671,13 @@ public final class L10nTranslations {
                 "Mit deinem bestehenden Konto anmelden");
         table.put("Skipped",
                 "\u00dcbersprungen");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "\u00dcbersprungen, weil schon im Download-Verlauf: %d");
         table.put("Social permissions",
                 "Sozialberechtigungen");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("Source code and issues",
                 "Quellcode und Issues");
         table.put("Spoof signature for Google sign-in",
@@ -790,13 +794,13 @@ public final class L10nTranslations {
                 "R\u00fcckg\u00e4ngig");
         table.put("Undo ended because a saved switch changed.",
                 "R\u00fcckg\u00e4ngig ist nicht mehr m\u00f6glich, weil ein gespeicherter Schalter ge\u00e4ndert wurde.");
+    }
+
+    private static void fillDe6(Map<String, String> table) {
         table.put("Undo import",
                 "Import r\u00fcckg\u00e4ngig machen");
         table.put("Undoing import",
                 "Import wird r\u00fcckg\u00e4ngig gemacht");
-    }
-
-    private static void fillDe6(Map<String, String> table) {
         table.put("Unknown",
                 "Unbekannt");
         table.put("Unsupported",
@@ -858,7 +862,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(778);
+        Map<String, String> table = new HashMap<>(782);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1424,6 +1428,8 @@ public final class L10nTranslations {
                 "B\u00fasqueda inversa de im\u00e1genes");
         table.put("Save full report",
                 "Guardar informe completo");
+        table.put("Save in Pinterest's folder",
+                "Guardar en la carpeta de Pinterest");
         table.put("Save media",
                 "Guardar contenido multimedia");
         table.put("Save the full report in %1$s.",
@@ -1432,6 +1438,8 @@ public final class L10nTranslations {
                 "Guarda tus interruptores en un archivo. Cubren todas las cuentas de esta app de Pinterest. La pausa y el Registro de depuraci\u00f3n no se incluyen, y la b\u00fasqueda de nuevas versiones tampoco.");
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Guardado. Reinicia Pinterest para aplicar este cambio.");
+        table.put("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.",
+                "Guarda las descargas en Pictures/100PINT/Pins, la carpeta que usa Pinterest para sus propias im\u00e1genes guardadas, en lugar de Download.");
         table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
                 "Al guardar un Pin ya no aparece \u00abGuardado en\u00bb tu tablero ni una sugerencia para seguir a quien lo cre\u00f3. El Pin se guarda igual.");
         table.put("Saving the settings file",
@@ -1478,13 +1486,13 @@ public final class L10nTranslations {
                 "Inicia sesi\u00f3n en tu cuenta actual");
         table.put("Skipped",
                 "Omitido");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "Omitidos porque ya est\u00e1n en el Historial de descargas: %d");
         table.put("Social permissions",
                 "Permisos sociales");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("Source code and issues",
                 "C\u00f3digo fuente e incidencias");
         table.put("Spoof signature for Google sign-in",
@@ -1601,13 +1609,13 @@ public final class L10nTranslations {
                 "Deshacer");
         table.put("Undo ended because a saved switch changed.",
                 "Ya no se puede deshacer porque cambi\u00f3 un ajuste guardado.");
+    }
+
+    private static void fillEs6(Map<String, String> table) {
         table.put("Undo import",
                 "Deshacer importaci\u00f3n");
         table.put("Undoing import",
                 "Deshaciendo importaci\u00f3n");
-    }
-
-    private static void fillEs6(Map<String, String> table) {
         table.put("Unknown",
                 "Desconocido");
         table.put("Unsupported",
@@ -1669,7 +1677,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(778);
+        Map<String, String> table = new HashMap<>(782);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -2235,6 +2243,8 @@ public final class L10nTranslations {
                 "Pencarian gambar terbalik");
         table.put("Save full report",
                 "Simpan laporan lengkap");
+        table.put("Save in Pinterest's folder",
+                "Simpan di folder Pinterest");
         table.put("Save media",
                 "Simpan media");
         table.put("Save the full report in %1$s.",
@@ -2243,6 +2253,8 @@ public final class L10nTranslations {
                 "Simpan sakelar Anda ke sebuah file. Sakelar ini mencakup semua akun di aplikasi Pinterest ini. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.");
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Tersimpan. Mulai ulang Pinterest untuk menerapkan perubahan ini.");
+        table.put("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.",
+                "Menyimpan unduhan di Pictures/100PINT/Pins, folder yang dipakai Pinterest untuk gambar yang disimpannya sendiri, bukan di Download.");
         table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
                 "Menyimpan Pin tidak lagi memunculkan \"Disimpan ke\" papanmu atau saran untuk mengikuti pembuatnya. Pin tetap tersimpan.");
         table.put("Saving the settings file",
@@ -2289,13 +2301,13 @@ public final class L10nTranslations {
                 "Masuk ke akun yang sudah ada");
         table.put("Skipped",
                 "Dilewati");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "Dilewati karena sudah ada di Riwayat unduhan: %d");
         table.put("Social permissions",
                 "Izin fitur sosial");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("Source code and issues",
                 "Kode sumber dan laporan masalah");
         table.put("Spoof signature for Google sign-in",
@@ -2412,13 +2424,13 @@ public final class L10nTranslations {
                 "Urungkan");
         table.put("Undo ended because a saved switch changed.",
                 "Urungkan tidak lagi tersedia karena sakelar tersimpan berubah.");
+    }
+
+    private static void fillIn6(Map<String, String> table) {
         table.put("Undo import",
                 "Urungkan impor");
         table.put("Undoing import",
                 "Mengurungkan impor");
-    }
-
-    private static void fillIn6(Map<String, String> table) {
         table.put("Unknown",
                 "Tidak diketahui");
         table.put("Unsupported",
@@ -2480,7 +2492,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(778);
+        Map<String, String> table = new HashMap<>(782);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -3046,6 +3058,8 @@ public final class L10nTranslations {
                 "Pesquisa reversa de imagens");
         table.put("Save full report",
                 "Salvar relat\u00f3rio completo");
+        table.put("Save in Pinterest's folder",
+                "Salvar na pasta do Pinterest");
         table.put("Save media",
                 "Salvar m\u00eddia");
         table.put("Save the full report in %1$s.",
@@ -3054,6 +3068,8 @@ public final class L10nTranslations {
                 "Salve suas op\u00e7\u00f5es em um arquivo. Elas valem para todas as contas deste app do Pinterest. Pausa e Registro de depura\u00e7\u00e3o n\u00e3o s\u00e3o inclu\u00eddos, nem a verifica\u00e7\u00e3o de novas vers\u00f5es.");
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Salvo. Reinicie o Pinterest para aplicar esta altera\u00e7\u00e3o.");
+        table.put("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.",
+                "Salva os downloads em Pictures/100PINT/Pins, a pasta que o pr\u00f3prio Pinterest usa para salvar imagens, em vez de Download.");
         table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
                 "Salvar um Pin n\u00e3o mostra mais \"Salvo em\" sua pasta nem a sugest\u00e3o de seguir quem o criou. O Pin continua salvo.");
         table.put("Saving the settings file",
@@ -3100,13 +3116,13 @@ public final class L10nTranslations {
                 "Entre na sua conta existente");
         table.put("Skipped",
                 "Ignorado");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "Pulados porque j\u00e1 est\u00e3o no Hist\u00f3rico de downloads: %d");
         table.put("Social permissions",
                 "Permiss\u00f5es para redes sociais");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Source code and issues",
                 "C\u00f3digo-fonte e relatos de problemas");
         table.put("Spoof signature for Google sign-in",
@@ -3223,13 +3239,13 @@ public final class L10nTranslations {
                 "Desfazer");
         table.put("Undo ended because a saved switch changed.",
                 "N\u00e3o \u00e9 mais poss\u00edvel desfazer porque um ajuste salvo mudou.");
+    }
+
+    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Undo import",
                 "Desfazer importa\u00e7\u00e3o");
         table.put("Undoing import",
                 "Desfazendo importa\u00e7\u00e3o");
-    }
-
-    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Unknown",
                 "Desconhecido");
         table.put("Unsupported",
@@ -3291,7 +3307,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(778);
+        Map<String, String> table = new HashMap<>(782);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3857,6 +3873,8 @@ public final class L10nTranslations {
                 "Tersine g\u00f6rsel arama");
         table.put("Save full report",
                 "Tam raporu kaydet");
+        table.put("Save in Pinterest's folder",
+                "Pinterest klas\u00f6r\u00fcne kaydet");
         table.put("Save media",
                 "Medyay\u0131 kaydet");
         table.put("Save the full report in %1$s.",
@@ -3865,6 +3883,8 @@ public final class L10nTranslations {
                 "Anahtarlar\u0131n\u0131 bir dosyaya kaydet. Anahtarlar bu Pinterest uygulamas\u0131ndaki t\u00fcm hesaplar i\u00e7in ge\u00e7erlidir. Duraklatma ve Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc dahil edilmez, s\u00fcr\u00fcm denetimi de edilmez.");
         table.put("Saved. Restart Pinterest to apply this change.",
                 "Kaydedildi. Bu de\u011fi\u015fikli\u011fi uygulamak i\u00e7in Pinterest'\u0131 yeniden ba\u015flat.");
+        table.put("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.",
+                "\u0130ndirilenleri Download yerine Pinterest'in kendi kaydetti\u011fi g\u00f6rsellerin klas\u00f6r\u00fc olan Pictures/100PINT/Pins i\u00e7ine kaydeder.");
         table.put("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved.",
                 "Bir Pin kaydetti\u011finde art\u0131k panona \"Kaydedildi\" uyar\u0131s\u0131 ya da olu\u015fturan ki\u015fiyi takip etme \u00f6nerisi \u00e7\u0131kmaz. Pin yine kaydedilir.");
         table.put("Saving the settings file",
@@ -3911,13 +3931,13 @@ public final class L10nTranslations {
                 "Mevcut hesab\u0131n\u0131za giri\u015f yap\u0131n");
         table.put("Skipped",
                 "Atland\u0131");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "\u0130ndirme ge\u00e7mi\u015finde oldu\u011fu i\u00e7in atlananlar: %d");
         table.put("Social permissions",
                 "Sosyal izinler");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("Source code and issues",
                 "Kaynak kodu ve sorunlar");
         table.put("Spoof signature for Google sign-in",
@@ -4034,13 +4054,13 @@ public final class L10nTranslations {
                 "Geri al");
         table.put("Undo ended because a saved switch changed.",
                 "Kay\u0131tl\u0131 bir anahtar de\u011fi\u015fti\u011fi i\u00e7in geri alma sona erdi.");
+    }
+
+    private static void fillTr6(Map<String, String> table) {
         table.put("Undo import",
                 "\u0130\u00e7e aktarmay\u0131 geri al");
         table.put("Undoing import",
                 "\u0130\u00e7e aktarma geri al\u0131n\u0131yor");
-    }
-
-    private static void fillTr6(Map<String, String> table) {
         table.put("Unknown",
                 "Bilinmiyor");
         table.put("Unsupported",

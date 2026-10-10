@@ -61,7 +61,7 @@ public enum PatchFamily {
     /** Signature spoofing metadata added to the manifest when patching: no switch either. */
     SPOOF_SIGNATURE(FamilyNames.SPOOF_SIGNATURE, "spoofSignature",
             "Pinterest's original signature is added to the app"),
-    DOWNLOAD_PINS(FamilyNames.DOWNLOAD_PINS, "downloadPins", null, Settings.DOWNLOAD_PINS),
+    DOWNLOAD_PINS(FamilyNames.DOWNLOAD_PINS, "downloadPins", null, Settings.DOWNLOAD_PINS, Settings.SAVE_IN_PINTEREST_FOLDER),
     DOWNLOAD_BOARD(FamilyNames.DOWNLOAD_BOARD, "downloadBoard", null, Settings.DOWNLOAD_BOARD),
     LONG_PRESS_DOWNLOAD(FamilyNames.LONG_PRESS_DOWNLOAD, "longPressDownload", null, Settings.LONG_PRESS_DOWNLOAD),
     EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "externalBrowser", null, Settings.EXTERNAL_BROWSER),

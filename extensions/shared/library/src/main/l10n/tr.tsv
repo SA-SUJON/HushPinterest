@@ -357,6 +357,8 @@ Unsupported	Desteklenmiyor
 No download was queued. The selection was stopped, canceled or unavailable.	İndirme sıraya alınmadı. Seçim durduruldu, iptal edildi veya kullanılamıyordu.
 Pinterest didn't supply supported media for this pin.	Pinterest bu Pin için desteklenen bir medya sağlamadı.
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Bir pini indir veya ızgaradan birkaç pin seç. Videoları ve orijinal görselleri, yoksa Pinterest'in sunduğu en büyük boyutu kaydeder.
+Save in Pinterest's folder	Pinterest klasörüne kaydet
+Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.	İndirilenleri Download yerine Pinterest'in kendi kaydettiği görsellerin klasörü olan Pictures/100PINT/Pins içine kaydeder.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Yalnızca en son 32 indirme ve seçim sonucu listelenir. Kaydedilen dosyalar korunur.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Panoyu indir

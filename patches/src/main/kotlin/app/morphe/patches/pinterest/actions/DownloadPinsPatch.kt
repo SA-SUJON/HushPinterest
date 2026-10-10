@@ -35,8 +35,9 @@ private const val DOWNLOADS = "$EXTENSION_PACKAGE/actions/PinDownloads;"
 val downloadPinsPatch = bytecodePatch(
     name = PATCH,
     description = "Adds downloads for a pin, or for several pins you select in a grid. Saves the original image or " +
-        "the highest-quality video Pinterest supplies to your phone. Starts off. Turn it on in " +
-        "HushPinterest settings > Pin actions.",
+        "the highest-quality video Pinterest supplies to your phone. Downloads go to the Download folder, or turn on " +
+        "Save in Pinterest's folder to keep them in Pictures/100PINT/Pins with Pinterest's own saves. Starts off. " +
+        "Turn it on in HushPinterest settings > Pin actions.",
 ) {
     category("Downloads")
     dependsOn(settingsPatch, pinterestExtensionPatch)

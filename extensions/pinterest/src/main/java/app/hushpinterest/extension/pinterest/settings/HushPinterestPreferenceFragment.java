@@ -311,6 +311,10 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Download pins"), L10n.t("Download a pin, or select several pins in a grid. Saves videos "
                         + "and original images, or the largest size Pinterest has."), SettingsIcons.DOWNLOADS);
             if (build.contains(PatchFamily.DOWNLOAD_PINS)) {
+                // Where a download goes, not a feature of its own, so Pause leaves it as it is.
+                actions.addPreference(mark(toggle(context, Settings.SAVE_IN_PINTEREST_FOLDER, L10n.t("Save in Pinterest's folder"),
+                        L10n.t("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of "
+                            + "Download.")), SettingsIcons.DOWNLOADS));
                 actions.addPreference(mark(new DownloadHistoryPreference(context), SettingsIcons.DOWNLOADS));
             }
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_BOARD, Settings.DOWNLOAD_BOARD,

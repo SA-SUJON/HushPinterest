@@ -69,6 +69,7 @@ public class PinActionsTest {
         Settings.SYSTEM_SHARE.save(false);
         Settings.EXTERNAL_BROWSER.save(false);
         Settings.DOWNLOAD_PINS.save(false);
+        Settings.SAVE_IN_PINTEREST_FOLDER.resetToDefault();
         PatchFamilyForTests.capabilities(null);
         PauseForTests.resume();
         Utils.setActivity(null);
@@ -220,6 +221,28 @@ public class PinActionsTest {
         assertEquals(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED, request.getNotificationVisibility());
         assertTrue(request.getRequestHeaders().isEmpty());
         assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
+    }
+
+    /** #5: the folder switch sends the download to the folder Pinterest's own image save uses. */
+    @Test public void saveInPinterestsFolderQueuesInPictures100PintPins() throws Exception {
+        assertFalse("the folder switch starts off", Settings.SAVE_IN_PINTEREST_FOLDER.savedValue());
+        Settings.SAVE_IN_PINTEREST_FOLDER.save(true);
+        assertTrue(PinDownloads.start(pin, activity));
+        Method await = Utils.class.getDeclaredMethod("awaitBackgroundTasksForTests");
+        await.setAccessible(true);
+        await.invoke(null);
+        ShadowDownloadManager downloads = Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE));
+        assertEquals(1, downloads.getRequestCount());
+        ShadowDownloadManager.ShadowRequest request = Shadow.extract(downloads.getRequest(0));
+        String fileName = request.getDestination().getLastPathSegment();
+        assertTrue(String.valueOf(fileName), fileName != null && fileName.matches("Pinterest_123456_[0-9]+\\.jpg"));
+        Uri expected = Uri.withAppendedPath(Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)),
+                "100PINT/Pins/" + fileName);
+        assertEquals(expected, request.getDestination());
+        Settings.SAVE_IN_PINTEREST_FOLDER.save(false);
+        Uri back = Shadow.<ShadowDownloadManager.ShadowRequest>extract(PinDownloads.request(
+                new PinMedia.Source("https://i.pinimg.com/originals/pin.jpg", "image/jpeg", ".jpg"), "pin.jpg")).getDestination();
+        assertEquals(Uri.withAppendedPath(Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)), "pin.jpg"), back);
     }
 
     @Test public void aStandInSizeQueuesTheOriginalTheMediaHostHasOrElseItself() throws Exception {

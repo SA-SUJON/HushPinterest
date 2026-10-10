@@ -357,6 +357,8 @@ Unsupported	No compatible
 No download was queued. The selection was stopped, canceled or unavailable.	No se puso ninguna descarga en cola. La selección se detuvo, se canceló o no estaba disponible.
 Pinterest didn't supply supported media for this pin.	Pinterest no proporcionó contenido compatible para este pin.
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Descarga un pin o selecciona varios en una cuadrícula. Guarda videos e imágenes originales, o el mayor tamaño que tenga Pinterest.
+Save in Pinterest's folder	Guardar en la carpeta de Pinterest
+Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.	Guarda las descargas en Pictures/100PINT/Pins, la carpeta que usa Pinterest para sus propias imágenes guardadas, en lugar de Download.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Solo se muestran las 32 descargas y resultados de selección más recientes. Se conservan los archivos guardados.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Descargar tablero

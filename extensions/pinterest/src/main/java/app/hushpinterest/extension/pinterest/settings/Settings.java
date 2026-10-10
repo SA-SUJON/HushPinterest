@@ -63,6 +63,12 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_ad_id", TRUE);
     public static final BooleanSetting DOWNLOAD_PINS =
             new BooleanSetting("hushpinterest_download_pins", FALSE);
+    /**
+     * Downloads go to Pictures/100PINT/Pins, the folder Pinterest's own image save uses, instead of
+     * Download. Download pins' second switch: it only changes where a download goes.
+     */
+    public static final BooleanSetting SAVE_IN_PINTEREST_FOLDER =
+            new BooleanSetting("hushpinterest_save_in_pinterest_folder", FALSE);
     public static final BooleanSetting DOWNLOAD_BOARD =
             new BooleanSetting("hushpinterest_download_board", FALSE);
     public static final BooleanSetting LONG_PRESS_DOWNLOAD =

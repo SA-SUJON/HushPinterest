@@ -357,6 +357,8 @@ Unsupported	Tidak didukung
 No download was queued. The selection was stopped, canceled or unavailable.	Tidak ada unduhan yang diantrekan. Pilihan dihentikan, dibatalkan, atau tidak tersedia.
 Pinterest didn't supply supported media for this pin.	Pinterest tidak menyediakan media yang didukung untuk Pin ini.
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Unduh satu pin, atau pilih beberapa pin dalam kisi. Menyimpan video dan gambar asli, atau ukuran terbesar yang dimiliki Pinterest.
+Save in Pinterest's folder	Simpan di folder Pinterest
+Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.	Menyimpan unduhan di Pictures/100PINT/Pins, folder yang dipakai Pinterest untuk gambar yang disimpannya sendiri, bukan di Download.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Hanya 32 unduhan dan hasil pilihan terbaru yang ditampilkan. File yang tersimpan tetap disimpan.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Unduh papan
