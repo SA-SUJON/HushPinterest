@@ -5632,3 +5632,5 @@ Write-Host '[scripts] report, target, Java and guarded replacement contracts pas
 if ($LASTEXITCODE -ne 0) { throw 'The compiled manifest contracts did not pass.' }
 & (Join-Path $PSScriptRoot 'test-release-checksums.ps1')
 if ($LASTEXITCODE -ne 0) { throw 'The offline release signature contracts did not pass.' }
+& (Join-Path $PSScriptRoot 'test-published-index.ps1')
+if ($LASTEXITCODE -ne 0) { throw 'The offline published index contracts did not pass.' }

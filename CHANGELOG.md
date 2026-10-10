@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 * **Tooling:** Updated four runtime checks to match the current setup, link and download messages.
 
+* **Tooling:** A release now ends with `scripts/verify-published-index.ps1`. It asks GitHub for the latest release and for the patches-bundle.json that main serves, and fails when they disagree, naming any index commit that never got pushed. For most of October 7, v0.0.5 was out while the index still said 0.0.4, so Morphe Manager didn't offer the update to anyone on 0.0.4. Refs #3
+
 * **Developer notes:** Added [measured factory network and background activity](docs/pinterest-14.38.0-runtime.md), with reusable comparison data, CPU and media timers, memory samples and scheduled-worker records. Kept physical battery drain explicitly unmeasured until an unplugged phone run is available.
 
 * **Developer notes:** Added a [signed-in factory audit](docs/pinterest-14.38.0-audit.md) with ad-delivery traces, privacy boundaries, all 23 patch mappings, native settings, screenshots and specific work to investigate next. Clarified that analytics filtering covers selected paths.
