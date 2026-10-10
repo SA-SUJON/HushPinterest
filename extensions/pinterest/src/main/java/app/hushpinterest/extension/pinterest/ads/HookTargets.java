@@ -11,7 +11,6 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,18 +43,6 @@ public final class HookTargets {
     @Nullable
     static volatile Map<PatchFamily.Capability, String> recordedForTests;
 
-    /** The names the settings screen shows, keyed by the id the patch records. Each is a catalog key. */
-    private static final Map<String, String> LABELS = new HashMap<>();
-    static {
-        LABELS.put("feedList", "promoted pins in feed pages");
-        LABELS.put("pagedResponse", "promoted pins in paged results");
-        LABELS.put("modelList", "promoted pins in bookmarked lists");
-        LABELS.put("TextAdView", "text ads");
-        LABELS.put("LegacyPromotedCloseupActionButtonModule", "ad buttons on pin closeups");
-        LABELS.put("PromotedPinCloseupFloatingActionBarModule", "floating ad bars on pin closeups");
-        LABELS.put("BoardSponsoredCuratorView", "sponsor credits on boards");
-    }
-
     /**
      * Ad placements no hook of this build reaches on its own. The list filter only sees a page's
      * top-level items, so a group of promoted products inside one item stays as Pinterest sent it.
@@ -80,10 +67,21 @@ public final class HookTargets {
             return hooked >= expected;
         }
 
-        /** The target's name in the phone's language; an id this version doesn't know stays as it is. */
+        /**
+         * The target's name in the phone's language, keyed by the id the patch records; an id this
+         * version doesn't know stays as it is. Each name is a literal so the catalog scan sees it.
+         */
         public String label() {
-            String label = LABELS.get(id);
-            return label != null ? L10n.t(label) : L10n.isolate(id);
+            switch (id) {
+                case "feedList": return L10n.t("promoted pins in feed pages");
+                case "pagedResponse": return L10n.t("promoted pins in paged results");
+                case "modelList": return L10n.t("promoted pins in bookmarked lists");
+                case "TextAdView": return L10n.t("text ads");
+                case "LegacyPromotedCloseupActionButtonModule": return L10n.t("ad buttons on pin closeups");
+                case "PromotedPinCloseupFloatingActionBarModule": return L10n.t("floating ad bars on pin closeups");
+                case "BoardSponsoredCuratorView": return L10n.t("sponsor credits on boards");
+                default: return L10n.isolate(id);
+            }
         }
 
         /** The name for the settings screen, with how much of it went in when that's only part. */

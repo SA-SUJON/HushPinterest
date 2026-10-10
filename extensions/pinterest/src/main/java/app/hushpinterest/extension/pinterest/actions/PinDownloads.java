@@ -259,12 +259,12 @@ public final class PinDownloads {
                     if (after == null) Utils.showToastLong(L10n.t(tracked ? "Download started. Check Downloads."
                             : "Download started, but its history couldn't be saved. Check Downloads."));
                 } catch (Throwable failure) {
-                    failed("queue pin download", failure);
+                    failed(QUEUE_FAILED, failure);
                     report(after, Result.FAILED);
                 }
             });
             if (!queued) {
-                failed("queue pin download", new IllegalStateException("Worker unavailable"));
+                failed(QUEUE_FAILED, new IllegalStateException("Worker unavailable"));
                 report(after, Result.FAILED);
             }
             return queued;
@@ -292,9 +292,12 @@ public final class PinDownloads {
                 .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
     }
 
+    /** The diagnostics name for a download Android wouldn't queue; its toast says to try again. */
+    private static final String QUEUE_FAILED = "queue pin download";
+
     private static void failed(String action, Throwable failure) {
         HookStatus.threw(FamilyNames.DOWNLOAD_PINS, action, failure);
-        Utils.showToastLong(action.equals("queue pin download")
+        Utils.showToastLong(action.equals(QUEUE_FAILED)
                 ? L10n.t("Couldn't start the download. Check system Downloads and try again.")
                 : L10n.t("Couldn't prepare this pin for download. Open the pin again and try again."));
     }
