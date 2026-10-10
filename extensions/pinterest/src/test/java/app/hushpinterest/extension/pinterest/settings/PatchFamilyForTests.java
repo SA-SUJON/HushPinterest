@@ -16,4 +16,9 @@ public final class PatchFamilyForTests {
     public static void capabilities(Set<PatchFamily.Capability> installed) {
         PatchFamily.capabilitiesForTests = installed;
     }
+
+    /** The families to report as in the build, or null to ask the build again. */
+    public static void inBuild(Set<PatchFamily> families) {
+        PatchFamily.inBuildForTests = families;
+    }
 }

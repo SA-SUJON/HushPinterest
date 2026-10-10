@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(782);
+        Map<String, String> table = new HashMap<>(786);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -300,11 +300,13 @@ public final class L10nTranslations {
                 "So findest du sie");
         table.put("Firebase and Google Analytics collection is turned off",
                 "Die Datenerfassung von Firebase und Google Analytics ist ausgeschaltet");
-        table.put("Full report saved to %1$s",
-                "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
+        table.put("Fix push notifications",
+                "Push-Benachrichtigungen reparieren");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("Full report saved to %1$s",
+                "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
@@ -417,17 +419,19 @@ public final class L10nTranslations {
                 "Es unterst\u00fctzt Pinterest %1$s.");
         table.put("Jump to a section",
                 "Zu einem Abschnitt springen");
+        table.put("Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A change applies the next time Pinterest starts.",
+                "L\u00e4sst ein gepatchtes Pinterest sich f\u00fcr Push-Benachrichtigungen anmelden. Allein kann es das nicht. Eine \u00c4nderung gilt beim n\u00e4chsten Start von Pinterest.");
         table.put("Licenses",
                 "Lizenzen");
         table.put("Link type: %s",
                 "Linktyp: %s");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Links",
                 "Links");
         table.put("Links, updates, backup and more",
                 "Links, Updates, Sicherung und mehr");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Long-press download",
                 "Download per langem Dr\u00fccken");
         table.put("Media link",
@@ -544,13 +548,13 @@ public final class L10nTranslations {
                 "Pinterests Wahl zwischen hellem oder dunklem Aussehen oder dem deines Telefons.");
         table.put("Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.",
                 "Der Datenexport von Pinterest ist unabh\u00e4ngig von \u201eEinstellungen exportieren\u201c. Die Hilfeseite von Pinterest erkl\u00e4rt, wie du deine pers\u00f6nlichen Daten f\u00fcr das Konto anfordern kannst, das du bereits verwendest.");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Pinterest's original signature is added to the app",
                 "Die originale Signatur von Pinterest wurde der App hinzugef\u00fcgt");
         table.put("Pinterest's own settings",
                 "Pinterests eigene Einstellungen");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Die Webadressen von Pinterest sind in den Android-Einstellungen f\u00fcr diese App ausgew\u00e4hlt, deshalb \u00f6ffnen sich ihre Links hier.");
         table.put("Plain pin links",
@@ -667,13 +671,13 @@ public final class L10nTranslations {
                 "KI-Inhalte anzeigen");
         table.put("Shows the original image instead of the large size in pin closeups and collages, when Pinterest has one. Uses more data. Pins already loaded change the next time they load.",
                 "Zeigt in Pin-Nahansichten und Collagen das Originalbild statt der gro\u00dfen Gr\u00f6\u00dfe, wenn Pinterest eins hat. Braucht mehr Daten. Bereits geladene Pins \u00e4ndern sich, wenn sie das n\u00e4chste Mal laden.");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("Sign in to your existing account",
                 "Mit deinem bestehenden Konto anmelden");
         table.put("Skipped",
                 "\u00dcbersprungen");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "\u00dcbersprungen, weil schon im Download-Verlauf: %d");
         table.put("Social permissions",
@@ -790,13 +794,13 @@ public final class L10nTranslations {
                 "Schaltet beim n\u00e4chsten Start von Pinterest jeden HushPinterest-Schalter au\u00dfer der Debug-Protokollierung aus. Was du beim Patchen gew\u00e4hlt hast, bleibt, und deine Auswahl bleibt gespeichert.");
         table.put("Unavailable",
                 "Nicht verf\u00fcgbar");
+    }
+
+    private static void fillDe6(Map<String, String> table) {
         table.put("Undo",
                 "R\u00fcckg\u00e4ngig");
         table.put("Undo ended because a saved switch changed.",
                 "R\u00fcckg\u00e4ngig ist nicht mehr m\u00f6glich, weil ein gespeicherter Schalter ge\u00e4ndert wurde.");
-    }
-
-    private static void fillDe6(Map<String, String> table) {
         table.put("Undo import",
                 "Import r\u00fcckg\u00e4ngig machen");
         table.put("Undoing import",
@@ -862,7 +866,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(782);
+        Map<String, String> table = new HashMap<>(786);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1115,11 +1119,13 @@ public final class L10nTranslations {
                 "D\u00f3nde encontrarlas");
         table.put("Firebase and Google Analytics collection is turned off",
                 "La recopilaci\u00f3n de Firebase y Google Analytics est\u00e1 desactivada");
-        table.put("Full report saved to %1$s",
-                "Informe completo guardado en %1$s");
+        table.put("Fix push notifications",
+                "Arreglar notificaciones push");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("Full report saved to %1$s",
+                "Informe completo guardado en %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, con los avisos de los proyectos en los que se basa");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
@@ -1232,17 +1238,19 @@ public final class L10nTranslations {
                 "Es compatible con Pinterest %1$s.");
         table.put("Jump to a section",
                 "Ir a una secci\u00f3n");
+        table.put("Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A change applies the next time Pinterest starts.",
+                "Permite que un Pinterest parcheado se registre para recibir notificaciones push, algo que no puede hacer por s\u00ed solo. Un cambio se aplica la pr\u00f3xima vez que Pinterest se inicie.");
         table.put("Licenses",
                 "Licencias");
         table.put("Link type: %s",
                 "Tipo de enlace: %s");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Links",
                 "Enlaces");
         table.put("Links, updates, backup and more",
                 "Enlaces, actualizaciones, copia de seguridad y m\u00e1s");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Long-press download",
                 "Descarga con pulsaci\u00f3n larga");
         table.put("Media link",
@@ -1359,13 +1367,13 @@ public final class L10nTranslations {
                 "La opci\u00f3n de Pinterest entre un aspecto claro u oscuro, o el que usa tu tel\u00e9fono.");
         table.put("Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.",
                 "La exportaci\u00f3n de datos de Pinterest es independiente de Exportar ajustes. La p\u00e1gina de ayuda de Pinterest explica c\u00f3mo solicitar tus datos personales de la cuenta que ya utilizas.");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Pinterest's original signature is added to the app",
                 "La firma original de Pinterest se a\u00f1adi\u00f3 a la app");
         table.put("Pinterest's own settings",
                 "Configuraci\u00f3n propia de Pinterest");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Las direcciones web de Pinterest est\u00e1n seleccionadas para esta app en los ajustes de Android, as\u00ed que sus enlaces se abren aqu\u00ed.");
         table.put("Plain pin links",
@@ -1482,13 +1490,13 @@ public final class L10nTranslations {
                 "Mostrar contenido de IA");
         table.put("Shows the original image instead of the large size in pin closeups and collages, when Pinterest has one. Uses more data. Pins already loaded change the next time they load.",
                 "Muestra la imagen original en lugar del tama\u00f1o grande en las vistas ampliadas de pines y en los collages, cuando Pinterest la tiene. Usa m\u00e1s datos. Los pines ya cargados cambian la pr\u00f3xima vez que se carguen.");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("Sign in to your existing account",
                 "Inicia sesi\u00f3n en tu cuenta actual");
         table.put("Skipped",
                 "Omitido");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "Omitidos porque ya est\u00e1n en el Historial de descargas: %d");
         table.put("Social permissions",
@@ -1605,13 +1613,13 @@ public final class L10nTranslations {
                 "Desactiva todos los interruptores de HushPinterest, salvo el Registro de depuraci\u00f3n, la pr\u00f3xima vez que se abra Pinterest. Lo que elegiste al parchear se mantiene y tus preferencias quedan guardadas.");
         table.put("Unavailable",
                 "No disponible");
+    }
+
+    private static void fillEs6(Map<String, String> table) {
         table.put("Undo",
                 "Deshacer");
         table.put("Undo ended because a saved switch changed.",
                 "Ya no se puede deshacer porque cambi\u00f3 un ajuste guardado.");
-    }
-
-    private static void fillEs6(Map<String, String> table) {
         table.put("Undo import",
                 "Deshacer importaci\u00f3n");
         table.put("Undoing import",
@@ -1677,7 +1685,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(782);
+        Map<String, String> table = new HashMap<>(786);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1930,11 +1938,13 @@ public final class L10nTranslations {
                 "Cara menemukannya");
         table.put("Firebase and Google Analytics collection is turned off",
                 "Pengumpulan data Firebase dan Google Analytics dinonaktifkan");
-        table.put("Full report saved to %1$s",
-                "Laporan lengkap disimpan ke %1$s");
+        table.put("Fix push notifications",
+                "Perbaiki notifikasi push");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("Full report saved to %1$s",
+                "Laporan lengkap disimpan ke %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
@@ -2047,17 +2057,19 @@ public final class L10nTranslations {
                 "Rilis ini mendukung Pinterest %1$s.");
         table.put("Jump to a section",
                 "Lompat ke bagian");
+        table.put("Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A change applies the next time Pinterest starts.",
+                "Memungkinkan Pinterest yang ditambal mendaftar untuk notifikasi push, yang tidak bisa dilakukannya sendiri. Perubahan berlaku saat Pinterest dimulai berikutnya.");
         table.put("Licenses",
                 "Lisensi");
         table.put("Link type: %s",
                 "Jenis tautan: %s");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Links",
                 "Tautan");
         table.put("Links, updates, backup and more",
                 "Tautan, pembaruan, cadangan, dan lainnya");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Long-press download",
                 "Unduh dengan tekan lama");
         table.put("Media link",
@@ -2174,13 +2186,13 @@ public final class L10nTranslations {
                 "Pilihan Pinterest untuk tampilan terang atau gelap, atau tampilan yang dipakai ponsel Anda.");
         table.put("Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.",
                 "Ekspor data Pinterest terpisah dari Ekspor pengaturan. Halaman bantuan Pinterest menjelaskan cara meminta data pribadi dari akun yang sudah Anda gunakan.");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Pinterest's original signature is added to the app",
                 "Tanda tangan asli Pinterest ditambahkan ke aplikasi");
         table.put("Pinterest's own settings",
                 "Pengaturan Pinterest sendiri");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Alamat web Pinterest dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.");
         table.put("Plain pin links",
@@ -2297,13 +2309,13 @@ public final class L10nTranslations {
                 "Tampilkan konten AI");
         table.put("Shows the original image instead of the large size in pin closeups and collages, when Pinterest has one. Uses more data. Pins already loaded change the next time they load.",
                 "Menampilkan gambar asli, bukan ukuran besar, di tampilan dekat pin dan kolase, jika Pinterest punya. Memakai lebih banyak data. Pin yang sudah dimuat berubah saat dimuat lagi.");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("Sign in to your existing account",
                 "Masuk ke akun yang sudah ada");
         table.put("Skipped",
                 "Dilewati");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "Dilewati karena sudah ada di Riwayat unduhan: %d");
         table.put("Social permissions",
@@ -2420,13 +2432,13 @@ public final class L10nTranslations {
                 "Mematikan semua sakelar HushPinterest kecuali Pencatatan debug saat Pinterest dibuka berikutnya. Yang Anda pilih saat menambal tetap berlaku, dan pilihan Anda tersimpan.");
         table.put("Unavailable",
                 "Tidak tersedia");
+    }
+
+    private static void fillIn6(Map<String, String> table) {
         table.put("Undo",
                 "Urungkan");
         table.put("Undo ended because a saved switch changed.",
                 "Urungkan tidak lagi tersedia karena sakelar tersimpan berubah.");
-    }
-
-    private static void fillIn6(Map<String, String> table) {
         table.put("Undo import",
                 "Urungkan impor");
         table.put("Undoing import",
@@ -2492,7 +2504,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(782);
+        Map<String, String> table = new HashMap<>(786);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2745,11 +2757,13 @@ public final class L10nTranslations {
                 "Como encontrar");
         table.put("Firebase and Google Analytics collection is turned off",
                 "A coleta do Firebase e do Google Analytics est\u00e1 desativada");
-        table.put("Full report saved to %1$s",
-                "Relat\u00f3rio completo salvo em %1$s");
+        table.put("Fix push notifications",
+                "Corrigir notifica\u00e7\u00f5es push");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Full report saved to %1$s",
+                "Relat\u00f3rio completo salvo em %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, com os avisos dos projetos em que o HushPinterest se baseia");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
@@ -2862,17 +2876,19 @@ public final class L10nTranslations {
                 "Compat\u00edvel com o Pinterest %1$s.");
         table.put("Jump to a section",
                 "Ir para uma se\u00e7\u00e3o");
+        table.put("Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A change applies the next time Pinterest starts.",
+                "Permite que um Pinterest com patches se cadastre para receber notifica\u00e7\u00f5es push, o que ele n\u00e3o consegue fazer sozinho. Uma mudan\u00e7a vale na pr\u00f3xima vez que o Pinterest abrir.");
         table.put("Licenses",
                 "Licen\u00e7as");
         table.put("Link type: %s",
                 "Tipo de link: %s");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Links",
                 "Links");
         table.put("Links, updates, backup and more",
                 "Links, atualiza\u00e7\u00f5es, backup e mais");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Long-press download",
                 "Baixar com toque longo");
         table.put("Media link",
@@ -2989,13 +3005,13 @@ public final class L10nTranslations {
                 "A escolha do Pinterest entre um visual claro ou escuro, ou o que o seu celular usa.");
         table.put("Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.",
                 "A exporta\u00e7\u00e3o de dados do Pinterest \u00e9 separada de Exportar configura\u00e7\u00f5es. A p\u00e1gina de ajuda do Pinterest explica como solicitar seus dados pessoais da conta que voc\u00ea j\u00e1 usa.");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Pinterest's original signature is added to the app",
                 "A assinatura original do Pinterest foi adicionada ao app");
         table.put("Pinterest's own settings",
                 "Configura\u00e7\u00f5es do pr\u00f3prio Pinterest");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Os endere\u00e7os web do Pinterest est\u00e3o selecionados para este app nas configura\u00e7\u00f5es do Android, ent\u00e3o os links deles abrem aqui.");
         table.put("Plain pin links",
@@ -3112,13 +3128,13 @@ public final class L10nTranslations {
                 "Mostrar conte\u00fado de IA");
         table.put("Shows the original image instead of the large size in pin closeups and collages, when Pinterest has one. Uses more data. Pins already loaded change the next time they load.",
                 "Mostra a imagem original em vez do tamanho grande nas telas ampliadas de pins e nas colagens, quando o Pinterest tem uma. Usa mais dados. Pins j\u00e1 carregados mudam na pr\u00f3xima vez que carregarem.");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Sign in to your existing account",
                 "Entre na sua conta existente");
         table.put("Skipped",
                 "Ignorado");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "Pulados porque j\u00e1 est\u00e3o no Hist\u00f3rico de downloads: %d");
         table.put("Social permissions",
@@ -3235,13 +3251,13 @@ public final class L10nTranslations {
                 "Desliga todas as op\u00e7\u00f5es do HushPinterest, menos o Registro de depura\u00e7\u00e3o, na pr\u00f3xima vez que o Pinterest abrir. O que voc\u00ea escolheu ao aplicar os patches continua, e suas escolhas ficam salvas.");
         table.put("Unavailable",
                 "Indispon\u00edvel");
+    }
+
+    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Undo",
                 "Desfazer");
         table.put("Undo ended because a saved switch changed.",
                 "N\u00e3o \u00e9 mais poss\u00edvel desfazer porque um ajuste salvo mudou.");
-    }
-
-    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Undo import",
                 "Desfazer importa\u00e7\u00e3o");
         table.put("Undoing import",
@@ -3307,7 +3323,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(782);
+        Map<String, String> table = new HashMap<>(786);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3560,11 +3576,13 @@ public final class L10nTranslations {
                 "Nerede bulunur");
         table.put("Firebase and Google Analytics collection is turned off",
                 "Firebase ve Google Analytics veri toplama kapal\u0131");
-        table.put("Full report saved to %1$s",
-                "Tam rapor \u015furaya kaydedildi: %1$s");
+        table.put("Fix push notifications",
+                "Anl\u0131k bildirimleri d\u00fczelt");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("Full report saved to %1$s",
+                "Tam rapor \u015furaya kaydedildi: %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
@@ -3677,17 +3695,19 @@ public final class L10nTranslations {
                 "Pinterest %1$s s\u00fcr\u00fcmlerini destekler.");
         table.put("Jump to a section",
                 "Bir b\u00f6l\u00fcme git");
+        table.put("Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A change applies the next time Pinterest starts.",
+                "Yamal\u0131 Pinterest'in anl\u0131k bildirimlere kaydolmas\u0131n\u0131 sa\u011flar. Bunu kendi ba\u015f\u0131na yapamaz. De\u011fi\u015fiklik, Pinterest bir sonraki a\u00e7\u0131l\u0131\u015f\u0131nda ge\u00e7erli olur.");
         table.put("Licenses",
                 "Lisanslar");
         table.put("Link type: %s",
                 "Ba\u011flant\u0131 t\u00fcr\u00fc: %s");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Links",
                 "Ba\u011flant\u0131lar");
         table.put("Links, updates, backup and more",
                 "Ba\u011flant\u0131lar, g\u00fcncellemeler, yedekleme ve daha fazlas\u0131");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Long-press download",
                 "Uzun basarak indirme");
         table.put("Media link",
@@ -3804,13 +3824,13 @@ public final class L10nTranslations {
                 "Pinterest'in a\u00e7\u0131k ya da koyu g\u00f6r\u00fcn\u00fcm veya telefonunuzun kulland\u0131\u011f\u0131 g\u00f6r\u00fcn\u00fcm se\u00e7imi.");
         table.put("Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.",
                 "Pinterest'in veri d\u0131\u015fa aktar\u0131m\u0131, Ayarlar\u0131 d\u0131\u015fa aktar i\u015fleminden ayr\u0131d\u0131r. Pinterest'in yard\u0131m sayfas\u0131, zaten kulland\u0131\u011f\u0131n\u0131z hesaptan ki\u015fisel verilerinizi nas\u0131l talep edece\u011finizi a\u00e7\u0131klar.");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Pinterest's original signature is added to the app",
                 "Pinterest'in orijinal imzas\u0131 uygulamaya eklendi");
         table.put("Pinterest's own settings",
                 "Pinterest'in kendi ayarlar\u0131");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Pinterest'\u0131n web adresleri Android ayarlar\u0131nda bu uygulama i\u00e7in se\u00e7ili, bu y\u00fczden ba\u011flant\u0131lar\u0131 burada a\u00e7\u0131l\u0131r.");
         table.put("Plain pin links",
@@ -3927,13 +3947,13 @@ public final class L10nTranslations {
                 "Yapay zeka i\u00e7eri\u011fi g\u00f6ster");
         table.put("Shows the original image instead of the large size in pin closeups and collages, when Pinterest has one. Uses more data. Pins already loaded change the next time they load.",
                 "Pinterest'te varsa, pin yak\u0131n g\u00f6r\u00fcn\u00fcmlerinde ve kolajlarda b\u00fcy\u00fck boyut yerine orijinal g\u00f6rseli g\u00f6sterir. Daha \u00e7ok veri kullan\u0131r. Zaten y\u00fcklenmi\u015f pinler bir sonraki y\u00fckleni\u015fte de\u011fi\u015fir.");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("Sign in to your existing account",
                 "Mevcut hesab\u0131n\u0131za giri\u015f yap\u0131n");
         table.put("Skipped",
                 "Atland\u0131");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "\u0130ndirme ge\u00e7mi\u015finde oldu\u011fu i\u00e7in atlananlar: %d");
         table.put("Social permissions",
@@ -4050,13 +4070,13 @@ public final class L10nTranslations {
                 "Pinterest bir sonraki a\u00e7\u0131l\u0131\u015f\u0131nda Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki t\u00fcm HushPinterest anahtarlar\u0131n\u0131 kapat\u0131r. Yamalarken se\u00e7tiklerin kal\u0131r ve tercihlerin kay\u0131tl\u0131 kal\u0131r.");
         table.put("Unavailable",
                 "Kullan\u0131lam\u0131yor");
+    }
+
+    private static void fillTr6(Map<String, String> table) {
         table.put("Undo",
                 "Geri al");
         table.put("Undo ended because a saved switch changed.",
                 "Kay\u0131tl\u0131 bir anahtar de\u011fi\u015fti\u011fi i\u00e7in geri alma sona erdi.");
-    }
-
-    private static void fillTr6(Map<String, String> table) {
         table.put("Undo import",
                 "\u0130\u00e7e aktarmay\u0131 geri al");
         table.put("Undoing import",

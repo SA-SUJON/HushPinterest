@@ -298,6 +298,8 @@ Off	Desativado
 Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copie um relatório rápido ou salve o completo em %1$s. Links, IDs, cookies e tokens de login são omitidos. Confira outros textos privados antes de compartilhar.
 Save the full report in %1$s.	Salve o relatório completo em %1$s.
 Hides Play Store pop-ups asking you to update Pinterest. A pop-up that's already open stays.	Oculta os avisos da Play Store que pedem para você atualizar o Pinterest. Um aviso já aberto continua.
+Fix push notifications	Corrigir notificações push
+Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A change applies the next time Pinterest starts.	Permite que um Pinterest com patches se cadastre para receber notificações push, o que ele não consegue fazer sozinho. Uma mudança vale na próxima vez que o Pinterest abrir.
 Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.	Impede o Pinterest de sugerir que você compartilhe uma captura de tela. As capturas continuam funcionando. Reinicie o Pinterest para ver a mudança.
 Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.	Oculta suas buscas recentes. Não apaga o histórico de busca da sua conta. A mudança aparece na próxima vez que a tela for atualizada.
 Hides Create in the bottom bar. The change shows the next time the bar updates.	Oculta Criar na barra inferior. A mudança aparece na próxima vez que a barra for atualizada.

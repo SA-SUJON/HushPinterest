@@ -276,7 +276,8 @@ public class DexDiff {
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 3),
-            Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2));
+            Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
+            Map.entry("firebaseCertificate", 1));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -4496,6 +4497,42 @@ public class DexDiff {
             capability(c.callee, all);
         }
 
+        /**
+         * Firebase's request header builder, found by its texts: the certificate header's value goes
+         * through the hook, with the connection, between the header's name and its write, and the
+         * method is otherwise untouched.
+         */
+        void firebaseCertificate(Contract c) {
+            String hook = c.strings.get(0);
+            List<Method> builders = new ArrayList<>();
+            for (Method m : clean.holding("X-Android-Cert")) if (m.getReturnType().equals("Ljava/net/HttpURLConnection;")
+                    && clean.texts.get(m.toString()).containsAll(List.of("X-Android-Package", "x-goog-api-key", "SHA1",
+                    "Could not get fingerprint hash for package: "))) builders.add(m);
+            Method builder = unique(builders, "Firebase request header builder");
+            boolean found = false;
+            if (builder != null) {
+                List<Instruction> was = instructions(builder);
+                List<Integer> names = new ArrayList<>();
+                for (int at = 0; at < was.size(); at++)
+                    if (reference(was.get(at)) instanceof StringReference s && s.getString().equals("X-Android-Cert")) names.add(at);
+                Method m = actual(builder);
+                List<Integer> sites = calls(m, hook, 1);
+                if (m != null && sites.size() == 1 && names.size() == 1 && names.get(0) + 1 < was.size()) {
+                    int at = sites.get(0);
+                    List<Integer> write = arguments(was.get(names.get(0) + 1));
+                    List<Instruction> body = instructions(m);
+                    boolean shaped = at == names.get(0) + 1 && write.size() == 3 && body.size() == was.size() + 2
+                            && arguments(body.get(at)).equals(List.of(write.get(0), write.get(2)))
+                            && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && firstRegister(body.get(at + 1)) == write.get(2)
+                            && arguments(body.get(at + 2)).equals(write)
+                            && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 1, at) && onlyFrom(m, at + 2, at + 1);
+                    if (!shaped) fail(hook + " doesn't take the certificate header's value between its name and its write in " + m);
+                    else { remove(m, at, at + 2); found = true; }
+                }
+            }
+            capability(c.callee, found);
+        }
+
         static final String BLOCK_STORE = "Lcom/google/android/gms/auth/blockstore/";
 
         /**
@@ -4806,6 +4843,7 @@ public class DexDiff {
                     case "analytics": analytics(c); break;
                     case "answers": answers(c); break;
                     case "browserId": browserId(c); break;
+                    case "firebaseCertificate": firebaseCertificate(c); break;
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;
                     case "topicSuggestions": topicSuggestions(c); break;

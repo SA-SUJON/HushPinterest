@@ -158,6 +158,18 @@
       "license": "GPL-3.0-only",
       "changes": "Unchanged. Written for HushTelegram: Register kind analysis written for HushTelegram, so a hook's jump is checked against what ART's verifier accepts before the method changes.",
       "commit": "8c54a1d9992f5a19c39dd0246abe74dec1292e05"
+    },
+    {
+      "paths": [
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/notifications/**",
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/notifications/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushTelegram",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Adapted from HushTelegram's Firebase push repair: the certificate header hook, its startup wait and its request scoping, with Pinterest's package and certificate, Pinterest's two Firebase Installations callers, and HushPinterest's settings and status flags. Telegram's local status readers and push answer hook were left out.",
+      "commit": "df79f7d3131060bd0ba391085b0926cb107c33bf"
     }
   ]
 }

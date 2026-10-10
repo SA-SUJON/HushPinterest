@@ -4,7 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
-* **Pinterest:** Pinterest 14.39.0 is now the supported version. All 26 patches apply to it, and 14.38.0 is no longer a target.
+* **Pinterest:** Pinterest 14.39.0 is now the supported version. All 27 patches apply to it, and 14.38.0 is no longer a target.
+* **Pinterest:** New Fix push notifications patch, on by default. Google's Firebase service only signs Pinterest up for push notifications when the request names Pinterest's original signature, and a patched Pinterest is signed with a different one, so it never got a notification token. The patch gives Firebase the original signature's fingerprint when Pinterest signs up and changes nothing else in the request. Its switch is on the new Notifications page under More settings.
 * **Pinterest:** Download pins has a new Save in Pinterest's folder switch, and it starts off. With it on, downloads go to Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of filling up Download. Board downloads, long-press downloads and retries from Download history follow it too.
 * **Pinterest:** Long-press download keeps Pinterest's own buttons again. Holding a pin in a grid showed only Download, because Pinterest's Pin, Share and More ideas buttons never sprang back in after the patch laid the menu out again. Now all three show with Download after them, and letting go on any of them does what it says.
 * **Pinterest:** System share sheet opens Android's share menu from a pin's Share button on 14.39.0. The pin's id is now read from the fields Pinterest's share sheet fills, found when you patch, instead of by a name that pointed somewhere else in 14.39.0, which left Pinterest's own sheet showing with the switch on.

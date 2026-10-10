@@ -111,6 +111,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_disable_update_nag", FALSE);
 
     /**
+     * Firebase gets Pinterest's own certificate fingerprint when it signs this install up for push
+     * notifications ({@link app.hushpinterest.extension.pinterest.notifications.PushNotifications}). On to
+     * start: a patched build gets no push notifications at all without it.
+     */
+    public static final BooleanSetting FIX_PUSH_NOTIFICATIONS =
+            new BooleanSetting("hushpinterest_fix_push_notifications", TRUE);
+
+    /**
      * Once a day, when Pinterest starts, ask api.github.com whether a newer HushPinterest release is
      * out, and say so on the settings screen ({@link ReleaseCheck}). It's the settings entry's own
      * switch rather than a patch's, so every build has it ({@link PatchFamily#ENTRY_SWITCHES}). Off

@@ -31,10 +31,11 @@ import org.junit.Test
 class PatchCategoriesTest {
     /**
      * One name per group, and no more than fits on a phone screen without scrolling. The names are
-     * the Hush family's, and Updates matches the HushPinterest settings page that holds its switch.
+     * the Hush family's, and Updates and Notifications match the HushPinterest settings pages that hold their
+     * switches.
      */
     private val taxonomy = setOf(
-        "Ads", "Feed", "Settings", "Privacy", "Interface", "Navigation", "Downloads", "Updates",
+        "Ads", "Feed", "Settings", "Privacy", "Interface", "Navigation", "Downloads", "Updates", "Notifications",
     )
 
     /**

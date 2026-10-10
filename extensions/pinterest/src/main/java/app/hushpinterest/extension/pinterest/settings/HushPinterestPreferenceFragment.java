@@ -402,6 +402,16 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     + "stay as they are.")),
                 SettingsIcons.ABOUT));
 
+        // Only with the patch: Firebase signs a patched Pinterest up for push notifications only
+        // when it names Pinterest's own certificate (PushNotifications).
+        if (build.contains(PatchFamily.FIX_PUSH_NOTIFICATIONS)) {
+            PreferenceCategory notifications = category(screen, L10n.t("Notifications"));
+            patchToggle(notifications, context, build, PatchFamily.FIX_PUSH_NOTIFICATIONS, Settings.FIX_PUSH_NOTIFICATIONS,
+                    L10n.t("Fix push notifications"),
+                    L10n.t("Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A "
+                        + "change applies the next time Pinterest starts."), SettingsIcons.BELL);
+        }
+
         // In every build: where Pinterest keeps its own controls for what no switch here covers. The
         // rows name each path in Pinterest's own words where the build has them (NativeControls).
         PreferenceCategory pinterest = category(screen, L10n.t("Pinterest's own settings"));

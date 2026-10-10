@@ -301,6 +301,8 @@ Off	Kapalı
 Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Hızlı bir rapor kopyalayın veya tam raporu %1$s konumuna kaydedin. Bağlantılar, kimlikler, çerezler ve giriş belirteçleri dışarıda bırakılır. Paylaşmadan önce diğer özel metinleri kontrol edin.
 Save the full report in %1$s.	Tam raporu %1$s konumuna kaydedin.
 Hides Play Store pop-ups asking you to update Pinterest. A pop-up that's already open stays.	Play Store'un Pinterest'i güncellemeni isteyen açılır uyarılarını gizler. Zaten açık olan uyarı kalır.
+Fix push notifications	Anlık bildirimleri düzelt
+Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A change applies the next time Pinterest starts.	Yamalı Pinterest'in anlık bildirimlere kaydolmasını sağlar. Bunu kendi başına yapamaz. Değişiklik, Pinterest bir sonraki açılışında geçerli olur.
 Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.	Pinterest'in ekran görüntüsü paylaşmanı önermesini durdurur. Ekran görüntüleri yine çalışır. Değişikliği görmek için Pinterest'i yeniden başlat.
 Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.	Son aramalarını gizler. Hesabının arama geçmişini silmez. Değişiklik ekran bir sonraki güncellenişinde görünür.
 Hides Create in the bottom bar. The change shows the next time the bar updates.	Alt çubuktaki Oluştur'u gizler. Değişiklik çubuk bir sonraki güncellenişinde görünür.

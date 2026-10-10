@@ -70,6 +70,7 @@ import app.hushpinterest.extension.pinterest.ads.Ads;
 import app.hushpinterest.extension.pinterest.ads.FeedFilter;
 import app.hushpinterest.extension.pinterest.privacy.Analytics;
 import app.hushpinterest.extension.pinterest.privacy.AdvertisingId;
+import app.hushpinterest.extension.pinterest.notifications.PushNotificationsTest;
 import app.hushpinterest.extension.pinterest.privacy.LinkTracking;
 import app.hushpinterest.extension.pinterest.privacy.PlainPinLinks;
 import app.hushpinterest.extension.pinterest.ui.InterfaceControls;
@@ -188,7 +189,8 @@ public class PausedHooksTest {
     private static Map<BooleanSetting, List<Probe>> probes() {
         // Every hook is in this build, so the filter reads each family's switch.
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
-        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS, PatchFamily.HIDE_ADVERTISING_ID);
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS, PatchFamily.HIDE_ADVERTISING_ID,
+                PatchFamily.FIX_PUSH_NOTIFICATIONS);
         Map<BooleanSetting, List<Probe>> probes = new LinkedHashMap<>();
         // A promoted pin leaves the page, and an ad-only view stays hidden and sizeless.
         probes.put(Settings.HIDE_ADS, Arrays.asList(
@@ -303,6 +305,7 @@ public class PausedHooksTest {
             return !sizes.isEmpty();
         }));
         probes.put(Settings.DISABLE_UPDATE_NAG, Collections.singletonList(UiHooks::disableUpdateNag));
+        probes.put(Settings.FIX_PUSH_NOTIFICATIONS, Collections.singletonList(PushNotificationsTest::fixesACertificate));
         return probes;
     }
 

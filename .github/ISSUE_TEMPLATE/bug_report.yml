@@ -74,6 +74,7 @@ body:
         - Download board
         - Download pins
         - Filter pin menu
+        - Fix push notifications
         - Hide AI-labeled pins
         - Hide ads
         - Hide advertising ID

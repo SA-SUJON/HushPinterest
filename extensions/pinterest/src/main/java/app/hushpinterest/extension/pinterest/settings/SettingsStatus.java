@@ -86,4 +86,6 @@ public final class SettingsStatus {
     public static boolean closeupImage() { return false; }
     public static boolean disableUpdateNag() { return false; }
     public static boolean updateNag() { return false; }
+    public static boolean fixPushNotifications() { return false; }
+    public static boolean firebaseCertificate() { return false; }
 }

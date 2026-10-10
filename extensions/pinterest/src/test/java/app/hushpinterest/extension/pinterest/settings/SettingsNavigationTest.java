@@ -95,7 +95,7 @@ public class SettingsNavigationTest {
         assertNotNull(page.navigation);
         // Status, Browse settings, four feature categories, More settings and Support HushPinterest.
         assertEquals(8, list().getCount());
-        assertEquals(9, page.sections().size());
+        assertEquals(10, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
             assertTrue(page.navigation.open(section));
@@ -734,8 +734,9 @@ public class SettingsNavigationTest {
         assertEquals(8, list().getCount());
         page.navigation.navigate("About");
         dialog.getDialog().onBackPressed();
-        // More settings: Links, Pinterest's own settings, Updates, Pause, backup and diagnostics, and About.
-        assertEquals(5, list().getCount());
+        // More settings: Links, Notifications, Pinterest's own settings, Updates, Pause, backup and diagnostics,
+        // and About.
+        assertEquals(6, list().getCount());
         dialog.getDialog().onBackPressed();
         assertEquals(8, list().getCount());
         dialog.getDialog().onBackPressed();
