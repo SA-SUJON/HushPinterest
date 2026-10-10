@@ -16,12 +16,16 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.pinterest.misc.extension.HOOK_TARGETS
+import app.morphe.patches.pinterest.misc.extension.HookTarget
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
 import app.morphe.patches.pinterest.misc.extension.freeLocalsAt
 import app.morphe.patches.pinterest.misc.extension.patchLog
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
+import app.morphe.patches.pinterest.misc.extension.recordTargets
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
+import app.morphe.patches.pinterest.misc.extension.requireStub
 import app.morphe.patches.pinterest.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.pinterest.ui.mutable
@@ -37,6 +41,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val PATCH = "Hide ads"
 private const val ADS = "$EXTENSION_PACKAGE/ads/Ads;"
+
+/** The [HOOK_TARGETS] stub that records each ad-only view and how many of its two methods are held. */
+internal const val AD_VIEW_TARGETS = "adViews"
 
 /** The consent vendor Pinterest names when it starts Google's mobile ads SDK, an enum constant. */
 internal const val GOOGLE_MOBILE_ADS = "GOOGLE_MOBILE_ADS"
@@ -74,22 +81,25 @@ val hideAdsPatch = bytecodePatch(
         requireStatusMethod("feedAds")
         requireStatusMethod("adViews")
         requireStatusMethod("googleAds")
+        requireStub(HOOK_TARGETS, AD_VIEW_TARGETS)
         val googleAds = googleAdsStart()
         val answer = googleAds?.freeLocalsAt(PATCH, 0, 1)?.single()
 
         if (feedListHoldersHooked > 0) enableCapability("feedAds")
 
         var folded = 0
+        val views = mutableListOf<HookTarget>()
         AD_ONLY_VIEWS.forEach { type ->
+            // The view's own name is the id the extension's HookTargets knows it by.
+            val id = type.substringAfterLast('/').removeSuffix(";")
             val view = mutableClassDefByOrNull(type)
             if (view == null) {
+                views += HookTarget(id, 0, VIEW_METHODS.size)
                 patchLog.warning("$PATCH: this build has no $type, so that panel isn't folded away")
                 return@forEach
             }
-            val held = listOf(
-                Triple("setVisibility", listOf("I"), "adViewVisibility"),
-                Triple("onMeasure", listOf("I", "I"), "adViewMeasureSpec"),
-            ).count { (name, parameters, helper) -> hold(view, name, parameters, helper) }
+            val held = VIEW_METHODS.count { (name, parameters, helper) -> hold(view, name, parameters, helper) }
+            views += HookTarget(id, held, VIEW_METHODS.size)
             if (held == 0) {
                 patchLog.warning("$PATCH: $type can't take an override of setVisibility or onMeasure, so that panel isn't folded away")
                 return@forEach
@@ -98,6 +108,7 @@ val hideAdsPatch = bytecodePatch(
         }
         if (folded > 0) enableCapability("adViews")
         else patchLog.warning("$PATCH: none of the ${AD_ONLY_VIEWS.size} ad-only views is in this build; the list filter still runs")
+        recordTargets(AD_VIEW_TARGETS, views)
 
         if (googleAds != null && answer != null) {
             googleAds.addInstructionsWithLabels(0, """
@@ -112,6 +123,12 @@ val hideAdsPatch = bytecodePatch(
         enableStatus("hideAds")
     }
 }
+
+/** The two methods each ad-only view is held by, their int parameters and the Ads helper each one goes through. */
+private val VIEW_METHODS = listOf(
+    Triple("setVisibility", listOf("I"), "adViewVisibility"),
+    Triple("onMeasure", listOf("I", "I"), "adViewMeasureSpec"),
+)
 
 /**
  * Pinterest's one launch step that starts Google's mobile ads SDK: the instance method, taking

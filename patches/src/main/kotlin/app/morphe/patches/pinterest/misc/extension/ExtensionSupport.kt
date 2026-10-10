@@ -106,6 +106,41 @@ internal fun BytecodePatchContext.writeStub(type: String, name: String, register
     classDef.methods.add(body)
 }
 
+/**
+ * Throws naming [name] unless [type] has the single static stub [writeStub] would fill, so a patch
+ * can refuse before its own hooks go in rather than after.
+ */
+internal fun BytecodePatchContext.requireStub(type: String, name: String) {
+    mutableClassDefBy(type).methods.singleOrNull { it.name == name && AccessFlags.STATIC.isSet(it.accessFlags) }
+        ?: throw PatchException("$type has no single static stub named $name")
+}
+
+/** The extension class whose stubs record, when patching, which separate targets of a capability went in. */
+internal const val HOOK_TARGETS = "$EXTENSION_PACKAGE/ads/HookTargets;"
+
+/**
+ * One target behind a capability as [HOOK_TARGETS] records it: the id the extension knows it by,
+ * how many of its hooks went in and how many it has. [type] is the class it was found in, for the
+ * patch's own messages; it isn't recorded.
+ */
+internal data class HookTarget(val id: String, val hooked: Int, val expected: Int, val type: String? = null) {
+    init {
+        require(id.isNotEmpty() && id.all { it.isLetterOrDigit() }) { "a target id is letters and digits only: $id" }
+        require(hooked in 0..expected) { "$id: $hooked of $expected hooks" }
+    }
+
+    fun encode(): String = "$id=$hooked/$expected"
+}
+
+/** Fills the [HOOK_TARGETS] stub [name] with [targets], one `id=hooked/expected` entry each, `;` between them. */
+internal fun BytecodePatchContext.recordTargets(name: String, targets: List<HookTarget>) {
+    val text = targets.joinToString(";") { it.encode() }
+    writeStub(HOOK_TARGETS, name, 1, """
+        const-string v0, "$text"
+        return-object v0
+    """)
+}
+
 /** How many registers a parameter of this type takes: two for a long or a double. */
 private fun CharSequence.width(): Int = if (toString() == "J" || toString() == "D") 2 else 1
 

@@ -13,6 +13,7 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.pinterest.misc.extension.HOOK_TARGETS
 import app.morphe.patches.pinterest.misc.extension.PatchLogCapture
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -58,6 +59,10 @@ class FeedFixtureTest {
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             assertEquals(build.name, 3, feedListHoldersHooked)
             for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping")) assertFlag(context, flag)
+            // Full coverage by target, not only by flag: both feed constructors, each holder and both methods of every view.
+            assertEquals(build.name, "feedList=2/2;pagedResponse=1/1;modelList=1/1", recorded(context, "feedLists"))
+            assertEquals(build.name, "TextAdView=2/2;LegacyPromotedCloseupActionButtonModule=2/2;" +
+                "PromotedPinCloseupFloatingActionBarModule=2/2;BoardSponsoredCuratorView=2/2", recorded(context, "adViews"))
             val start = classes.flatMap { it.methods }.single { method -> !AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.isEmpty() && method.returnType == "V" &&
                 method.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name == GOOGLE_MOBILE_ADS } == true }
             val guarded = context.mutableClassDefBy(start.definingClass).methods.single { it.name == start.name && it.parameterTypes.isEmpty() }
@@ -116,6 +121,11 @@ class FeedFixtureTest {
             above = found.values.mapNotNull { it.superclass }.toSet() - wanted.keys
         }
         return wanted.values.toList() to holders
+    }
+
+    private fun recorded(context: BytecodePatchContext, name: String): String {
+        val first = context.mutableClassDefBy(HOOK_TARGETS).methods.single { it.name == name }.implementation!!.instructions.first()
+        return ((first as ReferenceInstruction).reference as StringReference).string
     }
 
     private fun assertFlag(context: BytecodePatchContext, name: String) {

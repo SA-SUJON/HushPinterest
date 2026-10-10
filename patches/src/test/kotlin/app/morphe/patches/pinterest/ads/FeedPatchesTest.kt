@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.pinterest.misc.extension.HOOK_TARGETS
 import app.morphe.patches.pinterest.misc.extension.PatchLogCapture
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -23,6 +24,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -39,11 +41,15 @@ import org.junit.Test
  * and never claimed. The vendor fixture tests check the real build separately.
  */
 class FeedPatchesTest {
-    private enum class Holder(val type: String, val literal: String, val parameters: List<String>) {
-        FEED("Lfixture/Feed;", ", _items count:", listOf(STRING, STRING, STRING, LIST)),
-        PAGE("Lfixture/Page;", "PagedResponse(bookmark=", listOf(STRING, STRING, LIST)),
-        MODELS("Lfixture/Models;", "ModelListWithBookmark(models=", listOf(LIST, STRING)),
+    /** Each holder with the list constructors it has in 14.39.0: the feed holder has two. */
+    private enum class Holder(val type: String, val literal: String, val constructors: List<List<String>>) {
+        FEED("Lfixture/Feed;", ", _items count:", listOf(listOf(STRING, STRING, LIST), listOf(STRING, LIST, STRING, STRING))),
+        PAGE("Lfixture/Page;", "PagedResponse(bookmark=", listOf(listOf(STRING, STRING, LIST))),
+        MODELS("Lfixture/Models;", "ModelListWithBookmark(models=", listOf(listOf(LIST, STRING))),
     }
+
+    private val allViews = "TextAdView=2/2;LegacyPromotedCloseupActionButtonModule=2/2;" +
+        "PromotedPinCloseupFloatingActionBarModule=2/2;BoardSponsoredCuratorView=2/2"
 
     private val filterCall = "$EXTENSION_PACKAGE/ads/FeedFilter;->filter(Ljava/util/List;)Ljava/util/List;"
     private val visibilityCall = "$EXTENSION_PACKAGE/ads/Ads;->adViewVisibility(I)I"
@@ -75,20 +81,94 @@ class FeedPatchesTest {
             assertFlag(context, "hideAiPins", true)
             assertFlag(context, "feedAiPins", true)
             for (holder in present) {
-                val init = context.mutableClassDefBy(holder.type).methods.single { it.name == "<init>" }
-                val first = init.instructions()[0]
-                assertEquals(Opcode.INVOKE_STATIC_RANGE, first.opcode)
-                assertEquals(filterCall, (first as ReferenceInstruction).reference.toString())
-                // The list parameter is the register filtered and then replaced.
-                val listRegister = init.implementation!!.registerCount - init.parameters.size - 1 +
-                    1 + holder.parameters.indexOf(LIST)
-                assertEquals(listRegister, (first as RegisterRangeInstruction).startRegister)
-                assertEquals(1, first.registerCount)
-                val second = init.instructions()[1]
-                assertEquals(Opcode.MOVE_RESULT_OBJECT, second.opcode)
-                assertEquals(listRegister, (second as OneRegisterInstruction).registerA)
+                val inits = context.mutableClassDefBy(holder.type).methods.filter { it.name == "<init>" }
+                assertEquals(holder.constructors.size, inits.size)
+                for (init in inits) {
+                    val first = init.instructions()[0]
+                    assertEquals(Opcode.INVOKE_STATIC_RANGE, first.opcode)
+                    assertEquals(filterCall, (first as ReferenceInstruction).reference.toString())
+                    // The list parameter is the register filtered and then replaced.
+                    val listRegister = init.implementation!!.registerCount - init.parameters.size - 1 +
+                        1 + init.parameterTypes.map { it.toString() }.indexOf(LIST)
+                    assertEquals(listRegister, (first as RegisterRangeInstruction).startRegister)
+                    assertEquals(1, first.registerCount)
+                    val second = init.instructions()[1]
+                    assertEquals(Opcode.MOVE_RESULT_OBJECT, second.opcode)
+                    assertEquals(listRegister, (second as OneRegisterInstruction).registerA)
+                }
+            }
+            // Each holder is recorded by name, whole where it survived and missing where it didn't.
+            val expected = listOf("feedList" to Holder.FEED, "pagedResponse" to Holder.PAGE, "modelList" to Holder.MODELS)
+                .joinToString(";") { (id, holder) ->
+                    val all = holder.constructors.size
+                    "$id=${if (holder in present) all else 0}/$all"
+                }
+            assertEquals("subset $present", expected, recorded(context, "feedLists"))
+        }
+    }
+
+    @Test
+    fun `a build with every target records each holder constructor and view as whole`() {
+        val context = PatchContexts.of(ExtensionDex.classes() + Holder.entries.map { holder(it) } +
+            AD_ONLY_VIEWS.map { adView(it, LAYOUT) })
+        val warnings = PatchLogCapture.warnings {
+            feedListHookPatch.execute(context)
+            hideAdsPatch.execute(context)
+        }
+        assertEquals("only the absent Google ad SDK start: $warnings", 1, warnings.size)
+        assertEquals("feedList=2/2;pagedResponse=1/1;modelList=1/1", recorded(context, "feedLists"))
+        assertEquals(allViews, recorded(context, "adViews"))
+        assertFlag(context, "feedAds", true)
+        assertFlag(context, "adViews", true)
+    }
+
+    @Test
+    fun `a partial build records each missing holder constructor and view by name`() {
+        val halfSealed = "Lfixture/HalfSealedLayout;"
+        val oneConstructor = holder(Holder.FEED, Holder.FEED.constructors.take(1))
+        val context = PatchContexts.of(ExtensionDex.classes() + oneConstructor + holder(Holder.MODELS) +
+            adView(AD_ONLY_VIEWS[0], LAYOUT) + adView(AD_ONLY_VIEWS[2], halfSealed) + sealedLayout(halfSealed, measureOnly = true))
+        val warnings = PatchLogCapture.warnings {
+            feedListHookPatch.execute(context)
+            hideAdsPatch.execute(context)
+        }
+        assertTrue(warnings.toString(), warnings.any { "Lfixture/Feed;" in it && "1 of the 2 constructors" in it })
+        assertTrue(warnings.toString(), warnings.any { "paged response" in it })
+        assertEquals(2, feedListHoldersHooked)
+        assertEquals("feedList=1/2;pagedResponse=0/1;modelList=1/1", recorded(context, "feedLists"))
+        assertEquals("TextAdView=2/2;LegacyPromotedCloseupActionButtonModule=0/2;" +
+            "PromotedPinCloseupFloatingActionBarModule=1/2;BoardSponsoredCuratorView=0/2", recorded(context, "adViews"))
+        // The coarse flags still say some of each went in; the record says which.
+        assertFlag(context, "feedAds", true)
+        assertFlag(context, "adViews", true)
+    }
+
+    @Test
+    fun `a missing target record stub refuses before any holder or view changes`() {
+        for (stub in listOf("feedLists", "adViews")) {
+            val context = PatchContexts.of(ExtensionDex.classes() + Holder.entries.map { holder(it) } + adView(AD_ONLY_VIEWS[0], LAYOUT))
+            context.mutableClassDefBy(HOOK_TARGETS).methods.removeAll { it.name == stub }
+            if (stub == "feedLists") {
+                val failure = assertThrows(PatchException::class.java) { feedListHookPatch.execute(context) }
+                assertTrue(failure.message, failure.message.orEmpty().contains("stub named feedLists"))
+                val init = context.mutableClassDefBy(Holder.PAGE.type).methods.single { it.name == "<init>" }
+                assertTrue("no holder hooked", calls(init, filterCall).isEmpty())
+            } else {
+                feedListHookPatch.execute(context)
+                val failure = assertThrows(PatchException::class.java) { hideAdsPatch.execute(context) }
+                assertTrue(failure.message, failure.message.orEmpty().contains("stub named adViews"))
+                assertFalse("no view held", context.mutableClassDefBy(AD_ONLY_VIEWS[0]).methods.any { it.name == "setVisibility" })
+                assertFlag(context, "hideAds", false)
             }
         }
+    }
+
+    /** The text the [HOOK_TARGETS] stub [name] answers once patched. */
+    private fun recorded(context: BytecodePatchContext, name: String): String {
+        val body = context.mutableClassDefBy(HOOK_TARGETS).methods.single { it.name == name }.instructions()
+        assertEquals("$name answers a constant", Opcode.CONST_STRING, body[0].opcode)
+        assertEquals(Opcode.RETURN_OBJECT, body[1].opcode)
+        return ((body[0] as ReferenceInstruction).reference as StringReference).string
     }
 
     @Test
@@ -167,20 +247,22 @@ class FeedPatchesTest {
         assertEquals("$name returns the constant without reading a preference", Opcode.RETURN, instructions[1].opcode)
     }
 
-    private fun holder(holder: Holder): ClassDef {
+    private fun holder(holder: Holder, constructors: List<List<String>> = holder.constructors): ClassDef {
         val toString = method(holder.type, "toString", emptyList(), STRING, 1, AccessFlags.PUBLIC.value,
             """
                 const-string v0, "${holder.literal}"
                 return-object v0
             """)
-        val init = method(holder.type, "<init>", holder.parameters, "V", 2 + holder.parameters.size,
-            AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value,
-            """
-                invoke-direct {p0}, Ljava/lang/Object;-><init>()V
-                return-void
-            """)
+        val inits = constructors.map { parameters ->
+            method(holder.type, "<init>", parameters, "V", 2 + parameters.size,
+                AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value,
+                """
+                    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+                    return-void
+                """)
+        }
         return ImmutableClassDef(holder.type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
-            listOf(toString, init))
+            listOf(toString) + inits)
     }
 
     /** A view whose superclass is [superclass]; [declared] gives it its own setVisibility and onMeasure. */
@@ -206,13 +288,15 @@ class FeedPatchesTest {
         return ImmutableClassDef(type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, superclass, null, null, null, null, methods)
     }
 
-    /** A layout in the app whose setVisibility and onMeasure are final, as a Kotlin class can make them. */
-    private fun sealedLayout(type: String): ClassDef {
+    /**
+     * A layout in the app whose setVisibility and onMeasure are final, as a Kotlin class can make
+     * them; with [measureOnly] only onMeasure is, so a view under it can be held by half.
+     */
+    private fun sealedLayout(type: String, measureOnly: Boolean = false): ClassDef {
         val flags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
-        return ImmutableClassDef(type, AccessFlags.PUBLIC.value, LAYOUT, null, null, null, null, listOf(
-            method(type, "setVisibility", listOf("I"), "V", 2, flags, "return-void"),
-            method(type, "onMeasure", listOf("I", "I"), "V", 3, flags, "return-void"),
-        ))
+        val methods = mutableListOf(method(type, "onMeasure", listOf("I", "I"), "V", 3, flags, "return-void"))
+        if (!measureOnly) methods += method(type, "setVisibility", listOf("I"), "V", 2, flags, "return-void")
+        return ImmutableClassDef(type, AccessFlags.PUBLIC.value, LAYOUT, null, null, null, null, methods)
     }
 
     private fun calls(method: Method, reference: String) = method.instructions()
