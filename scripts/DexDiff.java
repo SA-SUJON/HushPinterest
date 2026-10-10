@@ -3780,6 +3780,30 @@ public class DexDiff {
             return names.containsAll(BOARD_OPTIONS);
         }
 
+        /** True when [i] reads [register] as a value or as a call or array argument. */
+        static boolean readsRegister(Instruction i, int register) {
+            for (int[] read : valueReads(i)) if (read[0] == register || read[1] == 'W' && read[0] + 1 == register) return true;
+            if (i instanceof FiveRegisterInstruction || i instanceof RegisterRangeInstruction)
+                for (int argument : invokeRegisters(i)) if (argument == register) return true;
+            return false;
+        }
+
+        /** True when no path from [from], a handler included, reads [register] before writing it. */
+        static boolean unread(FeatureFlow graph, List<Instruction> body, int from, int register) {
+            BitSet seen = new BitSet();
+            Deque<Integer> work = new ArrayDeque<>(List.of(from));
+            if (from > 0) work.addAll(graph.handlers.get(from - 1));
+            while (!work.isEmpty()) {
+                int k = work.poll();
+                if (seen.get(k)) continue;
+                seen.set(k);
+                if (readsRegister(body.get(k), register)) return false;
+                work.addAll(graph.handlers.get(k));
+                if (!writes(body.get(k), register)) work.addAll(graph.normal.get(k));
+            }
+            return true;
+        }
+
         static final String TOPIC_BINDER = "Presenter bound to BubblesListView must be of type BubblesListPresenter";
 
         /**
