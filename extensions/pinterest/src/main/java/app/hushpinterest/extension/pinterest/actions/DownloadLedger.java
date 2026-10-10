@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
@@ -44,6 +46,8 @@ public final class DownloadLedger {
     static final String STORE = "hushpinterest_download_history";
     static final String RECORDS = "requests_v1";
     static final String EARLIER = "earlier_v1";
+    /** One earlier history line: a request ID, or a negative picker-save key, then the pin ID. */
+    private static final Pattern EARLIER_LINE = Pattern.compile("(-?[0-9]{1,19}),([0-9]{1,30})");
     static final String SENDER_PERMISSION = "android.permission.SEND_DOWNLOAD_COMPLETED_INTENTS";
     private static final Object LOCK = new Object();
     private static final Object RECEIVER_LOCK = new Object();
@@ -179,6 +183,8 @@ public final class DownloadLedger {
                 List<Job> jobs = ledger.load();
                 long key = -Math.max(2, System.currentTimeMillis());
                 for (Job job : jobs) if (job.id <= key) key = job.id - 1;
+                // A clock set back could otherwise reuse a key the earlier history still holds.
+                for (Job job : ledger.earlier()) if (job.id <= key) key = job.id - 1;
                 if (key >= -1) throw new IllegalStateException("Local history keys exhausted");
                 jobs.add(0, new Job(key, pinId, System.currentTimeMillis(), state, 0, null));
                 ledger.store(jobs, ledger.trim(jobs));
@@ -277,12 +283,15 @@ public final class DownloadLedger {
         return schedule(context, ledger -> {
             synchronized (LOCK) {
                 List<Job> jobs = ledger.load();
-                Set<String> removed = new HashSet<>();
-                for (Job job : jobs) if (job.id == id) removed.add(job.pinId);
-                jobs.removeIf(job -> job.id == id);
-                // Forgetting a pin forgets its earlier requests too, so Download board saves it again.
                 List<Job> earlier = ledger.earlier();
-                boolean forgot = earlier.removeIf(job -> removed.contains(job.pinId));
+                // Forgetting a download forgets the pin's earlier ones too, so Download board saves it
+                // again. A skipped, unsupported or failed result never counted, so it forgets nothing.
+                // A board run can move the row to the earlier history while its dialog is open.
+                Set<String> forget = new HashSet<>();
+                for (Job job : jobs) if (job.id == id && counts(job)) forget.add(job.pinId);
+                for (Job job : earlier) if (job.id == id) forget.add(job.pinId);
+                jobs.removeIf(job -> job.id == id);
+                boolean forgot = earlier.removeIf(job -> job.id == id || forget.contains(job.pinId));
                 ledger.store(jobs, forgot ? earlier : null);
                 ledger.publish(jobs);
             }
@@ -505,12 +514,12 @@ public final class DownloadLedger {
         if (text == null || text.length() > EARLIER_LIMIT * 52) return jobs;
         Set<Long> seen = new HashSet<>();
         for (String line : text.split("\n")) {
-            String[] fields = line.split(",", -1);
-            if (fields.length != 2 || !fields[0].matches("-?[0-9]{1,19}") || !fields[1].matches("[0-9]{1,30}")) continue;
+            Matcher fields = EARLIER_LINE.matcher(line);
+            if (!fields.matches()) continue;
             try {
-                long id = Long.parseLong(fields[0]);
+                long id = Long.parseLong(fields.group(1));
                 if (id == -1 || !seen.add(id)) continue;
-                jobs.add(new Job(id, fields[1], 0, id < 0 ? State.SAVED : State.UNAVAILABLE, 0, null));
+                jobs.add(new Job(id, fields.group(2), 0, id < 0 ? State.SAVED : State.UNAVAILABLE, 0, null));
                 if (jobs.size() == EARLIER_LIMIT) break;
             } catch (NumberFormatException invalid) {
                 // Invalid private metadata cannot become an ID to query.
@@ -528,7 +537,7 @@ public final class DownloadLedger {
         if (jobs.size() <= LIMIT) return null;
         List<Job> cut = jobs.subList(LIMIT, jobs.size());
         List<Job> kept = new ArrayList<>();
-        for (Job job : cut) if (job.id >= 0 || job.state == State.SAVED) kept.add(job);
+        for (Job job : cut) if (counts(job)) kept.add(job);
         cut.clear();
         if (kept.isEmpty()) return null;
         Set<Long> seen = new HashSet<>();
@@ -538,7 +547,8 @@ public final class DownloadLedger {
         return kept;
     }
 
-    private void store(List<Job> jobs) { store(jobs, null); }
+    /** A request handed to Android's Downloads or a picker save: the rows that can stop a pin saving twice. */
+    private static boolean counts(Job job) { return job.id >= 0 || job.state == State.SAVED; }
 
     /** Writes the visible history, and [earlier] too unless it's null, in one commit. */
     private void store(List<Job> jobs, List<Job> earlier) {

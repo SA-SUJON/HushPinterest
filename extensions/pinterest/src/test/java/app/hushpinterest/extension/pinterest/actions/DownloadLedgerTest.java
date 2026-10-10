@@ -209,6 +209,46 @@ public class DownloadLedgerTest {
         assertFalse(preferences().getString(DownloadLedger.EARLIER, "").contains(",7\n"));
     }
 
+    @Test public void removingAResultThatNeverCountedKeepsThePinsEarlierDownloads() throws Exception {
+        owned("7", DownloadManager.STATUS_SUCCESSFUL);
+        for (int i = 0; i < DownloadLedger.LIMIT; i++) assertTrue(DownloadLedger.recordResult(app, Integer.toString(100 + i), DownloadLedger.State.SAVED));
+        assertTrue(DownloadLedger.recordResult(app, "7", DownloadLedger.State.SKIPPED));
+        long skipped = new DownloadLedger(app).reconcile().get(0).id;
+
+        assertTrue(DownloadLedger.removeHistory(app, skipped, null));
+        settle();
+        assertTrue(DownloadLedger.downloadedPinIds(app).contains("7"));
+        assertTrue(preferences().getString(DownloadLedger.EARLIER, "").startsWith("-"));
+        assertTrue(preferences().getString(DownloadLedger.EARLIER, "").endsWith("\n0,7\n"));
+    }
+
+    @Test public void removingARowThatMovedToTheEarlierHistoryStillForgetsIt() throws Exception {
+        long first = owned("7", DownloadManager.STATUS_SUCCESSFUL);
+        // The dialog still shows the row, but newer saves have pushed it out of the visible history.
+        for (int i = 0; i < DownloadLedger.LIMIT; i++) assertTrue(DownloadLedger.recordResult(app, Integer.toString(100 + i), DownloadLedger.State.SAVED));
+
+        assertTrue(DownloadLedger.removeHistory(app, first, null));
+        settle();
+        assertFalse(DownloadLedger.downloadedPinIds(app).contains("7"));
+        assertEquals(DownloadLedger.LIMIT, new DownloadLedger(app).reconcile().size());
+        assertEquals("", preferences().getString(DownloadLedger.EARLIER, ""));
+        assertEquals("History removed. Files and active downloads were kept.", ShadowToast.getTextOfLatestToast());
+        assertNotNull(nativeJobs.getRequest(first));
+    }
+
+    @Test public void aNewSaveKeyNeverReusesOneTheEarlierHistoryHolds() {
+        // The keys a clock set back would hand out again: the next 500 milliseconds' worth.
+        long now = System.currentTimeMillis();
+        StringBuilder earlier = new StringBuilder();
+        for (int i = 0; i < DownloadLedger.EARLIER_LIMIT; i++) earlier.append(-(now + i)).append(',').append(5000 + i).append('\n');
+        preferences().edit().putString(DownloadLedger.EARLIER, earlier.toString()).commit();
+
+        assertTrue(DownloadLedger.recordResult(app, "77", DownloadLedger.State.SAVED));
+        long key = new DownloadLedger(app).reconcile().get(0).id;
+        assertTrue("reused an earlier key: " + key, key < -(now + DownloadLedger.EARLIER_LIMIT - 1));
+        assertEquals(DownloadLedger.EARLIER_LIMIT + 1, DownloadLedger.downloadedPinIds(app).size());
+    }
+
     @Test public void malformedOrOversizeEarlierHistoryCountsNothing() {
         preferences().edit().putString(DownloadLedger.EARLIER,
                 "5,321\n5,999\n-1,123\n-7,456\nbad,1\n6,bad\n7,1,extra\n9999999999999999999,2\n").commit();
