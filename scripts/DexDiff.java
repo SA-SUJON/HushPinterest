@@ -2895,11 +2895,16 @@ public class DexDiff {
                 if (m.getName().equals("<init>") && descriptor(m).equals("(Ljava/lang/String;I)V") && m.getImplementation() != null) inits.add(m);
             if (inits.size() != 1) { fail("share sendable has no single (String, int) constructor"); return; }
             Method init = inits.get(0);
-            int registers = init.getImplementation().getRegisterCount();
+            int registers = init.getImplementation().getRegisterCount(), self = parameter(init, -1);
             List<String> ids = new ArrayList<>(), kinds = new ArrayList<>();
+            // Stores into the sendable's own field of the parameter's type, through this, the same
+            // three things the patch requires, so a parameter forwarded elsewhere isn't counted.
             for (Instruction i : instructions(init)) {
-                if (i.getOpcode() == Opcode.IPUT_OBJECT && firstRegister(i) == registers - 2) ids.add(String.valueOf(reference(i)));
-                if (i.getOpcode() == Opcode.IPUT && firstRegister(i) == registers - 1) kinds.add(String.valueOf(reference(i)));
+                if (!(reference(i) instanceof FieldReference field) || !(i instanceof TwoRegisterInstruction two)
+                        || two.getRegisterB() != self || !field.getDefiningClass().equals(sendable)) continue;
+                if (i.getOpcode() == Opcode.IPUT_OBJECT && firstRegister(i) == registers - 2 && field.getType().equals("Ljava/lang/String;"))
+                    ids.add(String.valueOf(field));
+                if (i.getOpcode() == Opcode.IPUT && firstRegister(i) == registers - 1 && field.getType().equals("I")) kinds.add(String.valueOf(field));
             }
             if (ids.size() != 1 || kinds.size() != 1) { fail("share sendable constructor doesn't store one id and one kind"); return; }
             String own = BASE + "actions/SystemShare;->";
@@ -3397,7 +3402,7 @@ public class DexDiff {
                     if (reset != null) {
                         List<Instruction> body = instructions(reset);
                         int held = parameter(reset, 0), zero = firstRegister(body.get(1));
-                        if (firstRegister(body.get(0)) != held || ((NarrowLiteralInstruction) body.get(1)).getNarrowLiteral() != 0
+                        if (firstRegister(body.get(0)) != held || zero == held || ((NarrowLiteralInstruction) body.get(1)).getNarrowLiteral() != 0
                                 || firstRegister(body.get(2)) != zero || ((TwoRegisterInstruction) body.get(2)).getRegisterB() != held
                                 || firstRegister(body.get(3)) != zero || ((TwoRegisterInstruction) body.get(3)).getRegisterB() != held)
                             fail("long-press springs reset doesn't clear the button's own mark and driver from a zero");
@@ -3436,7 +3441,34 @@ public class DexDiff {
             Set<String> drivers = chainFields(starters.get(0), Opcode.IGET_OBJECT, types);
             drivers.retainAll(chainFields(starters.get(0), Opcode.IPUT_OBJECT, types));
             drivers.removeIf(field -> field.substring(field.lastIndexOf(':') + 1).startsWith("["));
-            return drivers.size() == 1 ? new String[]{flag, drivers.iterator().next()} : null;
+            if (drivers.size() != 1) return null;
+            String driver = drivers.iterator().next();
+            // Clearing the driver is only safe because the detach handler cancels it, which the
+            // patch requires too: a method the handler calls reads it and cancels that value.
+            Set<String> calls = new HashSet<>();
+            for (Instruction i : instructions(detaches.get(0)))
+                if (reference(i) instanceof MethodReference call && types.contains(call.getDefiningClass())
+                        && call.getParameterTypes().isEmpty() && call.getReturnType().equals("V")) calls.add(call.getName());
+            for (Method method : methods)
+                if (calls.contains(method.getName()) && method.getParameterTypes().isEmpty() && cancels(method, driver))
+                    return new String[]{flag, driver};
+            return null;
+        }
+
+        /** Whether [m] reads [driver] and then calls a (CancellationException)V method, a Job's cancel, on the value it read. */
+        boolean cancels(Method m, String driver) {
+            List<Instruction> body = instructions(m);
+            for (int at = 0; at < body.size(); at++) {
+                if (body.get(at).getOpcode() != Opcode.IGET_OBJECT || !driver.equals(String.valueOf(reference(body.get(at))))) continue;
+                int held = firstRegister(body.get(at));
+                for (Instruction next : body.subList(at + 1, body.size())) {
+                    if (reference(next) instanceof MethodReference call && call.getReturnType().equals("V")
+                            && descriptor(call).equals("(Ljava/util/concurrent/CancellationException;)V")
+                            && arguments(next).size() == 2 && arguments(next).get(0) == held) return true;
+                    if (!next.getOpcode().canContinue() || next.getOpcode().setsRegister() && firstRegister(next) == held) break;
+                }
+            }
+            return false;
         }
 
         /** The fields of [types] that [m] touches with [opcode]. */
