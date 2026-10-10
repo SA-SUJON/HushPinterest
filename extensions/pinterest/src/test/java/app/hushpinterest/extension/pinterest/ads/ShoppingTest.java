@@ -29,6 +29,7 @@ public class ShoppingTest {
         @Json("is_shoppable") Boolean shoppable;
         @Json("is_sponsored") Boolean sponsored;
         @Json("is_eligible_for_related_products") Boolean eligible;
+        @Json("is_eligible_for_pdp") Boolean productPage;
         @Json("featured_board_metadata") Object featured;
         @Json("story_type") Object story;
     }
@@ -59,6 +60,11 @@ public class ShoppingTest {
         assertTrue(Shopping.isShopping(model));
         model.story = Kind.RELATED_RECIPES_COLLAGE;
         model.eligible = true;
+        assertFalse(Shopping.isShopping(model));
+        // A retailer's product pin, drawn with the shop's name and a tag (#6).
+        model.productPage = true;
+        assertTrue(Shopping.isShopping(model));
+        model.productPage = false;
         assertFalse(Shopping.isShopping(model));
         assertFalse(Shopping.isShopping(null));
         assertFalse(Shopping.isShopping(new Object()));

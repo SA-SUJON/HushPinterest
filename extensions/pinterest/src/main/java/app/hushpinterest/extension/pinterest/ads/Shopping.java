@@ -47,6 +47,9 @@ public final class Shopping {
         Map<String, Field> fields = ModelFields.of(item.getClass());
         if (ModelFields.isTrue(fields, item, "is_shoppable")) return true;
         if (ModelFields.isTrue(fields, item, "is_sponsored")) return true;
+        // A retailer's product pin that opens as a product page, drawn with the shop's name and a tag.
+        // Pinterest's own pin checks set it beside is_promoted; ordinary pins never carry it (#6).
+        if (ModelFields.isTrue(fields, item, "is_eligible_for_pdp")) return true;
         // A board only carries this metadata when it is a featured placement.
         if (ModelFields.isSet(fields, item, "featured_board_metadata")) return true;
         Object story = ModelFields.read(fields, item, "story_type");
