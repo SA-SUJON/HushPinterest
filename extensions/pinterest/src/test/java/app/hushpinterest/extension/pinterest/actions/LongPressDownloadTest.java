@@ -53,6 +53,7 @@ public class LongPressDownloadTest {
     private Activity activity;
 
     @Before public void prepare() {
+        NativeMenu.reattached.clear();
         activity = Robolectric.buildActivity(Activity.class).setup().get();
         Utils.setActivity(activity);
         PauseForTests.resume();
@@ -90,6 +91,23 @@ public class LongPressDownloadTest {
         List<DownloadLedger.Job> history = new DownloadLedger(activity).reconcile();
         assertEquals(1, history.size());
         assertEquals("7", history.get(0).pinId);
+    }
+
+    /**
+     * Taking Pinterest's buttons out to lay them out again marks their springs detached for good,
+     * as the real buttons' detach handler does, so each one put back gets the mark cleared. Without
+     * that they stayed at zero size on a phone and only Download showed.
+     */
+    @Test public void pinterestsButtonsPutBackCanStillSpringIn() {
+        Menu menu = menu(3);
+        List<Object> pinterest = new ArrayList<>(menu.items.subList(1, 4));
+        for (Object button : pinterest) assertTrue(((View) button).isAttachedToWindow());
+        menu.show(new Event(pin("7")));
+        for (Object button : pinterest) {
+            assertTrue(((View) button).isAttachedToWindow());
+            assertFalse(((Button) button).springsDetached);
+        }
+        assertEquals(pinterest, NativeMenu.reattached);
     }
 
     @Test public void showingTheSameButtonsAgainAddsOneDownloadButtonOnly() {
@@ -151,14 +169,30 @@ public class LongPressDownloadTest {
         assertEquals(before, menu.items);
         assertEquals(before.size(), menu.getChildCount());
         assertEquals(1, menu.layouts);
+        assertTrue(NativeMenu.reattached.isEmpty());
     }
 
+    /** A menu on screen, so its buttons attach and detach the way the real ones do. */
     private Menu menu(int buttons) {
         Menu menu = new Menu(activity);
+        activity.setContentView(menu);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
         List<Object> pinterest = new ArrayList<>();
-        for (int i = 0; i < buttons; i++) pinterest.add(new View(activity));
+        for (int i = 0; i < buttons; i++) pinterest.add(new Button(activity));
         menu.layout(pinterest);
         return menu;
+    }
+
+    /** One of Pinterest's buttons: leaving the window marks its springs detached, and nothing clears it. */
+    static final class Button extends View {
+        boolean springsDetached;
+
+        Button(Context context) { super(context); }
+
+        @Override protected void onDetachedFromWindow() {
+            super.onDetachedFromWindow();
+            springsDetached = true;
+        }
     }
 
     private static Object pin(String id) {
@@ -221,6 +255,11 @@ public class LongPressDownloadTest {
         @Implementation protected static String modelId(Object model) { return (String) ((Map<?, ?>) model).get("id"); }
         @Implementation protected static ArrayList<Object> menuItems(Object menu) { return ((Menu) menu).items; }
         @Implementation protected static void layoutItems(Object menu, List<Object> buttons) { ((Menu) menu).layout(buttons); }
+        static final List<Object> reattached = new ArrayList<>();
+        @Implementation protected static void springsReattached(Object button) {
+            ((Button) button).springsDetached = false;
+            reattached.add(button);
+        }
         @Implementation protected static View downloadItem(Context context) { return new View(context); }
     }
 }

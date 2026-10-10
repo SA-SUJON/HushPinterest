@@ -30,6 +30,9 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
  * just laid out, adds Pinterest's own Download button after them and has the menu lay them out
  * again, so the arc, the entry animation and release-to-select all come from Pinterest.
  *
+ * <p>Pinterest's buttons are taken out and put back for that, and a button taken out marks its
+ * springs detached for good, so the hook clears that mark on each one it put back.
+ *
  * <p>The menu's touch handling calls performClick() on the button under the finger before it
  * closes, so a plain click listener is enough. The pin is held weakly, and a click only downloads
  * while the menu still names that pin: Pinterest clears the name when the menu closes.
@@ -53,6 +56,14 @@ public final class LongPressDownload {
 
     /** Rewritten to hand the menu a new button list through its own layout method. */
     private static void layoutItems(Object menu, List<Object> buttons) {}
+
+    /**
+     * Rewritten to clear a menu button's detached mark and the spring driver its detach cancelled.
+     * Taking a button out of the menu runs its detach handler, which marks it detached for good,
+     * and a marked button never starts its springs again, so it would stay at the zero size it
+     * starts at.
+     */
+    private static void springsReattached(Object button) {}
 
     /**
      * Rewritten to build Pinterest's own menu button with its Download icon and "Download" label,
@@ -102,6 +113,9 @@ public final class LongPressDownload {
             for (Object laid : laidOut) group.removeView((View) laid);
             laidOut.clear();
             layoutItems(menu, buttons);
+            // Pinterest's buttons went out of the menu and back in, so they get their springs back
+            // before the show method springs them in. Download was never out.
+            for (int at = 0; at < buttons.size() - 1; at++) springsReattached(buttons.get(at));
             Logger.printDebug(() -> "Long-press menu after Download: " + laidOut.size() + " laid out, " + group.getChildCount() + " children");
             HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "download button added to long-press menu");
         } catch (Throwable failure) {

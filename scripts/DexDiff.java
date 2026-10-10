@@ -3226,9 +3226,10 @@ public class DexDiff {
 
         /**
          * The long-press menu's Download button: one call at the head of the menu's show method with
-         * the menu and its event, nothing borrowed, and six stubs bound to the members the clean APK
+         * the menu and its event, nothing borrowed, and seven stubs bound to the members the clean APK
          * has for them: the event's pin, the menu's shown id, the pin's id getter, the menu's button
-         * list and layout method, and Pinterest's own button model, icon, string, factory and styler.
+         * list and layout method, a button's detached mark and spring driver, and Pinterest's own
+         * button model, icon, string, factory and styler.
          */
         void longPress(Contract c) {
             String menuType = c.strings.get(1);
@@ -3350,8 +3351,67 @@ public class DexDiff {
                             || !arguments(body.get(7)).equals(List.of(shaped)) || firstRegister(body.get(8)) != shaped)
                         fail("long-press download button stub builds the button from the wrong registers");
                 }
+                // A button the hook put back gets its springs back: the boolean its detach handler
+                // sets and the job that handler cancels, both cleared from one zero.
+                String[] springs = springReset(item);
+                if (springs == null) {
+                    fail("long-press menu button has no single detached mark and spring driver to clear");
+                    resolved = false;
+                } else {
+                    Method reset = stub(own + "springsReattached(Ljava/lang/Object;)V", List.of(Opcode.CHECK_CAST, Opcode.CONST_4,
+                            Opcode.IPUT_BOOLEAN, Opcode.IPUT_OBJECT, Opcode.RETURN_VOID), Arrays.asList(item, null, springs[0], springs[1], null));
+                    if (reset != null) {
+                        List<Instruction> body = instructions(reset);
+                        int held = parameter(reset, 0), zero = firstRegister(body.get(1));
+                        if (firstRegister(body.get(0)) != held || ((NarrowLiteralInstruction) body.get(1)).getNarrowLiteral() != 0
+                                || firstRegister(body.get(2)) != zero || ((TwoRegisterInstruction) body.get(2)).getRegisterB() != held
+                                || firstRegister(body.get(3)) != zero || ((TwoRegisterInstruction) body.get(3)).getRegisterB() != held)
+                            fail("long-press springs reset doesn't clear the button's own mark and driver from a zero");
+                    }
+                }
             }
             capability(c.callee, resolved);
+        }
+
+        /**
+         * A long-press menu button's detached mark and spring driver, found the way the patch finds
+         * them on the button's class chain: the one boolean its detach handler writes, and the one
+         * non-array object field that the method reading that boolean both reads and writes.
+         */
+        String[] springReset(String item) {
+            List<ClassDef> chain = new ArrayList<>();
+            for (ClassDef owner = clean.classes.get(item); owner != null;
+                    owner = owner.getSuperclass() == null ? null : clean.classes.get(owner.getSuperclass())) chain.add(owner);
+            Set<String> types = new HashSet<>();
+            List<Method> methods = new ArrayList<>();
+            for (ClassDef owner : chain) {
+                types.add(owner.getType());
+                for (Method method : owner.getMethods())
+                    if (method.getImplementation() != null && !AccessFlags.STATIC.isSet(method.getAccessFlags())) methods.add(method);
+            }
+            List<Method> detaches = new ArrayList<>();
+            for (Method method : methods) if (method.getName().equals("onDetachedFromWindow") && method.getParameterTypes().isEmpty()
+                    && method.getReturnType().equals("V")) detaches.add(method);
+            if (detaches.size() != 1) return null;
+            Set<String> flags = chainFields(detaches.get(0), Opcode.IPUT_BOOLEAN, types);
+            if (flags.size() != 1) return null;
+            String flag = flags.iterator().next();
+            List<Method> starters = new ArrayList<>();
+            for (Method method : methods) if (chainFields(method, Opcode.IGET_BOOLEAN, types).contains(flag)) starters.add(method);
+            if (starters.size() != 1) return null;
+            Set<String> drivers = chainFields(starters.get(0), Opcode.IGET_OBJECT, types);
+            drivers.retainAll(chainFields(starters.get(0), Opcode.IPUT_OBJECT, types));
+            drivers.removeIf(field -> field.substring(field.lastIndexOf(':') + 1).startsWith("["));
+            return drivers.size() == 1 ? new String[]{flag, drivers.iterator().next()} : null;
+        }
+
+        /** The fields of [types] that [m] touches with [opcode]. */
+        Set<String> chainFields(Method m, Opcode opcode, Set<String> types) {
+            Set<String> found = new TreeSet<>();
+            for (Instruction i : instructions(m))
+                if (i.getOpcode() == opcode && reference(i) instanceof FieldReference field && types.contains(field.getDefiningClass()))
+                    found.add(field.toString());
+            return found;
         }
 
         /** An extension stub the patch filled: these opcodes, naming these references, its input cast first. */

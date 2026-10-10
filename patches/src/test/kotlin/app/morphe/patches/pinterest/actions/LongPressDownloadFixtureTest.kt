@@ -74,6 +74,13 @@ class LongPressDownloadFixtureTest {
             assertEquals(build.name, listOf(face, "$face->${found.modelId.name}()Ljava/lang/String;"), stub("modelId"))
             assertEquals(build.name, listOf(CONTEXT_MENU, "$CONTEXT_MENU->${found.items.name}:Ljava/util/ArrayList;"), stub("menuItems"))
             assertEquals(build.name, listOf(CONTEXT_MENU, "$CONTEXT_MENU->${found.list.name}(Ljava/util/List;)V"), stub("layoutItems"))
+            // The detached mark is the boolean the detach handler sets and the driver is the job it
+            // cancels, both cleared from a zero so a put-back button springs in again.
+            assertEquals(build.name, "Z", found.springsDetached.type)
+            assertEquals(build.name, listOf(CONTEXT_MENU_ITEM, "${found.springsDetached}", "${found.springDriver}"), stub("springsReattached"))
+            assertEquals(build.name, listOf(Opcode.CHECK_CAST, Opcode.CONST_4, Opcode.IPUT_BOOLEAN, Opcode.IPUT_OBJECT, Opcode.RETURN_VOID),
+                extension.methods.single { it.name == "springsReattached" }.implementation!!.instructions.map { it.opcode })
+            println("${build.name}: springs reset ${found.springsDetached} and ${found.springDriver}")
             val item = stub("downloadItem")
             assertTrue(build.name, "${found.icon}->DOWNLOAD:${found.icon}" in item)
             assertTrue(build.name, "${found.strings}->download:I" in item)
@@ -204,6 +211,12 @@ class LongPressDownloadFixtureTest {
                 .map { it.parameterTypes[0].toString() }
             wanted += FixtureDex.classes(build, (events + icons + pin).toSet() - wanted.keys)
             wanted += FixtureDex.classes(build, wanted.getValue(pin).interfaces.toSet() - wanted.keys)
+            // The button's own superclasses, where its detached mark and spring driver live.
+            var parent = wanted.getValue(CONTEXT_MENU_ITEM).superclass
+            while (parent != null && parent !in wanted && !parent.startsWith("Landroid/") && !parent.startsWith("Ljava/")) {
+                wanted += FixtureDex.classes(build, setOf(parent))
+                parent = wanted[parent]?.superclass
+            }
             wanted.values.toList()
         }
 

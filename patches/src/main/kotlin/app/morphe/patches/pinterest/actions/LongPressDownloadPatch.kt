@@ -59,7 +59,7 @@ internal const val BUTTON_STYLE_COLOR = "themed_sema_color_icon_inverse"
 internal const val DOWNLOAD_LABEL = "download"
 internal const val MENU_LABEL = "contextmenu_share"
 
-internal val LONG_PRESS_STUBS = listOf("eventPin", "menuModel", "modelId", "menuItems", "layoutItems", "downloadItem")
+internal val LONG_PRESS_STUBS = listOf("eventPin", "menuModel", "modelId", "menuItems", "layoutItems", "springsReattached", "downloadItem")
 
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
 private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
@@ -87,6 +87,10 @@ private fun isPublic(owner: ClassDef?) = owner != null && AccessFlags.PUBLIC.isS
  * @property model the show event's field holding what was long-pressed, typed as the pin's interface
  * @property modelId the interface's only abstract String getter, the id the menu keeps
  * @property shown the menu's only String field, which the show method fills from [modelId]
+ * @property springsDetached the boolean a button's detach handler sets, which keeps its springs
+ *           from ever starting again
+ * @property springDriver the spring driver job that detach handler cancels, which the springs'
+ *           start method only launches while it's null and the button isn't marked detached
  */
 internal class LongPressMenu(
     val list: Method,
@@ -102,7 +106,47 @@ internal class LongPressMenu(
     val factory: Method,
     val styler: Method,
     val strings: String,
+    val springsDetached: FieldReference,
+    val springDriver: FieldReference,
 )
+
+/**
+ * A menu button's detached mark and spring driver. The hook takes Pinterest's buttons out of the
+ * menu and puts them back, and taking one out runs its detach handler: that sets a boolean of the
+ * button's own and cancels its driver job, and the method that starts its springs only launches a
+ * driver while the job is null and the boolean is false. So a button put back never springs in.
+ * Both are found on the button's own class chain by that shape.
+ */
+private fun BytecodePatchContext.springReset(): Pair<FieldReference, FieldReference> {
+    val chain = generateSequence(classDefByOrNull(CONTEXT_MENU_ITEM)) { owner -> owner.superclass?.let { classDefByOrNull(it) } }.toList()
+    val types = chain.map { it.type }.toSet()
+    val methods = chain.flatMap { it.methods }.filter { it.implementation != null && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    fun Method.fields(opcode: Opcode) = instructionList().filter { it.opcode == opcode }
+        .map { (it as ReferenceInstruction).reference as FieldReference }.filter { it.definingClass in types }
+    val detach = methods.filter { it.name == "onDetachedFromWindow" && it.parameterTypes.isEmpty() && it.returnType == "V" }
+        .only("the menu button's detach handler")
+    val flag = detach.fields(Opcode.IPUT_BOOLEAN).distinctBy { "$it" }.only("the menu button's detached mark")
+    val starter = methods.filter { method -> method.fields(Opcode.IGET_BOOLEAN).any { "$it" == "$flag" } }
+        .only("the menu button's spring start method")
+    val written = starter.fields(Opcode.IPUT_OBJECT).map { "$it" }.toSet()
+    val driver = starter.fields(Opcode.IGET_OBJECT).filter { !it.type.startsWith("[") && "$it" in written }.distinctBy { "$it" }
+        .only("the menu button's spring driver")
+    // Clearing the driver is only safe because the detach handler cancels it: a running one would
+    // step the springs twice beside the new one.
+    val calls = detach.instructionList().mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference) }
+        .filter { it.definingClass in types && it.parameterTypes.isEmpty() && it.returnType == "V" }.map { it.name }.toSet()
+    if (methods.none { it.name in calls && it.parameterTypes.isEmpty() && it.fields(Opcode.IGET_OBJECT).any { field -> "$field" == "$driver" } }) {
+        throw PatchException("$PATCH: the menu button's detach handler no longer cancels its spring driver")
+    }
+    for (field in listOf(flag, driver)) {
+        val owner = chain.single { it.type == field.definingClass }
+        if (!isPublic(owner) || owner.fields.none { it.name == field.name && it.type == field.type &&
+                AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) }) {
+            throw PatchException("$PATCH: the menu button's ${field.name} isn't a public field of a public class")
+        }
+    }
+    return flag to driver
+}
 
 internal fun BytecodePatchContext.longPressMenu(): LongPressMenu {
     val menu = classDefByOrNull(CONTEXT_MENU) ?: throw PatchException("$PATCH: this build has no long-press menu")
@@ -217,7 +261,9 @@ internal fun BytecodePatchContext.longPressMenu(): LongPressMenu {
     if (!isPublic(stringsClass) || stringsClass.fields.none { it.name == DOWNLOAD_LABEL && AccessFlags.PUBLIC.isSet(it.accessFlags) }) {
         throw PatchException("$PATCH: Pinterest's $DOWNLOAD_LABEL string isn't public")
     }
-    return LongPressMenu(list, items, show, event, model, pin, modelId, shown, buttonModel, icon, factory, styler, stringsClass.type)
+    val (springsDetached, springDriver) = springReset()
+    return LongPressMenu(list, items, show, event, model, pin, modelId, shown, buttonModel, icon, factory, styler, stringsClass.type,
+        springsDetached, springDriver)
 }
 
 private fun Instruction.namedRegistersOf(): List<Int> = when (this) {
@@ -288,6 +334,15 @@ val longPressDownloadPatch = bytecodePatch(
         writeStub(LONG_PRESS, "layoutItems", 2, """
             check-cast p0, $CONTEXT_MENU
             invoke-virtual { p0, p1 }, $CONTEXT_MENU->${found.list.name}(Ljava/util/List;)V
+            return-void
+        """)
+        // The menu hands its layout method only its own button type, so the cast holds for every
+        // button the extension puts back. Zero is false for the mark and null for the driver.
+        writeStub(LONG_PRESS, "springsReattached", 2, """
+            check-cast p0, $CONTEXT_MENU_ITEM
+            const/4 v0, 0x0
+            iput-boolean v0, p0, ${found.springsDetached}
+            iput-object v0, p0, ${found.springDriver}
             return-void
         """)
         // Pinterest's own label and description string, "Download", and a null click: the extension
