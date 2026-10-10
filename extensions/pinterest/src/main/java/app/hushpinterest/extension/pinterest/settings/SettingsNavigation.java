@@ -122,7 +122,7 @@ final class SettingsNavigation extends BaseAdapter {
         support = link(context, L10n.t("Support HushPinterest"), L10n.t("Buy me a coffee on Ko-fi"), SettingsIcons.OPENING);
         support.setKey(HushPinterestPreferenceFragment.SUPPORT);
         support.setOnPreferenceClickListener(row -> { HushPinterestPreferenceFragment.openSupport(row.getContext()); return true; });
-        empty =new HushPinterestPreferenceFragment.Row(context);
+        empty = new HushPinterestPreferenceFragment.Row(context);
         empty.setTitle(L10n.t("No matching settings"));
         empty.setSummary(L10n.t("Try a different word or clear the search."));
         empty.setSelectable(false);
