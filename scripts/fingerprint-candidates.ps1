@@ -25,21 +25,21 @@
     build and the transitions confirmed on it, so until then -Calibrate takes -CalibrationPath.
 
     An APK argument is a path to an .apk, .apkm or .xapk, or a version that names exactly one fixture
-    in the folder HUSHPINTEREST_FIXTURE_DIR names, such as 14.25.0 or 14.25.0-14258020.
+    in the folder HUSHPINTEREST_FIXTURE_DIR names, such as 14.38.0 or 14.38.0-14388010.
 
 .EXAMPLE
-    scripts/fingerprint-candidates.ps1 -OldApk 14.24.0 -Method '<descriptor>' -NewApk 14.25.0
+    scripts/fingerprint-candidates.ps1 -OldApk 14.37.0 -Method '<descriptor>' -NewApk 14.38.0
 
 .EXAMPLE
-    scripts/fingerprint-candidates.ps1 -OldApk 14.25.0 -Method '<descriptor>' -SignaturePath feed-merge.json
+    scripts/fingerprint-candidates.ps1 -OldApk 14.38.0 -Method '<descriptor>' -SignaturePath feed-merge.json
 
     Captures the signature only, for a build that isn't out yet.
 
 .EXAMPLE
-    scripts/fingerprint-candidates.ps1 -Signature feed-merge.json -NewApk C:\bundles\pinterest-14.26.0.xapk
+    scripts/fingerprint-candidates.ps1 -Signature feed-merge.json -NewApk C:\bundles\pinterest-14.39.0.xapk
 
 .EXAMPLE
-    scripts/fingerprint-candidates.ps1 -Calibrate -CalibrationPath 14.25.0-to-14.26.0.txt -OldApk 14.25.0 -NewApk 14.26.0
+    scripts/fingerprint-candidates.ps1 -Calibrate -CalibrationPath 14.38.0-to-14.39.0.txt -OldApk 14.38.0 -NewApk 14.39.0
 
     Checks the ranking against transitions confirmed on a later pair of builds.
 #>

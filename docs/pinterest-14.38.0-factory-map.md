@@ -22,7 +22,7 @@ The factory reference is the universal APK named `pinterest-14.38.0-14388010.apk
 
 The signing certificate identifies the original Pinterest build. A patched copy is signed with a different key, so it is not a factory reference and cannot replace the original install in place. Never remove an existing install or its data just to compare signatures.
 
-The 14.25.0 target remains the Android 9 fallback: version code 14258020, minimum API 28. HushPinterest supports API 28 overall, while the 14.38.0 APK itself requires API 29.
+HushPinterest declares this build only, so a patched Pinterest needs Android 10 (API 29), the same floor as the original APK.
 
 This guide's package, manifest, DEX, resource, and signature facts come from the retained original APK. A first-run launch survey was captured on a clean Android 13 emulator with the original APK. The initial survey reached Pinterest's unauthenticated entry screen. A later [signed-in audit](pinterest-14.38.0-audit.md) adds factory Home, pin, search, sharing, creation-entry and settings observations, detailed ad/tracking traces, and a complete current patch reference.
 
@@ -99,7 +99,7 @@ The exported credentials provider is protected by `com.pinterest.account.Credent
 
 ## App surfaces and patch anchors
 
-The bottom-navigation enum declares five tab types: Create, Home, Notifications, Profile, and Search. The signed-in factory account actually displayed three bottom buttons, Home, Search and Saved, with Create and Inbox in the Home header. Enum membership is not a screenshot of every live navigation configuration. Its 14.38.0 enum is `de0/a`; the 14.25.0 enum is `wc0/a`. The app contains a custom Pinterest Gestalt component library, with RecyclerView-based feed and pin surfaces. Use the UI class and resource shape that owns the behavior being changed. A broadly named activity or container often hosts several unrelated modules.
+The bottom-navigation enum declares five tab types: Create, Home, Notifications, Profile, and Search. The signed-in factory account actually displayed three bottom buttons, Home, Search and Saved, with Create and Inbox in the Home header. Enum membership is not a screenshot of every live navigation configuration. Its 14.38.0 enum is `de0/a`. The app contains a custom Pinterest Gestalt component library, with RecyclerView-based feed and pin surfaces. Use the UI class and resource shape that owns the behavior being changed. A broadly named activity or container often hosts several unrelated modules.
 
 | Surface | 14.38.0 evidence | Why it is useful |
 |---|---|---|
@@ -177,7 +177,7 @@ The repository's target and acceptance code is split across:
 | Whole-catalog fixture verification | `scripts/verify-all-patches.ps1` |
 | Device installation safeguards | `scripts/patch-for-device.ps1`, `scripts/device-install.ps1`, `scripts/device-lease.ps1` |
 
-When Pinterest changes version, add and verify the new original fixture before retargeting. Re-run each fingerprint against both the new target and the Android 9 target. Update exact fixture facts and manifest expectations when the upstream manifest changes. Do not weaken a unique-match check to make a version pass. Use the repository build scripts and the [source build instructions](../README.md#building-from-source) for the current toolchain.
+When Pinterest changes version, add and verify the new original fixture before retargeting. Re-run each fingerprint against the new fixture and compare its match with the build it replaces. Update exact fixture facts and manifest expectations when the upstream manifest changes. Do not weaken a unique-match check to make a version pass. Use the repository build scripts and the [source build instructions](../README.md#building-from-source) for the current toolchain.
 
 ### Repeatable verification commands
 

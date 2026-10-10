@@ -16,7 +16,7 @@ import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 
-/** Both builds register screenshot observers through this permission-aware manager method. */
+/** The declared build registers screenshot observers through this permission-aware manager method. */
 @Suppress("unused")
 val hideScreenshotSharePatch = bytecodePatch(
     name = "No screenshot share menu",

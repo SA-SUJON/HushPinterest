@@ -42,10 +42,10 @@ function Invoke-FixtureGit([string[]]$Arguments) {
 }
 function Write-Catalog([string]$Package = 'com.pinterest', [switch]$NewestOnly,
         [switch]$MultipleCodes, [switch]$Unpinned) {
-    $targets = @([ordered]@{ version = '14.25.0'; versionCodes = [ordered]@{ UNIVERSAL = 14258020 } })
-    if ($MultipleCodes) { $targets[0].versionCodes['ARMEABI_V7A'] = 14258010 }
+    $targets = @([ordered]@{ version = '14.38.0'; versionCodes = [ordered]@{ UNIVERSAL = 14388010 } })
+    if ($MultipleCodes) { $targets[0].versionCodes['ARMEABI_V7A'] = 14388000 }
     if ($Unpinned) { $targets[0].Remove('versionCodes') }
-    if (-not $NewestOnly) { $targets += [ordered]@{ version = '14.24.0'; versionCodes = [ordered]@{ UNIVERSAL = 14248020 } } }
+    if (-not $NewestOnly) { $targets += [ordered]@{ version = '14.37.0'; versionCodes = [ordered]@{ UNIVERSAL = 14378010 } } }
     $packages = [ordered]@{}
     $packages[$Package] = @($targets | ForEach-Object { $_.version })
     [ordered]@{ patches = @([ordered]@{
@@ -109,18 +109,18 @@ try {
     $env:HUSHPINTEREST_FIXTURE_DIR = Join-Path $testRoot 'absent'
     Assert-HookFails '*which is not a folder*correct the path*'
     $env:HUSHPINTEREST_FIXTURE_DIR = $fixtures
-    Assert-HookFails '*pinterest-14.25.0-14258020.apk, pinterest-14.24.0-14248020.apk*'
-    Write-Fixture 'pinterest-14.25.0-14258020.apk'
-    Assert-HookFails '*missing retained com.pinterest build(s): pinterest-14.24.0-14248020.apk*'
-    Write-Fixture 'pinterest-14.24.0-14248010.apk'
-    Assert-HookFails '*pinterest-14.24.0-14248020.apk*'
-    $retained = Join-Path $fixtures 'pinterest-14.24.0-14248020.apk'
+    Assert-HookFails '*pinterest-14.38.0-14388010.apk, pinterest-14.37.0-14378010.apk*'
+    Write-Fixture 'pinterest-14.38.0-14388010.apk'
+    Assert-HookFails '*missing retained com.pinterest build(s): pinterest-14.37.0-14378010.apk*'
+    Write-Fixture 'pinterest-14.37.0-14378000.apk'
+    Assert-HookFails '*pinterest-14.37.0-14378010.apk*'
+    $retained = Join-Path $fixtures 'pinterest-14.37.0-14378010.apk'
     New-Item -ItemType Directory -Path $retained | Out-Null
-    Assert-HookFails '*pinterest-14.24.0-14248020.apk*'
+    Assert-HookFails '*pinterest-14.37.0-14378010.apk*'
     Remove-Item -LiteralPath $retained -Force
     [IO.File]::WriteAllBytes($retained, [byte[]]@())
-    Assert-HookFails '*pinterest-14.24.0-14248020.apk*'
-    Write-Fixture 'pinterest-14.24.0-14248020.apk'
+    Assert-HookFails '*pinterest-14.37.0-14378010.apk*'
+    Write-Fixture 'pinterest-14.37.0-14378010.apk'
     Invoke-FixtureHook
     $ran = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
     Assert-True ($ran.Required -eq '1' -and $ran.FixtureDir -eq $fixtures) 'The build did not receive strict fixture mode and an absolute fixture directory.'
@@ -129,13 +129,13 @@ try {
     $cases++
 
     Write-Catalog -MultipleCodes
-    Assert-HookFails '*pinterest-14.25.0-14258010.apk*'
-    Write-Fixture 'pinterest-14.25.0-14258010.apk'
+    Assert-HookFails '*pinterest-14.38.0-14388000.apk*'
+    Write-Fixture 'pinterest-14.38.0-14388000.apk'
     Invoke-FixtureHook
     Assert-True (Test-Path -LiteralPath $marker) 'All declared version codes did not allow the build to start.'
     $cases++
     Write-Catalog -Unpinned
-    Assert-HookFails '*requires exact version codes*14.25.0*'
+    Assert-HookFails '*requires exact version codes*14.38.0*'
     Write-Catalog -Package 'com.example.notpinterest'
     Assert-HookFails '*no retained fixture naming rule for com.example.notpinterest*'
     Write-Catalog
@@ -173,11 +173,11 @@ try {
     Invoke-FixtureGit @('commit', '--quiet', '-m', 'fixture current catalog') | Out-Null
     Remove-Item -LiteralPath $retained -Force
     $refs = "refs/heads/main $pushed refs/heads/main $base"
-    Assert-HookFails '*pinterest-14.24.0-14248020.apk*' -Refs $refs
-    Write-Fixture 'pinterest-14.24.0-14248020.apk'
+    Assert-HookFails '*pinterest-14.37.0-14378010.apk*' -Refs $refs
+    Write-Fixture 'pinterest-14.37.0-14378010.apk'
     Invoke-FixtureHook -Refs $refs
     $ran = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
-    Assert-True ($ran.ProjectDir -ne $repo -and @($ran.Versions) -contains '14.24.0') 'The gate checked HEAD instead of the pushed commit''s fixture catalog.'
+    Assert-True ($ran.ProjectDir -ne $repo -and @($ran.Versions) -contains '14.37.0') 'The gate checked HEAD instead of the pushed commit''s fixture catalog.'
     $cases++
     Write-Host "[fixtures] pre-push fixture contracts passed ($cases cases)"
 } finally {

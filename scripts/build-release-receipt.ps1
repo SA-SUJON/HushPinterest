@@ -27,7 +27,8 @@
     resource table against the stock one (ResourceTableCheck.java), and its injected code against
     Pinterest's, including every class and member it calls (verify-injected-registers.ps1). A patch
     can apply and still call something one build lacks. 0.0.3's System share sheet did, calling a
-    14.38.0 class on 14.25.0, and the receipt only read the CLI's verdicts. A finding stops the run.
+    class from one Pinterest build on another, and the receipt only read the CLI's verdicts. A
+    finding stops the run.
     Their reports stay in -WorkDir.
 
     The patched APKs are working files and are deleted on the way out, including after a failure.

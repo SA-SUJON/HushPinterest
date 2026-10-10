@@ -4,7 +4,7 @@ Inspected October 9, 2026. Part of the [factory app audit](pinterest-14.38.0-aud
 
 ## Tracking, attribution and privacy controls
 
-This section covers the original Pinterest 14.38.0 APK (version code 14388010) and HushPinterest source at `932f0c5`, inspected on October 9, 2026. Native descriptors below belong to that exact Pinterest build. The patch source also declares compatibility with 14.25.0, but a 14.38.0 descriptor must not be copied into a 14.25.0 fingerprint.
+This section covers the original Pinterest 14.38.0 APK (version code 14388010) and HushPinterest source at `932f0c5`, inspected on October 9, 2026. Native descriptors below belong to that exact Pinterest build, so don't copy one into a fingerprint for another Pinterest build.
 
 **Confirmed static** means the conclusion follows from an APK instruction, manifest declaration or current Hush source. **Candidate** identifies a useful patch investigation. **Unknown at runtime** means the audit hasn't established that the code ran or that data reached a server. An included SDK, permission or URL string doesn't establish transmission.
 

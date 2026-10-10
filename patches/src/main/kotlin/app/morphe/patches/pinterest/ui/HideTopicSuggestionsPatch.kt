@@ -36,7 +36,7 @@ private const val PATCH = "Hide topic suggestions"
 
 /**
  * Pinterest's log line for a topic row whose presenter is the wrong kind. It sits in the topic arm
- * of the binder, so it names the binder in both declared builds.
+ * of the binder, so it names the binder in the declared build.
  */
 internal const val TOPIC_BINDER_ANCHOR = "Presenter bound to BubblesListView must be of type BubblesListPresenter"
 

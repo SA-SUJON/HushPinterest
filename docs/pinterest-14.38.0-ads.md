@@ -86,9 +86,9 @@ These names document the schema. They do not prove a particular response populat
 | Ad-only views | Rewrite or add `setVisibility(int)` and `onMeasure(int,int)` on four named native view classes. | Forces GONE and zero measurement while active. A new ad renderer requires its own proven target. |
 | Google Mobile Ads | Find one nonstatic no-argument void method reading enum field `GOOGLE_MOBILE_ADS`; insert `Ads.skipGoogleAds()` and an early return. | Controls an initialization attempt. It does not actively shut down an existing SDK instance or replay a skipped attempt when a switch changes. |
 
-The holder identities are `e52.d`, `gu1.l0` and `bm2.c` in 14.38.0, and `k12.e`, `mr1.g0` and `kh2.b` in 14.25.0. The first holder has two eligible constructors in 14.38.0. A constructor's list register is discovered from its parameter types, so added non-list parameters don't require a fixed register number.
+The holder identities are `e52.d`, `gu1.l0` and `bm2.c` in 14.38.0. The first holder has two eligible constructors in 14.38.0. A constructor's list register is discovered from its parameter types, so added non-list parameters don't require a fixed register number.
 
-The four ad views are `TextAdView`, `LegacyPromotedCloseupActionButtonModule`, `PromotedPinCloseupFloatingActionBarModule` and `BoardSponsoredCuratorView`. Their complete names are in [FeedListAnchors.kt](../patches/src/main/kotlin/app/morphe/patches/pinterest/ads/FeedListAnchors.kt#L44). An inherited final method prevents an unsafe override.
+The four ad views are `TextAdView`, `LegacyPromotedCloseupActionButtonModule`, `PromotedPinCloseupFloatingActionBarModule` and `BoardSponsoredCuratorView`. Their complete names are in [FeedListAnchors.kt](../patches/src/main/kotlin/app/morphe/patches/pinterest/ads/FeedListAnchors.kt#L43). An inherited final method prevents an unsafe override.
 
 Read [FeedListHookPatch.kt](../patches/src/main/kotlin/app/morphe/patches/pinterest/ads/FeedListHookPatch.kt#L45), [HideAdsPatch.kt](../patches/src/main/kotlin/app/morphe/patches/pinterest/ads/HideAdsPatch.kt#L72) and [FeedFilter.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/FeedFilter.java#L31) before changing these sites.
 

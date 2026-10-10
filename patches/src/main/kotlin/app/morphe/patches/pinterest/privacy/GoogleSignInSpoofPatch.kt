@@ -26,12 +26,12 @@ internal const val SPOOFED_SIGNATURE_METADATA = "app.revanced.android.gms.SPOOFE
 /** The application meta-data signature spoofing modules such as XSpoofSignatures read: the certificate itself. */
 internal const val FAKE_SIGNATURE_METADATA = "fake-signature"
 
-/** SHA-1 of Pinterest's own signing certificate, the one both declared builds are signed with. */
+/** SHA-1 of Pinterest's own signing certificate, the one the declared build is signed with. */
 internal const val PINTEREST_CERTIFICATE_SHA1 = "b6a74dbcb894b0f73d8c485c72eb1247a8f027ca"
 
 /**
  * Pinterest's own signing certificate (CN=Carl Rice, OU=Android, O=Pinterest Inc), DER encoded,
- * as lowercase hex. Copied from the v2 and v3 signing blocks of both declared builds, and checked
+ * as lowercase hex. Copied from the v2 and v3 signing blocks of the declared build, and checked
  * against them by GoogleSignInSpoofManifestTest.
  */
 internal const val PINTEREST_CERTIFICATE_DER =

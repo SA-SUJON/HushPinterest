@@ -3612,7 +3612,7 @@ try {
 
     $apkm = Join-Path $commonRoot 'pinterest.apkm'
     $apkmEntries = [ordered]@{
-        'info.json' = '{"versioncode":"14258020"}'
+        'info.json' = '{"versioncode":"14388010"}'
         'base.apk' = 'base'
         'split_config.arm64_v8a.apk' = ('native code ' * 64)
     }
@@ -3838,7 +3838,7 @@ try {
     $releaseCatalogCopy = Get-Content -LiteralPath $releaseCatalogPath -Raw | ConvertFrom-Json
     $copiedTarget = Get-PatchTarget -PatchList $releaseCatalogCopy
     if (@($copiedTarget.PackageVersions).Count -lt 2) {
-        $previousBuild = '14.24.0'
+        $previousBuild = '14.37.0'
         foreach ($patch in @($releaseCatalogCopy.patches)) {
             $patch.compatiblePackages.($copiedTarget.PackageName) = @(@($patch.compatiblePackages.($copiedTarget.PackageName)) + $previousBuild)
             foreach ($compatibility in @($patch.compatibility | Where-Object { $_.packageName -eq $copiedTarget.PackageName })) {
@@ -4458,7 +4458,7 @@ try {
 
     # A patched fixture whose injected code fails the structural check, or calls a class or member
     # the build lacks, stops the run with no receipt. 0.0.3 shipped a System share sheet call into
-    # a 14.38.0 class on 14.25.0 because the builder read only the CLI's verdicts.
+    # a class from another Pinterest build because the builder read only the CLI's verdicts.
     $builtReceiptBeforeChecks = [System.IO.File]::ReadAllBytes($releaseReceipt)
     foreach ($broken in @(
             @{ Flag = 'dexdiff-fails.txt'; Pattern = '*failed its structural or host reference checks (exit 1)*' },

@@ -54,7 +54,7 @@ private const val URL_CALL = "Ljava/net/URL;->openConnection()Ljava/net/URLConne
 internal const val ENGAGE_BIND = "com.google.android.engage.BIND_APP_ENGAGE_SERVICE"
 private const val ENGAGE_UNAVAILABLE = "Lcom/google/android/engage/service/AppEngageException;"
 
-/** Whitelist from the API annotations in both declared original APKs. */
+/** Whitelist from the API annotations in the declared original APK. */
 internal val TELEMETRY_PATHS = setOf(
     "v3/callback/event/", "v3/callback/ping/", "v3/callback/post_install/",
     "v3/callback/track_funnel/{event}/", "v3/register/track_action/{event}/",
@@ -192,7 +192,7 @@ private fun BytecodePatchContext.analyticsPlan(): AnalyticsPlan {
         services.none { it.telemetryPath() == path && uploads.counts.getOrDefault(it.identity(), 0) > 0 }
     }
     if (missing.isNotEmpty()) throw PatchException("$PATCH: no callable telemetry endpoints for ${missing.joinToString()}")
-    // AppsFlyer and Bugsnag keep their packages in both APKs. Only their own URL calls are changed.
+    // AppsFlyer and Bugsnag keep their packages in the declared APK. Only their own URL calls are changed.
     val transport = mapOf(URL_CALL to "$ANALYTICS->openConnection(Ljava/net/URL;)Ljava/net/URLConnection;")
     val sdk = planPrivacyCalls(transport) { it.startsWith("Lcom/appsflyer/") }
     if (sdk.counts.values.sum() == 0) throw PatchException("$PATCH: AppsFlyer's URL transport wasn't found")

@@ -49,8 +49,8 @@ internal const val IMAGE_ORIGINAL = ", original="
  * its closeup shows the large one. While the switch is on, the set also asks for the original, and
  * the closeup shows the original whenever one arrived.
  *
- * Found by reading 14.38.0 and 14.25.0 (2026-10-05 and 2026-10-06). The model keeps its description
- * text in both, and the closeup builder and size set keep the same shape.
+ * Found by reading 14.38.0 (2026-10-05). The model keeps its description text, and the closeup
+ * builder and size set are matched by shape.
  */
 @Suppress("unused")
 val originalImagesPatch = bytecodePatch(

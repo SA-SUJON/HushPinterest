@@ -38,7 +38,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 private const val PATCH = "Hide ads"
 private const val ADS = "$EXTENSION_PACKAGE/ads/Ads;"
 
-/** The consent vendor Pinterest names when it starts Google's mobile ads SDK, an enum constant in both builds. */
+/** The consent vendor Pinterest names when it starts Google's mobile ads SDK, an enum constant. */
 internal const val GOOGLE_MOBILE_ADS = "GOOGLE_MOBILE_ADS"
 
 /**
@@ -53,9 +53,9 @@ internal const val GOOGLE_MOBILE_ADS = "GOOGLE_MOBILE_ADS"
  *
  * Pinterest's main screen also starts Google's mobile ads SDK for accounts in its GMA experiment.
  * That launch step returns first while the switch is on, so the SDK never starts and Pinterest's own
- * "started" check keeps every Google ad load, resume and pause path idle (2026-10-05, both builds).
+ * "started" check keeps every Google ad load, resume and pause path idle (2026-10-05).
  *
- * Found by reading 14.25.0 (2026-10-02). The four views keep their names in 14.38.0.
+ * The four views keep their names in 14.38.0.
  */
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(

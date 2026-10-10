@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** HushPinterest now patches Pinterest 14.38.0 only, which needs Android 10 or newer. On Android 9, keep HushPinterest 0.0.5 with Pinterest 14.25.0.
+
 * **Tooling:** Updated four runtime checks to match the current setup, link and download messages.
 
 * **Tooling:** A release now ends with `scripts/verify-published-index.ps1`. It asks GitHub for the latest release and for the patches-bundle.json that main serves, and fails when they disagree, naming any index commit that never got pushed. For most of October 7, v0.0.5 was out while the index still said 0.0.4, so Morphe Manager didn't offer the update to anyone on 0.0.4. Refs #3
