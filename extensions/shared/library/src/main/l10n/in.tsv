@@ -236,10 +236,12 @@ Download failed.	Unduhan gagal.
 Check Downloads for the saved file.	Periksa file yang disimpan di Unduhan.
 Saved in Pictures/100PINT/Pins.	Disimpan di Pictures/100PINT/Pins.
 Android no longer has this request. Check Downloads before saving again.	Android tidak lagi memiliki permintaan ini. Periksa Unduhan sebelum menyimpan lagi.
+Android no longer has this request. Check Pictures/100PINT/Pins before saving again.	Android tidak lagi memiliki permintaan ini. Periksa Pictures/100PINT/Pins sebelum menyimpan lagi.
 Couldn't check Downloads. Try again.	Tidak dapat memeriksa Unduhan. Coba lagi.
 Resume HushPinterest and turn on Download pins to retry.	Lanjutkan HushPinterest dan aktifkan Unduh pin untuk mencoba lagi.
 Open the pin again to get a fresh download link.	Buka pin lagi untuk mendapatkan tautan unduhan baru.
 This request can't be retried. Check Downloads or open the pin again.	Permintaan ini tidak dapat dicoba lagi. Periksa Unduhan atau buka pin lagi.
+This request can't be retried. Check Pictures/100PINT/Pins or open the pin again.	Permintaan ini tidak dapat dicoba lagi. Periksa Pictures/100PINT/Pins atau buka pin lagi.
 Download started, but its history couldn't be saved. Check Downloads.	Unduhan dimulai, tetapi riwayatnya tidak dapat disimpan. Periksa Unduhan.
 Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.	Unduhan dimulai, tetapi riwayatnya tidak dapat disimpan. Periksa Pictures/100PINT/Pins.
 History removed. Files and active downloads were kept.	Riwayat dihapus. File dan unduhan aktif tetap disimpan.
@@ -259,7 +261,9 @@ Set as wallpaper	Jadikan wallpaper
 Opens Android's Set as options for this saved image.	Membuka opsi Setel sebagai dari Android untuk gambar tersimpan ini.
 Set as	Setel sebagai
 Couldn't open Set as. Check Downloads for the saved file.	Setel sebagai tidak dapat dibuka. Cari file tersimpan di Download.
+Couldn't open Set as. Check Pictures/100PINT/Pins for the saved file.	Setel sebagai tidak dapat dibuka. Cari file tersimpan di Pictures/100PINT/Pins.
 This download isn't a finished image anymore. Check Downloads.	Unduhan ini bukan lagi gambar yang selesai. Periksa Download.
+This download isn't a finished image anymore. Check Pictures/100PINT/Pins.	Unduhan ini bukan lagi gambar yang selesai. Periksa Pictures/100PINT/Pins.
 Resume HushPinterest and turn on Download pins to use this.	Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk memakai ini.
 Remove from history	Hapus dari riwayat
 Removes this history entry. Files and active downloads are kept.	Menghapus entri riwayat ini. File dan unduhan aktif tetap disimpan.

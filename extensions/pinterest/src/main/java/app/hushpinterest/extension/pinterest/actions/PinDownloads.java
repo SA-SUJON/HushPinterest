@@ -251,12 +251,13 @@ public final class PinDownloads {
                     if (!active()) { report(after, Result.SKIPPED); return; }
                     DownloadManager manager = (DownloadManager) app.getSystemService(Context.DOWNLOAD_SERVICE);
                     if (manager == null) throw new IllegalStateException("Download service unavailable");
-                    long request = manager.enqueue(request(chosen, fileName(id, chosen)));
+                    boolean folder = inPinterestFolder();
+                    long request = manager.enqueue(request(chosen, fileName(id, chosen), folder));
                     if (request < 0) throw new IllegalStateException("Download service rejected pin");
-                    boolean tracked = DownloadLedger.record(app, request, id);
+                    boolean tracked = DownloadLedger.record(app, request, id, folder);
                     HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin queued in Downloads");
                     report(after, tracked ? Result.QUEUED : Result.QUEUED_UNTRACKED);
-                    if (after == null) Utils.showToastLong(startedMessage(tracked));
+                    if (after == null) Utils.showToastLong(startedMessage(tracked, folder));
                 } catch (Throwable failure) {
                     failed(QUEUE_FAILED, failure);
                     report(after, Result.FAILED);
@@ -286,8 +287,12 @@ public final class PinDownloads {
     static final String PINTEREST_FOLDER = "100PINT/Pins";
 
     static DownloadManager.Request request(PinMedia.Source source, String fileName) {
+        return request(source, fileName, inPinterestFolder());
+    }
+
+    /** [pinterestFolder] is read once by the caller, so the request, its history and its toast agree. */
+    static DownloadManager.Request request(PinMedia.Source source, String fileName, boolean pinterestFolder) {
         if (PinMedia.mediaUri(source.url) == null) throw new IllegalArgumentException("Not a public Pinterest media URL");
-        boolean pinterestFolder = inPinterestFolder();
         return new DownloadManager.Request(Uri.parse(source.url))
                 .setMimeType(source.mime)
                 .setTitle(L10n.t("Download pin"))
@@ -300,8 +305,8 @@ public final class PinDownloads {
      * The toast after a download is queued. It names the folder the download goes to, since
      * Android's Downloads list shows only the Download folder.
      */
-    static String startedMessage(boolean tracked) {
-        if (inPinterestFolder()) {
+    static String startedMessage(boolean tracked, boolean pinterestFolder) {
+        if (pinterestFolder) {
             return tracked ? L10n.t("Download started. Check Pictures/100PINT/Pins.")
                     : L10n.t("Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.");
         }
@@ -309,7 +314,10 @@ public final class PinDownloads {
                 : L10n.t("Download started, but its history couldn't be saved. Check Downloads.");
     }
 
-    /** Whether Android saved a download, by the local URI it reports, in Pinterest's folder. */
+    /**
+     * Whether a request's local URI is in Pinterest's folder. For a public folder Android reports
+     * the requested destination there, finished or not.
+     */
     static boolean savedInPinterestFolder(String localUri) {
         if (localUri == null) return false;
         String path = Uri.parse(localUri).getPath();

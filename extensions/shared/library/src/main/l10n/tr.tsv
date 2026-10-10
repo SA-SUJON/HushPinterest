@@ -236,10 +236,12 @@ Download failed.	İndirme başarısız oldu.
 Check Downloads for the saved file.	Kaydedilen dosya için İndirilenler'e bakın.
 Saved in Pictures/100PINT/Pins.	Pictures/100PINT/Pins klasörüne kaydedildi.
 Android no longer has this request. Check Downloads before saving again.	Android'de bu istek artık yok. Yeniden kaydetmeden önce İndirilenler'i kontrol edin.
+Android no longer has this request. Check Pictures/100PINT/Pins before saving again.	Android'de bu istek artık yok. Yeniden kaydetmeden önce Pictures/100PINT/Pins klasörünü kontrol edin.
 Couldn't check Downloads. Try again.	İndirilenler kontrol edilemedi. Yeniden deneyin.
 Resume HushPinterest and turn on Download pins to retry.	Yeniden denemek için HushPinterest'i sürdürün ve Pinleri indir'i açın.
 Open the pin again to get a fresh download link.	Yeni bir indirme bağlantısı almak için pini yeniden açın.
 This request can't be retried. Check Downloads or open the pin again.	Bu istek yeniden denenemiyor. İndirilenler'i kontrol edin veya pini yeniden açın.
+This request can't be retried. Check Pictures/100PINT/Pins or open the pin again.	Bu istek yeniden denenemiyor. Pictures/100PINT/Pins klasörünü kontrol edin veya pini yeniden açın.
 Download started, but its history couldn't be saved. Check Downloads.	İndirme başladı ancak geçmişi kaydedilemedi. İndirilenler'i kontrol edin.
 Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.	İndirme başladı ancak geçmişi kaydedilemedi. Pictures/100PINT/Pins klasörünü kontrol edin.
 History removed. Files and active downloads were kept.	Geçmiş kaldırıldı. Dosyalar ve etkin indirmeler korundu.
@@ -259,7 +261,9 @@ Set as wallpaper	Duvar kağıdı yap
 Opens Android's Set as options for this saved image.	Bu kayıtlı görsel için Android'in Farklı ayarla seçeneklerini açar.
 Set as	Farklı ayarla
 Couldn't open Set as. Check Downloads for the saved file.	Farklı ayarla açılamadı. Kayıtlı dosya için İndirilenler'e bak.
+Couldn't open Set as. Check Pictures/100PINT/Pins for the saved file.	Farklı ayarla açılamadı. Kayıtlı dosya için Pictures/100PINT/Pins klasörüne bak.
 This download isn't a finished image anymore. Check Downloads.	Bu indirme artık tamamlanmış bir görsel değil. İndirilenler'e bak.
+This download isn't a finished image anymore. Check Pictures/100PINT/Pins.	Bu indirme artık tamamlanmış bir görsel değil. Pictures/100PINT/Pins klasörüne bak.
 Resume HushPinterest and turn on Download pins to use this.	Bunu kullanmak için HushPinterest'i sürdür ve Pin indirmeyi aç.
 Remove from history	Geçmişten kaldır
 Removes this history entry. Files and active downloads are kept.	Bu geçmiş kaydını kaldırır. Dosyalar ve etkin indirmeler korunur.

@@ -236,10 +236,12 @@ Download failed.	Download fehlgeschlagen.
 Check Downloads for the saved file.	Sieh unter Downloads nach der gespeicherten Datei.
 Saved in Pictures/100PINT/Pins.	In Pictures/100PINT/Pins gespeichert.
 Android no longer has this request. Check Downloads before saving again.	Android hat diese Anfrage nicht mehr. Prüfe Downloads, bevor du erneut speicherst.
+Android no longer has this request. Check Pictures/100PINT/Pins before saving again.	Android hat diese Anfrage nicht mehr. Prüfe Pictures/100PINT/Pins, bevor du erneut speicherst.
 Couldn't check Downloads. Try again.	Downloads konnten nicht geprüft werden. Versuche es erneut.
 Resume HushPinterest and turn on Download pins to retry.	Setze HushPinterest fort und aktiviere Pins herunterladen, um es erneut zu versuchen.
 Open the pin again to get a fresh download link.	Öffne den Pin erneut, um einen aktuellen Download-Link zu erhalten.
 This request can't be retried. Check Downloads or open the pin again.	Diese Anfrage kann nicht erneut versucht werden. Prüfe Downloads oder öffne den Pin erneut.
+This request can't be retried. Check Pictures/100PINT/Pins or open the pin again.	Diese Anfrage kann nicht erneut versucht werden. Prüfe Pictures/100PINT/Pins oder öffne den Pin erneut.
 Download started, but its history couldn't be saved. Check Downloads.	Download gestartet, aber der Verlauf konnte nicht gespeichert werden. Prüfe Downloads.
 Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.	Download gestartet, aber der Verlauf konnte nicht gespeichert werden. Prüfe Pictures/100PINT/Pins.
 History removed. Files and active downloads were kept.	Verlauf entfernt. Dateien und laufende Downloads bleiben erhalten.
@@ -259,7 +261,9 @@ Set as wallpaper	Als Hintergrund festlegen
 Opens Android's Set as options for this saved image.	Öffnet Androids Optionen unter „Festlegen als“ für dieses gespeicherte Bild.
 Set as	Festlegen als
 Couldn't open Set as. Check Downloads for the saved file.	„Festlegen als“ konnte nicht geöffnet werden. Sieh in den Downloads nach der gespeicherten Datei.
+Couldn't open Set as. Check Pictures/100PINT/Pins for the saved file.	„Festlegen als“ konnte nicht geöffnet werden. Sieh in Pictures/100PINT/Pins nach der gespeicherten Datei.
 This download isn't a finished image anymore. Check Downloads.	Dieser Download ist kein fertiges Bild mehr. Sieh in den Downloads nach.
+This download isn't a finished image anymore. Check Pictures/100PINT/Pins.	Dieser Download ist kein fertiges Bild mehr. Sieh unter Pictures/100PINT/Pins nach.
 Resume HushPinterest and turn on Download pins to use this.	Setze HushPinterest fort und schalte Pins herunterladen ein, um das zu verwenden.
 Remove from history	Aus Verlauf entfernen
 Removes this history entry. Files and active downloads are kept.	Entfernt diesen Verlaufseintrag. Dateien und laufende Downloads bleiben erhalten.

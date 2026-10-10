@@ -236,10 +236,12 @@ Download failed.	La descarga falló.
 Check Downloads for the saved file.	Busca el archivo guardado en Descargas.
 Saved in Pictures/100PINT/Pins.	Guardado en Pictures/100PINT/Pins.
 Android no longer has this request. Check Downloads before saving again.	Android ya no tiene esta solicitud. Revisa Descargas antes de volver a guardar.
+Android no longer has this request. Check Pictures/100PINT/Pins before saving again.	Android ya no tiene esta solicitud. Revisa Pictures/100PINT/Pins antes de volver a guardar.
 Couldn't check Downloads. Try again.	No se pudo consultar Descargas. Inténtalo de nuevo.
 Resume HushPinterest and turn on Download pins to retry.	Reanuda HushPinterest y activa Descargar pines para volver a intentarlo.
 Open the pin again to get a fresh download link.	Abre el pin de nuevo para obtener un enlace de descarga actualizado.
 This request can't be retried. Check Downloads or open the pin again.	Esta solicitud no puede repetirse. Revisa Descargas o abre el pin de nuevo.
+This request can't be retried. Check Pictures/100PINT/Pins or open the pin again.	Esta solicitud no puede repetirse. Revisa Pictures/100PINT/Pins o abre el pin de nuevo.
 Download started, but its history couldn't be saved. Check Downloads.	La descarga comenzó, pero no se pudo guardar su historial. Revisa Descargas.
 Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.	La descarga comenzó, pero no se pudo guardar su historial. Revisa Pictures/100PINT/Pins.
 History removed. Files and active downloads were kept.	Historial eliminado. Se conservaron los archivos y las descargas activas.
@@ -259,7 +261,9 @@ Set as wallpaper	Usar como fondo de pantalla
 Opens Android's Set as options for this saved image.	Abre las opciones de Android para usar esta imagen guardada.
 Set as	Usar como
 Couldn't open Set as. Check Downloads for the saved file.	No se pudo abrir Usar como. Busca el archivo guardado en Descargas.
+Couldn't open Set as. Check Pictures/100PINT/Pins for the saved file.	No se pudo abrir Usar como. Busca el archivo guardado en Pictures/100PINT/Pins.
 This download isn't a finished image anymore. Check Downloads.	Esta descarga ya no es una imagen terminada. Revisa Descargas.
+This download isn't a finished image anymore. Check Pictures/100PINT/Pins.	Esta descarga ya no es una imagen terminada. Revisa Pictures/100PINT/Pins.
 Resume HushPinterest and turn on Download pins to use this.	Reanuda HushPinterest y activa Descargar Pines para usar esto.
 Remove from history	Eliminar del historial
 Removes this history entry. Files and active downloads are kept.	Elimina esta entrada del historial. Se conservan los archivos y las descargas activas.

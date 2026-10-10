@@ -76,7 +76,8 @@ public final class DownloadLedger {
         private final PinMedia.Source source;
         // The image type of a request Android finished. Read from Android, never persisted.
         private final String image;
-        // Whether Android saved a finished request in Pinterest's folder. Read from Android, never persisted.
+        // Whether the request goes to Pinterest's folder: kept with the request (",P") when it's
+        // queued, and read from the destination Android reports while it still has the request.
         private final boolean pinterestFolder;
 
         private Job(long id, String pinId, long createdAt, State state, int reason, PinMedia.Source source) {
@@ -96,7 +97,7 @@ public final class DownloadLedger {
         }
 
         private Job with(State state, int reason, PinMedia.Source source) {
-            return with(state, reason, source, null, false);
+            return with(state, reason, source, null, pinterestFolder);
         }
 
         private Job with(State state, int reason, PinMedia.Source source, String image, boolean pinterestFolder) {
@@ -156,20 +157,31 @@ public final class DownloadLedger {
                 // Android's Downloads list shows only the Download folder.
                 return pinterestFolder ? L10n.t("Saved in Pictures/100PINT/Pins.") : L10n.t("Check Downloads for the saved file.");
             }
-            if (state == State.MISSING) return L10n.t("Android no longer has this request. Check Downloads before saving again.");
+            if (state == State.MISSING) {
+                return pinterestFolder ? L10n.t("Android no longer has this request. Check Pictures/100PINT/Pins before saving again.")
+                        : L10n.t("Android no longer has this request. Check Downloads before saving again.");
+            }
             if (state == State.UNAVAILABLE) return L10n.t("Couldn't check Downloads. Try again.");
             return "";
         }
     }
 
-    /** Call after native enqueue on its worker. Only the returned ID is an ownership claim. */
+    /** A request queued to Download. */
     public static boolean record(Context context, long id, String pinId) {
+        return record(context, id, pinId, false);
+    }
+
+    /**
+     * Call after native enqueue on its worker. Only the returned ID is an ownership claim.
+     * [pinterestFolder] is where the request was told to save.
+     */
+    public static boolean record(Context context, long id, String pinId, boolean pinterestFolder) {
         if (context == null || !Utils.isMainProcess() ||
                 id < 0 || pinId == null || !pinId.matches("[0-9]{1,30}")) return false;
         try {
             DownloadLedger ledger = new DownloadLedger(context);
             synchronized (LOCK) {
-                ledger.insert(id, pinId, -1);
+                ledger.insert(id, pinId, -1, pinterestFolder);
             }
             return true;
         } catch (RuntimeException failure) {
@@ -319,7 +331,8 @@ public final class DownloadLedger {
     public static boolean setAs(Context context, Job job) {
         if (context == null || job == null || !job.canSetAs()) return false;
         Context app = application(context);
-        String error = L10n.t("Couldn't open Set as. Check Downloads for the saved file.");
+        String error = job.pinterestFolder ? L10n.t("Couldn't open Set as. Check Pictures/100PINT/Pins for the saved file.")
+                : L10n.t("Couldn't open Set as. Check Downloads for the saved file.");
         boolean scheduled = Utils.runOnBackgroundThread(() -> {
             try {
                 if (!PinDownloads.active()) {
@@ -337,7 +350,8 @@ public final class DownloadLedger {
                     }
                 }
                 if (mime == null) {
-                    Utils.showToastLong(L10n.t("This download isn't a finished image anymore. Check Downloads."));
+                    Utils.showToastLong(job.pinterestFolder ? L10n.t("This download isn't a finished image anymore. Check Pictures/100PINT/Pins.")
+                            : L10n.t("This download isn't a finished image anymore. Check Downloads."));
                     return;
                 }
                 Uri file = manager.getUriForDownloadedFile(job.id);
@@ -385,9 +399,10 @@ public final class DownloadLedger {
                 return;
             }
             if (!current.canRetry()) {
-                Utils.showToastLong(L10n.t(current.state == State.MISSING || current.state == State.FAILED
-                        ? "Open the pin again to get a fresh download link."
-                        : "This request can't be retried. Check Downloads or open the pin again."));
+                Utils.showToastLong(current.state == State.MISSING || current.state == State.FAILED
+                        ? L10n.t("Open the pin again to get a fresh download link.")
+                        : current.pinterestFolder ? L10n.t("This request can't be retried. Check Pictures/100PINT/Pins or open the pin again.")
+                        : L10n.t("This request can't be retried. Check Downloads or open the pin again."));
                 return;
             }
             if (!PinDownloads.active()) {
@@ -395,19 +410,20 @@ public final class DownloadLedger {
                 return;
             }
             String name = "Pinterest_" + current.pinId + "_" + Long.toUnsignedString(System.nanoTime()) + current.source.suffix;
-            long next = manager().enqueue(PinDownloads.request(current.source, name));
+            boolean folder = PinDownloads.inPinterestFolder();
+            long next = manager().enqueue(PinDownloads.request(current.source, name, folder));
             if (next < 0) throw new IllegalStateException("Download service rejected retry");
             // Enqueue and preference persistence cannot be one transaction. Never remove the
             // native request or file to undo a bookkeeping failure, and never retry automatically.
             boolean saved = false;
             try {
-                insert(next, current.pinId, id);
+                insert(next, current.pinId, id, folder);
                 saved = true;
             } catch (RuntimeException failure) {
                 HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "record native download retry", failure);
             }
             HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "native download retry queued");
-            Utils.showToastLong(PinDownloads.startedMessage(saved));
+            Utils.showToastLong(PinDownloads.startedMessage(saved, folder));
         }
     }
 
@@ -453,7 +469,8 @@ public final class DownloadLedger {
                     // an image, or guess a type when Android no longer has that contract.
                     if (source != null && !source.mime.equalsIgnoreCase(mime)) source = null;
                 }
-                boolean folder = state == State.COMPLETED && localColumn >= 0
+                // For a public folder, Android reports the requested destination in every state.
+                boolean folder = job.pinterestFolder || localColumn >= 0
                         && PinDownloads.savedInPinterestFolder(cursor.getString(localColumn));
                 results.put(id, job.with(state, reason, source, state == State.COMPLETED ? image(mime) : null, folder));
             }
@@ -485,8 +502,10 @@ public final class DownloadLedger {
         if (text == null || text.length() > 4096) return jobs;
         for (String line : text.split("\n")) {
             String[] fields = line.split(",", -1);
-            boolean local = fields.length == 4 && fields[0].matches("-[0-9]{1,19}");
-            if ((!local && (fields.length != 3 || !fields[0].matches("[0-9]{1,19}"))) ||
+            // A native request saved in Pinterest's folder ends in ",P"; a local outcome in its state.
+            boolean folder = fields.length == 4 && fields[3].equals("P");
+            boolean local = !folder && fields.length == 4 && fields[0].matches("-[0-9]{1,19}");
+            if ((!local && (fields.length != (folder ? 4 : 3) || !fields[0].matches("[0-9]{1,19}"))) ||
                     !fields[1].matches("[0-9]{1,30}") || !fields[2].matches("[0-9]{1,19}")) continue;
             try {
                 long id = Long.parseLong(fields[0]);
@@ -496,7 +515,7 @@ public final class DownloadLedger {
                 if (local && (id >= -1 || !(state == State.SKIPPED || state == State.UNSUPPORTED || state == State.FAILED))) continue;
                 boolean duplicate = false;
                 for (Job job : jobs) if (job.id == id) { duplicate = true; break; }
-                if (!duplicate) jobs.add(new Job(id, fields[1], time, state, 0, null));
+                if (!duplicate) jobs.add(new Job(id, fields[1], time, state, 0, null, null, folder));
                 if (jobs.size() == LIMIT) break;
             } catch (IllegalArgumentException invalid) {
                 // Invalid private metadata cannot become an ID to query.
@@ -560,6 +579,7 @@ public final class DownloadLedger {
         for (Job job : jobs) {
             text.append(job.id).append(',').append(job.pinId).append(',').append(job.createdAt);
             if (job.id < 0) text.append(',').append(job.state.name());
+            else if (job.pinterestFolder) text.append(",P");
             text.append('\n');
         }
         SharedPreferences.Editor edit = preferences.edit().putString(RECORDS, text.toString());
@@ -573,10 +593,10 @@ public final class DownloadLedger {
         }
     }
 
-    private void insert(long id, String pinId, long replacedId) {
+    private void insert(long id, String pinId, long replacedId, boolean pinterestFolder) {
         List<Job> jobs = load();
         jobs.removeIf(job -> job.id == id || job.id == replacedId);
-        jobs.add(0, new Job(id, pinId, System.currentTimeMillis(), State.QUEUED, 0, null));
+        jobs.add(0, new Job(id, pinId, System.currentTimeMillis(), State.QUEUED, 0, null, null, pinterestFolder));
         store(jobs, trim(jobs));
         publish(jobs);
     }

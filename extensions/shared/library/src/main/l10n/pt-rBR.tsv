@@ -233,10 +233,12 @@ Download failed.	O download falhou.
 Check Downloads for the saved file.	Procure o arquivo salvo em Downloads.
 Saved in Pictures/100PINT/Pins.	Salvo em Pictures/100PINT/Pins.
 Android no longer has this request. Check Downloads before saving again.	O Android não tem mais esta solicitação. Confira Downloads antes de salvar novamente.
+Android no longer has this request. Check Pictures/100PINT/Pins before saving again.	O Android não tem mais esta solicitação. Confira Pictures/100PINT/Pins antes de salvar novamente.
 Couldn't check Downloads. Try again.	Não foi possível consultar Downloads. Tente novamente.
 Resume HushPinterest and turn on Download pins to retry.	Retome o HushPinterest e ative Baixar pins para tentar novamente.
 Open the pin again to get a fresh download link.	Abra o pin novamente para obter um novo link de download.
 This request can't be retried. Check Downloads or open the pin again.	Não é possível repetir esta solicitação. Confira Downloads ou abra o pin novamente.
+This request can't be retried. Check Pictures/100PINT/Pins or open the pin again.	Não é possível repetir esta solicitação. Confira Pictures/100PINT/Pins ou abra o pin novamente.
 Download started, but its history couldn't be saved. Check Downloads.	O download começou, mas seu histórico não pôde ser salvo. Confira Downloads.
 Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.	O download começou, mas seu histórico não pôde ser salvo. Confira Pictures/100PINT/Pins.
 History removed. Files and active downloads were kept.	Histórico removido. Os arquivos e downloads ativos foram mantidos.
@@ -256,7 +258,9 @@ Set as wallpaper	Definir como plano de fundo
 Opens Android's Set as options for this saved image.	Abre as opções Definir como do Android para esta imagem salva.
 Set as	Definir como
 Couldn't open Set as. Check Downloads for the saved file.	Não foi possível abrir Definir como. Procure o arquivo salvo em Downloads.
+Couldn't open Set as. Check Pictures/100PINT/Pins for the saved file.	Não foi possível abrir Definir como. Procure o arquivo salvo em Pictures/100PINT/Pins.
 This download isn't a finished image anymore. Check Downloads.	Este download não é mais uma imagem concluída. Confira Downloads.
+This download isn't a finished image anymore. Check Pictures/100PINT/Pins.	Este download não é mais uma imagem concluída. Confira Pictures/100PINT/Pins.
 Resume HushPinterest and turn on Download pins to use this.	Retome o HushPinterest e ative Baixar Pins para usar isto.
 Remove from history	Remover do histórico
 Removes this history entry. Files and active downloads are kept.	Remove esta entrada do histórico. Os arquivos e downloads ativos são mantidos.

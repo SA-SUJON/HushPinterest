@@ -266,7 +266,7 @@ public class DownloadLedgerTest {
     @Test public void malformedDuplicateAndOversizeMetadataCannotExpandOwnership() {
         preferences().edit().putString(DownloadLedger.RECORDS,
                 "7,123,100\n7,999,200\n-1,123,100\n8,bad,100\n9,123,0\n-5,123,100,SAVED\n"
-                        + "9999999999999999999,123,100\n10,123,9999999999999999999\n11,123,100,extra\n").commit();
+                        + "9999999999999999999,123,100\n10,123,9999999999999999999\n11,123,100,extra\n-6,123,100,P\n").commit();
         List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();
         assertEquals(1, jobs.size());
         assertEquals(7, jobs.get(0).id);
@@ -430,6 +430,26 @@ public class DownloadLedgerTest {
         assertEquals(0, nativeJobs.getRequestCount());
         assertEquals(0, nativeJobs.removes);
         assertEquals("Open the pin again to get a fresh download link.", ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void aRequestKeepsItsFolderAfterAndroidForgetsIt() {
+        long id = enqueue("300");
+        status(id, DownloadManager.STATUS_SUCCESSFUL);
+        assertTrue(DownloadLedger.record(app, id, "300", true));
+        String saved = preferences().getString(DownloadLedger.RECORDS, "").split("\n")[0];
+        assertTrue(saved.startsWith(id + ",300,"));
+        assertTrue(saved.endsWith(",P"));
+        manager.remove(id); // Simulates removal in system Downloads, not a ledger action.
+        nativeJobs.removes = 0;
+        DownloadLedger.Job job = new DownloadLedger(app).reconcile().get(0);
+        assertEquals(DownloadLedger.State.MISSING, job.state);
+        assertEquals("Android no longer has this request. Check Pictures/100PINT/Pins before saving again.", job.reasonText());
+        // A Download request keeps the old line shape, so history written before the flag reads the same.
+        long plain = owned("301", DownloadManager.STATUS_SUCCESSFUL);
+        String first = preferences().getString(DownloadLedger.RECORDS, "").split("\n")[0];
+        assertTrue(first.startsWith(plain + ",301,"));
+        assertEquals(3, first.split(",", -1).length);
+        assertEquals(0, nativeJobs.removes);
     }
 
     @Test public void nullDeniedAndPartialQueryFailuresRemainUnavailableAndCloseTheCursor() {
