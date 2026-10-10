@@ -145,7 +145,7 @@ The request-header branch copies a cached base map before adding current values.
 | `User-Agent` | `Pinterest for Android/<version> (<build>; <Android release>)`, with `for Android Tablet` on tablets | None. Functional |
 | `X-Pinterest-Device` | `Build.MODEL` | None |
 | `X-Pinterest-Device-Manufacturer` | `Build.MANUFACTURER` | None |
-| `X-Pinterest-InstallId` | A random ID made once per install (UUID-based with an MD5 tail) and kept in preferences, `Lkd/y;->L` | None. Stable until Pinterest's data is cleared. Session and push use aren't traced, so replacing it needs a device check first |
+| `X-Pinterest-InstallId` | 26 hex characters from a random UUID plus the last five of the MD5 of those characters and `user`, made once per install and kept as `PREF_INSTALL_ID` in `pinterest.persist.xml`, `Lkd/y;->L` | None, and none planned. Stable until Pinterest's data is cleared. Swapping it mid-session broke nothing that was checked (see [Install ID](#install-id)) |
 | `X-Pinterest-App-Type-Detailed` | The app type enum's number | None. Functional |
 | `Accept-Language` | The device locale | None. Functional |
 | `X-Pinterest-Advertising-Id` | The Google advertising ID, or empty | Covered by Hide advertising ID (row above) |
@@ -157,6 +157,12 @@ The request-header branch copies a cached base map before adding current values.
 | `Authorization` | `Bearer` plus the session token, approved domains only | Must stay |
 
 Preserve authorization checks and normal feed operations when testing any narrower privacy hook.
+
+### Install ID
+
+The install ID doubles as Pinterest's signed-out ID. Seventeen methods call `Lkd/y;->L` on 14.39.0. Besides the base header map (`Lxj2/b;`), `Lfc/c;` and `Li52/z;` put it on other request paths, and it goes out as `X-Pinterest-Unauth-ID` from `Lz82/a;->intercept`, which `La60/f;` builds with the user ID. It's AppsFlyer's `unauth_id` (`Lb2/k0;`), part of the analytics context (`Lb40/b;`, `Ll20/b0;`, `Ll20/d0;`), and the ID on push received, opened and board-invite events (`Llu/f;`, `Lcom/google/android/play/core/appupdate/b;->E0`, `Lhk0/b;`). reCAPTCHA timing and error logs carry it (`Lcom/pinterest/security/a;->k`, `Lop2/h8;->F`), the in-app survey URL sends it as `sessionId=` (`Lru0/v;`), and `Lb92/i;` mixes it into a random seed. AppsFlyer keeps its own copy in its preferences, next to the account's user ID.
+
+Checked on 2026-10-10 on the signed-in emulator with the patched build. With Pinterest stopped, `PREF_INSTALL_ID` was swapped for a fresh value made the same way. Pinterest kept the new value, stayed signed in, refreshed and scrolled Home, ran a search, and kept the session through a cold restart. The original value went back afterwards and the session held again. So replacing it is safe for sign-in, sessions, the feed and search. Push couldn't be checked, because on a re-signed build Firebase Installations refuses Pinterest's API key (`API_KEY_ANDROID_APP_BLOCKED`) and no push token is issued at all. A hook to replace it isn't worth adding. Pinterest links the ID to the account at sign-in, every fresh install already gets a new one, and the app can't be browsed signed out, so a rotating value wouldn't hide anything Pinterest doesn't already know.
 
 The Play referrer parser copies `utm_source`, `utm_medium`, `utm_campaign` and `app_upsell_type`, and can mark `from_play_install_referrer_link`. The APP_START builder distinguishes push, pull-notification, deep-link and web-URL starts. Its event map can contain the entire incoming URL. Cleaning a URL only after its original value has been recorded won't reduce that earlier event, so the launch URL is protected by Disable analytics stopping both uploads, not by Strip link tracking.
 
