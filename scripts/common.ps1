@@ -535,3 +535,297 @@ function Find-MachineNames {
     $global:LASTEXITCODE = 0
     return $hits.ToArray()
 }
+
+function Resolve-HostReferenceStubs {
+    <#
+    .SYNOPSIS
+        The Android SDK public stubs and API history the host reference check reads, or a throw
+        saying how to get them.
+    .DESCRIPTION
+        Taken from -AndroidJar and -ApiVersions when given. Otherwise platform 36 of the SDK aapt2
+        sits in, then ANDROID_HOME, ANDROID_SDK_ROOT and the default SDK folder, with the API
+        history beside it in data/. verify-injected-registers.ps1 runs the check with these, and
+        an applied record's key hashes the same two files, so the record and the run can't name
+        different stubs.
+    #>
+    param([string]$AndroidJar, [string]$ApiVersions, [string]$Aapt2)
+
+    if (-not $AndroidJar) {
+        $sdkRoots = @()
+        if ($Aapt2) { $sdkRoots += Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Aapt2)) }
+        $sdkRoots += @($env:ANDROID_HOME, $env:ANDROID_SDK_ROOT)
+        if ($env:LOCALAPPDATA) { $sdkRoots += Join-Path $env:LOCALAPPDATA 'Android/Sdk' }
+        foreach ($sdk in $sdkRoots | Where-Object { $_ }) {
+            $candidate = Join-Path $sdk 'platforms/android-36/android.jar'
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) { $AndroidJar = $candidate; break }
+        }
+    }
+    if (-not $AndroidJar -or -not (Test-Path -LiteralPath $AndroidJar -PathType Leaf)) {
+        throw 'Android SDK public stubs are required for host reference verification. Pass -AndroidJar and -ApiVersions, or install Android SDK Platform 36.'
+    }
+    if (-not $ApiVersions) { $ApiVersions = Join-Path (Split-Path -Parent $AndroidJar) 'data/api-versions.xml' }
+    if (-not (Test-Path -LiteralPath $ApiVersions -PathType Leaf)) { throw "SDK API history is missing: $ApiVersions" }
+    return [pscustomobject]@{ AndroidJar = $AndroidJar; ApiVersions = $ApiVersions }
+}
+
+function Get-AppliedRecordVerifierFiles {
+    <#
+    .SYNOPSIS
+        The files under scripts/ whose content decides whether a fixture apply passes.
+    .DESCRIPTION
+        The scripts that patch and check (verify-all-patches.ps1 and everything it dot-sources or
+        runs), the Java checks they start, DexDiff.java among them, and the contract and allowlist
+        files those read. An applied record's key hashes every one, so an edit to any of them
+        makes a kept result useless and the next run patches again. The contract tests hold this
+        list to what verify-all-patches.ps1 and verify-injected-registers.ps1 actually load.
+    #>
+    return @(
+        'verify-all-patches.ps1', 'verify-injected-registers.ps1', 'injected-register-contracts.ps1',
+        'injected-register-device.ps1', 'device-lease.ps1', 'release-receipt.ps1', 'patch-report.ps1',
+        'patch-target.ps1', 'common.ps1', 'Resolve-Java.ps1',
+        'DexDiff.java', 'HostReferences.java', 'ResourceTableCheck.java', 'MergeSplits.java',
+        'injected-mutation-contracts.txt', 'injected-register-removal-allowlist.txt',
+        'host-reference-contracts.txt', 'manifest-delta-allowlist.txt'
+    )
+}
+
+function Get-AppliedRecordStore {
+    <#
+    .SYNOPSIS
+        The folder applied records are kept in: -Path, else HUSHPINTEREST_APPLY_RECORDS, else
+        hushpinterest-fixture-apply in the temp folder. Not created here.
+    .DESCRIPTION
+        One folder for every checkout and gate worktree. A record's name is its key, which hashes
+        what it was made from, so two checkouts can't read each other's record unless they patched
+        the same bytes with the same verifier.
+    #>
+    param([string]$Path)
+
+    if (-not $Path) { $Path = $env:HUSHPINTEREST_APPLY_RECORDS }
+    if (-not $Path) { $Path = Join-Path ([System.IO.Path]::GetTempPath()) 'hushpinterest-fixture-apply' }
+    return [System.IO.Path]::GetFullPath($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path))
+}
+
+function Get-AppliedRecordKey {
+    <#
+    .SYNOPSIS
+        The key a fixture apply is kept under, and the inputs it was made from.
+    .DESCRIPTION
+        SHA-256 over one line per input: the bundle, the fixture, the catalog, the selected patch
+        names in ordinal order, whether the run was forced, the desktop CLI, the SDK stubs the host
+        reference check reads, and every file Get-AppliedRecordVerifierFiles names. A change to
+        any one of them gives another key, so nothing kept before it can be found.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Bundle,
+        [Parameter(Mandatory = $true)][string]$Fixture,
+        [Parameter(Mandatory = $true)][string]$PatchList,
+        [Parameter(Mandatory = $true)][string[]]$PatchNames,
+        [Parameter(Mandatory = $true)][bool]$Forced,
+        [Parameter(Mandatory = $true)][string]$DesktopJar,
+        [Parameter(Mandatory = $true)][string]$AndroidJar,
+        [Parameter(Mandatory = $true)][string]$ApiVersions,
+        # The folder the verifier files are read from: the scripts folder this file is in.
+        [string]$ScriptRoot = $PSScriptRoot
+    )
+
+    $hash = {
+        param([string]$Path, [string]$What)
+        if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { throw "Cannot key an applied record without the ${What}: $Path" }
+        (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+    }
+    $names = [string[]]@($PatchNames | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($names.Count -eq 0) { throw 'Cannot key an applied record without a patch selection.' }
+    [System.Array]::Sort($names, [System.StringComparer]::Ordinal)
+    $files = [ordered]@{}
+    foreach ($name in Get-AppliedRecordVerifierFiles) {
+        $files[$name] = & $hash (Join-Path $ScriptRoot $name) "verifier file $name"
+    }
+    $inputs = [ordered]@{
+        bundle      = & $hash $Bundle 'bundle'
+        fixture     = & $hash $Fixture 'fixture'
+        patchList   = & $hash $PatchList 'patch list'
+        patches     = $names
+        forced      = [bool]$Forced
+        desktopCli  = & $hash $DesktopJar 'desktop CLI'
+        androidJar  = & $hash $AndroidJar 'SDK public stubs'
+        apiVersions = & $hash $ApiVersions 'SDK API history'
+        files       = $files
+    }
+    $lines = New-Object System.Collections.Generic.List[string]
+    $lines.Add('hushpinterest applied record 1')
+    foreach ($field in @('bundle', 'fixture', 'patchList')) { $lines.Add("$field $($inputs[$field])") }
+    foreach ($name in $names) { $lines.Add("patch $name") }
+    $lines.Add("forced $($inputs.forced.ToString().ToLowerInvariant())")
+    foreach ($field in @('desktopCli', 'androidJar', 'apiVersions')) { $lines.Add("$field $($inputs[$field])") }
+    foreach ($name in $files.Keys) { $lines.Add("file $name $($files[$name])") }
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $digest = $sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes(($lines -join "`n") + "`n"))
+    } finally { $sha.Dispose() }
+    $key = -join @($digest | ForEach-Object { $_.ToString('x2') })
+    return [pscustomobject]@{ Key = $key; Inputs = $inputs }
+}
+
+function Get-AppliedRecords {
+    <#
+    .SYNOPSIS
+        The record folders a store holds, newest first. Staging folders (named from a dot) aren't
+        records and never come back from here.
+    #>
+    param([Parameter(Mandatory = $true)][string]$Store)
+
+    if (-not (Test-Path -LiteralPath $Store -PathType Container)) { return @() }
+    return @(Get-ChildItem -LiteralPath $Store -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '^[0-9a-f]{64}$' } |
+        Sort-Object @{ Expression = {
+                $recordFile = Join-Path $_.FullName 'record.json'
+                if (Test-Path -LiteralPath $recordFile -PathType Leaf) { (Get-Item -LiteralPath $recordFile).LastWriteTimeUtc } else { [datetime]::MinValue }
+            } } -Descending)
+}
+
+function Find-AppliedRecord {
+    <#
+    .SYNOPSIS
+        The record kept under -Key, or $null when there is none or it doesn't hold together.
+    .DESCRIPTION
+        A record counts only when its record.json names this key, and its patched APK and result
+        report are there with the APK hashing to what was recorded. Anything less is said and
+        passed over, so the caller patches in full.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Store,
+        [Parameter(Mandatory = $true)][string]$Key
+    )
+
+    if ($Key -notmatch '^[0-9a-f]{64}$') { throw "Not an applied record key: $Key" }
+    $directory = Join-Path $Store $Key
+    $recordFile = Join-Path $directory 'record.json'
+    if (-not (Test-Path -LiteralPath $recordFile -PathType Leaf)) { return $null }
+    $problem = $null
+    try {
+        $record = Get-Content -LiteralPath $recordFile -Raw | ConvertFrom-Json
+    } catch {
+        $record = $null
+        $problem = "record.json can't be read: $($_.Exception.Message)"
+    }
+    $patched = Join-Path $directory 'patched.apk'
+    $result = Join-Path $directory 'result.json'
+    if (-not $problem) {
+        if ([int]$record.schema -ne 1 -or [string]$record.key -cne $Key) {
+            $problem = 'record.json names another key'
+        } elseif (-not (Test-Path -LiteralPath $patched -PathType Leaf) -or -not (Test-Path -LiteralPath $result -PathType Leaf)) {
+            $problem = 'its patched APK or result report is missing'
+        } elseif ((Get-FileHash -LiteralPath $patched -Algorithm SHA256).Hash.ToLowerInvariant() -cne [string]$record.patchedSha256) {
+            $problem = 'its patched APK changed after it was kept'
+        }
+    }
+    if ($problem) {
+        Write-Warning "The applied record $Key in $Store doesn't hold together ($problem), so it isn't used."
+        return $null
+    }
+    # PowerShell 7 reads an ISO time in JSON as a date, Windows PowerShell as the text.
+    $recordedAt = if ($record.recordedAt -is [datetime]) {
+        $record.recordedAt.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+    } else { [string]$record.recordedAt }
+    return [pscustomobject]@{
+        Directory  = $directory
+        Key        = $Key
+        PatchedApk = $patched
+        Result     = $result
+        RecordedAt = $recordedAt
+        Record     = $record
+    }
+}
+
+function Save-AppliedRecord {
+    <#
+    .SYNOPSIS
+        Keeps a fixture apply that passed every check, under its key, and returns its folder.
+    .DESCRIPTION
+        Call it only once the run has passed: the report, the manifest delta, the resource table,
+        DexDiff and the host references. Everything is copied into a staging folder named from a
+        dot, record.json last, and the folder is renamed to the key in one step, so a run that
+        stops halfway leaves nothing under a key (Find-AppliedRecord and Get-AppliedRecords never
+        read a staging folder). The newest -Keep records stay and older ones go, as do staging
+        folders a killed run left more than a day ago.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Store,
+        [Parameter(Mandatory = $true)]$Identity,
+        [Parameter(Mandatory = $true)][string]$PatchedApk,
+        [Parameter(Mandatory = $true)][string]$Result,
+        # Name in the record to the report it copies. A report the run didn't write is left out.
+        [System.Collections.IDictionary]$Reports = @{},
+        $Target,
+        [int]$Keep = 6
+    )
+
+    $key = [string]$Identity.Key
+    if ($key -notmatch '^[0-9a-f]{64}$') { throw "Not an applied record key: $key" }
+    foreach ($required in @($PatchedApk, $Result)) {
+        if (-not (Test-Path -LiteralPath $required -PathType Leaf)) { throw "Nothing to keep: $required is missing." }
+    }
+    New-Item -ItemType Directory -Force -Path $Store | Out-Null
+    $storeRoot = (Resolve-Path -LiteralPath $Store).Path
+    $final = Resolve-WithinRoot -Path (Join-Path $storeRoot $key) -Root $storeRoot
+    $staging = Resolve-WithinRoot -Path (Join-Path $storeRoot ('.partial-' + [guid]::NewGuid().ToString('N'))) -Root $storeRoot
+    New-Item -ItemType Directory -Path $staging | Out-Null
+    try {
+        Copy-Item -LiteralPath $PatchedApk -Destination (Join-Path $staging 'patched.apk')
+        Copy-Item -LiteralPath $Result -Destination (Join-Path $staging 'result.json')
+        $kept = @()
+        foreach ($name in @($Reports.Keys)) {
+            if ([string]$name -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$' -or $name -in @('patched.apk', 'result.json', 'record.json')) {
+                throw "Not a report name a record can hold: $name"
+            }
+            $source = [string]$Reports[$name]
+            if ($source -and (Test-Path -LiteralPath $source -PathType Leaf)) {
+                Copy-Item -LiteralPath $source -Destination (Join-Path $staging $name)
+                $kept += [string]$name
+            }
+        }
+        $targetFacts = $null
+        if ($null -ne $Target) {
+            $targetFacts = [ordered]@{ package = [string]$Target.package; versionName = [string]$Target.versionName
+                versionCode = [string]$Target.versionCode }
+        }
+        $record = [ordered]@{
+            schema        = 1
+            key           = $key
+            recordedAt    = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+            inputs        = $Identity.Inputs
+            target        = $targetFacts
+            patchedSha256 = (Get-FileHash -LiteralPath (Join-Path $staging 'patched.apk') -Algorithm SHA256).Hash.ToLowerInvariant()
+            reports       = $kept
+        }
+        [System.IO.File]::WriteAllText((Join-Path $staging 'record.json'), ($record | ConvertTo-Json -Depth 8),
+            (New-Object System.Text.UTF8Encoding($false)))
+
+        if (Test-Path -LiteralPath $final) {
+            # A record under this key that Find-AppliedRecord passed over. Moved aside first, so the
+            # key never names a folder that's half deleted.
+            $stale = Resolve-WithinRoot -Path (Join-Path $storeRoot ('.stale-' + [guid]::NewGuid().ToString('N'))) -Root $storeRoot
+            [System.IO.Directory]::Move($final, $stale)
+            Remove-Item -LiteralPath $stale -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        try {
+            [System.IO.Directory]::Move($staging, $final)
+        } catch [System.IO.IOException] {
+            # Another run kept the same key first. Its record is the same result.
+            if (-not (Find-AppliedRecord -Store $storeRoot -Key $key)) { throw }
+        }
+    } finally {
+        if (Test-Path -LiteralPath $staging) { Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+
+    foreach ($old in @(Get-AppliedRecords -Store $storeRoot | Select-Object -Skip $Keep)) {
+        if ($old.Name -ne $key) { Remove-GeneratedPath -Path $old.FullName -Root $storeRoot }
+    }
+    $abandoned = (Get-Date).ToUniversalTime().AddDays(-1)
+    foreach ($left in @(Get-ChildItem -LiteralPath $storeRoot -Directory -Force -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match '^\.(partial|stale)-[0-9a-f]{32}$' -and $_.LastWriteTimeUtc -lt $abandoned })) {
+        Remove-GeneratedPath -Path $left.FullName -Root $storeRoot
+    }
+    return $final
+}

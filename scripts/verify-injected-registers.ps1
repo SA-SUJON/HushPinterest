@@ -256,20 +256,11 @@ if (-not $CleanMerged) {
 }
 if (-not (Test-Path -LiteralPath $CleanMerged -PathType Leaf)) { throw "No merged clean APK at $CleanMerged." }
 
-if (-not $AndroidJar) {
-    $sdkRoots = @((Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Aapt2))),
-        $env:ANDROID_HOME, $env:ANDROID_SDK_ROOT)
-    if ($env:LOCALAPPDATA) { $sdkRoots += Join-Path $env:LOCALAPPDATA 'Android/Sdk' }
-    foreach ($sdk in $sdkRoots | Where-Object { $_ }) {
-        $candidate = Join-Path $sdk 'platforms/android-36/android.jar'
-        if (Test-Path -LiteralPath $candidate -PathType Leaf) { $AndroidJar = $candidate; break }
-    }
-}
-if (-not $AndroidJar -or -not (Test-Path -LiteralPath $AndroidJar -PathType Leaf)) {
-    throw 'Android SDK public stubs are required for host reference verification. Pass -AndroidJar and -ApiVersions, or install Android SDK Platform 36.'
-}
-if (-not $ApiVersions) { $ApiVersions = Join-Path (Split-Path -Parent $AndroidJar) 'data/api-versions.xml' }
-if (-not (Test-Path -LiteralPath $ApiVersions -PathType Leaf)) { throw "SDK API history is missing: $ApiVersions" }
+# Found the way an applied record's key finds them (common.ps1), so a kept result and this run
+# can't read different stubs.
+$hostStubs = Resolve-HostReferenceStubs -AndroidJar $AndroidJar -ApiVersions $ApiVersions -Aapt2 $Aapt2
+$AndroidJar = $hostStubs.AndroidJar
+$ApiVersions = $hostStubs.ApiVersions
 $referenceReport = "$ReportPath.host-references.txt"
 
 Write-Host "[registers] clean   $CleanApk (Pinterest $($clean.versionName), signed by Pinterest)"
