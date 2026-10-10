@@ -76,12 +76,15 @@ public final class DownloadLedger {
         private final PinMedia.Source source;
         // The image type of a request Android finished. Read from Android, never persisted.
         private final String image;
+        // Whether Android saved a finished request in Pinterest's folder. Read from Android, never persisted.
+        private final boolean pinterestFolder;
 
         private Job(long id, String pinId, long createdAt, State state, int reason, PinMedia.Source source) {
-            this(id, pinId, createdAt, state, reason, source, null);
+            this(id, pinId, createdAt, state, reason, source, null, false);
         }
 
-        private Job(long id, String pinId, long createdAt, State state, int reason, PinMedia.Source source, String image) {
+        private Job(long id, String pinId, long createdAt, State state, int reason, PinMedia.Source source, String image,
+                    boolean pinterestFolder) {
             this.id = id;
             this.pinId = pinId;
             this.createdAt = createdAt;
@@ -89,14 +92,15 @@ public final class DownloadLedger {
             this.reason = reason;
             this.source = source;
             this.image = image;
+            this.pinterestFolder = pinterestFolder;
         }
 
         private Job with(State state, int reason, PinMedia.Source source) {
-            return with(state, reason, source, null);
+            return with(state, reason, source, null, false);
         }
 
-        private Job with(State state, int reason, PinMedia.Source source, String image) {
-            return new Job(id, pinId, createdAt, state, reason, source, image);
+        private Job with(State state, int reason, PinMedia.Source source, String image, boolean pinterestFolder) {
+            return new Job(id, pinId, createdAt, state, reason, source, image, pinterestFolder);
         }
 
         public boolean canRetry() { return state == State.FAILED && source != null; }
@@ -148,7 +152,10 @@ public final class DownloadLedger {
                                 : L10n.t("Download failed.");
                 }
             }
-            if (state == State.COMPLETED) return L10n.t("Check Downloads for the saved file.");
+            if (state == State.COMPLETED) {
+                // Android's Downloads list shows only the Download folder.
+                return pinterestFolder ? L10n.t("Saved in Pictures/100PINT/Pins.") : L10n.t("Check Downloads for the saved file.");
+            }
             if (state == State.MISSING) return L10n.t("Android no longer has this request. Check Downloads before saving again.");
             if (state == State.UNAVAILABLE) return L10n.t("Couldn't check Downloads. Try again.");
             return "";
@@ -400,8 +407,7 @@ public final class DownloadLedger {
                 HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "record native download retry", failure);
             }
             HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "native download retry queued");
-            Utils.showToastLong(L10n.t(saved ? "Download started. Check Downloads."
-                    : "Download started, but its history couldn't be saved. Check Downloads."));
+            Utils.showToastLong(PinDownloads.startedMessage(saved));
         }
     }
 
@@ -430,6 +436,7 @@ public final class DownloadLedger {
             int reasonColumn = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON);
             int sourceColumn = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_URI);
             int mimeColumn = cursor.getColumnIndex(DownloadManager.COLUMN_MEDIA_TYPE);
+            int localColumn = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(idColumn);
                 Job job = results.get(id);
@@ -446,7 +453,9 @@ public final class DownloadLedger {
                     // an image, or guess a type when Android no longer has that contract.
                     if (source != null && !source.mime.equalsIgnoreCase(mime)) source = null;
                 }
-                results.put(id, job.with(state, reason, source, state == State.COMPLETED ? image(mime) : null));
+                boolean folder = state == State.COMPLETED && localColumn >= 0
+                        && PinDownloads.savedInPinterestFolder(cursor.getString(localColumn));
+                results.put(id, job.with(state, reason, source, state == State.COMPLETED ? image(mime) : null, folder));
             }
             return Collections.unmodifiableList(new ArrayList<>(results.values()));
         } catch (RuntimeException failure) {

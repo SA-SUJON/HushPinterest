@@ -322,6 +322,25 @@ public class DownloadLedgerTest {
         catch (UnsupportedOperationException expectedImmutable) { }
     }
 
+    /** Android's Downloads list shows only the Download folder, so a save in Pinterest's folder says where it is. */
+    @Test public void aFinishedDownloadInPinterestsFolderSaysWhereItIs() {
+        Settings.SAVE_IN_PINTEREST_FOLDER.save(true);
+        try {
+            owned("200", DownloadManager.STATUS_SUCCESSFUL);
+            owned("201", DownloadManager.STATUS_FAILED);
+        } finally {
+            Settings.SAVE_IN_PINTEREST_FOLDER.save(false);
+        }
+        owned("202", DownloadManager.STATUS_SUCCESSFUL);
+        List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();
+        assertEquals("202", jobs.get(0).pinId);
+        assertEquals("Check Downloads for the saved file.", jobs.get(0).reasonText());
+        assertEquals("201", jobs.get(1).pinId);
+        assertEquals("Download failed.", jobs.get(1).reasonText());
+        assertEquals("200", jobs.get(2).pinId);
+        assertEquals("Saved in Pictures/100PINT/Pins.", jobs.get(2).reasonText());
+    }
+
     @Test public void pausedAndFailedReasonCodesHaveNonsecretFallbacks() {
         long id = owned("123", DownloadManager.STATUS_PAUSED);
         int[] paused = {DownloadManager.PAUSED_WAITING_FOR_NETWORK, DownloadManager.PAUSED_QUEUED_FOR_WIFI, DownloadManager.PAUSED_UNKNOWN};
@@ -840,7 +859,8 @@ public class DownloadLedgerTest {
             if (denied) throw new SecurityException("native query denied");
             if (nullCursor) return null;
             cursor = new MatrixCursor(new String[]{DownloadManager.COLUMN_ID, DownloadManager.COLUMN_STATUS,
-                    DownloadManager.COLUMN_REASON, DownloadManager.COLUMN_URI, DownloadManager.COLUMN_MEDIA_TYPE}) {
+                    DownloadManager.COLUMN_REASON, DownloadManager.COLUMN_URI, DownloadManager.COLUMN_MEDIA_TYPE,
+                    DownloadManager.COLUMN_LOCAL_URI}) {
                 private int statusReads;
                 @Override public int getInt(int column) {
                     if (column == 1 && failAfterReads >= 0 && statusReads++ == failAfterReads) {
@@ -864,7 +884,8 @@ public class DownloadLedgerTest {
             ShadowDownloadManager.ShadowRequest request = Shadow.extract(original);
             cursor.addRow(new Object[]{id, request.getStatus(), reasons.getOrDefault(id, 0),
                     sources.containsKey(id) ? sources.get(id) : request.getUri().toString(),
-                    mimes.containsKey(id) ? mimes.get(id) : request.getMimeType()});
+                    mimes.containsKey(id) ? mimes.get(id) : request.getMimeType(),
+                    request.getDestination() == null ? null : request.getDestination().toString()});
         }
 
         @Implementation protected Uri getUriForDownloadedFile(long id) {

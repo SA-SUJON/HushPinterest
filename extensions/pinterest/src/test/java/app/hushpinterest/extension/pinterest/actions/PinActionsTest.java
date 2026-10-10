@@ -239,7 +239,15 @@ public class PinActionsTest {
         Uri expected = Uri.withAppendedPath(Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)),
                 "100PINT/Pins/" + fileName);
         assertEquals(expected, request.getDestination());
+        // Android's Downloads list shows only the Download folder, so the toast names this one.
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Download started. Check Pictures/100PINT/Pins.", ShadowToast.getTextOfLatestToast());
+        assertTrue(PinDownloads.savedInPinterestFolder(expected.toString()));
+        assertTrue(PinDownloads.savedInPinterestFolder("file:///storage/emulated/0/Pictures/100PINT/Pins/" + fileName));
+        assertFalse(PinDownloads.savedInPinterestFolder("file:///storage/emulated/0/Download/" + fileName));
+        assertFalse(PinDownloads.savedInPinterestFolder(null));
         Settings.SAVE_IN_PINTEREST_FOLDER.save(false);
+        assertEquals("Download started. Check Downloads.", PinDownloads.startedMessage(true));
         Uri back = Shadow.<ShadowDownloadManager.ShadowRequest>extract(PinDownloads.request(
                 new PinMedia.Source("https://i.pinimg.com/originals/pin.jpg", "image/jpeg", ".jpg"), "pin.jpg")).getDestination();
         assertEquals(Uri.withAppendedPath(Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)), "pin.jpg"), back);

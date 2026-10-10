@@ -256,8 +256,7 @@ public final class PinDownloads {
                     boolean tracked = DownloadLedger.record(app, request, id);
                     HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin queued in Downloads");
                     report(after, tracked ? Result.QUEUED : Result.QUEUED_UNTRACKED);
-                    if (after == null) Utils.showToastLong(L10n.t(tracked ? "Download started. Check Downloads."
-                            : "Download started, but its history couldn't be saved. Check Downloads."));
+                    if (after == null) Utils.showToastLong(startedMessage(tracked));
                 } catch (Throwable failure) {
                     failed(QUEUE_FAILED, failure);
                     report(after, Result.FAILED);
@@ -297,8 +296,28 @@ public final class PinDownloads {
                         pinterestFolder ? PINTEREST_FOLDER + "/" + fileName : fileName);
     }
 
+    /**
+     * The toast after a download is queued. It names the folder the download goes to, since
+     * Android's Downloads list shows only the Download folder.
+     */
+    static String startedMessage(boolean tracked) {
+        if (inPinterestFolder()) {
+            return tracked ? L10n.t("Download started. Check Pictures/100PINT/Pins.")
+                    : L10n.t("Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.");
+        }
+        return tracked ? L10n.t("Download started. Check Downloads.")
+                : L10n.t("Download started, but its history couldn't be saved. Check Downloads.");
+    }
+
+    /** Whether Android saved a download, by the local URI it reports, in Pinterest's folder. */
+    static boolean savedInPinterestFolder(String localUri) {
+        if (localUri == null) return false;
+        String path = Uri.parse(localUri).getPath();
+        return path != null && path.contains("/" + PINTEREST_FOLDER + "/");
+    }
+
     /** Download unless the folder switch is on. A switch that can't be read keeps Download. */
-    private static boolean inPinterestFolder() {
+    static boolean inPinterestFolder() {
         try {
             return Settings.SAVE_IN_PINTEREST_FOLDER.get();
         } catch (Throwable failure) {

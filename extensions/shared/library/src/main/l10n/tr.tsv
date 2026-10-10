@@ -213,6 +213,7 @@ Download pin	Pini indir
 Share pin	Pini paylaş
 Open pin link	Pin bağlantısını aç
 Download started. Check Downloads.	İndirme başladı. İndirilenler’i kontrol et.
+Download started. Check Pictures/100PINT/Pins.	İndirme başladı. Pictures/100PINT/Pins klasörünü kontrol et.
 Couldn't save this pin.	Bu Pin kaydedilemedi.
 Queued	Sırada
 Downloading	İndiriliyor
@@ -233,12 +234,14 @@ The download server couldn't complete the request.	İndirme sunucusu isteği tam
 Android couldn't save the file.	Android dosyayı kaydedemedi.
 Download failed.	İndirme başarısız oldu.
 Check Downloads for the saved file.	Kaydedilen dosya için İndirilenler'e bakın.
+Saved in Pictures/100PINT/Pins.	Pictures/100PINT/Pins klasörüne kaydedildi.
 Android no longer has this request. Check Downloads before saving again.	Android'de bu istek artık yok. Yeniden kaydetmeden önce İndirilenler'i kontrol edin.
 Couldn't check Downloads. Try again.	İndirilenler kontrol edilemedi. Yeniden deneyin.
 Resume HushPinterest and turn on Download pins to retry.	Yeniden denemek için HushPinterest'i sürdürün ve Pinleri indir'i açın.
 Open the pin again to get a fresh download link.	Yeni bir indirme bağlantısı almak için pini yeniden açın.
 This request can't be retried. Check Downloads or open the pin again.	Bu istek yeniden denenemiyor. İndirilenler'i kontrol edin veya pini yeniden açın.
 Download started, but its history couldn't be saved. Check Downloads.	İndirme başladı ancak geçmişi kaydedilemedi. İndirilenler'i kontrol edin.
+Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.	İndirme başladı ancak geçmişi kaydedilemedi. Pictures/100PINT/Pins klasörünü kontrol edin.
 History removed. Files and active downloads were kept.	Geçmiş kaldırıldı. Dosyalar ve etkin indirmeler korundu.
 Couldn't remove this history entry. Try again.	Bu geçmiş kaydı kaldırılamadı. Yeniden deneyin.
 Couldn't open Downloads.	İndirilenler açılamadı.
@@ -354,6 +357,7 @@ Stop selection	Seçimi durdur
 Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Sırada: %d\nAtlanan: %d\nDesteklenmeyen: %d\nBaşarısız: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Durdurmak başlamış indirmeleri korur. Başlamamış seçimler Pinterest kapandığında sona erer.
 History could not be saved for %d results. Check Downloads.	%d sonuç için geçmiş kaydedilemedi. İndirilenleri kontrol edin.
+History could not be saved for %d results. Check Pictures/100PINT/Pins.	%d sonuç için geçmiş kaydedilemedi. Pictures/100PINT/Pins klasörünü kontrol edin.
 Skipped	Atlandı
 Unsupported	Desteklenmiyor
 No download was queued. The selection was stopped, canceled or unavailable.	İndirme sıraya alınmadı. Seçim durduruldu, iptal edildi veya kullanılamıyordu.

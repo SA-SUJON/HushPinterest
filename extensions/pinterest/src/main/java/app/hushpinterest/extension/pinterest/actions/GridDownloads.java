@@ -199,7 +199,9 @@ final class GridDownloads {
                     + (known == 0 ? "" : "\n\n" + L10n.f("Skipped because they're already in Download history: %d", known))
                     + (note == null ? "" : "\n\n" + note)
                     + "\n\n" + L10n.t("Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.")
-                    + (untracked == 0 ? "" : "\n\n" + L10n.f("History could not be saved for %d results. Check Downloads.", untracked));
+                    + (untracked == 0 ? "" : "\n\n" + (PinDownloads.inPinterestFolder()
+                            ? L10n.f("History could not be saved for %d results. Check Pictures/100PINT/Pins.", untracked)
+                            : L10n.f("History could not be saved for %d results. Check Downloads.", untracked)));
         }
 
         void next() {

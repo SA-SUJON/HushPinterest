@@ -210,6 +210,7 @@ Download pin	Baixar Pin
 Share pin	Compartilhar Pin
 Open pin link	Abrir link do Pin
 Download started. Check Downloads.	Download iniciado. Confira Downloads.
+Download started. Check Pictures/100PINT/Pins.	Download iniciado. Confira Pictures/100PINT/Pins.
 Couldn't save this pin.	Não foi possível salvar este Pin.
 Queued	Na fila
 Downloading	Baixando
@@ -230,12 +231,14 @@ The download server couldn't complete the request.	O servidor de download não c
 Android couldn't save the file.	O Android não conseguiu salvar o arquivo.
 Download failed.	O download falhou.
 Check Downloads for the saved file.	Procure o arquivo salvo em Downloads.
+Saved in Pictures/100PINT/Pins.	Salvo em Pictures/100PINT/Pins.
 Android no longer has this request. Check Downloads before saving again.	O Android não tem mais esta solicitação. Confira Downloads antes de salvar novamente.
 Couldn't check Downloads. Try again.	Não foi possível consultar Downloads. Tente novamente.
 Resume HushPinterest and turn on Download pins to retry.	Retome o HushPinterest e ative Baixar pins para tentar novamente.
 Open the pin again to get a fresh download link.	Abra o pin novamente para obter um novo link de download.
 This request can't be retried. Check Downloads or open the pin again.	Não é possível repetir esta solicitação. Confira Downloads ou abra o pin novamente.
 Download started, but its history couldn't be saved. Check Downloads.	O download começou, mas seu histórico não pôde ser salvo. Confira Downloads.
+Download started, but its history couldn't be saved. Check Pictures/100PINT/Pins.	O download começou, mas seu histórico não pôde ser salvo. Confira Pictures/100PINT/Pins.
 History removed. Files and active downloads were kept.	Histórico removido. Os arquivos e downloads ativos foram mantidos.
 Couldn't remove this history entry. Try again.	Não foi possível remover esta entrada do histórico. Tente novamente.
 Couldn't open Downloads.	Não foi possível abrir Downloads.
@@ -351,6 +354,7 @@ Stop selection	Parar seleção
 Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Na fila: %d\nIgnorados: %d\nNão compatíveis: %d\nFalhas: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Parar mantém os downloads já iniciados. Seleções não iniciadas terminam quando o Pinterest fecha.
 History could not be saved for %d results. Check Downloads.	Não foi possível salvar o histórico de %d resultados. Confira Downloads.
+History could not be saved for %d results. Check Pictures/100PINT/Pins.	Não foi possível salvar o histórico de %d resultados. Confira Pictures/100PINT/Pins.
 Skipped	Ignorado
 Unsupported	Não compatível
 No download was queued. The selection was stopped, canceled or unavailable.	Nenhum download foi adicionado à fila. A seleção foi parada, cancelada ou estava indisponível.
