@@ -36,8 +36,14 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 /** Observes native requests created by HushPinterest without canceling or deleting their files. */
 public final class DownloadLedger {
     static final int LIMIT = 32;
+    /**
+     * How many requests and saves are kept, unshown, once they're older than the visible history:
+     * enough that a second Download board of a full board skips every pin the first one saved.
+     */
+    static final int EARLIER_LIMIT = BoardDownloads.PINS;
     static final String STORE = "hushpinterest_download_history";
     static final String RECORDS = "requests_v1";
+    static final String EARLIER = "earlier_v1";
     static final String SENDER_PERMISSION = "android.permission.SEND_DOWNLOAD_COMPLETED_INTENTS";
     private static final Object LOCK = new Object();
     private static final Object RECEIVER_LOCK = new Object();
@@ -175,8 +181,7 @@ public final class DownloadLedger {
                 for (Job job : jobs) if (job.id <= key) key = job.id - 1;
                 if (key >= -1) throw new IllegalStateException("Local history keys exhausted");
                 jobs.add(0, new Job(key, pinId, System.currentTimeMillis(), state, 0, null));
-                if (jobs.size() > LIMIT) jobs.subList(LIMIT, jobs.size()).clear();
-                ledger.store(jobs);
+                ledger.store(jobs, ledger.trim(jobs));
                 ledger.publish(jobs);
             }
             return true;
@@ -188,10 +193,11 @@ public final class DownloadLedger {
 
     /**
      * The pins whose saved history holds a request handed to Android's Downloads or a file saved
-     * through the picker. Skipped, unsupported and failed results don't count, and neither does a
-     * request Android reports failed or missing, so those pins can be tried again. A request Android
-     * can't be asked about still counts, so a pin isn't saved twice. Asks Android's Downloads about
-     * this app's own requests only, so call it off the main thread.
+     * through the picker, counting the earlier ones the visible history no longer shows. Skipped,
+     * unsupported and failed results don't count, and neither does a request Android reports failed
+     * or missing, so those pins can be tried again. A request Android can't be asked about still
+     * counts, so a pin isn't saved twice. Asks Android's Downloads about this app's own requests
+     * only, so call it off the main thread.
      */
     static Set<String> downloadedPinIds(Context context) {
         Set<String> ids = new HashSet<>();
@@ -199,7 +205,11 @@ public final class DownloadLedger {
         try {
             DownloadLedger ledger = new DownloadLedger(context);
             synchronized (LOCK) {
-                for (Job job : ledger.query(ledger.load())) {
+                List<Job> jobs = ledger.load();
+                Set<Long> shown = new HashSet<>();
+                for (Job job : jobs) shown.add(job.id);
+                for (Job job : ledger.earlier()) if (shown.add(job.id)) jobs.add(job);
+                for (Job job : ledger.query(jobs)) {
                     boolean requested = job.id >= 0 && job.state != State.FAILED && job.state != State.MISSING;
                     if (requested || job.state == State.SAVED) ids.add(job.pinId);
                 }
@@ -267,8 +277,13 @@ public final class DownloadLedger {
         return schedule(context, ledger -> {
             synchronized (LOCK) {
                 List<Job> jobs = ledger.load();
+                Set<String> removed = new HashSet<>();
+                for (Job job : jobs) if (job.id == id) removed.add(job.pinId);
                 jobs.removeIf(job -> job.id == id);
-                ledger.store(jobs);
+                // Forgetting a pin forgets its earlier requests too, so Download board saves it again.
+                List<Job> earlier = ledger.earlier();
+                boolean forgot = earlier.removeIf(job -> removed.contains(job.pinId));
+                ledger.store(jobs, forgot ? earlier : null);
                 ledger.publish(jobs);
             }
             Utils.showToastLong(L10n.t("History removed. Files and active downloads were kept."));
@@ -476,14 +491,70 @@ public final class DownloadLedger {
         return jobs;
     }
 
-    private void store(List<Job> jobs) {
+    /**
+     * The requests and saves older than the visible history, newest first: `id,pinId` lines, with
+     * a negative ID for a picker save. Nothing else is kept for them, and Android is asked about
+     * the requests again whenever they're read.
+     */
+    private List<Job> earlier() {
+        List<Job> jobs = new ArrayList<>();
+        String text;
+        try { text = preferences.getString(EARLIER, ""); }
+        catch (ClassCastException invalid) { return jobs; }
+        // A 19-digit ID, a 30-digit pin ID, a sign and two separators per line.
+        if (text == null || text.length() > EARLIER_LIMIT * 52) return jobs;
+        Set<Long> seen = new HashSet<>();
+        for (String line : text.split("\n")) {
+            String[] fields = line.split(",", -1);
+            if (fields.length != 2 || !fields[0].matches("-?[0-9]{1,19}") || !fields[1].matches("[0-9]{1,30}")) continue;
+            try {
+                long id = Long.parseLong(fields[0]);
+                if (id == -1 || !seen.add(id)) continue;
+                jobs.add(new Job(id, fields[1], 0, id < 0 ? State.SAVED : State.UNAVAILABLE, 0, null));
+                if (jobs.size() == EARLIER_LIMIT) break;
+            } catch (NumberFormatException invalid) {
+                // Invalid private metadata cannot become an ID to query.
+            }
+        }
+        return jobs;
+    }
+
+    /**
+     * Cuts [jobs] to the visible history. Returns the earlier requests and saves with the cut ones
+     * that still count put in front, or null when none of them do and the earlier ones stay as
+     * they are. Skipped, unsupported and failed results are dropped, since they never count.
+     */
+    private List<Job> trim(List<Job> jobs) {
+        if (jobs.size() <= LIMIT) return null;
+        List<Job> cut = jobs.subList(LIMIT, jobs.size());
+        List<Job> kept = new ArrayList<>();
+        for (Job job : cut) if (job.id >= 0 || job.state == State.SAVED) kept.add(job);
+        cut.clear();
+        if (kept.isEmpty()) return null;
+        Set<Long> seen = new HashSet<>();
+        for (Job job : kept) seen.add(job.id);
+        for (Job job : earlier()) if (seen.add(job.id)) kept.add(job);
+        if (kept.size() > EARLIER_LIMIT) kept.subList(EARLIER_LIMIT, kept.size()).clear();
+        return kept;
+    }
+
+    private void store(List<Job> jobs) { store(jobs, null); }
+
+    /** Writes the visible history, and [earlier] too unless it's null, in one commit. */
+    private void store(List<Job> jobs, List<Job> earlier) {
         StringBuilder text = new StringBuilder();
         for (Job job : jobs) {
             text.append(job.id).append(',').append(job.pinId).append(',').append(job.createdAt);
             if (job.id < 0) text.append(',').append(job.state.name());
             text.append('\n');
         }
-        if (!preferences.edit().putString(RECORDS, text.toString()).commit()) {
+        SharedPreferences.Editor edit = preferences.edit().putString(RECORDS, text.toString());
+        if (earlier != null) {
+            StringBuilder kept = new StringBuilder();
+            for (Job job : earlier) kept.append(job.id).append(',').append(job.pinId).append('\n');
+            edit.putString(EARLIER, kept.toString());
+        }
+        if (!edit.commit()) {
             throw new IllegalStateException("Download history write failed");
         }
     }
@@ -492,8 +563,7 @@ public final class DownloadLedger {
         List<Job> jobs = load();
         jobs.removeIf(job -> job.id == id || job.id == replacedId);
         jobs.add(0, new Job(id, pinId, System.currentTimeMillis(), State.QUEUED, 0, null));
-        if (jobs.size() > LIMIT) jobs.subList(LIMIT, jobs.size()).clear();
-        store(jobs);
+        store(jobs, trim(jobs));
         publish(jobs);
     }
 

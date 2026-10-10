@@ -6,6 +6,7 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Pinterest 14.39.0 is now the supported version. All 26 patches apply to it, and 14.38.0 is no longer a target.
 * **Pinterest:** The settings home ends with a Support HushPinterest row. Tapping it opens the Ko-fi page in your browser, and if no app can open it you get a message with the address instead. Its text is translated into German, Spanish, Indonesian, Brazilian Portuguese and Turkish.
+* **Pinterest:** Download board no longer saves a board's pins a second time once they've dropped off Download history. The history still shows the newest 32 entries, and it now remembers the 500 before those. Removing a pin from Download history forgets its older downloads too.
 * **Source:** Morphe Manager and the patch index now show the HushPinterest icon next to the source instead of the owner's GitHub picture.
 * **Docs:** The Pinterest reference docs now describe 14.39.0. The APK facts, class and method names, endpoints and resource names were checked against the 14.39.0 build, with the old 14.38.0 name kept next to each one that moved. The patch reference covers all 26 patches. The signed-in screen survey and the runtime measurements are still the 14.38.0 runs, and the docs say so.
 

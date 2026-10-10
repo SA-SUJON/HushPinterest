@@ -115,14 +115,111 @@ public class DownloadLedgerTest {
         String stored = preferences().getString(DownloadLedger.RECORDS, "");
         assertEquals(32, stored.lines().count());
         for (String row : stored.split("\n")) assertTrue(row, row.matches("[0-9]+,[0-9]{1,30},[0-9]+"));
-        assertEquals(1, preferences().getAll().size());
-        assertFalse(stored.contains("https"));
-        assertFalse(stored.contains("token"));
-        assertFalse(stored.contains("Pinterest_"));
-        assertFalse(stored.contains("content:"));
+        // The eight older requests keep only their ID and pin ID, newest first.
+        String earlier = preferences().getString(DownloadLedger.EARLIER, "");
+        assertEquals(8, earlier.lines().count());
+        for (String row : earlier.split("\n")) assertTrue(row, row.matches("[0-9]+,[0-9]{1,30}"));
+        assertTrue(earlier, earlier.startsWith("7,1007\n"));
+        assertEquals(2, preferences().getAll().size());
+        for (String text : new String[]{stored, earlier}) {
+            assertFalse(text.contains("https"));
+            assertFalse(text.contains("token"));
+            assertFalse(text.contains("Pinterest_"));
+            assertFalse(text.contains("content:"));
+        }
         assertEquals(40, nativeJobs.getRequestCount());
         assertEquals(0, nativeJobs.removes);
         assertEquals(32, nativeJobs.queries.get(0).length);
+    }
+
+    @Test public void aFullBoardOfSavesStillCountsOnceItsPinsLeaveTheVisibleHistory() {
+        // Download board takes up to 500 pins, and the visible history shows the newest 32.
+        java.util.Set<String> saved = new java.util.HashSet<>();
+        for (int i = 0; i < BoardDownloads.PINS; i++) {
+            String pin = Integer.toString(10000 + i);
+            if (i % 2 == 0) owned(pin, DownloadManager.STATUS_SUCCESSFUL);
+            else assertTrue(DownloadLedger.recordResult(app, pin, DownloadLedger.State.SAVED));
+            saved.add(pin);
+        }
+        assertTrue(DownloadLedger.recordResult(app, "99", DownloadLedger.State.SKIPPED));
+        assertTrue(DownloadLedger.recordResult(app, "98", DownloadLedger.State.UNSUPPORTED));
+        nativeJobs.queries.clear();
+        assertEquals(saved, DownloadLedger.downloadedPinIds(app));
+        // One query, under the 999 host parameters SQLite allows before 3.32 (Android 10's Downloads).
+        assertEquals(1, nativeJobs.queries.size());
+        assertEquals(BoardDownloads.PINS / 2, nativeJobs.queries.get(0).length);
+        assertTrue(DownloadLedger.LIMIT + DownloadLedger.EARLIER_LIMIT < 999);
+
+        List<DownloadLedger.Job> shown = new DownloadLedger(app).reconcile();
+        assertEquals(DownloadLedger.LIMIT, shown.size());
+        assertEquals("98", shown.get(0).pinId);
+        assertEquals(DownloadLedger.LIMIT, preferences().getString(DownloadLedger.RECORDS, "").lines().count());
+        // Skipped and unsupported results never count, so only saves and requests move back.
+        assertEquals(BoardDownloads.PINS - DownloadLedger.LIMIT + 2,
+                preferences().getString(DownloadLedger.EARLIER, "").lines().count());
+    }
+
+    @Test public void theEarlierHistoryKeepsItsNewestEntriesAndAndroidStillDecidesWhatCounts() {
+        owned("0", DownloadManager.STATUS_SUCCESSFUL);
+        long failed = owned("1", DownloadManager.STATUS_PENDING);
+        long missing = owned("2", DownloadManager.STATUS_SUCCESSFUL);
+        owned("3", DownloadManager.STATUS_SUCCESSFUL);
+        int total = DownloadLedger.LIMIT + DownloadLedger.EARLIER_LIMIT;
+        for (int i = 4; i < total; i++) assertTrue(DownloadLedger.recordResult(app, Integer.toString(100 + i), DownloadLedger.State.SAVED));
+        java.util.Set<String> downloaded = DownloadLedger.downloadedPinIds(app);
+        assertEquals(total, downloaded.size());
+        assertTrue(downloaded.containsAll(java.util.Arrays.asList("0", "1", "2", "3")));
+        assertEquals(DownloadLedger.EARLIER_LIMIT, preferences().getString(DownloadLedger.EARLIER, "").lines().count());
+
+        // A newer save pushes the oldest entry out of both lists, and only that one.
+        assertTrue(DownloadLedger.recordResult(app, "77", DownloadLedger.State.SAVED));
+        downloaded = DownloadLedger.downloadedPinIds(app);
+        assertEquals(total, downloaded.size());
+        assertFalse(downloaded.contains("0"));
+        assertTrue(downloaded.contains("77"));
+        assertEquals(DownloadLedger.EARLIER_LIMIT, preferences().getString(DownloadLedger.EARLIER, "").lines().count());
+
+        // Earlier requests are asked about again: failed or gone from Android, they can be saved again.
+        status(failed, DownloadManager.STATUS_FAILED);
+        manager.remove(missing);
+        downloaded = DownloadLedger.downloadedPinIds(app);
+        assertFalse(downloaded.contains("1"));
+        assertFalse(downloaded.contains("2"));
+        assertTrue(downloaded.contains("3"));
+        // When Android can't be asked, they still count, so nothing is saved twice.
+        nativeJobs.nullCursor = true;
+        assertTrue(DownloadLedger.downloadedPinIds(app).contains("2"));
+        nativeJobs.nullCursor = false;
+    }
+
+    @Test public void removingAPinFromHistoryForgetsItsEarlierEntriesToo() throws Exception {
+        owned("7", DownloadManager.STATUS_SUCCESSFUL);
+        owned("8", DownloadManager.STATUS_SUCCESSFUL);
+        for (int i = 0; i < DownloadLedger.LIMIT; i++) assertTrue(DownloadLedger.recordResult(app, Integer.toString(100 + i), DownloadLedger.State.SAVED));
+        long again = owned("7", DownloadManager.STATUS_SUCCESSFUL);
+        assertTrue(DownloadLedger.downloadedPinIds(app).containsAll(java.util.Arrays.asList("7", "8")));
+
+        assertTrue(DownloadLedger.removeHistory(app, again, null));
+        settle();
+        java.util.Set<String> downloaded = DownloadLedger.downloadedPinIds(app);
+        assertFalse(downloaded.contains("7"));
+        assertTrue(downloaded.contains("8"));
+        assertEquals(3, nativeJobs.getRequestCount());
+        assertEquals(0, nativeJobs.removes);
+        assertFalse(preferences().getString(DownloadLedger.EARLIER, "").contains(",7\n"));
+    }
+
+    @Test public void malformedOrOversizeEarlierHistoryCountsNothing() {
+        preferences().edit().putString(DownloadLedger.EARLIER,
+                "5,321\n5,999\n-1,123\n-7,456\nbad,1\n6,bad\n7,1,extra\n9999999999999999999,2\n").commit();
+        assertEquals(new java.util.HashSet<>(java.util.Arrays.asList("456")), DownloadLedger.downloadedPinIds(app));
+        assertArrayEquals(new long[]{5}, nativeJobs.queries.get(0));
+        nativeJobs.queries.clear();
+        preferences().edit().putString(DownloadLedger.EARLIER, "-2,3\n".repeat(DownloadLedger.EARLIER_LIMIT * 11)).commit();
+        assertTrue(DownloadLedger.downloadedPinIds(app).isEmpty());
+        preferences().edit().putInt(DownloadLedger.EARLIER, 1).commit();
+        assertTrue(DownloadLedger.downloadedPinIds(app).isEmpty());
+        assertTrue(nativeJobs.queries.isEmpty());
     }
 
     @Test public void zeroIdIsOwnedAndInvalidAdmissionNeverQueriesAnything() {
