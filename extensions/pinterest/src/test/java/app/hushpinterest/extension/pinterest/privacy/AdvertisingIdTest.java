@@ -95,8 +95,7 @@ public class AdvertisingIdTest {
         assertSame(STORE, deletes.get(0)[0]);
         assertEquals(Collections.singletonList("pid"), deletes.get(0)[1]);
         assertSame(CONTINUATION, deletes.get(0)[2]);
-        String report = String.join("
-", HookStatus.report());
+        String report = String.join("\n", HookStatus.report());
         assertTrue(report, report.contains("browser ID read skipped 1"));
         assertTrue(report, report.contains("browser ID save deleted 1"));
     }
@@ -109,8 +108,7 @@ public class AdvertisingIdTest {
         // A resume passes null for every object argument.
         assertNull(AdvertisingId.saveBrowserId(null, null, null, CONTINUATION));
         assertEquals(0, deletes.size());
-        String report = String.join("
-", HookStatus.report());
+        String report = String.join("\n", HookStatus.report());
         assertFalse(report, report.contains("browser ID"));
     }
 
@@ -138,8 +136,7 @@ public class AdvertisingIdTest {
             throw new IllegalStateException("no Block Store");
         };
         assertNull(AdvertisingId.saveBrowserId(STORE, "pid", RECORD, CONTINUATION));
-        String report = String.join("
-", HookStatus.report());
+        String report = String.join("\n", HookStatus.report());
         assertTrue(report, report.contains("browser ID save"));
         assertFalse(report, report.contains("browser ID save deleted"));
     }
@@ -147,8 +144,7 @@ public class AdvertisingIdTest {
     @Test public void theUnpatchedDeleteStubAnswersNothingSoPinterestsSaveRuns() {
         AdvertisingId.deleteForTests = null;
         assertNull(AdvertisingId.saveBrowserId(STORE, "pid", RECORD, CONTINUATION));
-        assertFalse(String.join("
-", HookStatus.report()).contains("browser ID save deleted"));
+        assertFalse(String.join("\n", HookStatus.report()).contains("browser ID save deleted"));
     }
 
     private static void installed(Boolean present) throws ReflectiveOperationException {
