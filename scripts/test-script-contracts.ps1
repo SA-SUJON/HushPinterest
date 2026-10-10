@@ -1613,9 +1613,10 @@ try {
     Copy-Item -LiteralPath (Join-Path $Root $bugFormRelative) -Destination (Join-Path $factsRoot $bugFormRelative)
 
     function Invoke-Facts {
-        param([switch]$WithUrls)
+        param([switch]$WithUrls, [switch]$AllowLag)
         $arguments = @{ Root = $factsRoot; SkipDescriptionTestCount = $true }
         if (-not $WithUrls) { $arguments['SkipUrlCheck'] = $true }
+        if ($AllowLag) { $arguments['AllowPublishedIndexLag'] = $true }
         # 6>, not *>. The check says what it found with Write-Host, which is the information
         # stream, and that is all this wants to hide. Redirecting every stream also swallows the
         # terminating error, so each case below was accepted in silence and proved nothing.
@@ -1673,15 +1674,18 @@ try {
         Set-FactsFile 'patches-bundle.json' { param($text) $synced }
     }
 
-    # The bug form names the published version, which the synced index above now names too.
+    # The bug form names the published version and build, which the synced index above now names
+    # too. The build moved there without the form until 2026-10-10, so the control failed through
+    # the whole 14.39.0 hold for a reason none of its cases were about.
     function Sync-FixtureBugForm {
         $fixtureVersion = ((Get-Content -LiteralPath (Join-Path $factsRoot 'gradle.properties')) `
             -match '^version\s*=' | Select-Object -First 1) -replace '^version\s*=\s*', ''
-        $publishedHere = Get-ReleaseIndexVersion
-        if ($publishedHere -eq $fixtureVersion) { return }
-        Set-FactsFile $bugFormRelative {
-            param($text) $text -replace ('HushPinterest ' + [regex]::Escape($publishedHere) + ' on Pinterest'), "HushPinterest $fixtureVersion on Pinterest"
-        }
+        $fixtureBuild = (Get-PatchTarget -PatchList (Get-Content -LiteralPath (Join-Path $factsRoot 'patches-list.json') -Raw |
+            ConvertFrom-Json)).PackageVersion
+        $text = Get-Content -LiteralPath (Join-Path $factsRoot $bugFormRelative) -Raw
+        $synced = $text -replace '(placeholder:[ \t]*HushPinterest )\S+ on Pinterest \S+', "`${1}$fixtureVersion on Pinterest $fixtureBuild"
+        if ($synced -ceq $text) { return }
+        Set-FactsFile $bugFormRelative { param($unused) $synced }
     }
 
     # And the README's version badge and the sentence naming the latest release, which a release
@@ -2002,6 +2006,29 @@ try {
     }
     Assert-Throws { Invoke-Facts } '*bug report form version placeholder*' `
         'A bug report form naming an old Pinterest build was accepted.'
+    Reset-FactsFile $bugFormRelative
+    # A hold: the catalog has moved to a newer Pinterest build while the index keeps the version
+    # and the build it was released on. A reporter then runs the published release on that older
+    # build, so under the gate's lag allowance the form names the index's build, and a form that
+    # already names the catalog's build is refused.
+    $catalogBuild = (Get-PatchTarget -PatchList (Get-Content -LiteralPath (Join-Path $factsRoot 'patches-list.json') -Raw |
+        ConvertFrom-Json)).PackageVersion
+    $heldBuild = '14.0.0'
+    Set-FactsFile 'patches-bundle.json' {
+        param($text) $text -replace ('(?<![\d.])' + [regex]::Escape($catalogBuild) + '(?!\d)'), $heldBuild
+    }
+    Set-FactsFile $bugFormRelative {
+        param($text) $text -replace '(placeholder:[ \t]*HushPinterest \S+ on Pinterest )\S+', "`${1}$heldBuild"
+    }
+    try { Invoke-Facts -AllowLag } catch {
+        throw "A held index with the bug form on its own build was refused: $($_.Exception.Message)"
+    }
+    Set-FactsFile $bugFormRelative {
+        param($text) $text -replace '(placeholder:[ \t]*HushPinterest \S+ on Pinterest )\S+', "`${1}$catalogBuild"
+    }
+    Assert-Throws { Invoke-Facts -AllowLag } '*bug report form version placeholder*' `
+        'A bug report form naming the catalog''s unreleased build while the index lags was accepted.'
+    Reset-FactsFile 'patches-bundle.json'
     Reset-FactsFile $bugFormRelative
     Set-FactsFile $bugFormRelative {
         param($text) $text -replace '(placeholder:\s*Morphe Manager )\S+', '${1}1.20.0'

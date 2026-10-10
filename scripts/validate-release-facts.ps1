@@ -872,7 +872,10 @@ if (-not (Test-Path -LiteralPath $bugFormPath -PathType Leaf)) {
     throw "The bug report form is missing: $bugFormPath"
 }
 $bugForm = Get-Content -LiteralPath $bugFormPath -Raw
-$bugFormVersions = "HushPinterest $publishedVersion on Pinterest $targetVersion"
+# Both halves come from the index while it lags the source: a reporter on the published release
+# runs the Pinterest build that release targets, not the one source has moved to.
+$bugFormTarget = if ($indexLagsSource -and $publishedFacts.TargetVersion) { $publishedFacts.TargetVersion } else { $targetVersion }
+$bugFormVersions = "HushPinterest $publishedVersion on Pinterest $bugFormTarget"
 Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*$([regex]::Escape($bugFormVersions))\s*$" `
     -Description 'bug report form version placeholder'
 Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*Morphe Manager $([regex]::Escape($managerFloor))\s*$" `
