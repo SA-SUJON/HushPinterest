@@ -2,7 +2,7 @@
 
 Every HushPinterest release, newest first.
 
-## Unreleased
+## 0.0.7 (2026-10-10)
 
 * **Pinterest:** Pinterest 14.39.0 is now the supported version. All 27 patches apply to it, and 14.38.0 is no longer a target.
 * **Pinterest:** New Fix push notifications patch, on by default. Google's Firebase service only signs Pinterest up for push notifications when the request names Pinterest's original signature, and a patched Pinterest is signed with a different one, so it never got a notification token. The patch gives Firebase the original signature's fingerprint when Pinterest signs up and changes nothing else in the request. Its switch is on the new Notifications page under More settings.
