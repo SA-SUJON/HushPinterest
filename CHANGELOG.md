@@ -2,6 +2,10 @@
 
 Every HushPinterest release, newest first.
 
+## Unreleased
+
+* **Source:** Morphe Manager and the patch index now show the HushPinterest icon next to the source instead of the owner's GitHub picture.
+
 ## 0.0.6 (2026-10-10)
 
 * **Pinterest:** HushPinterest now patches Pinterest 14.38.0 only, which needs Android 10 or newer. On Android 9, keep HushPinterest 0.0.5 with Pinterest 14.25.0.
