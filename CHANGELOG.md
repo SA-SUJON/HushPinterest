@@ -4,6 +4,7 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** Pinterest 14.39.0 is now the supported version. All 26 patches apply to it, and 14.38.0 is no longer a target.
 * **Source:** Morphe Manager and the patch index now show the HushPinterest icon next to the source instead of the owner's GitHub picture.
 
 ## 0.0.6 (2026-10-10)

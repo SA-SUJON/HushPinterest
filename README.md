@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/version-0.0.6-E60023" alt="Version 0.0.6">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%2010%2B-3DDC84" alt="Platform Android 10+">
-  <img src="https://img.shields.io/badge/Pinterest-14.38.0-E60023" alt="Pinterest 14.38.0">
+  <img src="https://img.shields.io/badge/Pinterest-14.39.0-E60023" alt="Pinterest 14.39.0">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.34.0%2B-8A2BE2" alt="For Morphe Manager 1.34.0 or newer">
 </p>
 
@@ -26,15 +26,15 @@ The latest release is [v0.0.6](https://github.com/SysAdminDoc/HushPinterest/rele
 
 ## Which Pinterest
 
-HushPinterest targets Pinterest **14.38.0**, version code 14388010 (`com.pinterest`), on Android 10 and newer. Use the universal APK, the single file that holds every screen density and processor type. APKMirror lists it as the "nodpi" variant. A split bundle (`.apkm`, `.xapk`) works too if Morphe Manager can merge it.
+HushPinterest targets Pinterest **14.39.0**, version code 14398020 (`com.pinterest`), on Android 10 and newer. Use the universal APK, the single file that holds every screen density and processor type. APKMirror lists it as the "nodpi" variant. A split bundle (`.apkm`, `.xapk`) works too if Morphe Manager can merge it.
 
-Other versions may patch, but each patch looks for code by what it does in 14.38.0, and Pinterest renames almost everything between releases. If a patch can't find its spot it says so and stops, rather than patching the wrong place.
+Other versions may patch, but each patch looks for code by what it does in 14.39.0, and Pinterest renames almost everything between releases. If a patch can't find its spot it says so and stops, rather than patching the wrong place.
 
 ## Install
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.34.0 or newer.
 2. Add HushPinterest as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushPinterest
-3. Pick the Pinterest 14.38.0 APK, keep the default patch selection and patch. It holds every feature, so you don't need Expert mode. Ad blocking and privacy start on, and everything else waits until you turn on its switch in HushPinterest settings.
+3. Pick the Pinterest 14.39.0 APK, keep the default patch selection and patch. It holds every feature, so you don't need Expert mode. Ad blocking and privacy start on, and everything else waits until you turn on its switch in HushPinterest settings.
 4. Only Spoof signature for Google sign-in is left out. If you need it, turn on **Settings → Advanced → Expert mode** in Morphe Manager and pick it before you patch.
 
 A patched Pinterest can't install over the stock one, because Android only accepts an update signed with the same key. Moving from stock requires removing it yourself after saving anything local you need. Boards and pins stored in your account return when you sign in, but that doesn't restore local settings or drafts. The development installer refuses stock or differently signed installs and downgrades. It never removes an app or grants all permissions.
@@ -97,7 +97,7 @@ Updating from v0.0.5 or older? Hide AI-labeled pins used to start on. If you nev
 
 Switches change the runtime hooks without patching again. Reopen a screen to refresh controls that are already drawn. Pause makes those hooks follow Pinterest's original path. Startup tasks skipped by Disable analytics run again after a restart with its switch off or Pause on. That patch also sets Firebase and Google Analytics collection flags in the manifest when you patch, and they stay set until you patch again without Disable analytics. Remove ad tracking permissions has no switch at all. Its manifest change stays until you patch again without it.
 
-Disable update nag targets the Play Store prompt in Pinterest 14.38.0.
+Disable update nag targets the Play Store prompt in Pinterest 14.39.0.
 
 ## Settings
 
@@ -201,7 +201,7 @@ Open an [issue](https://github.com/SysAdminDoc/HushPinterest/issues) and say wha
 | [SysAdminDoc/HushTelegram](https://github.com/SysAdminDoc/HushTelegram) at `8c54a1d` | The Gradle build, the shared extension library with its settings screen, diagnostics, pause and backup, the bytecode helpers, and the checks that apply every patch to a real APK before a release. Most of that came to HushTelegram from [HushThreads](https://github.com/SysAdminDoc/HushThreads) and [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook). |
 | [Morphe](https://github.com/MorpheApp) and [ReVanced](https://gitlab.com/ReVanced/revanced-patches) | The patcher and the patch template. Everything above grew from their code. |
 
-The Pinterest patches were written for this project by reading Pinterest itself, and they target Pinterest 14.38.0. Every source file says where it came from in its header, and [provenance.json](provenance.json) maps each file to the project and commit it came from, with its license. The [source ledger](sources/pinterest-sources.json) records the other Pinterest projects reviewed at pinned commits, including renamed repositories and the difference between development and stable releases. Its search findings name the queries and dates checked. These are research references. None of their Pinterest code has been adopted, and their version lists don't expand HushPinterest's supported builds.
+The Pinterest patches were written for this project by reading Pinterest itself, and they target Pinterest 14.39.0. Every source file says where it came from in its header, and [provenance.json](provenance.json) maps each file to the project and commit it came from, with its license. The [source ledger](sources/pinterest-sources.json) records the other Pinterest projects reviewed at pinned commits, including renamed repositories and the difference between development and stable releases. Its search findings name the queries and dates checked. These are research references. None of their Pinterest code has been adopted, and their version lists don't expand HushPinterest's supported builds.
 
 ## Building from source
 
