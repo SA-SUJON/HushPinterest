@@ -344,18 +344,19 @@ public final class FeatureDexFixture {
         if (patched && !variant.equals("missing") && !variant.equals("misrouted")) {
             read.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 3, 1, skip));
             read.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
-            read.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, variant.equals("bad-fallback") ? 3 : 4));
+            // The bad fallback tests the answer the wrong way round: still type-safe, so only the contract can see it.
+            read.add(new ImmutableInstruction21t(variant.equals("bad-fallback") ? Opcode.IF_NEZ : Opcode.IF_EQZ, 0, 4));
             read.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
             read.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
         }
         read.addAll(record("RetrieveBytesRequest;"));
         // The save is v0, then this, key, bytes and continuation.
         List<Instruction> save = new ArrayList<>();
-        if (patched) {
+        if (patched && !variant.equals("save-missing")) {
             save.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 1, 4,
                     ref(ADVERTISING, "saveBrowserId", OBJECT, OBJECT, STRING, "[B", OBJECT)));
             save.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
-            save.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 3));
+            save.add(new ImmutableInstruction21t(variant.equals("save-bad-fallback") ? Opcode.IF_NEZ : Opcode.IF_EQZ, 0, 3));
             save.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
         }
         save.addAll(record("StoreBytesData;"));
@@ -611,7 +612,8 @@ public final class FeatureDexFixture {
         Map<String, List<Method>> browserClean = new LinkedHashMap<>(clean);
         browserId(browserClean, "clean");
         write(root, "feature-browser-id-clean", browserClean, false);
-        for (String variant : List.of("good", "missing", "misrouted", "bad-fallback", "changed-original", "false-capability", "bad-stub")) {
+        for (String variant : List.of("good", "missing", "misrouted", "bad-fallback", "save-missing", "save-bad-fallback",
+                "changed-original", "false-capability", "bad-stub")) {
             reset(); enable("hideAdvertisingId");
             if (variant.equals("false-capability")) FLAGS.put("browserId", false);
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);

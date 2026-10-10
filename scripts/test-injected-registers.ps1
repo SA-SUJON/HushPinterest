@@ -675,6 +675,8 @@ try {
         'feature-browser-id-missing' = $false
         'feature-browser-id-misrouted' = $false
         'feature-browser-id-bad-fallback' = $false
+        'feature-browser-id-save-missing' = $false
+        'feature-browser-id-save-bad-fallback' = $false
         'feature-browser-id-changed-original' = $false
         'feature-browser-id-false-capability' = $false
         'feature-browser-id-bad-stub' = $false
@@ -775,7 +777,9 @@ try {
         $browserIdReason = switch ($name) {
             'feature-browser-id-missing' { 'skipBrowserId(Ljava/lang/String;)Z has 0 calls' }
             'feature-browser-id-misrouted' { 'misrouted call' }
-            'feature-browser-id-bad-fallback' { "isn't a guarded prefix" }
+            'feature-browser-id-bad-fallback' { "isn't a guarded prefix with a null answer" }
+            'feature-browser-id-save-missing' { 'saveBrowserId(Ljava/lang/Object;Ljava/lang/String;[BLjava/lang/Object;)Ljava/lang/Object; has 0 calls' }
+            'feature-browser-id-save-bad-fallback' { "isn't a guarded prefix with its own answer" }
             'feature-browser-id-changed-original' { 'beyond its validated mutations' }
             'feature-browser-id-false-capability' { 'browserId flag is false, clean target requires true' }
             'feature-browser-id-bad-stub' { 'where the clean APK has' }
