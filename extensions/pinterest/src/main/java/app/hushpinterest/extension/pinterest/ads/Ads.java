@@ -49,9 +49,14 @@ public final class Ads {
             "promoted_is_showcase",
     };
 
-    /** Text fields that only an ad fills in. */
+    /**
+     * Text fields that only an ad fills in. 14.39.0's pin has no plain {@code pin_promotion_id}; it
+     * keeps the promotion and campaign as the two reformatted ids its own ads debugger shows (#6).
+     */
     static final String[] AD_TEXT = {
             "pin_promotion_id",
+            "pin_promotion_id_reformatted",
+            "campaign_id_reformatted",
             "ad_destination_url",
             "promoted_android_deep_link",
     };

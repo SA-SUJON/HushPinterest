@@ -106,6 +106,76 @@ public class FeedFilterTest {
         }
     }
 
+    /**
+     * A feed module like Pinterest's dynamic story: its pins in a list with no JSON name, which is
+     * what its renderers read, and its preview image addresses in another.
+     */
+    static final class Module {
+        @Json("id") String id;
+        @Json("story_type") String storyType;
+        List<Object> objects;
+        ArrayList<String> images = new ArrayList<>(Arrays.asList("a.jpg", "b.jpg"));
+
+        Module(String id, Object... objects) {
+            this.id = id;
+            this.storyType = "ideas_for_you";
+            this.objects = Arrays.asList(objects);
+        }
+
+        @Override public String toString() {
+            return id;
+        }
+    }
+
+    /** The story model that names its list and wraps each entry, holding one model and no JSON names. */
+    static final class Wrapper {
+        final Pin pin;
+        final Story story;
+        final int position;
+
+        Wrapper(Pin pin, Story story) {
+            this.pin = pin;
+            this.story = story;
+            this.position = 3;
+        }
+
+        @Override public String toString() {
+            return String.valueOf(pin != null ? pin : story);
+        }
+    }
+
+    static final class WrappedModule {
+        @Json("id") String id = "wrapped";
+        @Json("story_type") StoryKind storyType = StoryKind.IDEAS_FOR_YOU;
+        @Json("objects") List<Wrapper> objects;
+        @Json("content_ids") List<String> contentIds = Arrays.asList("1", "2", "3");
+
+        @Override public String toString() {
+            return id;
+        }
+    }
+
+    /** A module whose list can't be swapped for a copy. */
+    static final class FixedModule {
+        @Json("story_type") String storyType = "ideas_for_you";
+        final List<Object> objects;
+
+        FixedModule(Object... objects) {
+            this.objects = Arrays.asList(objects);
+        }
+
+        @Override public String toString() {
+            return "fixed";
+        }
+    }
+
+    /** 14.39.0's pin, which keeps its promotion and campaign as reformatted ids. */
+    static final class ReformattedPin {
+        @Json("id") String id = "reformatted";
+        @Json("pin_promotion_id_reformatted") String promotion;
+        @Json("campaign_id_reformatted") String campaign;
+    }
+
     private final Pin plain = new Pin("plain");
     private final Pin promoted = new Pin("promoted");
     private final Pin thirdParty = new Pin("thirdParty");
@@ -136,7 +206,12 @@ public class FeedFilterTest {
         Settings.HIDE_AI_PINS.resetToDefault();
         Settings.HIDE_SHOPPING.resetToDefault();
         ModelFields.clearForTests();
+        ModuleItems.clearForTests();
         HookStatus.clear();
+    }
+
+    private static String report() {
+        return String.join("\n", HookStatus.report());
     }
 
     private List<Object> page() {
@@ -253,5 +328,89 @@ public class FeedFilterTest {
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
         assertEquals(View.INVISIBLE, Ads.adViewVisibility(View.INVISIBLE));
         assertEquals(spec, Ads.adViewMeasureSpec(spec));
+    }
+
+    @Test
+    public void hideAdsTakesTheAdsOutOfAModuleThatStays() {
+        Settings.HIDE_AI_PINS.save(false);
+        Module module = new Module("module", plain, promoted, labeled, "a note", adData, promotionId);
+        List<Object> page = new ArrayList<>(Arrays.asList(plain, module, ideas));
+        assertSame(page, FeedFilter.filter(page));
+        assertEquals("[plain, labeled, a note]", module.objects.toString());
+        assertEquals("[a.jpg, b.jpg]", module.images.toString());
+        assertTrue(report(), report().contains("promoted pin removed from a module"));
+        assertFalse(report(), report().contains("module left empty removed"));
+    }
+
+    @Test
+    public void aModuleOfNothingButAdsGoesWithThem() {
+        Module module = new Module("allAds", promoted, thirdParty);
+        assertEquals("[plain, ideas]", FeedFilter.filter(new ArrayList<>(Arrays.asList(plain, module, ideas))).toString());
+        assertEquals("[]", module.objects.toString());
+        assertTrue(report(), report().contains("module left empty removed"));
+    }
+
+    @Test
+    public void bothSwitchesTakeLabeledPinsOutOfAModuleToo() {
+        Settings.HIDE_AI_PINS.save(true);
+        Module module = new Module("module", plain, labeled, promoted, emptyLabels);
+        FeedFilter.filter(new ArrayList<>(Arrays.asList(module)));
+        assertEquals("[plain, emptyLabels]", module.objects.toString());
+        assertTrue(report(), report().contains("AI-labeled pin removed from a module"));
+    }
+
+    @Test
+    public void aWrappedPinIsJudgedByThePinItHolds() {
+        WrappedModule module = new WrappedModule();
+        module.objects = Arrays.asList(new Wrapper(plain, null), new Wrapper(promoted, null), new Wrapper(null, spotlight),
+                new Wrapper(null, ideas), new Wrapper(null, null));
+        assertEquals("[wrapped]", FeedFilter.filter(new ArrayList<>(Arrays.asList(module))).toString());
+        assertEquals("[plain, ideas, null]", module.objects.toString());
+        assertEquals("[1, 2, 3]", module.contentIds.toString());
+    }
+
+    @Test
+    public void aModuleInsideAModuleIsJudgedButNotOpened() {
+        Module inner = new Module("inner", promoted);
+        Module outer = new Module("outer", plain, inner);
+        FeedFilter.filter(new ArrayList<>(Arrays.asList(outer)));
+        assertEquals("[plain, inner]", outer.objects.toString());
+        assertEquals("[promoted]", inner.objects.toString());
+    }
+
+    @Test
+    public void aListThatCantBeSwappedStaysAndCountsNothing() {
+        FixedModule module = new FixedModule(promoted, plain);
+        assertEquals("[fixed]", FeedFilter.filter(new ArrayList<>(Arrays.asList(module))).toString());
+        assertEquals("[promoted, plain]", module.objects.toString());
+        assertFalse(report(), report().contains("from a module"));
+    }
+
+    @Test
+    public void aModuleKeepsEverythingWithHideAdsOffOrPaused() {
+        Settings.HIDE_ADS.save(false);
+        Module off = new Module("off", plain, promoted);
+        List<Object> page = new ArrayList<>(Arrays.asList(off));
+        assertSame(page, FeedFilter.filter(page));
+        assertEquals("[plain, promoted]", off.objects.toString());
+
+        Settings.HIDE_ADS.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        Module paused = new Module("paused", plain, promoted);
+        FeedFilter.filter(new ArrayList<>(Arrays.asList(paused)));
+        assertEquals("[plain, promoted]", paused.objects.toString());
+    }
+
+    @Test
+    public void aReformattedPromotionOrCampaignIdMarksAnAd() {
+        ReformattedPin pin = new ReformattedPin();
+        assertFalse(Ads.isAd(pin));
+        pin.promotion = " ";
+        assertFalse(Ads.isAd(pin));
+        pin.promotion = "1234";
+        assertTrue(Ads.isAd(pin));
+        pin.promotion = null;
+        pin.campaign = "5678";
+        assertTrue(Ads.isAd(pin));
     }
 }

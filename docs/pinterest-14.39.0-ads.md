@@ -84,7 +84,7 @@ These names document the schema. They do not prove a particular response populat
 
 | Control | Fingerprint and edit | Current coverage boundary |
 |---|---|---|
-| Shared feed filter | Match `toString()` text `, _items count:`, `PagedResponse(bookmark=` and `ModelListWithBookmark(models=`. Inject `FeedFilter.filter(List)` at the start of every implemented constructor with exactly one List parameter. | Handles top-level elements passed to the three recognized holder families. It doesn't recursively inspect arbitrary nested objects. |
+| Shared feed filter | Match `toString()` text `, _items count:`, `PagedResponse(bookmark=` and `ModelListWithBookmark(models=`. Inject `FeedFilter.filter(List)` at the start of every implemented constructor with exactly one List parameter. | Handles top-level elements passed to the three recognized holder families, and one level into each module that stays (`ModuleItems`). It doesn't go deeper than that. |
 | Ad-only views | Rewrite or add `setVisibility(int)` and `onMeasure(int,int)` on four named native view classes. | Forces GONE and zero measurement while active. A new ad renderer requires its own proven target. |
 | Google Mobile Ads | Find one nonstatic no-argument void method reading enum field `GOOGLE_MOBILE_ADS`; insert `Ads.skipGoogleAds()` and an early return. | Controls an initialization attempt. It does not actively shut down an existing SDK instance or replay a skipped attempt when a switch changes. |
 
@@ -94,14 +94,14 @@ The four ad views are `TextAdView`, `LegacyPromotedCloseupActionButtonModule`, `
 
 Read [FeedListHookPatch.kt](../patches/src/main/kotlin/app/morphe/patches/pinterest/ads/FeedListHookPatch.kt#L45), [HideAdsPatch.kt](../patches/src/main/kotlin/app/morphe/patches/pinterest/ads/HideAdsPatch.kt#L72) and [FeedFilter.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/FeedFilter.java#L31) before changing these sites.
 
-Missing holders are warned and skipped. Zero remaining holders refuses the shared hook. The `feedAds` capability is true when at least one holder family installs; `adViews` is true when at least one ad view installs. Those flags stay coarse, so the patch also records each target in `HookTargets` ([HookTargets.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/HookTargets.java)): every holder with how many of its list constructors were hooked against the 14.39.0 count (`feedList` 2, `pagedResponse` 1, `modelList` 1), and every ad view with how many of `setVisibility` and `onMeasure` it holds. A holder with fewer list constructors than 14.39.0 is hooked where it can be and warned about. In a partial build the Feed page names each target that's missing or only partly in, and the report's `[PATCHES]` section lists every target with its count. Nested search Shopping ideas groups and related-pin shopping wrappers have no target of their own (the filter only sees top-level items), and the report says so. FeedFixtureTest requires full target coverage on declared builds, and FeedPatchesTest covers the all-target and partial-target records.
+Missing holders are warned and skipped. Zero remaining holders refuses the shared hook. The `feedAds` capability is true when at least one holder family installs; `adViews` is true when at least one ad view installs. Those flags stay coarse, so the patch also records each target in `HookTargets` ([HookTargets.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/HookTargets.java)): every holder with how many of its list constructors were hooked against the 14.39.0 count (`feedList` 2, `pagedResponse` 1, `modelList` 1), and every ad view with how many of `setVisibility` and `onMeasure` it holds. A holder with fewer list constructors than 14.39.0 is hooked where it can be and warned about. In a partial build the Feed page names each target that's missing or only partly in, and the report's `[PATCHES]` section lists every target with its count. Nested search Shopping ideas groups and related-pin shopping wrappers have no target of their own, and the report says so. The filter reaches the pins in them only through the module that carries them (see Pins inside a module below). FeedFixtureTest requires full target coverage on declared builds, and FeedPatchesTest covers the all-target and partial-target records.
 
 ### Exact filter behavior
 
 Hide ads starts on. It removes a top-level item when any of these conditions matches:
 
 * Boolean true in `is_promoted`, `is_promoted_pin`, `is_promoted_carousel_pin`, `is_promoted_video`, `is_third_party_ad`, `is_active_ad`, `is_cpc_ad`, `is_downstream_promotion`, `promoted_is_lead_ad`, `promoted_is_catalog_carousel_ad`, `promoted_is_max_video`, `promoted_is_quiz` or `promoted_is_showcase`.
-* Nonblank String in `pin_promotion_id`, `ad_destination_url` or `promoted_android_deep_link`.
+* Nonblank String in `pin_promotion_id`, `pin_promotion_id_reformatted`, `campaign_id_reformatted`, `ad_destination_url` or `promoted_android_deep_link`. The 14.39.0 pin (`oe`) has no plain `pin_promotion_id`. It keeps the two reformatted ids instead, and they're the ones Pinterest's own ads debugger shows as Pin Promotion ID and Campaign ID.
 * Nonnull `ad_data`, even if that object contains no populated fields.
 * `story_type` that is the shopping spotlight: the String `shopping_spotlight`, or an enum constant named exactly `SHOPPING_SPOTLIGHT` (the typed `ll$c` form). Other enum values, editorial or unknown, don't qualify. See `Ads.isSpotlight`.
 
@@ -112,6 +112,20 @@ Hide shopping starts off and is broader than paid-ad filtering. It recognizes `i
 Hide AI-labeled pins starts off. It requires a nonempty `ai_disclosures` List. It doesn't infer AI from an image, caption or creator. Unlabeled content stays. See [AiPins.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/AiPins.java#L17).
 
 The shared filter keeps order and object identity for retained entries. It returns the original List when nothing changes and allocates a replacement only after the first removal. An unexpected exception returns the original page. Removal counters are assigned to the first matching family in the order ads, AI, shopping; they don't represent unique pins or network bytes saved. Counts are currently published during the loop, so a later exception can restore the original page after a removal has already been counted. See [FeedFilter.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/FeedFilter.java#L45).
+
+### Pins inside a module (#6)
+
+A feed module is one top-level item that carries its own pins. In 14.39.0 that's `z5`, the dynamic story `DynamicStoryDeserializer` builds: every child of its JSON `objects` goes into the unannotated `public List f51914y`, and 78 renderers read that field directly (Home rows, closeup shopping and "complete the look" modules, deal and shop-by-ad carousels). The story model `ll` names its list `objects` and wraps each entry in `ll$b`, which holds one model in unannotated fields. Neither list was ever seen by the filter, so an ad inside a module stayed, and a related module came back each time the same pin was opened.
+
+`ModuleItems` handles any kept item whose model has a `story_type`:
+
+* Every nonstatic, nonfinal field declared as `List`, `AbstractList` or `ArrayList` on the class or its non-platform superclasses is read. Fields are found by type, not name, so a renamed field still works.
+* An entry is judged when it's a model (it has JSON names) or a wrapper whose first non-null, non-primitive field holds a model. Anything else (image addresses, ids, null) stays.
+* The same three switches decide, in the same order. What goes is left out of a copy, and the copy replaces the field. Counts (`promoted pin removed from a module` and the like) are published only after the swap succeeds.
+* A module whose list ends up empty is removed too and counted as `module left empty removed`, so no heading is left over an empty row.
+* It's one level only. A module inside a module is judged as an item and never opened. A failure is reported as `module filter` under the first active family and leaves that list as it was. The rest of the page still filters.
+
+`z5.O` keeps the 236x preview addresses parsed from the same JSON and isn't rewritten. A module that draws a collage from it could still show a removed pin's picture. See [ModuleItems.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/ModuleItems.java).
 
 ### Measurement is a separate control
 

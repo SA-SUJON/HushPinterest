@@ -20,7 +20,9 @@ import app.hushpinterest.extension.pinterest.settings.PatchFamily;
  * <p>Pinterest hands every page of a feed, search, related pins and boards to one of three list
  * holders before anything is drawn. The patch passes the list each holder is built with through
  * {@link #filter}, which drops what Hide ads and Hide AI-labeled pins each say to and hands back the
- * rest in order. With both switches off, or paused, the list goes through untouched.
+ * rest in order. A module that stays, such as a row of ideas or a group of products, has the same
+ * done to the pins inside it, and goes when none are left ({@link ModuleItems}). With every switch
+ * off, or paused, the list goes through untouched.
  *
  * <p>Download board reads what's left, untouched, to keep the pins of a board's own pages. It never
  * throws and never changes the list, so the filtering is the same with it or without it.
@@ -48,30 +50,52 @@ public final class FeedFilter {
             BoardDownloads.record(items);
             return items;
         }
+        boolean hideAds = ads, hideAi = ai, hideShopping = shopping;
+        ModuleItems.Verdict verdict = model -> family(model, hideAds, hideAi, hideShopping);
+        String owner = ads ? FamilyNames.HIDE_ADS : ai ? FamilyNames.HIDE_AI_PINS : FamilyNames.HIDE_SHOPPING;
         List<?> shown;
         try {
             List<Object> kept = null;
             int size = items.size();
             for (int i = 0; i < size; i++) {
                 Object item = items.get(i);
-                String family = ads && Ads.isAd(item) ? FamilyNames.HIDE_ADS
-                        : ai && AiPins.isLabeled(item) ? FamilyNames.HIDE_AI_PINS
-                        : shopping && Shopping.isShopping(item) ? FamilyNames.HIDE_SHOPPING : null;
+                String family = verdict.family(item);
+                // A module that stays loses what's inside it that goes, and goes too when that's everything.
+                if (family == null && ModuleItems.isModule(item)) {
+                    String emptied = ModuleItems.prune(item, verdict, owner);
+                    if (emptied != null) {
+                        family = emptied;
+                        HookStatus.counted(emptied, "module left empty removed");
+                    }
+                } else if (family != null) {
+                    HookStatus.counted(family, removal(family));
+                }
                 if (family != null) {
                     if (kept == null) kept = new ArrayList<>(items.subList(0, i));
-                    HookStatus.counted(family, family.equals(FamilyNames.HIDE_ADS) ? "promoted pin removed"
-                            : family.equals(FamilyNames.HIDE_AI_PINS) ? "AI-labeled pin removed" : "shopping placement removed");
                 } else if (kept != null) {
                     kept.add(item);
                 }
             }
             shown = kept == null ? items : kept;
         } catch (Throwable t) {
-            HookStatus.threw(ads ? FamilyNames.HIDE_ADS : ai ? FamilyNames.HIDE_AI_PINS : FamilyNames.HIDE_SHOPPING, "list filter", t);
+            HookStatus.threw(owner, "list filter", t);
             return items;
         }
         // Outside the filter's own failure handling: what's kept for a board never decides what's shown.
         BoardDownloads.record(shown);
         return shown;
+    }
+
+    /** The first switch on that takes [item] out, in the order ads, AI, shopping, or null to keep it. */
+    private static String family(Object item, boolean ads, boolean ai, boolean shopping) {
+        return ads && Ads.isAd(item) ? FamilyNames.HIDE_ADS
+                : ai && AiPins.isLabeled(item) ? FamilyNames.HIDE_AI_PINS
+                : shopping && Shopping.isShopping(item) ? FamilyNames.HIDE_SHOPPING : null;
+    }
+
+    /** What a removal by [family] is counted as. English, for the report. */
+    static String removal(String family) {
+        return family.equals(FamilyNames.HIDE_ADS) ? "promoted pin removed"
+                : family.equals(FamilyNames.HIDE_AI_PINS) ? "AI-labeled pin removed" : "shopping placement removed";
     }
 }
