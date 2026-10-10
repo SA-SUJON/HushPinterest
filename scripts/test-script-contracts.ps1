@@ -381,11 +381,11 @@ foreach ($invalid in @('', '0', '-1', 'Future', '2147483648')) {
 Assert-Throws {
     ConvertFrom-ManifestXmlTree -Lines ($manifestLines + @('      E: uses-sdk (line=90)')) -Source 'duplicate-sdk'
 } '*More than one uses-sdk*' 'An ambiguous binary minimum SDK was accepted.'
-foreach ($pair in @(@(21, 28), @(28, 28), @(36, 36))) {
+foreach ($pair in @(@(21, 29), @(29, 29), @(36, 36))) {
     $floor = Test-PatchedMinSdk -StockMinSdk $pair[0] -PatchedMinSdk $pair[1]
     Assert-True $floor.Valid "A correct binary floor $($pair -join ' -> ') was refused: $($floor.Reason)"
 }
-foreach ($pair in @(@(21, 27), @(36, 28), @(21, 29), @($null, 28), @(21, $null), @('21', 28), @(21, 28.5))) {
+foreach ($pair in @(@(21, 28), @(36, 29), @(21, 30), @($null, 29), @(21, $null), @('21', 29), @(21, 29.5))) {
     $floor = Test-PatchedMinSdk -StockMinSdk $pair[0] -PatchedMinSdk $pair[1]
     Assert-True (-not $floor.Valid) "An invalid binary floor $($pair -join ' -> ') was accepted."
 }
@@ -570,7 +570,7 @@ try {
                 forced = $false }
             patches = @([ordered]@{ name = 'Alpha'; applied = $true; reason = $null },
                         [ordered]@{ name = 'Beta'; applied = $true; reason = $null })
-            sdk = [ordered]@{ stockMinSdk = 21; patchedMinSdk = 28 }
+            sdk = [ordered]@{ stockMinSdk = 21; patchedMinSdk = 29 }
             manifestDelta = [ordered]@{ permissionsAdded = @(); permissionsRemoved = @()
                 exportedComponentsAdded = @(); exportedComponentsRemoved = @() }
         }, [ordered]@{
@@ -624,11 +624,11 @@ try {
         'a target with no binary SDK facts'      = { param($r) $r.targets[0].PSObject.Properties.Remove('sdk') }
         'a target with no stock minimum'        = { param($r) $r.targets[0].sdk.PSObject.Properties.Remove('stockMinSdk') }
         'a target with no patched minimum'      = { param($r) $r.targets[0].sdk.PSObject.Properties.Remove('patchedMinSdk') }
-        'a string SDK minimum'                  = { param($r) $r.targets[0].sdk.patchedMinSdk = '28' }
-        'a fractional SDK minimum'              = { param($r) $r.targets[0].sdk.patchedMinSdk = 28.5 }
-        'a minimum below API 28'                = { param($r) $r.targets[0].sdk.patchedMinSdk = 27 }
-        'a lowered higher stock minimum'        = { param($r) $r.targets[1].sdk.patchedMinSdk = 28 }
-        'an unnecessarily raised stock minimum' = { param($r) $r.targets[0].sdk.patchedMinSdk = 29 }
+        'a string SDK minimum'                  = { param($r) $r.targets[0].sdk.patchedMinSdk = '29' }
+        'a fractional SDK minimum'              = { param($r) $r.targets[0].sdk.patchedMinSdk = 29.5 }
+        'a minimum below API 29'                = { param($r) $r.targets[0].sdk.patchedMinSdk = 28 }
+        'a lowered higher stock minimum'        = { param($r) $r.targets[1].sdk.patchedMinSdk = 29 }
+        'an unnecessarily raised stock minimum' = { param($r) $r.targets[0].sdk.patchedMinSdk = 30 }
         'fewer verdicts than patches'           = { param($r) $r.targets[0].patches = @($r.targets[0].patches[0]) }
         'a patch the catalog does not list'     = { param($r) $r.targets[0].patches[1].name = 'Gamma' }
         'the same patch reported twice'         = { param($r) $r.targets[0].patches[1].name = 'Alpha' }
@@ -4286,7 +4286,7 @@ try {
     $androidExported = '          A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true'
     function Get-FixtureManifest([string]$Build, [string]$Code, [switch]$WithSplit, [switch]$Patched,
             [string]$Package = $releaseTarget.PackageName, [int]$MinSdk = 21) {
-        $binaryMinSdk = if ($Patched) { [Math]::Max($MinSdk, 28) } else { $MinSdk }
+        $binaryMinSdk = if ($Patched) { [Math]::Max($MinSdk, 29) } else { $MinSdk }
         $lines = @(
             'N: android=http://schemas.android.com/apk/res/android (line=1)',
             '  E: manifest (line=1)',
@@ -4402,7 +4402,7 @@ try {
                     package = $releaseTarget.PackageName; versionName = $Builds[$i]; versionCode = $code
                     sha256 = ([string]'ABCDEF'[$i % 6] * 64); forced = $false }
                 patches       = @($releaseNames | ForEach-Object { [ordered]@{ name = $_; applied = $true; reason = $null } })
-                sdk           = [ordered]@{ stockMinSdk = 21; patchedMinSdk = 28 }
+                sdk           = [ordered]@{ stockMinSdk = 21; patchedMinSdk = 29 }
                 manifestDelta = $approvedDelta
             }
             if ($Schema -ge 4) {
@@ -4766,7 +4766,7 @@ try {
             "The receipt does not record every patch applied to $label."
         $stockMinSdk = if ($label -eq $newerBuild) { 36 } else { 21 }
         Assert-True ($builtTarget.sdk.stockMinSdk -eq $stockMinSdk -and
-                $builtTarget.sdk.patchedMinSdk -eq [Math]::Max($stockMinSdk, 28)) `
+                $builtTarget.sdk.patchedMinSdk -eq [Math]::Max($stockMinSdk, 29)) `
             "The receipt does not record the binary SDK floor measured for $label."
         # The alias, the collection switches and the ad declarations are the patches' changes. The
         # split's activity the merge brings in is the merge's.
@@ -4808,11 +4808,11 @@ try {
     Assert-True ($said -like "*$builtProved*") "The release check did not accept the receipt the builder wrote: $said"
 
     # The builder must read and reject a wrong binary minimum, not merely write SDK facts that
-    # agree with themselves. Both sides of API 28 and a higher stock floor are exercised.
+    # agree with themselves. Both sides of API 29 and a higher stock floor are exercised.
     foreach ($wrongSdk in @(
-            @{ Build = $releaseTarget.PackageVersion; Stock = 21; Patched = 27; Expected = 28 },
-            @{ Build = $releaseTarget.PackageVersion; Stock = 21; Patched = 29; Expected = 28 },
-            @{ Build = $newerBuild; Stock = 36; Patched = 28; Expected = 36 })) {
+            @{ Build = $releaseTarget.PackageVersion; Stock = 21; Patched = 28; Expected = 29 },
+            @{ Build = $releaseTarget.PackageVersion; Stock = 21; Patched = 30; Expected = 29 },
+            @{ Build = $newerBuild; Stock = 36; Patched = 29; Expected = 36 })) {
         $manifestPath = "$($fixturePaths[$wrongSdk.Build]).patched.txt"
         $manifestBytes = [System.IO.File]::ReadAllBytes($manifestPath)
         try {
@@ -4909,15 +4909,15 @@ try {
             "$(@(Get-Content -LiteralPath $javaLog) -join '; ')")
     Assert-True ((Get-Content -LiteralPath $resourceStock -Raw) -ceq (Get-Content -LiteralPath "$newestFixture.merged.txt" -Raw)) `
         'The resource check was not handed the merge as its stock side.'
-    Assert-True ($said -like '*binary minSdk: 21 -> 28 (max(stock, 28))*') `
-        "The verification run did not check the binary API 28 floor: $said"
+    Assert-True ($said -like '*binary minSdk: 21 -> 29 (max(stock, 29))*') `
+        "The verification run did not check the binary API 29 floor: $said"
     $higher = Invoke-VerifyAll -Apk $fixturePaths[$newerBuild] -Force
-    Assert-True ($higher -like '*binary minSdk: 36 -> 36 (max(stock, 28))*' -and
+    Assert-True ($higher -like '*binary minSdk: 36 -> 36 (max(stock, 29))*' -and
             $higher -like '*success: every requested patch applied*') `
         "The verification run did not preserve a higher stock SDK floor: $higher"
     foreach ($wrongSdk in @(
-            @{ Build = $releaseTarget.PackageVersion; Stock = 21; Patched = 27; Expected = 28 },
-            @{ Build = $newerBuild; Stock = 36; Patched = 28; Expected = 36 })) {
+            @{ Build = $releaseTarget.PackageVersion; Stock = 21; Patched = 28; Expected = 29 },
+            @{ Build = $newerBuild; Stock = 36; Patched = 29; Expected = 36 })) {
         $manifestPath = "$($fixturePaths[$wrongSdk.Build]).patched.txt"
         $manifestBytes = [System.IO.File]::ReadAllBytes($manifestPath)
         try {

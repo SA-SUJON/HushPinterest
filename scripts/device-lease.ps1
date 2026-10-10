@@ -93,8 +93,8 @@ function Get-HushDeviceIdentity {
         $values[$query.Name] = ($reply.Output -join '').Trim()
     }
     if ($values.State -ne 'device' -or $values.Serial -cne $Serial -or -not $values.Model -or
-        -not $values.Build -or $values.Api -notmatch '^\d+$' -or [int]$values.Api -lt 28 -or -not $values.Abi) {
-        throw "Device identity refused for $Serial. Expected a ready API 28+ device with the exact serial."
+        -not $values.Build -or $values.Api -notmatch '^\d+$' -or [int]$values.Api -lt 29 -or -not $values.Abi) {
+        throw "Device identity refused for $Serial. Expected a ready API 29+ device with the exact serial."
     }
     if ($Serial -like 'emulator-*') {
         $reply = Invoke-HushPinterestAdbCommand -Adb $Adb -Invoker $AdbInvoker -Arguments @('-s', $Serial, 'emu', 'avd', 'name')

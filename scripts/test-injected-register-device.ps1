@@ -61,7 +61,7 @@ try {
                 $output = switch ($Arguments[4]) {
                     'ro.product.model' { @('fixture-phone') }
                     'ro.build.fingerprint' { @('fixture/build') }
-                    'ro.build.version.sdk' { @('28') }
+                    'ro.build.version.sdk' { @('29') }
                     'ro.product.cpu.abi' { @('arm64-v8a') }
                     default { throw 'Unexpected identity property.' }
                 }

@@ -258,7 +258,7 @@ $result = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-result-$runI
         $patchedManifest = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
         $floor = Test-PatchedMinSdk -StockMinSdk $stockManifest.minSdk -PatchedMinSdk $patchedManifest.minSdk
         if (-not $floor.Valid) { throw "[verify] $($floor.Reason)" }
-        Write-Host "[verify] binary minSdk: $($stockManifest.minSdk) -> $($patchedManifest.minSdk) (max(stock, 28))"
+        Write-Host "[verify] binary minSdk: $($stockManifest.minSdk) -> $($patchedManifest.minSdk) (max(stock, 29))"
         $manifestSelection = @($names) + @($dependencyNames)
         $approvedChanges = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') `
             -SelectedPatchNames $manifestSelection)

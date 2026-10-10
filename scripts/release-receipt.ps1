@@ -35,7 +35,7 @@ function Get-ReleaseReceiptSchemaVersion {
         older commit, so it stays a bare return.
 
         2 added sbom: the file name, SHA-256 and component count of the release SBOM.
-        3 added each target's stock and patched binary minSdk, held to max(stock, 28).
+        3 added each target's stock and patched binary minSdk, held to max(stock, 29) (28 before the Android 10 floor of 2026-10-10).
         4 added canonical stock/patched manifest facts and full declaration deltas, checked per target.
     #>
     return 4
@@ -540,7 +540,7 @@ function ConvertFrom-ManifestXmlTree {
 function Test-PatchedMinSdk {
     <#
     .SYNOPSIS
-        The binary installation floor must be API 28 or the stock floor, whichever is higher.
+        The binary installation floor must be API 29 or the stock floor, whichever is higher.
     #>
     param($StockMinSdk, $PatchedMinSdk)
 
@@ -549,10 +549,10 @@ function Test-PatchedMinSdk {
             return [pscustomobject]@{ Valid = $false; Reason = 'The binary minSdk facts are missing or invalid.' }
         }
     }
-    $expected = [Math]::Max([int]$StockMinSdk, 28)
+    $expected = [Math]::Max([int]$StockMinSdk, 29)
     if ($PatchedMinSdk -ne $expected) {
         return [pscustomobject]@{ Valid = $false
-            Reason = "The patched binary minSdk is $PatchedMinSdk; stock is $StockMinSdk, so it must be $expected (max(stock, 28))." }
+            Reason = "The patched binary minSdk is $PatchedMinSdk; stock is $StockMinSdk, so it must be $expected (max(stock, 29))." }
     }
     return [pscustomobject]@{ Valid = $true; Reason = 'ok' }
 }

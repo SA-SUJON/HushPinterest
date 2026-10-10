@@ -49,7 +49,7 @@ function Fixture-Facts([string[]]$features = @(), [string]$build = '14.39.0',
         "    A: http://schemas.android.com/apk/res/android:versionName=`"$build`"",
         "    A: http://schemas.android.com/apk/res/android:versionCode=$code",
         '      E: uses-sdk (line=2)',
-        '        A: http://schemas.android.com/apk/res/android:minSdkVersion=28',
+        '        A: http://schemas.android.com/apk/res/android:minSdkVersion=29',
         '    A: platformBuildVersionCode=36',
         '      E: uses-permission (line=3)',
         '        A: http://schemas.android.com/apk/res/android:name="android.permission.INTERNET"'))
@@ -352,7 +352,7 @@ $receipt = [pscustomobject]@{
     targets = @(@{ source = @{ package = $stock.package; versionName = $stock.versionName; versionCode = $stock.versionCode
             sha256 = ('A' * 64); forced = $false }
         patches = @($all | ForEach-Object { @{ name = $_; applied = $true } })
-        sdk = @{ stockMinSdk = 28; patchedMinSdk = 28 }
+        sdk = @{ stockMinSdk = 29; patchedMinSdk = 29 }
         manifest = @{ stock = $stock; patched = $patched }; manifestDelta = $valid.Delta })
 }
 $receipt = Copy-Manifest $receipt
