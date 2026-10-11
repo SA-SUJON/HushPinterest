@@ -1756,8 +1756,11 @@ try {
         }
         Set-FactsFile 'patches-list.json' { param($text) $text.Replace($newestBuild, $movedBuild) }
         Set-FactsFile 'README.md' { param($text) $text.Replace($newestBuild, $movedBuild) }
-        # What the maintainer's tree holds: the published index and form as they were, the form's
-        # build moved with the catalog.
+        # What the maintainer's tree holds: the published index and form as they were. While the
+        # index lags, the form names the published release and the build it was made for, the one a
+        # reporter on it runs. This case used to move the form's build with the catalog, which only
+        # went unnoticed while the published form named an older build than the catalog's newest;
+        # the 0.0.7 index push (2026-10-10) was the first tree where it didn't.
         Copy-ReleaseFile 'patches-bundle.json' (Join-Path $factsRoot 'patches-bundle.json')
         Copy-Item -LiteralPath (Join-Path $Root $bugFormRelative) -Destination (Join-Path $factsRoot $bugFormRelative) -Force
         # And its README sentence naming that published release, which the sync above moved to the
@@ -1767,12 +1770,18 @@ try {
             param($text) $text -replace '(latest (?:published )?release is (?:still )?\[?v)\d+(?:\.\d+)+', "`${1}$publishedHere" `
                 -replace '(latest release is \[v[^\]]*\]\([^)\s]*/tag/v)\d+(?:\.\d+)+', "`${1}$publishedHere"
         }
-        Set-FactsFile $bugFormRelative {
-            param($text) $text -replace ('(placeholder:\s*HushPinterest \S+ on Pinterest )' + [regex]::Escape($newestBuild)), "`${1}$movedBuild"
-        }
         $global:LASTEXITCODE = 0
         & $factsScript -Root $factsRoot -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipUrlCheck 6> $null
         Assert-True ($LASTEXITCODE -eq 0) "The gate refused the $window tree this case is built on, so it proves nothing."
+        # A form that names the catalog's build while the index still describes the last release
+        # asks a reporter on that release for a build they don't have.
+        $windowForm = Get-Content -LiteralPath (Join-Path $factsRoot $bugFormRelative) -Raw
+        Set-FactsFile $bugFormRelative {
+            param($text) $text -replace '(placeholder:[ \t]*HushPinterest \S+ on Pinterest )\S+', "`${1}$movedBuild"
+        }
+        Assert-Throws { & $factsScript -Root $factsRoot -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipUrlCheck 6> $null } `
+            '*bug report form version placeholder*' "The gate accepted a $window bug form naming the catalog's build instead of the published one."
+        Set-FactsFile $bugFormRelative { param($unused) $windowForm }
         # Lagging, the README may name the source's version or the published one, and no other.
         $windowReadme = Get-Content -LiteralPath (Join-Path $factsRoot 'README.md') -Raw
         foreach ($stale in @(
