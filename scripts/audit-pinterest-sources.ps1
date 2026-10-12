@@ -322,7 +322,8 @@ foreach ($item in @(Get-SourceProperty $ledgerDocument 'outOfScope' | Where-Obje
 # The indexes' own data repositories, read below as indexes. A code search hit in one is a copy of
 # a bundle's patch list, never a source of its own.
 $indexRepositories = @('github.com/nvbangg/awesome-morphe', 'github.com/drnx64/morphe-track-patches',
-    'github.com/jman-github/revanced-patch-bundles', 'github.com/rushiforai/morphe-archive', 'github.com/rushiforai/revanced-archive')
+    'github.com/jman-github/revanced-patch-bundles', 'github.com/jman-github/patch-bundle-registry',
+    'github.com/rushiforai/morphe-archive', 'github.com/rushiforai/revanced-archive')
 # The two archives keep examplepatches/<owner>/<name>/patches-list.json for every bundle they
 # found, which is a pointer back to that repository.
 $archiveRepositories = @('github.com/rushiforai/morphe-archive', 'github.com/rushiforai/revanced-archive')
@@ -469,7 +470,7 @@ Invoke-Source 'Jman''s bundle index' {
     # names each repository it follows, the database manifest names the current snapshot, and that
     # snapshot's app-bundles.json lists every bundle's packages. A Pinterest bundle's own detail
     # file carries its download address, which names the repository behind it.
-    $root = 'https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles'
+    $root = 'https://raw.githubusercontent.com/Jman-Github/Patch-Bundle-Registry/bundles'
     $bundleSources = Get-SourceJson -Uri "$root/config/sources.json" -What 'Jman''s sources.json'
     $listed['jman-bundles'] = $false
     foreach ($property in $bundleSources.PSObject.Properties) {

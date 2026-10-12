@@ -81,17 +81,19 @@ foreach ($package in Get-SourcePackages) {
 # candidate and a historical reference. None changes a source's adoption status or the commit in
 # an adopted provenance rule.
 $browz = @($entries | Where-Object { $_.id -eq 'browzomje' })[0]
-Assert-True ($browz.branches[0].name -eq 'main' -and $browz.branches[0].commit -eq '9dd5c671148f8849966c6369e2a009d5ffb92d45' -and
-    $browz.patchCounts.'com.pinterest' -eq 28 -and @($browz.features).Count -eq 24 -and $browz.disposition -eq 'candidate') `
-    'browzomje must keep its pinned main commit and its 28 Pinterest patches, as a candidate and not an adopted source.'
+Assert-True ($browz.branches[0].name -eq 'main' -and $browz.branches[0].commit -eq '81ca49405abb37241b9dd5a1dd5da313dc3a694c' -and
+    @($browz.branches | Where-Object { $_.name -eq 'dev' -and $_.commit -eq '44c965ef82066bd03fd507b9eca077b2adde78b6' }).Count -eq 1 -and
+    $browz.patchCounts.'com.pinterest' -eq 31 -and $browz.targetVersions.'com.pinterest' -contains '14.39.0' -and
+    @($browz.features).Count -eq 24 -and $browz.disposition -eq 'candidate') `
+    'browzomje must keep its pinned main and dev commits and its 31 Pinterest patches, as a candidate and not an adopted source.'
 $oyasumi = @($entries | Where-Object { $_.id -eq 'oyasumi' })[0]
 Assert-True ($oyasumi.branches.Count -eq 1 -and $oyasumi.branches[0].name -eq 'dev' -and
-    $oyasumi.branches[0].commit -eq '4d6329b9c8a0dcbf7f00cc97cf2e8601224e8dba' -and $oyasumi.patchCounts.'com.pinterest' -eq 13 -and
-    $oyasumi.targetVersions.'com.pinterest' -contains '14.38.0' -and $oyasumi.reason -like '*dev branch only*' -and
-    $oyasumi.reason -like '*v0.6.0-dev.24*' -and $oyasumi.reason -like '*Stable v0.5.3*' -and
+    $oyasumi.branches[0].commit -eq '1875509177dca5fa4181cce5614202547a2dea6d' -and $oyasumi.patchCounts.'com.pinterest' -eq 13 -and
+    $oyasumi.targetVersions.'com.pinterest' -contains '14.38.0' -and $oyasumi.reason -like '*Historical only*' -and
+    $oyasumi.reason -like '*4d6329b*' -and $oyasumi.reason -like '*1875509 removed the com.pinterest target*' -and
     $oyasumi.watchPaths -contains 'extensions/extension/src/main/java/app/oyasumi/extension' -and
-    $oyasumi.disposition -eq 'candidate') `
-    'oyasumi must distinguish thirteen dev Pinterest patches from stable v0.5.3, without claiming adoption.'
+    $oyasumi.disposition -eq 'rejected') `
+    'oyasumi removed its Pinterest target, so it must stay a rejected historical reference to the thirteen patches reviewed at 4d6329b.'
 $mubelotix = @($entries | Where-Object { $_.id -eq 'mubelotix' })[0]
 Assert-True ($mubelotix.repository -ceq 'https://github.com/Mubelotix/my-morphe-patches' -and
     $mubelotix.branches[0].commit -eq '8b6f75e226634c6a0b4031bba6cda1de7db146a0' -and
@@ -105,6 +107,11 @@ Assert-True ($mubelotix.repository -ceq 'https://github.com/Mubelotix/my-morphe-
 $stale = @($entries | Where-Object { $_.id -in @('binarymend', 'satanmerde') })
 Assert-True ($stale.Count -eq 2 -and @($stale | Where-Object { $_.disposition -ne 'rejected' }).Count -eq 0) `
     'binarymend and satanmerde have no usable anchors and must stay rejected.'
+$sabopura = @($entries | Where-Object { $_.id -eq 'sabopura' })[0]
+Assert-True ($sabopura.upstream -eq 'https://github.com/binarymend/morphe-patches' -and $sabopura.lineage -eq 'sabopura' -and
+    $sabopura.branches[0].commit -eq '1946e5488963d485530d07017ae4179c6be3d21a' -and $sabopura.patchCounts.'com.pinterest' -eq 3 -and
+    $sabopura.license.sha256 -eq '230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809' -and $sabopura.disposition -eq 'candidate') `
+    'sabopura must keep its reviewed commit, its CRLF GPL-3.0 hash and its Binarymend upstream, as a candidate.'
 $nagramRepository = 'https://github.com/authorisation/xterest'
 $nagram = @($ledger.outOfScope | Where-Object { $_.repository -eq $nagramRepository })[0]
 Assert-True ($nagram.reference.kind -eq 'historical' -and $nagram.reference.branch -eq 'main' -and
@@ -208,10 +215,10 @@ $sourcesDoc = if ($haveSourcesDoc) { [IO.File]::ReadAllText($sourcesDocPath) } e
 if ($haveSourcesDoc) {
     $docProblems = @(Test-SourcesDoc $sourcesDoc)
     Assert-True ($docProblems.Count -eq 0) ($docProblems -join ' | ')
-    Assert-True ($sourcesDoc.Contains('28 Pinterest patches') -and
+    Assert-True ($sourcesDoc.Contains('31 Pinterest patches') -and
         $sourcesDoc.Contains($browz.branches[0].commit.Substring(0, 7)) -and $sourcesDoc.Contains($oyasumi.branches[0].commit.Substring(0, 7)) -and
         $sourcesDoc.Contains($mubelotix.branches[0].commit.Substring(0, 7)) -and
-        $sourcesDoc.Contains($nagram.reference.commit.Substring(0, 7)) -and $sourcesDoc.Contains('dev branch only') -and
+        $sourcesDoc.Contains($nagram.reference.commit.Substring(0, 7)) -and $sourcesDoc.Contains('4d6329b') -and
         $sourcesDoc.Contains('pinterest org:Xposed-Modules-Repo') -and $sourcesDoc.Contains('incomplete_results=false')) `
         'The source document lost a pin, release distinction or bounded search evidence.'
 } else {
@@ -617,10 +624,10 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
             '^https://morphe-patches\.software/data/bundles\.json$' { $answer = $a.directory; break }
             '^https://raw\.githubusercontent\.com/nvbangg/awesome-morphe/main/data/hashes\.json$' { $answer = $a.awesome; break }
             '^https://raw\.githubusercontent\.com/drnx64/morphe-track-patches/main/data/bundles\.json$' { $answer = $a.tracker; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/config/sources\.json$' { $answer = $a.jmanSources; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/database/manifest\.json$' { $answer = $a.jmanManifest; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/database/snapshots/0abc/app-bundles\.json$' { $answer = $a.jmanAppBundles; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/database/snapshots/0abc/bundles/([a-z0-9]+)\.json$' { $answer = $a.jmanDetails[$Matches[1]]; break }
+            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/config/sources\.json$' { $answer = $a.jmanSources; break }
+            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/database/manifest\.json$' { $answer = $a.jmanManifest; break }
+            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/database/snapshots/0abc/app-bundles\.json$' { $answer = $a.jmanAppBundles; break }
+            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/database/snapshots/0abc/bundles/([a-z0-9]+)\.json$' { $answer = $a.jmanDetails[$Matches[1]]; break }
             '^https://api\.github\.com/repos/rushiforai/morphe-archive/contents/examplepatches/SysAdminDoc/HushPinterest/patches-list\.json$' { $answer = $a.archive; break }
             '^https://api\.github\.com/search/code\?q=([^&]+)&per_page=100&page=1$' {
                 $query = [Uri]::UnescapeDataString($Matches[1])
