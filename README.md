@@ -106,15 +106,15 @@ Settings use black pages with separate navy cards and blue icon badges. Text wra
 
 These images are native Android view captures from controlled fixtures for the redesign. Picker and history examples use sample data. No live downloads were started for the captures.
 
-Earlier phone checks on Android 16 verified that all 19 feature switches saved and restored their choices. Pause and Resume were checked across restarts, and Supported links opened Android's link settings. Feed filtering, pin downloads, sharing and browser links were also checked on a signed-in phone. Those checks predate this redesign.
+Earlier phone checks on Android 16, made before the current settings design, confirmed that the feature switches of that time saved and restored their choices. Pause and Resume were checked across restarts, and Supported links opened Android's link settings. Feed filtering, pin downloads, sharing and browser links were also checked on a signed-in phone.
 
 If the settings page can't open, Retry tries to load it again. Back returns to Pinterest. The recovery image uses a controlled load failure.
 
-Some things are Pinterest's own settings, and HushPinterest leaves them to it. The Pinterest's own settings page under More settings says where to find Pinterest's theme, privacy, notification, AI content and cellular autoplay settings, using the names Pinterest's menus show.
+Some things are Pinterest's own settings, and HushPinterest leaves them to it. The page called Pinterest's own settings, under More settings, says where to find Pinterest's theme, privacy, notification, AI content and cellular autoplay settings, using the names Pinterest's menus show.
 
 Hide AI-labeled pins, the shopping filter, the pin actions, the link and update switches and every interface control start off. Create and Notifications have separate switches. The pin menu has separate choices for collage actions, Search image and Promote pin. Home, your profile and the ordinary Save, Share and Report actions stay available.
 
-Download pins adds a Download row when Pinterest supplies an image or a direct MP4. Pinterest's app is usually sent display sizes rather than the original upload. So before an image download starts, HushPinterest asks Pinterest's media host for the original behind the largest size and saves that. If the host doesn't have one, the largest size is saved. It uses the highest resolution MP4 supplied for a video and saves through Android's Downloads service. Streaming playlists aren't saved as videos.
+Download pins adds a Download row when Pinterest supplies an image or a direct MP4. For those pins it hides Pinterest's own Download image row, so the menu has one download entry. Pinterest's app is usually sent display sizes rather than the original upload. So before an image download starts, HushPinterest asks Pinterest's media host for the original behind the largest size and saves that. If the host doesn't have one, the largest size is saved. It uses the highest resolution MP4 supplied for a video and saves through Android's Downloads service. Streaming playlists aren't saved as videos.
 
 From a pin menu in a feed, search or board grid, Download visible pins lets you select up to 32 pins already on screen. Nothing is selected automatically. It uses each pin's supplied media and shows queued, saved, skipped, unsupported and failed counts. Stop selection leaves started downloads alone. Unstarted selections end when Pinterest closes.
 
@@ -143,7 +143,7 @@ Exports and import previews use the choices saved on this device. Import setting
   <img src="assets/screenshots/settings-import-preview.png" width="240" alt="Native import review fixture with the switch's old and new values on one card">
 </p>
 
-Interface summaries now say which controls change and when. Bottom-bar and header choices take effect on their next layout. Recent searches and comments follow their next layout or visibility update. Pin-menu choices affect new menus. Screenshot suggestions require a restart. Search also recognizes reviewed terms such as Toolbar icons, Recent searches and Reverse image search, in each supported language.
+Interface summaries say which controls change and when. Bottom-bar and header choices take effect on their next layout. Recent searches and comments follow their next layout or visibility update. Pin-menu choices affect new menus. Screenshot suggestions require a restart. Search also recognizes reviewed terms such as Toolbar icons, Recent searches and Reverse image search, in each supported language.
 
 <p>
   <img src="assets/screenshots/settings-interface.png" width="240" alt="Interface switches with wrapped summaries">
