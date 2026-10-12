@@ -1110,6 +1110,10 @@ tasks {
         // Why the stamp is zero, when the tree is the reason, said where the stamp is written: the
         // release receipt refuses such a bundle, and only this build saw the tree it came from.
         val unheldChanges = if (sourceDateEpochFromEnvironment == null) uncommittedChanges else emptyList()
+        // The stamp and the tree state below aren't the plugin's inputs, so if a later plugin made this
+        // task skippable, a new commit with the same classes would keep the old stamp and checksum.
+        outputs.upToDateWhen { false }
+        outputs.doNotCacheIf("the release copy is stamped and checksummed in doLast") { true }
         doLast {
             // Emptied first, so the directory never holds a bundle of another version or a
             // checksum of another build: the release scripts take the one file they find.
