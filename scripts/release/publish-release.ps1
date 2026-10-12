@@ -137,6 +137,9 @@ if ($indexed) {
     # The release gate wrote these in this checkout, and the index push holds the description to them.
     $runtime = Get-ReleaseTestCount -Root $Root -Folders @('extensions/pinterest/build/test-results/testDebugUnitTest')
     $patch = Get-ReleaseTestCount -Root $Root -Folders @('patches/build/test-results/test', 'patches/build/test-results/fixtureTest')
+    # The published release check below reads the new description, so it changes first and goes
+    # back with the index files if anything after it fails.
+    $previousDescription = $null
     try {
         Invoke-ReleaseText -Root $Root -What 'The index' -Arguments @('index', '--version', $Version, '--created', $created,
             '--summary', $Summary, '--runtime', [string]$runtime, '--patch', [string]$patch)
@@ -150,6 +153,7 @@ if ($indexed) {
             -replace 'Pinterest \d+(?:\.\d+)+', "Pinterest $($facts.Groups[2].Value)"
         if ($updated -cne $current) {
             Invoke-ReleaseNative 'gh repo edit' { & gh repo edit $Repository --description $updated }
+            $previousDescription = $current
             Write-ReleaseStep "the GitHub description reads: $updated"
         }
         Copy-Item -LiteralPath (Join-Path $assets "release-receipt-$Version.json") -Destination (Join-Path $Root "release-receipt-$Version.json") -Force
@@ -167,6 +171,13 @@ if ($indexed) {
         Write-ReleaseStep 'putting patches-bundle.json, the README and the bug form back'
         & git -C $Root reset --quiet -- @indexFiles
         & git -C $Root checkout --quiet HEAD -- @indexFiles
+        if ($null -ne $previousDescription) {
+            Write-ReleaseStep "putting the GitHub description back: $previousDescription"
+            Invoke-ReleaseQuiet { & gh repo edit $Repository --description $previousDescription } | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                Write-ReleaseStep "gh couldn't put the description back. Set it by hand: gh repo edit $Repository --description `"$previousDescription`""
+            }
+        }
         throw
     }
     $head = Get-ReleaseGitText -Root $Root -Arguments @('rev-parse', 'HEAD')
