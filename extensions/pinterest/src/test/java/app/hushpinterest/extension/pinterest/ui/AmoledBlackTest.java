@@ -10,6 +10,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -45,6 +46,43 @@ public class AmoledBlackTest {
         PauseForTests.resume();
         Settings.BLACK_BOTTOM_BAR.resetToDefault();
         HookStatus.clear();
+        AmoledBlack.tabRoot = -1;
+        AmoledBlack.gestureStrip = -1;
+    }
+
+    @Test public void separateTabsTintedGrayTurnBlackAndOffGivesTheTintBack() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.tabRoot = View.generateViewId();
+        LinearLayout bar = bar(true);
+        LinearLayout row = (LinearLayout) bar.getChildAt(0);
+        row.setBackground(null);
+        View pill = tab(row, ELEVATION);
+        View glass = tab(row, 0x8033332E);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(Color.BLACK, pill.getBackgroundTintList().getDefaultColor());
+        assertEquals("the rounded shape under the tint stays", Color.WHITE,
+                ((GradientDrawable) pill.getBackground()).getColor().getDefaultColor());
+        assertEquals("a see-through tab keeps its look", 0x8033332E, glass.getBackgroundTintList().getDefaultColor());
+        Settings.BLACK_BOTTOM_BAR.save(false);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(ELEVATION, pill.getBackgroundTintList().getDefaultColor());
+    }
+
+    @Test public void theStripUnderTheBarTurnsBlackAndOffGivesItsColorBack() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.gestureStrip = View.generateViewId();
+        LinearLayout bar = bar(true);
+        FrameLayout window = new FrameLayout(bar.getContext());
+        window.addView(bar);
+        View strip = new View(bar.getContext());
+        strip.setId(AmoledBlack.gestureStrip);
+        strip.setBackgroundColor(0xFF222226);
+        window.addView(strip);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(Color.BLACK, ((ColorDrawable) strip.getBackground()).getColor());
+        Settings.BLACK_BOTTOM_BAR.save(false);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(0xFF222226, ((ColorDrawable) strip.getBackground()).getColor());
     }
 
     @Test public void offByDefaultTheBarKeepsPinterestsGray() {
@@ -150,5 +188,20 @@ public class AmoledBlackTest {
 
     private static GradientDrawable rowFill(LinearLayout bar) {
         return (GradientDrawable) bar.getChildAt(0).getBackground();
+    }
+
+    /** A tab like those of the bar that shows them apart: a white rounded shape under a tint. */
+    private static View tab(LinearLayout row, int tint) {
+        FrameLayout tab = new FrameLayout(row.getContext());
+        FrameLayout root = new FrameLayout(row.getContext());
+        root.setId(AmoledBlack.tabRoot);
+        GradientDrawable shape = new GradientDrawable();
+        shape.setCornerRadius(24f);
+        shape.setColor(Color.WHITE);
+        root.setBackground(shape);
+        root.setBackgroundTintList(ColorStateList.valueOf(tint));
+        tab.addView(root);
+        row.addView(tab);
+        return root;
     }
 }
