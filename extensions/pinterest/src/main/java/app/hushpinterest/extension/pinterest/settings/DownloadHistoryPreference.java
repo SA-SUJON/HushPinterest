@@ -44,7 +44,7 @@ public final class DownloadHistoryPreference extends DialogPreference {
         setTitle(L10n.t(context, "Download history"));
         setSummary(L10n.t(context, "Check recent downloads started by HushPinterest."));
         setDialogTitle(getTitle());
-        setNegativeButtonText(L10n.t(context, "Back"));
+        setNegativeButtonText(L10n.t(context, "Close"));
         setPositiveButtonText(L10n.t(context, "Open Downloads"));
     }
 
@@ -297,7 +297,7 @@ public final class DownloadHistoryPreference extends DialogPreference {
                         .setPositiveButton(L10n.t(getContext(), "Open Downloads"), (choice, which) -> {
                             if (alive() && jobDialog == choice) DownloadLedger.openDownloads(getContext());
                         })
-                        .setNegativeButton(L10n.t(getContext(), "Back"), null).create();
+                        .setNegativeButton(L10n.t(getContext(), "Cancel"), null).create();
                 jobDialog = opened;
                 opened.setOnDismissListener(ignored -> { if (jobDialog == opened) jobDialog = null; });
                 opened.create();

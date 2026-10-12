@@ -98,7 +98,7 @@ final class ScreenColors {
         actionFill = 0xFF2E70D9;
         switchOff = 0xFF858D9C;
         card = 0xFF10151F;
-        outline = 0xFF253044;
+        outline = 0xFF3A4A66;
         iconBadge = 0xFF1C2C48;
         onAccent = Color.WHITE;
     }
@@ -230,13 +230,18 @@ final class ScreenColors {
         row.setMinimumHeight(dp(row, nameOnly ? 62 : 72));
     }
 
-    /** The overview's hero keeps the same card geometry with a quiet blue edge. */
+    /**
+     * The overview's hero keeps the same card geometry with a quiet blue edge. Its blue gathers
+     * toward the end side, so it mirrors in a right-to-left language as the text does.
+     */
     void paintStatusSurface(View row) {
         int start = row.getPaddingStart();
         int top = row.getPaddingTop();
         int end = row.getPaddingEnd();
         int bottom = row.getPaddingBottom();
-        GradientDrawable surface = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+        boolean rightToLeft = row.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+        GradientDrawable surface = new GradientDrawable(rightToLeft
+                ? GradientDrawable.Orientation.RIGHT_LEFT : GradientDrawable.Orientation.LEFT_RIGHT,
                 new int[]{card, 0xFF172B4A});
         surface.setCornerRadius(dp(row, RADIUS_DP));
         surface.setStroke(dp(row, 1), outline);

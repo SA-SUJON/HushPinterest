@@ -156,6 +156,36 @@ public class ScreenColorsTest {
     }
 
     /**
+     * A card's edge is all that marks where one dark card ends and the next begins, so it reads
+     * at 2:1 against the card and more against the page.
+     */
+    @Test
+    public void aCardsEdgeStandsOutFromItsCard() {
+        ScreenColors page = ScreenColors.DEFAULT;
+        assertTrue(contrast(page.outline, page.card) >= 2.0);
+        assertTrue(contrast(page.outline, page.background) >= 2.0);
+        assertTrue(contrast(page.outline, page.dialog) >= 2.0);
+    }
+
+    /** The hero's blue gathers on the end side: the right in English, the left in a right-to-left language. */
+    @Test
+    public void theStatusCardsBlueSitsAtTheEndSide() {
+        assertEquals(GradientDrawable.Orientation.LEFT_RIGHT, statusGradient().getOrientation());
+    }
+
+    @Test
+    @Config(qualifiers = "ar-rXB-ldrtl")
+    public void theStatusCardsBlueMirrorsInARightToLeftLanguage() {
+        assertEquals(GradientDrawable.Orientation.RIGHT_LEFT, statusGradient().getOrientation());
+    }
+
+    private static GradientDrawable statusGradient() {
+        View row = new View(RuntimeEnvironment.getApplication());
+        ScreenColors.DEFAULT.paintStatusSurface(row);
+        return (GradientDrawable) ((InsetDrawable) row.getBackground()).getDrawable();
+    }
+
+    /**
      * The negative control: a low-contrast pair has to fail the same check. Grey 40% on grey 50%
      * is legible to nobody.
      */

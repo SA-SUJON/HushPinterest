@@ -281,16 +281,11 @@ Removes this history entry. Files and active downloads are kept.	Elimina esta en
 Open Downloads	Abrir Descargas
 Refresh	Actualizar
 Download unavailable	Descarga no disponible
-Supplied media details	Detalles del contenido proporcionado
 Copy media link	Copiar enlace del archivo
 Media link	Enlace del archivo
 Media link copied.	Enlace del archivo copiado.
 Couldn't copy the media link. Open the pin again, then retry.	No se pudo copiar el enlace del archivo. Vuelve a abrir el Pin y reinténtalo.
 These details come from the link and file information Pinterest gave the app. HushPinterest hasn't opened the file to check them.	Estos datos vienen del enlace y la información del archivo que Pinterest dio a la app. HushPinterest no ha abierto el archivo para comprobarlos.
-Supplied width: %s	Ancho proporcionado: %s
-Supplied size: %s. Downloads look for the original first.	Tamaño proporcionado: %s. Las descargas buscan primero el original.
-Supplied size: the original image	Tamaño proporcionado: la imagen original
-Supplied height: %s	Alto proporcionado: %s
 Link type: %s	Tipo de enlace: %s
 %d pixels	%d píxeles
 Unknown	Desconocido
@@ -434,7 +429,6 @@ Saves downloads in a folder you pick inside Pictures, DCIM, Download or Document
 %1$s is picked, but Save in Pinterest's folder is on, so downloads go to %2$s.	%1$s está elegida, pero Guardar en la carpeta de Pinterest está activado, así que las descargas van a %2$s.
 Saving downloads in %s. Tap to pick another folder or go back to the Download folder.	Las descargas se guardan en %s. Toca para elegir otra carpeta o volver a la carpeta Download.
 Pick another folder	Elegir otra carpeta
-Save in Download again	Volver a guardar en Download
 This phone has no folder picker, so there's no way to choose a folder here.	Este teléfono no tiene selector de carpetas, así que aquí no hay forma de elegir una carpeta.
 Couldn't open the folder picker. Try again.	No se pudo abrir el selector de carpetas. Inténtalo de nuevo.
 Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Elige una carpeta dentro de Pictures, DCIM, Download o Documents en el almacenamiento interno del teléfono.
@@ -467,3 +461,9 @@ Saved the pin list. The app holding the file wouldn't let HushPinterest read it 
 The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.	La lista de pines se guardó, pero al leerla no coincide con lo que se escribió. Guárdala de nuevo como un archivo nuevo.
 Saved a list of one pin.	Se guardó una lista con un pin.
 Saved a list of %d pins.	Se guardó una lista con %d pines.
+Use Download again	Volver a usar Download
+Media details	Detalles del contenido
+Width: %s	Ancho: %s
+Height: %s	Alto: %s
+Size: %s. Downloads look for the original first.	Tamaño: %s. Las descargas buscan primero el original.
+Size: the original image	Tamaño: la imagen original

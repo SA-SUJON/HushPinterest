@@ -281,16 +281,11 @@ Removes this history entry. Files and active downloads are kept.	Bu geçmiş kay
 Open Downloads	İndirilenler'i aç
 Refresh	Yenile
 Download unavailable	İndirme kullanılamıyor
-Supplied media details	Sağlanan medya ayrıntıları
 Copy media link	Medya bağlantısını kopyala
 Media link	Medya bağlantısı
 Media link copied.	Medya bağlantısı kopyalandı.
 Couldn't copy the media link. Open the pin again, then retry.	Medya bağlantısı kopyalanamadı. Pin'i yeniden aç, sonra tekrar dene.
 These details come from the link and file information Pinterest gave the app. HushPinterest hasn't opened the file to check them.	Bu ayrıntılar, Pinterest'in uygulamaya verdiği bağlantıdan ve dosya bilgisinden gelir. HushPinterest bunları denetlemek için dosyayı açmadı.
-Supplied width: %s	Sağlanan genişlik: %s
-Supplied size: %s. Downloads look for the original first.	Sağlanan boyut: %s. İndirmeler önce özgün görseli arar.
-Supplied size: the original image	Sağlanan boyut: özgün görsel
-Supplied height: %s	Sağlanan yükseklik: %s
 Link type: %s	Bağlantı türü: %s
 %d pixels	%d piksel
 Unknown	Bilinmiyor
@@ -434,7 +429,6 @@ Saves downloads in a folder you pick inside Pictures, DCIM, Download or Document
 %1$s is picked, but Save in Pinterest's folder is on, so downloads go to %2$s.	%1$s seçili, ancak Pinterest klasörüne kaydet açık olduğu için indirmeler %2$s klasörüne gider.
 Saving downloads in %s. Tap to pick another folder or go back to the Download folder.	İndirmeler %s içine kaydediliyor. Başka bir klasör seçmek veya Download klasörüne dönmek için dokun.
 Pick another folder	Başka klasör seç
-Save in Download again	Yeniden Download'a kaydet
 This phone has no folder picker, so there's no way to choose a folder here.	Bu telefonda klasör seçici yok, bu yüzden burada klasör seçmenin bir yolu yok.
 Couldn't open the folder picker. Try again.	Klasör seçici açılamadı. Tekrar dene.
 Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Telefonun kendi depolama alanında Pictures, DCIM, Download veya Documents içinde bir klasör seç.
@@ -467,3 +461,9 @@ Saved the pin list. The app holding the file wouldn't let HushPinterest read it 
 The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.	Pin listesi kaydedildi ama geri okunduğunda yazılanla aynı değil. Yeni bir dosya olarak tekrar kaydet.
 Saved a list of one pin.	Bir Pin içeren liste kaydedildi.
 Saved a list of %d pins.	%d Pin içeren liste kaydedildi.
+Use Download again	Yeniden Download'u kullan
+Media details	Medya ayrıntıları
+Width: %s	Genişlik: %s
+Height: %s	Yükseklik: %s
+Size: %s. Downloads look for the original first.	Boyut: %s. İndirmeler önce özgün görseli arar.
+Size: the original image	Boyut: özgün görsel

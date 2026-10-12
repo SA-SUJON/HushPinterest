@@ -132,7 +132,7 @@ public class DownloadFolderPreferenceTest {
             AlertDialog menu = ShadowAlertDialog.getLatestAlertDialog();
             ListView items = menu.getListView();
             assertEquals("Pick another folder", items.getAdapter().getItem(0).toString());
-            assertEquals("Save in Download again", items.getAdapter().getItem(1).toString());
+            assertEquals("Use Download again", items.getAdapter().getItem(1).toString());
             shadowOf(menu).clickOnItem(1);
             ShadowLooper.idleMainLooper();
             assertEquals("", DownloadFolder.PICKED.get());
@@ -153,7 +153,8 @@ public class DownloadFolderPreferenceTest {
             assertNotNull(menu);
             assertEquals(2, menu.getListView().getAdapter().getCount());
             assertEquals("Pick another folder", menu.getListView().getAdapter().getItem(0).toString());
-            assertEquals("Save in Download again", menu.getListView().getAdapter().getItem(1).toString());
+            assertEquals("Use Download again", menu.getListView().getAdapter().getItem(1).toString());
+            assertEquals("Cancel", menu.getButton(AlertDialog.BUTTON_NEGATIVE).getText().toString());
             assertTrue(menu.getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled());
             SettingsDialog settings = (SettingsDialog) activity.getFragmentManager().findFragmentByTag("hushpinterest_settings");
             NativeDialogCapture.capture("download-folder-choices", settings.getView(), menu);

@@ -102,12 +102,12 @@ public final class DownloadFolderPreference extends Preference {
             AlertDialog dialog = new AlertDialog.Builder(HushPinterestPreferenceFragment.themed(getContext()))
                     .setTitle(getTitle())
                     .setAdapter(new ChoiceCards(ScreenColors.DEFAULT,
-                            new CharSequence[]{L10n.t("Pick another folder"), L10n.t("Save in Download again")},
+                            new CharSequence[]{L10n.t("Pick another folder"), L10n.t("Use Download again")},
                             new CharSequence[]{"", ""}, new boolean[]{true, false}), (shown, which) -> {
                         if (which == 0) pick(page);
                         else forget();
                     })
-                    .setNegativeButton(L10n.t("Back"), null)
+                    .setNegativeButton(L10n.t("Cancel"), null)
                     .create();
             dialog.create();
             dialog.getListView().setDivider(null);

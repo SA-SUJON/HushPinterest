@@ -329,6 +329,8 @@ public class SetupGuidancePreferenceTest {
         last.performClick();
         assertEquals("https://help.pinterest.com/en/article/download-your-pinterest-data", GuideActivity.attempts.get(0).getDataString());
         assertTrue(guide.getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled());
+        assertEquals("the guide only shows, so it closes", L10n.t(guide.getContext(), "Close"),
+                guide.getButton(AlertDialog.BUTTON_NEGATIVE).getText().toString());
         capture(guide, "setup-guide-large-rtl-api" + Build.VERSION.SDK_INT, true);
     }
 

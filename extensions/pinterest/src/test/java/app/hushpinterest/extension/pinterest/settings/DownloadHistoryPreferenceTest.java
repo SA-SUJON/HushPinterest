@@ -170,6 +170,8 @@ public class DownloadHistoryPreferenceTest {
         AlertDialog history = open();
         assertEquals(4, jobs(history).getAdapter().getCount());
         assertUsable(history);
+        assertEquals("history only shows, so it closes", text("Close"),
+                history.getButton(AlertDialog.BUTTON_NEGATIVE).getText().toString());
         NativeDialogCapture.capture("download-history-populated", page.getView(), history);
 
         int failedPosition = -1;
@@ -183,6 +185,8 @@ public class DownloadHistoryPreferenceTest {
         assertEquals("an untrusted source must not offer Retry", 2, entry.getListView().getAdapter().getCount());
         assertTrue(entry.getListView().getAdapter().getItem(0).toString().contains(text("Open pin")));
         assertTrue(entry.getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled());
+        assertEquals("an entry offers actions, so leaving it cancels", text("Cancel"),
+                entry.getButton(AlertDialog.BUTTON_NEGATIVE).getText().toString());
         assertTrue(entry.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
         NativeDialogCapture.capture("download-history-detail", page.getView(), history, entry);
         assertEquals("preview clicks queued another native request", 3, nativeJobs.getRequestCount());

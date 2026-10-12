@@ -114,7 +114,7 @@ public final class PinDownloads {
                 }
             }
             if (supported) {
-                String detailsTitle = L10n.t("Supplied media details");
+                String detailsTitle = L10n.t("Media details");
                 View details = menuRow(layout, detailsTitle);
                 if (details != null) {
                     details.setTag(DETAILS_TAG);
@@ -183,15 +183,15 @@ public final class PinDownloads {
             }
             String text = L10n.t("These details come from the link and file information Pinterest gave the app. "
                 + "HushPinterest hasn't opened the file to check them.")
-                    + "\n\n" + L10n.f("Supplied width: %s", media.width == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.width))
-                    + "\n" + L10n.f("Supplied height: %s", media.height == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.height))
+                    + "\n\n" + L10n.f("Width: %s", media.width == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.width))
+                    + "\n" + L10n.f("Height: %s", media.height == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.height))
                     + "\n" + L10n.f("Link type: %s", media.urlType == null ? L10n.t("Unknown") : media.urlType);
             if (media.source != null && media.size != null) text += "\n" + (PinMedia.standIn(media)
-                    ? L10n.f("Supplied size: %s. Downloads look for the original first.", media.size)
-                    : L10n.t("Supplied size: the original image"));
+                    ? L10n.f("Size: %s. Downloads look for the original first.", media.size)
+                    : L10n.t("Size: the original image"));
             if (media.refusal != null) text = refusalMessage(media.refusal) + "\n\n" + text;
             AlertDialog details = HushDialogs.builder(activity)
-                    .setTitle(L10n.t("Supplied media details"))
+                    .setTitle(L10n.t("Media details"))
                     .setMessage(text)
                     .setPositiveButton(L10n.t("Close"), (dialog, which) -> dialog.dismiss())
                     .create();

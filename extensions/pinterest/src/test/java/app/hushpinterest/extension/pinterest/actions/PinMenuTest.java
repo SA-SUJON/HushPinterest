@@ -82,11 +82,11 @@ public class PinMenuTest {
         assertEquals(3, host.layout.getChildCount());
         assertEquals("Download pin", ((TextView) host.layout.getChildAt(0)).getText());
         assertEquals("Copy media link", ((TextView) host.layout.getChildAt(1)).getText());
-        assertEquals("Supplied media details", ((TextView) host.layout.getChildAt(2)).getText());
+        assertEquals("Media details", ((TextView) host.layout.getChildAt(2)).getText());
         assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
         String text = details();
-        assertTrue(text, text.contains("Supplied width: 3000 pixels"));
-        assertTrue(text, text.contains("Supplied height: 2000 pixels"));
+        assertTrue(text, text.contains("Width: 3000 pixels"));
+        assertTrue(text, text.contains("Height: 2000 pixels"));
         assertTrue(text, text.contains("Link type: image/png"));
         assertTrue(text, text.contains("HushPinterest hasn't opened the file to check them."));
         assertEquals(0, host.dismissed);
@@ -108,7 +108,7 @@ public class PinMenuTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         String text = details();
         assertTrue(text, text.contains("This media link isn't a public Pinterest link HushPinterest can use."));
-        assertTrue(text, text.contains("Supplied width: 3000 pixels"));
+        assertTrue(text, text.contains("Width: 3000 pixels"));
         assertTrue(text, text.contains("Link type: Unknown"));
         assertNoDownload();
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
@@ -128,8 +128,8 @@ public class PinMenuTest {
         assertEquals("Download pin", ((TextView) host.layout.getChildAt(0)).getText());
         assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
         String text = details();
-        assertTrue(text, text.contains("Supplied width: 736 pixels"));
-        assertTrue(text, text.contains("Supplied size: 736x. Downloads look for the original first."));
+        assertTrue(text, text.contains("Width: 736 pixels"));
+        assertTrue(text, text.contains("Size: 736x. Downloads look for the original first."));
         assertFalse(text, text.contains("Pinterest hasn't supplied"));
         assertNoDownload();
     }
@@ -139,7 +139,7 @@ public class PinMenuTest {
                 "url", "https://i.pinimg.com/originals/source.png", "width", 3000, "height", 2000))));
         PinDownloads.attach(host);
         assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
-        assertTrue(details().contains("Supplied size: the original image"));
+        assertTrue(details().contains("Size: the original image"));
     }
 
     @Test public void copyMediaLinkForAStandInCopiesTheOriginalTheMediaHostHasAfterClosingTheMenu() throws Exception {
@@ -171,8 +171,8 @@ public class PinMenuTest {
         PinDownloads.attach(host);
         assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
         String text = details();
-        assertTrue(text, text.contains("Supplied width: 1920 pixels"));
-        assertTrue(text, text.contains("Supplied height: 1080 pixels"));
+        assertTrue(text, text.contains("Width: 1920 pixels"));
+        assertTrue(text, text.contains("Height: 1080 pixels"));
         assertTrue(text, text.contains("Link type: video/mp4"));
         assertFalse(text, text.contains("3840"));
         assertNoDownload();
@@ -201,8 +201,8 @@ public class PinMenuTest {
                 "url", "https://i.pinimg.com/originals/source.jpg"))));
         PinDownloads.attach(host);
         assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
-        assertTrue(details().contains("Supplied width: Unknown"));
-        assertTrue(details().contains("Supplied height: Unknown"));
+        assertTrue(details().contains("Width: Unknown"));
+        assertTrue(details().contains("Height: Unknown"));
         assertNoDownload();
     }
 
@@ -372,7 +372,7 @@ public class PinMenuTest {
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull("supplied details weren't opened", dialog);
         assertTrue(dialog.isShowing());
-        assertEquals("Supplied media details", Shadows.shadowOf(dialog).getTitle());
+        assertEquals("Media details", Shadows.shadowOf(dialog).getTitle());
         return String.valueOf(Shadows.shadowOf(dialog).getMessage());
     }
 

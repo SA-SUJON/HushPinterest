@@ -51,7 +51,7 @@ public final class SetupGuidancePreference extends DialogPreference {
         setTitle(L10n.t(context, "Setup and backup guide"));
         setSummary(L10n.t(context, "Optional help with sign-in, supported links, patch choices and backups."));
         setDialogTitle(getTitle());
-        setNegativeButtonText(L10n.t(context, "Back"));
+        setNegativeButtonText(L10n.t(context, "Close"));
         setPositiveButtonText(null);
     }
 

@@ -281,16 +281,11 @@ Removes this history entry. Files and active downloads are kept.	Menghapus entri
 Open Downloads	Buka Unduhan
 Refresh	Muat ulang
 Download unavailable	Unduhan tidak tersedia
-Supplied media details	Detail media yang diberikan
 Copy media link	Salin tautan media
 Media link	Tautan media
 Media link copied.	Tautan media disalin.
 Couldn't copy the media link. Open the pin again, then retry.	Tautan media tidak dapat disalin. Buka Pin lagi, lalu coba kembali.
 These details come from the link and file information Pinterest gave the app. HushPinterest hasn't opened the file to check them.	Detail ini berasal dari tautan dan informasi file yang diberikan Pinterest kepada aplikasi. HushPinterest belum membuka file untuk memeriksanya.
-Supplied width: %s	Lebar yang diberikan: %s
-Supplied size: %s. Downloads look for the original first.	Ukuran yang diberikan: %s. Unduhan mencari versi asli terlebih dahulu.
-Supplied size: the original image	Ukuran yang diberikan: gambar asli
-Supplied height: %s	Tinggi yang diberikan: %s
 Link type: %s	Jenis tautan: %s
 %d pixels	%d piksel
 Unknown	Tidak diketahui
@@ -434,7 +429,6 @@ Saves downloads in a folder you pick inside Pictures, DCIM, Download or Document
 %1$s is picked, but Save in Pinterest's folder is on, so downloads go to %2$s.	%1$s dipilih, tetapi Simpan di folder Pinterest aktif, jadi unduhan masuk ke %2$s.
 Saving downloads in %s. Tap to pick another folder or go back to the Download folder.	Unduhan disimpan di %s. Ketuk untuk memilih folder lain atau kembali ke folder Download.
 Pick another folder	Pilih folder lain
-Save in Download again	Simpan lagi di Download
 This phone has no folder picker, so there's no way to choose a folder here.	Ponsel ini tidak memiliki pemilih folder, jadi folder tidak dapat dipilih di sini.
 Couldn't open the folder picker. Try again.	Pemilih folder tidak dapat dibuka. Coba lagi.
 Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Pilih folder di dalam Pictures, DCIM, Download, atau Documents di penyimpanan internal ponsel.
@@ -467,3 +461,9 @@ Saved the pin list. The app holding the file wouldn't let HushPinterest read it 
 The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.	Daftar Pin disimpan, tetapi saat dibaca kembali isinya tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.
 Saved a list of one pin.	Daftar berisi satu Pin disimpan.
 Saved a list of %d pins.	Daftar berisi %d Pin disimpan.
+Use Download again	Gunakan Download lagi
+Media details	Detail media
+Width: %s	Lebar: %s
+Height: %s	Tinggi: %s
+Size: %s. Downloads look for the original first.	Ukuran: %s. Unduhan mencari versi asli terlebih dahulu.
+Size: the original image	Ukuran: gambar asli

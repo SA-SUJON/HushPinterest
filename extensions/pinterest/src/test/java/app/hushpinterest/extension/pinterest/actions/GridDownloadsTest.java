@@ -454,7 +454,16 @@ public class GridDownloadsTest {
         assertEquals(2, history.size());
         assertEquals("3", history.get(0).pinId);
         assertEquals(DownloadLedger.State.UNSUPPORTED, history.get(0).state);
-        assertTrue(ShadowToast.getTextOfLatestToast().contains("Queued: 1\nSkipped: 0\nUnsupported: 1\nFailed: 0"));
+        assertTrue(result().contains("Queued: 1\nSkipped: 0\nUnsupported: 1\nFailed: 0"));
+        assertNull("the open dialog already says it", ShadowToast.getTextOfLatestToast());
+    }
+
+    /** What the progress dialog says once the batch is over: the result, with Close. */
+    private static String result() {
+        AlertDialog progress = ShadowAlertDialog.getLatestAlertDialog();
+        assertTrue("the progress dialog went", progress.isShowing());
+        assertEquals("Close", progress.getButton(AlertDialog.BUTTON_NEGATIVE).getText().toString());
+        return Shadows.shadowOf(progress).getMessage().toString();
     }
 
     /** A grid selection and a board's batch queue through the same request builder, network limits and all. */
@@ -516,7 +525,7 @@ public class GridDownloadsTest {
         List<DownloadLedger.Job> local = new DownloadLedger(activity).reconcile();
         assertEquals(DownloadLedger.State.FAILED, local.get(0).state);
         assertTrue(downloads.queries.isEmpty());
-        assertTrue(ShadowToast.getTextOfLatestToast().contains("Queued: 0\nSkipped: 0\nUnsupported: 0\nFailed: 1"));
+        assertTrue(result().contains("Queued: 0\nSkipped: 0\nUnsupported: 0\nFailed: 1"));
         downloads.rejectEnqueue = false;
         assertTrue(PinDownloads.start(pin("2"), activity));
         settle();
@@ -535,8 +544,9 @@ public class GridDownloadsTest {
         try (WorkerPoolForTests ignored = WorkerPoolForTests.fill()) {
             picker.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
-            assertTrue(ShadowToast.getTextOfLatestToast().contains("Failed: 1"));
-            assertTrue(ShadowToast.getTextOfLatestToast().contains("Couldn't save history for one result."));
+            String result = result();
+            assertTrue(result, result.contains("Failed: 1"));
+            assertTrue(result, result.contains("Couldn't save history for one result."));
         }
         assertTrue(new DownloadLedger(activity).reconcile().isEmpty());
     }
@@ -552,8 +562,8 @@ public class GridDownloadsTest {
         ShadowToast.reset();
         choose(origin, 0, 1).getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         settle();
-        assertEquals(1, ShadowToast.shownToastCount());
-        assertTrue(ShadowToast.getTextOfLatestToast().contains("Queued: 0\nSkipped: 0\nUnsupported: 0\nFailed: 2"));
+        assertEquals("the open dialog says the result, so no toast does", 0, ShadowToast.shownToastCount());
+        assertTrue(result().contains("Queued: 0\nSkipped: 0\nUnsupported: 0\nFailed: 2"));
 
         ShadowToast.reset();
         assertTrue(PinDownloads.start(pin("3"), activity));
@@ -595,7 +605,10 @@ public class GridDownloadsTest {
         assertEquals(2, history.size());
         assertEquals("2", history.get(0).pinId);
         assertEquals(DownloadLedger.State.SKIPPED, history.get(0).state);
-        assertTrue(ShadowToast.getTextOfLatestToast(), ShadowToast.getTextOfLatestToast().contains("Queued: 1\nSkipped: 1\n"));
+        // Stop closed the dialog, so a short toast says how it ended, and only that.
+        String said = ShadowToast.getTextOfLatestToast();
+        assertEquals("Queued: 1\nSkipped: 1\nUnsupported: 0\nFailed: 0", said);
+        assertEquals(android.widget.Toast.LENGTH_SHORT, ShadowToast.getLatestToast().getDuration());
     }
 
     @Test public void aBatchThatFailsToContinueEndsSoTheNextSelectionCanStart() throws Exception {

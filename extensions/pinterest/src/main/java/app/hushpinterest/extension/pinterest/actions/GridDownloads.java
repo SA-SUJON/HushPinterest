@@ -460,16 +460,24 @@ final class GridDownloads {
         }
 
         String summary() {
-            String folder = DownloadFolder.current();
-            return L10n.f("Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d", queued, skipped, unsupported, failed)
+            return counts()
                     + (known == 0 ? "" : "\n\n" + L10n.f("Skipped because they're already in Download history: %d", known))
                     + (note == null ? "" : "\n\n" + note)
                     + "\n\n" + L10n.t("Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.")
-                    + (untracked == 0 ? "" : "\n\n" + (folder != null
-                            ? L10n.quantity(untracked, "Couldn't save history for one result. Check %2$s.",
-                                    "Couldn't save history for %1$d results. Check %2$s.", untracked, folder)
-                            : L10n.quantity(untracked, "Couldn't save history for one result. Check Downloads.",
-                                    "Couldn't save history for %1$d results. Check Downloads.", untracked)));
+                    + (untracked == 0 ? "" : "\n\n" + untrackedNote());
+        }
+
+        private String counts() {
+            return L10n.f("Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d", queued, skipped, unsupported, failed);
+        }
+
+        private String untrackedNote() {
+            String folder = DownloadFolder.current();
+            return folder != null
+                    ? L10n.quantity(untracked, "Couldn't save history for one result. Check %2$s.",
+                            "Couldn't save history for %1$d results. Check %2$s.", untracked, folder)
+                    : L10n.quantity(untracked, "Couldn't save history for one result. Check Downloads.",
+                            "Couldn't save history for %1$d results. Check Downloads.", untracked);
         }
 
         /** Goes on to the next pin. A failure ends the batch, so the next selection isn't refused as still running. */
@@ -504,10 +512,14 @@ final class GridDownloads {
             if (position == pins.size()) {
                 RUNNING.set(false);
                 if (progress != null && progress.isShowing()) {
+                    // The dialog keeps the result until it's closed, so nothing repeats it.
                     progress.setMessage(summary());
                     progress.getButton(AlertDialog.BUTTON_NEGATIVE).setText(L10n.t("Close"));
+                } else if (untracked == 0) {
+                    Utils.showToastShort(counts());
+                } else {
+                    Utils.showToastLong(counts() + "\n\n" + untrackedNote());
                 }
-                Utils.showToastLong(summary());
                 return;
             }
             Object pin = pins.get(position);
