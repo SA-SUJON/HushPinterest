@@ -187,7 +187,7 @@ Tells Android this is the original Pinterest, so Google sign-in can work with mi
 Pinterest's original signature is added to the app	A assinatura original do Pinterest foi adicionada ao app
 Download pins	Baixar Pins
 Open links in your browser	Abrir links no seu navegador
-Open pin Visit links and profile websites in your browser.	Abra links de Visitar dos Pins e sites de perfis no seu navegador.
+Opens a pin's Visit link and profile websites in your browser.	Abra links de Visitar dos Pins e sites de perfis no seu navegador.
 System share sheet	Menu de compartilhamento do sistema
 Sharing a pin link opens Android's own share menu.	Ao compartilhar o link de um pin, abre o menu de compartilhamento do próprio Android.
 No screenshot share menu	Sem menu ao tirar capturas de tela
@@ -337,7 +337,7 @@ Optional help with sign-in, supported links, patch choices and backups.	Ajuda op
 Installed patches and switches	Patches instalados e opções
 Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.	Escolha os patches no Morphe Manager ao aplicar os patches ao app. As opções daqui só controlam os patches que estão na sua versão. Mudar uma opção não adiciona nem remove patches. Pausar mantém suas escolhas salvas, mas o que foi definido ao aplicar os patches continua no app.
 Sign in to your existing account	Entre na sua conta existente
-Use the email on your Pinterest account and a Pinterest password. Google sign-in isn't supported, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. Push notifications haven't been tested.	Use o e-mail da sua conta do Pinterest e uma senha do Pinterest. O login com Google não é compatível, porque este app com patches é assinado com outra chave. O Pinterest não oferece mais login com o Facebook. As notificações push não foram testadas.
+Use the email on your Pinterest account and a Pinterest password. Google sign-in isn't supported, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. Fix push notifications lets it sign up for push notifications.	Use o e-mail da sua conta do Pinterest e uma senha do Pinterest. O login com Google não é compatível, porque este app com patches é assinado com outra chave. O Pinterest não oferece mais login com o Facebook. Com Corrigir notificações push, ele pode se inscrever para receber notificações push.
 If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.	Se você se cadastrou pelo Google ou não sabe sua senha do Pinterest, escolha Esqueceu sua senha? na página de login do Pinterest. Informe o e-mail já vinculado a essa conta e use o link enviado por e-mail para definir uma senha do Pinterest. Ela é diferente da sua senha do Google. Você não precisa desvincular o Google.
 Pinterest password help	Ajuda do Pinterest com a senha
 Android may not trust a patched app's links on its own. You can choose the web addresses in Android's Open by default settings.	O Android pode não confiar sozinho nos links de um app com patches. Você pode escolher os endereços da web nas configurações Abrir por padrão do Android.
@@ -357,8 +357,10 @@ Couldn't open the pin selection. Try again from the grid.	Não foi possível abr
 Stop selection	Parar seleção
 Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Na fila: %d\nIgnorados: %d\nNão compatíveis: %d\nFalhas: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Parar mantém os downloads já iniciados. Seleções não iniciadas terminam quando o Pinterest fecha.
-History could not be saved for %d results. Check Downloads.	Não foi possível salvar o histórico de %d resultados. Confira Downloads.
-History could not be saved for %d results. Check %s.	Não foi possível salvar o histórico de %d resultados. Confira %s.
+History couldn't be saved for %1$d result. Check Downloads.	Não foi possível salvar o histórico de %1$d resultado. Confira Downloads.
+History couldn't be saved for %1$d results. Check Downloads.	Não foi possível salvar o histórico de %1$d resultados. Confira Downloads.
+History couldn't be saved for %1$d result. Check %2$s.	Não foi possível salvar o histórico de %1$d resultado. Confira %2$s.
+History couldn't be saved for %1$d results. Check %2$s.	Não foi possível salvar o histórico de %1$d resultados. Confira %2$s.
 Skipped	Ignorado
 Unsupported	Não compatível
 No download was queued. The selection was stopped, canceled or unavailable.	Nenhum download foi adicionado à fila. A seleção foi parada, cancelada ou estava indisponível.

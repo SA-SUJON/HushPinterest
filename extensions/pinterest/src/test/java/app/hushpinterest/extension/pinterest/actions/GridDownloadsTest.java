@@ -323,7 +323,7 @@ public class GridDownloadsTest {
             picker.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertTrue(ShadowToast.getTextOfLatestToast().contains("Failed: 1"));
-            assertTrue(ShadowToast.getTextOfLatestToast().contains("History could not be saved for 1 results"));
+            assertTrue(ShadowToast.getTextOfLatestToast().contains("History couldn't be saved for 1 result. Check"));
         }
         assertTrue(new DownloadLedger(activity).reconcile().isEmpty());
     }

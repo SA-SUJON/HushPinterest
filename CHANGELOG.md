@@ -18,6 +18,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** System share sheet reads its switch inside its own error handling, so a settings failure leaves Pinterest's share picker in place instead of reaching Pinterest's code.
 
+* **Pinterest:** Clearer wording in a few places. Open links in your browser's summary reads "Opens a pin's Visit link and profile websites in your browser." The setup guide says Fix push notifications lets the app sign up for push notifications, instead of saying they were never tested. A batch's note about history that couldn't be saved says "1 result" for one pin. All five translations follow.
+
 * **Tooling:** The script contract tests keep the published bug report form as it is when they build a tree whose index lags the source, the way the release check expects, and now also check that a form moved to the catalog's newer Pinterest build is refused there. They used to move the form's build along with the catalog, which went unnoticed until the published form named the catalog's newest build and held up the 0.0.7 index push.
 
 ## 0.0.7 (2026-10-10)

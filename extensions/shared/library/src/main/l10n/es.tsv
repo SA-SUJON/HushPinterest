@@ -190,7 +190,7 @@ Tells Android this is the original Pinterest, so Google sign-in can work with mi
 Pinterest's original signature is added to the app	La firma original de Pinterest se añadió a la app
 Download pins	Descargar pines
 Open links in your browser	Abrir enlaces en tu navegador
-Open pin Visit links and profile websites in your browser.	Abre enlaces de Visitar de los pines y sitios web de perfiles en tu navegador.
+Opens a pin's Visit link and profile websites in your browser.	Abre enlaces de Visitar de los pines y sitios web de perfiles en tu navegador.
 System share sheet	Menú de compartir del sistema
 Sharing a pin link opens Android's own share menu.	Al compartir el enlace de un pin se abre el menú de compartir propio de Android.
 No screenshot share menu	Sin menú al hacer capturas
@@ -340,7 +340,7 @@ Optional help with sign-in, supported links, patch choices and backups.	Ayuda op
 Installed patches and switches	Parches instalados e interruptores
 Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.	Elige los parches en Morphe Manager cuando parchees la app. Los interruptores de aquí solo controlan los parches que están en tu versión. Cambiar un interruptor no añade ni quita ningún parche. Pausa conserva tus elecciones guardadas, pero lo que se definió al parchear se queda en la app.
 Sign in to your existing account	Inicia sesión en tu cuenta actual
-Use the email on your Pinterest account and a Pinterest password. Google sign-in isn't supported, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. Push notifications haven't been tested.	Usa el correo de tu cuenta de Pinterest y una contraseña de Pinterest. No se admite el inicio de sesión con Google porque esta app parcheada está firmada con otra clave. Pinterest ya no ofrece inicio de sesión con Facebook. No se han probado las notificaciones push.
+Use the email on your Pinterest account and a Pinterest password. Google sign-in isn't supported, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. Fix push notifications lets it sign up for push notifications.	Usa el correo de tu cuenta de Pinterest y una contraseña de Pinterest. No se admite el inicio de sesión con Google porque esta app parcheada está firmada con otra clave. Pinterest ya no ofrece inicio de sesión con Facebook. Con Arreglar notificaciones push, puede registrarse para recibir notificaciones push.
 If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.	Si te registraste con Google o no sabes tu contraseña de Pinterest, elige ¿Olvidaste tu contraseña? en la página de inicio de sesión de Pinterest. Introduce el correo ya vinculado a esa cuenta y usa el enlace enviado a tu correo para establecer una contraseña de Pinterest. Es distinta de tu contraseña de Google. No necesitas desvincular Google.
 Pinterest password help	Ayuda de Pinterest con la contraseña
 Android may not trust a patched app's links on its own. You can choose the web addresses in Android's Open by default settings.	Es posible que Android no confíe por sí solo en los enlaces de una app parcheada. Puedes elegir las direcciones web en los ajustes Abrir de forma predeterminada de Android.
@@ -360,8 +360,10 @@ Couldn't open the pin selection. Try again from the grid.	No se pudo abrir la se
 Stop selection	Detener selección
 Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	En cola: %d\nOmitidos: %d\nNo compatibles: %d\nFallidos: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Detener conserva las descargas iniciadas. Las selecciones sin iniciar terminan al cerrar Pinterest.
-History could not be saved for %d results. Check Downloads.	No se pudo guardar el historial de %d resultados. Revisa Descargas.
-History could not be saved for %d results. Check %s.	No se pudo guardar el historial de %d resultados. Revisa %s.
+History couldn't be saved for %1$d result. Check Downloads.	No se pudo guardar el historial de %1$d resultado. Revisa Descargas.
+History couldn't be saved for %1$d results. Check Downloads.	No se pudo guardar el historial de %1$d resultados. Revisa Descargas.
+History couldn't be saved for %1$d result. Check %2$s.	No se pudo guardar el historial de %1$d resultado. Revisa %2$s.
+History couldn't be saved for %1$d results. Check %2$s.	No se pudo guardar el historial de %1$d resultados. Revisa %2$s.
 Skipped	Omitido
 Unsupported	No compatible
 No download was queued. The selection was stopped, canceled or unavailable.	No se puso ninguna descarga en cola. La selección se detuvo, se canceló o no estaba disponible.

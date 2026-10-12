@@ -144,8 +144,8 @@ public final class SetupGuidancePreference extends DialogPreference {
             heading(L10n.t(getContext(), "Sign in to your existing account"), SettingsIcons.ABOUT);
             paragraph(L10n.t(getContext(), "Use the email on your Pinterest account and a Pinterest password. "
                 + "Google sign-in isn't supported, because this patched app is signed with "
-                + "a different key. Pinterest no longer offers Facebook login. Push "
-                + "notifications haven't been tested."));
+                + "a different key. Pinterest no longer offers Facebook login. Fix push "
+                + "notifications lets it sign up for push notifications."));
             paragraph(L10n.t(getContext(), "If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google."));
             action(L10n.t(getContext(), "Pinterest password help"), () -> openHelp(PASSWORD_HELP));
 

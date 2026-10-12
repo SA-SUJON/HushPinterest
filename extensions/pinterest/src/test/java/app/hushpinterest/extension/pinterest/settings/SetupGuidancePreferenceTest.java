@@ -128,7 +128,7 @@ public class SetupGuidancePreferenceTest {
         assertTrue(copy.contains("email on your Pinterest account and a Pinterest password"));
         assertTrue(copy.contains("Google sign-in isn't supported, because this patched app is signed with a different key"));
         assertTrue(copy.contains("Pinterest no longer offers Facebook login"));
-        assertTrue(copy.contains("Push notifications haven't been tested"));
+        assertTrue(copy.contains("Fix push notifications lets it sign up for push notifications."));
         assertTrue(copy.contains("choose Forgot your password on Pinterest's login page"));
         assertTrue(copy.contains("email already linked to that account"));
         assertTrue(copy.contains("reset link sent to your email to set a Pinterest password"));

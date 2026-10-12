@@ -190,7 +190,7 @@ Tells Android this is the original Pinterest, so Google sign-in can work with mi
 Pinterest's original signature is added to the app	Pinterest'in orijinal imzası uygulamaya eklendi
 Download pins	Pinleri indir
 Open links in your browser	Bağlantıları tarayıcında aç
-Open pin Visit links and profile websites in your browser.	Pinlerin Ziyaret et bağlantılarını ve profil web sitelerini tarayıcında aç.
+Opens a pin's Visit link and profile websites in your browser.	Pinlerin Ziyaret et bağlantılarını ve profil web sitelerini tarayıcında aç.
 System share sheet	Sistem paylaşım menüsü
 Sharing a pin link opens Android's own share menu.	Bir pin bağlantısını paylaşmak Android'in kendi paylaşma menüsünü açar.
 No screenshot share menu	Ekran görüntüsü paylaşım menüsünü kapat
@@ -340,7 +340,7 @@ Optional help with sign-in, supported links, patch choices and backups.	Giriş, 
 Installed patches and switches	Yüklü yamalar ve anahtarlar
 Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.	Uygulamayı yamalarken yamaları Morphe Manager'da seç. Buradaki anahtarlar yalnızca sürümünde bulunan yamaları kontrol eder. Bir anahtarı değiştirmek yama eklemez veya kaldırmaz. Duraklat kayıtlı seçimlerini korur, ama yamalarken ayarlanan her şey uygulamada kalır.
 Sign in to your existing account	Mevcut hesabınıza giriş yapın
-Use the email on your Pinterest account and a Pinterest password. Google sign-in isn't supported, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. Push notifications haven't been tested.	Pinterest hesabındaki e-postayı ve bir Pinterest parolasını kullan. Bu yamalı uygulama farklı bir anahtarla imzalandığı için Google ile giriş desteklenmez. Pinterest artık Facebook girişi sunmuyor. Anlık bildirimler test edilmedi.
+Use the email on your Pinterest account and a Pinterest password. Google sign-in isn't supported, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. Fix push notifications lets it sign up for push notifications.	Pinterest hesabındaki e-postayı ve bir Pinterest parolasını kullan. Bu yamalı uygulama farklı bir anahtarla imzalandığı için Google ile giriş desteklenmez. Pinterest artık Facebook girişi sunmuyor. Anlık bildirimleri düzelt ile uygulama anlık bildirimlere kaydolabilir.
 If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.	Google üzerinden kaydolduysanız veya Pinterest parolanızı bilmiyorsanız, Pinterest'in giriş sayfasında Parolanızı mı unuttunuz? seçeneğini seçin. Bu hesaba zaten bağlı e-posta adresini girin, ardından e-postanıza gönderilen bağlantıyla bir Pinterest parolası belirleyin. Bu parola Google parolanızdan ayrıdır. Google bağlantısını kaldırmanız gerekmez.
 Pinterest password help	Pinterest parola yardımı
 Android may not trust a patched app's links on its own. You can choose the web addresses in Android's Open by default settings.	Android, yamalı bir uygulamanın bağlantılarına kendiliğinden güvenmeyebilir. Web adreslerini Android'in Varsayılan olarak aç ayarlarından seçebilirsin.
@@ -360,8 +360,10 @@ Couldn't open the pin selection. Try again from the grid.	Pin seçimi açılamad
 Stop selection	Seçimi durdur
 Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Sırada: %d\nAtlanan: %d\nDesteklenmeyen: %d\nBaşarısız: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Durdurmak başlamış indirmeleri korur. Başlamamış seçimler Pinterest kapandığında sona erer.
-History could not be saved for %d results. Check Downloads.	%d sonuç için geçmiş kaydedilemedi. İndirilenleri kontrol edin.
-History could not be saved for %d results. Check %s.	%d sonuç için geçmiş kaydedilemedi. %s klasörünü kontrol edin.
+History couldn't be saved for %1$d result. Check Downloads.	%1$d sonuç için geçmiş kaydedilemedi. İndirilenleri kontrol edin.
+History couldn't be saved for %1$d results. Check Downloads.	%1$d sonuç için geçmiş kaydedilemedi. İndirilenleri kontrol edin.
+History couldn't be saved for %1$d result. Check %2$s.	%1$d sonuç için geçmiş kaydedilemedi. %2$s klasörünü kontrol edin.
+History couldn't be saved for %1$d results. Check %2$s.	%1$d sonuç için geçmiş kaydedilemedi. %2$s klasörünü kontrol edin.
 Skipped	Atlandı
 Unsupported	Desteklenmiyor
 No download was queued. The selection was stopped, canceled or unavailable.	İndirme sıraya alınmadı. Seçim durduruldu, iptal edildi veya kullanılamıyordu.
