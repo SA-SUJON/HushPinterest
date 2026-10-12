@@ -281,11 +281,14 @@ public final class PinManifest {
             }
             Pending list = pending;
             boolean started = Utils.runOnBackgroundThread(() -> {
+                ContentResolver resolver = app.getContentResolver();
+                // Read before writing: a failed write can leave a file picked to write over empty.
+                long before = size(resolver, uri);
                 try {
-                    Utils.showToastLong(save(app.getContentResolver(), uri, list.bytes, list.count));
+                    Utils.showToastLong(save(resolver, uri, list.bytes, list.count));
                 } catch (IOException | RuntimeException failure) {
                     HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "save the pin list", failure);
-                    discard(app.getContentResolver(), uri, L10n.t("Couldn't save the pin list. Try again."));
+                    discard(resolver, uri, L10n.t("Couldn't save the pin list. Try again."), before);
                 }
             });
             if (!started) discardThenSay(app, uri, L10n.t("Couldn't save the pin list. Try again."));
@@ -303,18 +306,18 @@ public final class PinManifest {
             return;
         }
         ContentResolver resolver = app.getContentResolver();
-        Runnable work = () -> discard(resolver, uri, said);
+        Runnable work = () -> discard(resolver, uri, said, size(resolver, uri));
         if (!Utils.runOnBackgroundThread(work)) work.run();
     }
 
     /**
      * Says [said], then a second toast when the picked file stays behind, since Android 12 and later
-     * cut a toast at two lines. Only an empty file is taken away: one that already holds something
-     * was picked to be written over and is the user's own.
+     * cut a toast at two lines. Only a file that was empty before anything was written, [size]
+     * bytes, is taken away: one that held something was picked to be written over and is the
+     * user's own.
      */
-    static void discard(ContentResolver resolver, Uri uri, String said) {
+    private static void discard(ContentResolver resolver, Uri uri, String said, long size) {
         Utils.showToastLong(said);
-        long size = size(resolver, uri);
         if (size > 0) return;
         if (size < 0) {
             Utils.showToastLong(leftAlone());

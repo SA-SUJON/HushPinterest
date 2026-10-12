@@ -39,8 +39,8 @@ public final class AmoledBlack {
 
     /**
      * Called as the bar starts drawing its children. A ViewGroup with no background of its own skips
-     * draw() but never dispatchDraw(), and the tab row draws after this, so a change shows on the
-     * bar's next frame.
+     * draw() but never dispatchDraw(). The tab row draws after this, so its fill changes in the same
+     * frame. The bar's own background was drawn already, and setColor asks for the next frame.
      */
     public static void bottomBar(View bar) {
         try {

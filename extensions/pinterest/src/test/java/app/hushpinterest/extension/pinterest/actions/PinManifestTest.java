@@ -333,6 +333,12 @@ public class PinManifestTest {
         pending().set(null);
         answer(started, file);
         assertArrayEquals("a list lost while the picker was open leaves it too", mine, PinListProvider.get(file));
+
+        // A write that emptied the file before failing still leaves the file where it was.
+        PinListProvider.truncatesThenRefuses = true;
+        answer(exportOne(), file);
+        assertEquals("Couldn't save the pin list. Try again.", ShadowToast.getTextOfLatestToast());
+        assertNotNull("the file is still there", PinListProvider.get(file));
     }
 
     @Test public void aFileWhoseSizeCantBeReadIsLeftAlone() throws Exception {

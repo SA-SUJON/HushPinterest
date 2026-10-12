@@ -107,9 +107,10 @@ public final class LinkTracking {
 
     /**
      * Walks the links in a text in order. Each search starts where the last link ended, and a
-     * match is read no further than {@link #LONGEST_LINK}, so the walk stays one pass over the
-     * text even when thousands of links are glued together. A match cut there is still a link when
-     * text glued onto it starts inside the cut; otherwise the whole run is passed over.
+     * match is read no further than {@link #LONGEST_LINK}, so each link costs at most that much
+     * however long the run it sits in, rather than a read to the run's end. A match cut there is
+     * still a link when text glued onto it starts inside the cut; otherwise the whole run is
+     * passed over.
      */
     private static final class Links {
         private final CharSequence text;

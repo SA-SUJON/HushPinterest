@@ -139,6 +139,9 @@ public final class PinTransfer {
     /** How long reading the start of a file may take in all, however slowly its bytes arrive. */
     static final long PREFIX_DEADLINE_MS = 15000;
 
+    /** How long a request dropped at the deadline gets to close and put cookies back. */
+    private static final long CLOSE_GRACE_MS = 1000;
+
     /** What the media host answered a ranged GET with, and at most {@link #PREFIX_BYTES} of its body. */
     static final class Prefix {
         final int status;
@@ -188,8 +191,19 @@ public final class PinTransfer {
         try {
             return exchange.get(deadlineMs, TimeUnit.MILLISECONDS);
         } catch (TimeoutException | InterruptedException stopped) {
-            if (stopped instanceof InterruptedException) Thread.currentThread().interrupt();
+            boolean interrupted = stopped instanceof InterruptedException;
             get.disconnect();
+            // Dropping the connection ends the wait, and the request then puts the phone's cookies
+            // back as it closes. A moment for that keeps a check started right after from seeing
+            // this one's cookies as the phone's own. An address lookup no drop can end isn't waited out.
+            if (!interrupted) {
+                try {
+                    exchange.get(CLOSE_GRACE_MS, TimeUnit.MILLISECONDS);
+                } catch (TimeoutException | ExecutionException | InterruptedException | RuntimeException gone) {
+                    if (gone instanceof InterruptedException) interrupted = true;
+                }
+            }
+            if (interrupted) Thread.currentThread().interrupt();
             throw new SocketTimeoutException("The media host took too long");
         } catch (ExecutionException failed) {
             Throwable cause = failed.getCause();

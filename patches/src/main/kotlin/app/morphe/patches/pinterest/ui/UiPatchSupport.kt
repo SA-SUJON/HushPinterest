@@ -105,7 +105,8 @@ internal fun BytecodePatchContext.refreshOnMeasure(view: MutableClass, helper: S
 /**
  * Runs [hook] on the view as it starts drawing its children. A ViewGroup with nothing of its own to
  * draw skips draw() under hardware rendering, but never dispatchDraw(), and its children draw after
- * the hook, so a change it makes shows in the same frame.
+ * the hook, so a change it makes to them shows in the same frame. The view's own background was
+ * drawn before the hook, so a change to it shows on the next frame.
  */
 internal fun BytecodePatchContext.refreshOnDispatchDraw(view: MutableClass, hook: String) {
     val parameters = listOf("Landroid/graphics/Canvas;")

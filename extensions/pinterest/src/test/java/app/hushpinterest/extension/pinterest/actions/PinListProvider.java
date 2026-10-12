@@ -38,6 +38,8 @@ public final class PinListProvider extends ContentProvider {
     static volatile boolean refusesDelete;
     /** Answers a query with no rows, so a file's size can't be read. */
     static volatile boolean hidesSize;
+    /** Empties the file, then refuses the write, as a disk that fills up mid-open does. */
+    static volatile boolean truncatesThenRefuses;
 
     private static File folder;
 
@@ -48,6 +50,7 @@ public final class PinListProvider extends ContentProvider {
         refusesRead = false;
         refusesDelete = false;
         hidesSize = false;
+        truncatesThenRefuses = false;
         folder = new File(RuntimeEnvironment.getApplication().getCacheDir(), "pin-lists-" + System.nanoTime());
         if (!folder.mkdirs()) throw new IllegalStateException("No folder for the test files");
         Robolectric.setupContentProvider(PinListProvider.class, AUTHORITY);
@@ -77,6 +80,14 @@ public final class PinListProvider extends ContentProvider {
             return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
         }
         if (refusesWrite) throw new FileNotFoundException("The folder is full");
+        if (truncatesThenRefuses) {
+            try {
+                new FileOutputStream(file).close();
+            } catch (IOException failure) {
+                throw new IllegalStateException(failure);
+            }
+            throw new FileNotFoundException("The disk filled up");
+        }
         if ("wt".equals(mode) && refusesTruncate) throw new IllegalArgumentException("Unsupported mode: wt");
         int flags = ParcelFileDescriptor.MODE_WRITE_ONLY | ParcelFileDescriptor.MODE_CREATE;
         if ("wt".equals(mode)) flags |= ParcelFileDescriptor.MODE_TRUNCATE;
