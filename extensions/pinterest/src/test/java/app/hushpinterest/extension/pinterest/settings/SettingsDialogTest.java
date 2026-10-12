@@ -279,6 +279,14 @@ public class SettingsDialogTest {
     }
 
     @Test
+    public void searchFieldIsLabelledByItsHintSoTalkBackReadsWhatWasTyped() {
+        SettingsDialog dialog = show(controller.get());
+        EditText search = searchOf(dialog.getView());
+        assertEquals(L10n.t(controller.get(), "Search settings"), search.getHint().toString());
+        assertNull("a content description would replace the typed query for TalkBack", search.getContentDescription());
+    }
+
+    @Test
     public void restoredCategoryAndSearchRecoveryKeepOneChildAndTheirExistingListeners() {
         SettingsDialog dialog = show(controller.get());
         for (boolean search : new boolean[]{false, true}) {

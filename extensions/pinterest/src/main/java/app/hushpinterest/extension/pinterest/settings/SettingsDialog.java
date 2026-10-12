@@ -227,8 +227,8 @@ public final class SettingsDialog extends DialogFragment {
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         searchBox.addView(icon, new LinearLayout.LayoutParams(dp(24), dp(24)));
         search = new EditText(getContext());
+        // The hint labels the field. A content description would make TalkBack read it in place of the query.
         search.setHint(L10n.t("Search settings"));
-        search.setContentDescription(L10n.t("Search settings"));
         search.setSingleLine(true);
         search.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         search.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
