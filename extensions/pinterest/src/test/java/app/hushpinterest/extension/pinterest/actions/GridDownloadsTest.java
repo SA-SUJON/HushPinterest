@@ -524,6 +524,18 @@ public class GridDownloadsTest {
         }
         ListView list = picker.getListView();
         assertTrue("every row fit, so this proves little", list.getLastVisiblePosition() < list.getCount() - 1);
+
+        // Wider, with labels that fit one row, the buttons unstack and the strip gives the room back.
+        queue.setText("Go");
+        picker.getButton(AlertDialog.BUTTON_NEUTRAL).setText("List");
+        cancel.setText("No");
+        android.view.Window window = picker.getWindow();
+        window.setLayout(window.getAttributes().width + 8, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("the buttons didn't go back to one row", queue.getTop(), cancel.getTop());
+        View strip = (View) queue.getParent().getParent();
+        assertTrue("the strip kept the stacked height: " + strip.getHeight() + " for buttons " + queue.getHeight(),
+                strip.getHeight() < 2 * queue.getHeight());
     }
 
     @Test public void snapshotIncludesOnlyVisibleAttachedPinCellsAndDeduplicatesIds() {

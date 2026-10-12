@@ -541,16 +541,35 @@ final class ScreenColors {
         for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL}) {
             if (button == null) button = dialog.getButton(which);
         }
-        if (button == null || !(button.getParent() instanceof View)) return;
-        View bar = (View) button.getParent();
+        if (button == null || !(button.getParent() instanceof ViewGroup)) return;
+        ViewGroup bar = (ViewGroup) button.getParent();
         if (!(bar.getParent() instanceof ScrollView)) return;
         ScrollView strip = (ScrollView) bar.getParent();
-        int most = dialog.getContext().getResources().getDisplayMetrics().heightPixels / 2;
         bar.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-            int wanted = Math.min(view.getHeight(), most);
+            int most = view.getResources().getDisplayMetrics().heightPixels / 2;
+            int wanted = Math.min(buttonsHeight(bar), most);
             if (wanted > 0 && strip.getMinimumHeight() != wanted) strip.post(() -> strip.setMinimumHeight(wanted));
         });
         bar.requestLayout();
+    }
+
+    /**
+     * How tall a dialog's buttons are from the first one's top to the last one's bottom, with the
+     * bar's padding. The bar's own height won't do: the strip stretches it to fill, so once a minimum
+     * is set, buttons that go back to one row would keep the stacked height.
+     */
+    private static int buttonsHeight(ViewGroup bar) {
+        int top = Integer.MAX_VALUE, bottom = Integer.MIN_VALUE;
+        for (int index = 0; index < bar.getChildCount(); index++) {
+            View child = bar.getChildAt(index);
+            if (child.getVisibility() != View.VISIBLE) continue;
+            ViewGroup.LayoutParams size = child.getLayoutParams();
+            ViewGroup.MarginLayoutParams margins = size instanceof ViewGroup.MarginLayoutParams
+                    ? (ViewGroup.MarginLayoutParams) size : null;
+            top = Math.min(top, child.getTop() - (margins == null ? 0 : margins.topMargin));
+            bottom = Math.max(bottom, child.getBottom() + (margins == null ? 0 : margins.bottomMargin));
+        }
+        return bottom < top ? 0 : bottom - top + bar.getPaddingTop() + bar.getPaddingBottom();
     }
 
     /** A dialog's title, the framework's own or one the dialog draws itself. */
