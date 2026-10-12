@@ -233,6 +233,23 @@ public class BoardDownloadsTest {
         assertEquals(Arrays.asList("103", "102"), history.stream().map(job -> job.pinId).collect(java.util.stream.Collectors.toList()));
     }
 
+    /** With every loaded pin already in Download history there's nothing to queue, but Save list still works. */
+    @Test public void aBoardWithNothingNewStillOffersSaveList() throws Exception {
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        for (String id : new String[]{"100", "101"}) {
+            long job = manager.enqueue(new DownloadManager.Request(Uri.parse("https://i.pinimg.com/originals/" + id + ".jpg")));
+            assertTrue(DownloadLedger.record(activity, job, id));
+        }
+        AlertDialog choice = openChooser(page("77", 100, 2));
+        assertNotNull("the chooser opens even with nothing new", choice);
+        assertTrue(choice.isShowing());
+        assertEquals("All (0)\nUnsupported: 0", choice.getListView().getAdapter().getItem(0).toString());
+        assertFalse(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        assertTrue(choice.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
+        assertEquals(2, BoardDownloads.listed("77", GridDownloads.Filter.ALL).size());
+        assertEquals("nothing queued", 2, Shadows.shadowOf(manager).getRequestCount());
+    }
+
     @Test public void aKindWithNoNewPinsCantBeQueued() throws Exception {
         AlertDialog choice = openChooser(page("77", 100, 2));
         android.widget.ListView kinds = choice.getListView();

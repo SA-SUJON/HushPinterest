@@ -359,17 +359,13 @@ public final class BoardDownloads {
     /**
      * Asks whether to queue every new pin, or only the images or only the videos, with how many
      * of each can't be saved. All is chosen to begin with, which is what the board saved before
-     * there was a choice.
+     * there was a choice. With nothing new, Queue pins starts off and Save list still works.
      */
     private static void offer(Activity activity, String board, List<Object> pins, Set<String> history) {
         try {
             if (!active() || activity == null || activity.isFinishing() || activity.isDestroyed()) return;
             List<Object> fresh = new ArrayList<>();
             int known = split(pins, history, GridDownloads.Filter.ALL, fresh);
-            if (fresh.isEmpty()) {
-                Utils.showToastLong(L10n.t("Every pin loaded from this board is already in Download history.") + "\n\n" + note());
-                return;
-            }
             GridDownloads.Filter[] filters = GridDownloads.Filter.values();
             int[] counts = new int[filters.length];
             CharSequence[] names = new CharSequence[filters.length];
@@ -387,7 +383,9 @@ public final class BoardDownloads {
             TextView details = new TextView(builder.getContext());
             int side = Math.round(24 * activity.getResources().getDisplayMetrics().density);
             details.setPaddingRelative(side, side / 3, side, 0);
-            details.setText((known == 0 ? "" : L10n.f("Skipped because they're already in Download history: %d", known) + "\n\n") + note());
+            String skipped = fresh.isEmpty() ? L10n.t("Every pin loaded from this board is already in Download history.")
+                    : known == 0 ? null : L10n.f("Skipped because they're already in Download history: %d", known);
+            details.setText((skipped == null ? "" : skipped + "\n\n") + note());
             int[] chosen = {GridDownloads.Filter.ALL.ordinal()};
             AlertDialog picker = builder
                     .setTitle(L10n.t("Download board"))
@@ -406,6 +404,7 @@ public final class BoardDownloads {
             HushDialogs.prepareChoices(picker);
             HushDialogs.paintControls(details);
             picker.show();
+            picker.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(counts[chosen[0]] > 0);
             HushDialogs.paint(picker);
         } catch (Throwable failure) {
             failed(failure);
