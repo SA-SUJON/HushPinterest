@@ -302,6 +302,44 @@ public class PinMenuTest {
         assertNoDownload();
     }
 
+    @Test public void pinterestsOwnDownloadRowFoldsOnlyWhenDownloadPinCanSaveThePin() {
+        Host supported = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
+                "url", "https://i.pinimg.com/originals/source.jpg"))));
+        View replaced = nativeDownload(supported);
+        TextView copyLink = new TextView(activity);
+        copyLink.setText("Copy link");
+        supported.layout.addView(copyLink);
+        PinDownloads.attach(supported);
+        assertEquals(View.GONE, replaced.getVisibility());
+        assertEquals(View.VISIBLE, copyLink.getVisibility());
+        assertEquals("Download pin", ((TextView) supported.layout.getChildAt(0)).getText());
+
+        Host adaptive = host(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
+                "adaptive", Map.of("url", "https://v.pinimg.com/master.m3u8")))));
+        View kept = nativeDownload(adaptive);
+        PinDownloads.attach(adaptive);
+        assertEquals("Download unavailable", ((TextView) adaptive.layout.getChildAt(0)).getText());
+        assertEquals(View.VISIBLE, kept.getVisibility());
+
+        Settings.DOWNLOAD_PINS.save(false);
+        Host off = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
+                "url", "https://i.pinimg.com/originals/source.jpg"))));
+        View untouched = nativeDownload(off);
+        PinDownloads.attach(off);
+        assertEquals(View.VISIBLE, untouched.getVisibility());
+        assertEquals(1, off.layout.getChildCount());
+        PinDownloads.nativeRow(null);
+    }
+
+    /** What the patch's mark does as Pinterest's menu builds its own Download image row. */
+    private View nativeDownload(Host host) {
+        TextView row = new TextView(activity);
+        row.setText("Download image");
+        PinDownloads.nativeRow(row);
+        host.layout.addView(row);
+        return row;
+    }
+
     private Host host(Object pin) { return new Host(pin, new LinearLayout(activity)); }
 
     private ClipboardManager clipboard() {

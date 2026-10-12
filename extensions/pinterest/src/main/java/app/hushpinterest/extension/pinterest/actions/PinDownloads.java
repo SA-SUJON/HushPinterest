@@ -18,6 +18,9 @@ import android.os.Environment;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -36,6 +39,9 @@ public final class PinDownloads {
     static final String ROW_TAG = "hushpinterest_download_pin";
     private static final String DETAILS_TAG = "hushpinterest_pin_media_details";
     static final String COPY_TAG = "hushpinterest_copy_media_link";
+
+    /** Pinterest's own Download image rows, marked as the native menu builds them. Weak, so closed menus go. */
+    private static final Map<View, Boolean> nativeDownloads = Collections.synchronizedMap(new WeakHashMap<>());
 
     /** Rewritten by the patch to read the controller's private pin through a generated bridge. */
     private static Object menuPin(Object controller) { return null; }
@@ -86,7 +92,8 @@ public final class PinDownloads {
                 }
             });
             layout.addView(row, 0);
-            ViewGroup grid = menuCloseup(controller) ? null : GridDownloads.grid(menuOrigin(controller), pin);
+            if (supported) hideNativeDownload(layout);
+            ViewGroup grid =menuCloseup(controller) ? null : GridDownloads.grid(menuOrigin(controller), pin);
             if (grid != null) {
                 String batchTitle = L10n.t("Download visible pins");
                 View batch = menuRow(layout, batchTitle);
@@ -131,6 +138,29 @@ public final class PinDownloads {
             HookStatus.counted(FamilyNames.DOWNLOAD_PINS, supported ? "download row added to pin menu" : "download explanation added to pin menu");
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "attach download row", failure);
+        }
+    }
+
+    /** Called by the patch with the row Pinterest built for its own Download image action. */
+    public static void nativeRow(View row) {
+        try {
+            if (row != null) nativeDownloads.put(row, Boolean.TRUE);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "mark Pinterest's download row", failure);
+        }
+    }
+
+    /**
+     * With Download pin in the menu, Pinterest's own row is a second download entry (#2). It stays when
+     * ours can't download the pin. GONE leaves its model and click handler untouched.
+     */
+    private static void hideNativeDownload(ViewGroup layout) {
+        for (int i = 0; i < layout.getChildCount(); i++) {
+            View child = layout.getChildAt(i);
+            if (child.getVisibility() != View.GONE && nativeDownloads.containsKey(child)) {
+                child.setVisibility(View.GONE);
+                HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "Pinterest's download row replaced");
+            }
         }
     }
 

@@ -24,12 +24,19 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 private const val PATCH = "Download pins"
 private const val DOWNLOADS = "$EXTENSION_PACKAGE/actions/PinDownloads;"
+
+/** Title resource of Pinterest's own Download image row in the pin menu. */
+internal const val NATIVE_DOWNLOAD_TITLE = "save_to_device"
 
 @Suppress("unused")
 val downloadPinsPatch = bytecodePatch(
@@ -94,6 +101,38 @@ val downloadPinsPatch = bytecodePatch(
                     Opcode.NEW_INSTANCE, Opcode.CONST_4, Opcode.INVOKE_DIRECT, Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID,
                 )
         } ?: throw PatchException("$PATCH: no unique native presenter dismissal event")
+        // Pinterest's own Download image row: its title id goes straight into the layout's row factory,
+        // whose result is marked so the extension can fold it when Download pin is in the same menu.
+        val layoutInit = layout.methods.singleOrNull { it.name == "<init>" && it.implementation != null }
+            ?: throw PatchException("$PATCH: no single native menu layout constructor")
+        val initInstructions = layoutInit.implementation!!.instructions.toList()
+        val nativeRows = initInstructions.withIndex().mapNotNull { (index, instruction) ->
+            val title = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+            if (instruction.opcode != Opcode.SGET || title?.name != NATIVE_DOWNLOAD_TITLE || title.type != "I") {
+                return@mapNotNull null
+            }
+            val id = (instruction as OneRegisterInstruction).registerA
+            val call = (index + 1 until minOf(index + 8, initInstructions.size)).firstOrNull { next ->
+                val candidate = initInstructions[next]
+                val factory = (candidate as? ReferenceInstruction)?.reference as? MethodReference
+                factory?.definingClass == layout.type && factory.returnType == "Landroid/widget/RelativeLayout;" &&
+                    factory.parameterTypes.getOrNull(0)?.toString() == layout.type &&
+                    factory.parameterTypes.getOrNull(1)?.toString() == "I" &&
+                    when (candidate) {
+                        is FiveRegisterInstruction -> candidate.registerD == id
+                        is RegisterRangeInstruction -> candidate.startRegister + 1 == id
+                        else -> false
+                    }
+            } ?: return@mapNotNull null
+            val result = initInstructions.getOrNull(call + 1)
+            if (result?.opcode != Opcode.MOVE_RESULT_OBJECT) return@mapNotNull null
+            call + 2 to (result as OneRegisterInstruction).registerA
+        }
+        val (nativeAt, nativeRegister) = nativeRows.singleOrNull()
+            ?: throw PatchException("$PATCH: no unique native Download image row (${nativeRows.size} found)")
+        if (mutableClassDefBy(DOWNLOADS).methods.count { it.name == "nativeRow" && AccessFlags.STATIC.isSet(it.accessFlags) } != 1) {
+            throw PatchException("$PATCH: missing extension hook nativeRow")
+        }
         val bridgeNames = listOf("hushDownloadPin", "hushDownloadMenu", "hushDownloadOrigin", "hushDownloadCloseup", "hushDismissDownload")
         if (menu.methods.any { it.name in bridgeNames }) throw PatchException("$PATCH: download bridges already exist")
         // Resolve every host dependency and verify all stubs before changing host code.
@@ -182,6 +221,8 @@ val downloadPinsPatch = bytecodePatch(
             move-result-object v0
             return-object v0
         """)
+        layoutInit.addInstructions(nativeAt,
+            "invoke-static/range { v$nativeRegister .. v$nativeRegister }, $DOWNLOADS->nativeRow(Landroid/view/View;)V")
         create.addInstructions(assignment + 1, "invoke-static/range { p0 .. p0 }, $DOWNLOADS->attach(Ljava/lang/Object;)V")
         enableCapability("pinDownloads")
         enableStatus("downloadPins")

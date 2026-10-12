@@ -22,6 +22,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -65,8 +66,23 @@ class PinActionsFixtureTest {
             }
             assertTrue("${build.name} menu hook", attach > 0)
             assertEquals("${build.name} hook must follow native layout assignment", Opcode.IPUT_OBJECT, instructions[attach - 1].opcode)
+            val layout = context.mutableClassDefBy(menu.fields.single { it.name == "modalView" }.type)
+            val built = layout.methods.single { it.name == "<init>" && it.implementation != null }.implementation!!.instructions.toList()
+            val marks = built.withIndex().filter { (_, instruction) ->
+                (instruction as? ReferenceInstruction)?.reference?.toString() ==
+                    "$EXTENSION_PACKAGE/actions/PinDownloads;->nativeRow(Landroid/view/View;)V"
+            }.map { it.index }
+            assertEquals("${build.name} Pinterest's Download image row is marked once", 1, marks.size)
+            val mark = marks.single()
+            assertEquals("${build.name} mark reads the row result", Opcode.MOVE_RESULT_OBJECT, built[mark - 1].opcode)
+            assertTrue("${build.name} mark follows the native row factory",
+                ((built[mark - 2] as ReferenceInstruction).reference as MethodReference).returnType == "Landroid/widget/RelativeLayout;")
+            assertTrue("${build.name} marked row is the Download image title", references(built.subList(maxOf(0, mark - 9), mark - 2))
+                .any { it.endsWith("->$NATIVE_DOWNLOAD_TITLE:I") })
+            assertEquals("${build.name} mark passes the row register", (built[mark - 1] as OneRegisterInstruction).registerA,
+                (built[mark] as RegisterRangeInstruction).startRegister)
             val downloads = context.mutableClassDefBy("$EXTENSION_PACKAGE/actions/PinDownloads;")
-            val closeup = menu.methods.single { it.name == "hushDownloadCloseup" }.implementation!!.instructions.toList()
+            val closeup =menu.methods.single { it.name == "hushDownloadCloseup" }.implementation!!.instructions.toList()
             assertEquals(listOf(Opcode.IGET_BOOLEAN, Opcode.RETURN), closeup.map { it.opcode })
             assertTrue(references(closeup).any { it.endsWith("->isPinCloseup:Z") })
             val row = downloads.methods.single { it.name == "menuRow" }.implementation!!.instructions.toList()

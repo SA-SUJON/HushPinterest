@@ -3156,6 +3156,27 @@ public class DexDiff {
                 remove(m, at, at + 1);
             }
             String downloads = BASE + "actions/PinDownloads;";
+            // Pinterest's own Download image row is marked once, straight off its row factory's result.
+            ClassDef marked = menuLayout();
+            if (marked != null) {
+                List<Method> inits = new ArrayList<>();
+                for (Method candidate : marked.getMethods()) if (candidate.getName().equals("<init>") && candidate.getImplementation() != null) inits.add(candidate);
+                Method init = actual(unique(inits, "pin menu constructor"));
+                List<Integer> marks = calls(init, downloads + "->nativeRow(Landroid/view/View;)V", 1);
+                if (init != null && marks.size() == 1) {
+                    int at = marks.get(0);
+                    List<Instruction> body = instructions(init);
+                    boolean titled = false;
+                    for (int i = Math.max(0, at - 9); i < at - 2; i++) if (reference(body.get(i)) instanceof FieldReference title
+                            && title.getName().equals("save_to_device")) titled = true;
+                    if (at < 2 || body.get(at - 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT
+                            || !(reference(body.get(at - 2)) instanceof MethodReference factory)
+                            || !factory.getReturnType().equals("Landroid/widget/RelativeLayout;")
+                            || !arguments(body.get(at)).equals(List.of(firstRegister(body.get(at - 1)))) || !titled)
+                        fail("download row mark is not on Pinterest's own Download image row");
+                    remove(init, at, at + 1);
+                }
+            }
             bridge(downloads + "->menuPin(Ljava/lang/Object;)Ljava/lang/Object;", PIN_MENU, "hushDownloadPin", "()Ljava/lang/Object;");
             bridge(downloads + "->menuView(Ljava/lang/Object;)Landroid/view/ViewGroup;", PIN_MENU, "hushDownloadMenu", "()Landroid/view/ViewGroup;");
             bridge(downloads + "->menuOrigin(Ljava/lang/Object;)Landroid/view/View;", PIN_MENU, "hushDownloadOrigin", "()Landroid/view/View;");

@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Redesigned HushPinterest settings with separate navy cards on black pages and blue icon badges. Pause sits below its status summary. Setup topics have their own cards, and dialog choices wrap. The existing Android controls and actions keep their behavior.
 
+* **Pinterest:** A pin's menu has one download entry now. When Download pin can save the pin, Pinterest's own Download image row is hidden, so the two don't sit side by side. Pinterest's row stays for pins HushPinterest can't download, and with Download pins off the menu is untouched. (#2)
+
 * **Tooling:** The script contract tests keep the published bug report form as it is when they build a tree whose index lags the source, the way the release check expects, and now also check that a form moved to the catalog's newer Pinterest build is refused there. They used to move the form's build along with the catalog, which went unnoticed until the published form named the catalog's newest build and held up the 0.0.7 index push.
 
 ## 0.0.7 (2026-10-10)
