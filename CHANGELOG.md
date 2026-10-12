@@ -20,9 +20,9 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** The diagnostic report also leaves out a Pinterest address whose slashes are written the JSON way (\/) or encoded (%2F), path and all.
 
-* **Pinterest:** Clearer wording in settings. Hide AI-labeled pins names the places it filters instead of "the same places", Strip link tracking mentions Plain pin links only when that switch exists, the Check now row names the switch it works around, download messages say "the Download folder" for the folder and "Downloads" for the app, the batch summary reads "Couldn't save history for one result" with a real singular, "in parentheses" replaces "in brackets", and Autoplay's note says cellular data like its title. The five translations follow.
+* **Pinterest:** Clearer wording in settings. Hide AI-labeled pins names the places it filters instead of "the same places", Open links in your browser says it opens a pin's Visit link and profile websites, Strip link tracking mentions Plain pin links only when that switch exists, the Check now row names the switch it works around, download messages say "the Download folder" for the folder and "Downloads" for the app, the batch summary reads "Couldn't save history for one result" with a real singular, "in parentheses" replaces "in brackets", and Autoplay's note says cellular data like its title. The five translations follow.
 
-* **Docs:** The 14.39.0 audit page records 0.0.7 and drops two work items that were done. The README and the patch descriptions Morphe Manager shows now both say Download board stops at 500 pins, Hide advertising ID works like deleting your advertising ID, and Advertiser-sponsored polls stay hidden. The README also names the Search switch under Hide navigation buttons.
+* **Pinterest:** The 14.39.0 audit page records 0.0.7 and drops two work items that were done. The README and the patch descriptions Morphe Manager shows now both say Download board stops at 500 pins, Hide advertising ID works like deleting your advertising ID, and Advertiser-sponsored polls stay hidden. The README also names the Search switch under Hide navigation buttons.
 
 * **Tooling:** An interrupted release can resume after a commit repairs its publication checks. It keeps the prepared source, published tag, signed assets and index unchanged, including the original test counts when local results are missing or come from a focused run. It pushes only when needed and checks the index Morphe Manager receives. Changed release files or unrelated source commits stop recovery. Refs #3
 
@@ -41,10 +41,6 @@ Every HushPinterest release, newest first.
 * **Pinterest:** Copy media link doesn't keep the pin screen in memory while it looks for the original.
 
 * **Pinterest:** System share sheet reads its switch inside its own error handling, so a settings failure leaves Pinterest's share picker in place instead of reaching Pinterest's code.
-
-* **Pinterest:** Clearer wording in a few places. Open links in your browser's summary reads "Opens a pin's Visit link and profile websites in your browser." The setup guide says Fix push notifications lets the app sign up for push notifications, instead of saying they were never tested. A batch's note about history that couldn't be saved says "1 result" for one pin. All five translations follow.
-
-* **Pinterest:** TalkBack reads what you typed in the settings search field. The field carried a fixed label that TalkBack read in place of the text, and its hint already names it.
 
 * **Tooling:** The script contract tests keep the published bug report form as it is when they build a tree whose index lags the source, the way the release check expects, and now also check that a form moved to the catalog's newer Pinterest build is refused there. They used to move the form's build along with the catalog, which went unnoticed until the published form named the catalog's newest build and held up the 0.0.7 index push.
 
