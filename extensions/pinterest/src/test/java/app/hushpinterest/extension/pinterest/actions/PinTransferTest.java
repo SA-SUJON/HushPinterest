@@ -21,6 +21,7 @@ import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -163,6 +164,36 @@ public class PinTransferTest {
         assertEquals("/next", next);
         assertEquals("the control: the answer stored one", Collections.singletonList(1), stored);
         assertTrue(manager.getCookieStore().get(SHORT_LINK).isEmpty());
+    }
+
+    /**
+     * On the redirector's pinterest.com hop only what that answer stored goes. Left there, it would
+     * stop every later lookup, and what Pinterest kept on the host before has to stay.
+     */
+    @Test public void theRedirectorHopDropsOnlyWhatItsOwnAnswerStored() throws Exception {
+        CookieManager manager = new CookieManager();
+        CookieHandler.setDefault(manager);
+        URI hop = URI.create("https://api.pinterest.com/url_shortener/Zz9/redirect/");
+        HttpCookie before = cookie("csrftoken", "1", "api.pinterest.com");
+        before.setPath("/v3/");
+        manager.getCookieStore().add(hop, before);
+        List<Integer> stored = new ArrayList<>();
+        PinTransfer.Connection storing = uri -> new Response(uri, 302, "https://www.pinterest.com/pin/1/") {
+            @Override public int getResponseCode() {
+                try {
+                    manager.put(uri, Collections.singletonMap("Set-Cookie", Collections.singletonList("redir=1; Path=/")));
+                } catch (IOException failure) {
+                    throw new AssertionError(failure);
+                }
+                stored.add(manager.getCookieStore().get(uri).size());
+                return super.getResponseCode();
+            }
+        };
+        for (int lookup = 0; lookup < 2; lookup++) {
+            assertEquals("https://www.pinterest.com/pin/1/", PinTransfer.location(hop, 1500, storing));
+            assertEquals(Collections.singletonList(before), manager.getCookieStore().get(hop));
+        }
+        assertEquals("the control: each answer stored one", Arrays.asList(2, 2), stored);
     }
 
     private interface Request {

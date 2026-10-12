@@ -21,6 +21,7 @@ import java.net.CookieManager;
 import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -72,6 +73,33 @@ public final class NoCookies {
             for (HttpCookie cookie : store.get(uri)) store.remove(uri, cookie);
         } catch (RuntimeException ignored) {
             // The check before a request still stops one that would carry a cookie.
+        }
+    }
+
+    /** What a CookieManager keeps for [uri] now, for {@link #forgetSince}, or null when it can't say. */
+    @Nullable
+    public static List<HttpCookie> kept(@Nullable CookieHandler handler, URI uri) {
+        if (!(handler instanceof CookieManager)) return null;
+        try {
+            return new ArrayList<>(((CookieManager) handler).getCookieStore().get(uri));
+        } catch (RuntimeException unreadable) {
+            return null;
+        }
+    }
+
+    /**
+     * Drops what a CookieManager stored for [uri] after [before] was taken, and nothing it kept
+     * already, so a host that holds Pinterest's sign-in loses only what one answer from it left.
+     */
+    public static void forgetSince(@Nullable CookieHandler handler, URI uri, @Nullable List<HttpCookie> before) {
+        if (before == null || !(handler instanceof CookieManager)) return;
+        try {
+            CookieStore store = ((CookieManager) handler).getCookieStore();
+            for (HttpCookie cookie : store.get(uri)) {
+                if (!before.contains(cookie)) store.remove(uri, cookie);
+            }
+        } catch (RuntimeException ignored) {
+            // The check before the next request still stops one that would carry it.
         }
     }
 }

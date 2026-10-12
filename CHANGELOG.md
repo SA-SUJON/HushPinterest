@@ -20,7 +20,7 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Strip link tracking and Plain pin links no longer swallow text that sits right after a link with no space, like a Japanese caption after `?utm_source=x`. Links with non-ASCII paths or queries stay whole.
 
-* **Pinterest:** The quick checks Download pin makes against pin.it short links and Pinterest's image host go out without any cookies the app holds for those hosts.
+* **Pinterest:** The quick checks Plain pin links makes against pin.it short links, and Download pins against Pinterest's image host, go out without any cookies the app holds for those hosts. A cookie Pinterest's short-link service sets on its answer is dropped again, so it can't stop the next lookup.
 
 * **Tooling:** A fixture test checks that every pin field Hide ads, Hide AI-labeled pins and Hide shopping read is still in Pinterest's build with a type the filters can use. A renamed or retyped field now fails the tests instead of quietly switching a filter off.
 
