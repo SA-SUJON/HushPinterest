@@ -147,8 +147,13 @@ public final class PinDownloads {
         }
     }
 
-    /** Called by the patch with the row Pinterest built for its own Download image action. */
+    /**
+     * Called by the patch with the row Pinterest built for its own Download image action. Only a
+     * menu that Download pin is going to join needs the row remembered, so the switch gates it the
+     * way it gates {@link #attach}, and the dex contract sees the family control it asks of every hook.
+     */
     public static void nativeRow(View row) {
+        if (!active()) return;
         try {
             if (row != null) nativeDownloads.put(row, Boolean.TRUE);
         } catch (Throwable failure) {
