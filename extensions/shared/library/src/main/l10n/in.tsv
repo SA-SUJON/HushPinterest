@@ -478,3 +478,7 @@ Checked file: the original image	File yang diperiksa: gambar asli
 Couldn't check the file, so these are still the details Pinterest supplied.	File tidak dapat diperiksa, jadi ini masih detail yang diberikan Pinterest.
 %s, supplied by Pinterest	%s, dari Pinterest
 %s, checked from the file	%s, diperiksa dari file
+# context: the AMOLED black switch on the Interface page, and a search word that finds it
+Black bottom bar	Bilah bawah hitam
+In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.	Dalam mode gelap, mewarnai bilah bawah hitam pekat agar serasi dengan halaman, yang juga sedikit menghemat baterai di layar OLED. Mode terang tetap seperti biasa. Perubahan terlihat saat bilah digambar ulang berikutnya.
+AMOLED dark theme	Tema gelap AMOLED

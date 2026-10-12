@@ -478,3 +478,7 @@ Checked file: the original image	Denetlenen dosya: özgün görsel
 Couldn't check the file, so these are still the details Pinterest supplied.	Dosya denetlenemedi, bu yüzden bunlar hâlâ Pinterest'in sağladığı ayrıntılar.
 %s, supplied by Pinterest	%s, Pinterest'e göre
 %s, checked from the file	%s, dosyadan denetlendi
+# context: the AMOLED black switch on the Interface page, and a search word that finds it
+Black bottom bar	Siyah alt çubuk
+In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.	Karanlık modda alt çubuğu sayfaya uyması için tamamen siyaha boyar. Bu, OLED ekranlarda biraz pil de tasarruf ettirir. Aydınlık mod olduğu gibi kalır. Değişiklik çubuk bir sonraki çizilişinde görünür.
+AMOLED dark theme	AMOLED karanlık tema

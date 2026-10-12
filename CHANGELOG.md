@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** New patch, AMOLED black. Its Black bottom bar switch paints the bottom bar pure black in dark mode, so it no longer sits as a gray strip under Pinterest's black pages. Only the bar changes. Menus and buttons that share its gray keep it, and light mode stays as it is. It starts off and lives on the Interface page.
+
 * **Tooling:** The build moved to Kotlin 2.4.21, Commons Lang 3.21.0 and androidx.annotation 1.11.0, with their hashes added to the dependency verification file. The advisory check finds nothing in the 286 libraries the build resolves.
 
 * **Pinterest:** Media details has Check the file for image pins. One tap reads the first 64 KB of the file a download would save and shows its real width, height, type and file size, since Pinterest's numbers can describe a smaller display copy. Nothing is fetched until you tap it, and every value says whether Pinterest supplied it or the file showed it.

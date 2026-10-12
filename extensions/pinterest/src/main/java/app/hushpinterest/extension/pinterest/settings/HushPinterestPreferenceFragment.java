@@ -384,6 +384,11 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hide header buttons"),
                     L10n.t("Hides the small icon buttons at the end of the top bar. Back, text buttons and account "
                         + "controls stay. The change shows the next time the bar updates."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.AMOLED_BLACK, Settings.BLACK_BOTTOM_BAR,
+                    L10n.t("Black bottom bar"),
+                    L10n.t("In dark mode, paints the bottom bar pure black to match the page, which also saves a "
+                        + "little battery on OLED screens. Light mode stays as it is. The change shows the next time "
+                        + "the bar redraws."), SettingsIcons.DARK_MODE);
             patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_COLLAGE,
                     L10n.t("Hide collage menu items"),
                     L10n.t("Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's "

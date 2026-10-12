@@ -22,10 +22,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
+import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Environment;
 import android.view.View;
+import android.widget.LinearLayout;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -73,6 +77,7 @@ import app.hushpinterest.extension.pinterest.privacy.AdvertisingId;
 import app.hushpinterest.extension.pinterest.notifications.PushNotificationsTest;
 import app.hushpinterest.extension.pinterest.privacy.LinkTracking;
 import app.hushpinterest.extension.pinterest.privacy.PlainPinLinks;
+import app.hushpinterest.extension.pinterest.ui.AmoledBlack;
 import app.hushpinterest.extension.pinterest.ui.InterfaceControls;
 import app.hushpinterest.extension.pinterest.ui.UiHooks;
 import app.hushpinterest.extension.pinterest.ui.UiHooksForTests;
@@ -292,6 +297,7 @@ public class PausedHooksTest {
             InterfaceControls.headerButtons(header);
             return header.getVisibility() != View.INVISIBLE;
         }));
+        probes.put(Settings.BLACK_BOTTOM_BAR, Collections.singletonList(PausedHooksTest::paintsBottomBarBlack));
         probes.put(Settings.HIDE_PIN_MENU_COLLAGE, Collections.singletonList(() -> hidesMenuItem("overflow_menu_add_to_collage")));
         probes.put(Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Collections.singletonList(() -> hidesMenuItem("contextmenu_visual_search_image")));
         probes.put(Settings.HIDE_PIN_MENU_PIN_BOOST, Collections.singletonList(() -> hidesMenuItem("overflow_menu_pin_boost")));
@@ -432,6 +438,21 @@ public class PausedHooksTest {
     }
 
     /** Supplies a real header resource name without borrowing an ID from another application. */
+    /** A dark-mode bar whose tab row has Pinterest's gray fill turns black. */
+    private static boolean paintsBottomBarBlack() {
+        Context context = RuntimeEnvironment.getApplication();
+        Configuration night = new Configuration(context.getResources().getConfiguration());
+        night.uiMode = Configuration.UI_MODE_NIGHT_YES | (night.uiMode & ~Configuration.UI_MODE_NIGHT_MASK);
+        LinearLayout bar = new LinearLayout(context.createConfigurationContext(night));
+        LinearLayout tabs = new LinearLayout(bar.getContext());
+        GradientDrawable fill = new GradientDrawable();
+        fill.setColor(0xFF33332E);
+        tabs.setBackground(fill);
+        bar.addView(tabs);
+        AmoledBlack.bottomBar(bar);
+        return fill.getColor().getDefaultColor() == Color.BLACK;
+    }
+
     private static View namedView(String name) {
         Context context = RuntimeEnvironment.getApplication();
         Resources original = context.getResources();

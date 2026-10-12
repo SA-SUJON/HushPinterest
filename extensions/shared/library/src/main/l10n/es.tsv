@@ -478,3 +478,7 @@ Checked file: the original image	Archivo comprobado: la imagen original
 Couldn't check the file, so these are still the details Pinterest supplied.	No se pudo comprobar el archivo, así que estos siguen siendo los datos que dio Pinterest.
 %s, supplied by Pinterest	%s, según Pinterest
 %s, checked from the file	%s, comprobado en el archivo
+# context: the AMOLED black switch on the Interface page, and a search word that finds it
+Black bottom bar	Barra inferior negra
+In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.	En modo oscuro, pinta la barra inferior de negro puro para que combine con la página, lo que también ahorra un poco de batería en pantallas OLED. El modo claro se queda como está. El cambio se ve la próxima vez que se vuelva a dibujar la barra.
+AMOLED dark theme	Tema oscuro AMOLED

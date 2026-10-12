@@ -273,7 +273,7 @@ public class DexDiff {
             "once-call", "once-call <method reference>");
 
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
-            Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
+            Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 3),
             Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
@@ -2652,21 +2652,43 @@ public class DexDiff {
                 if (refresh != null) prefix(m, refresh, List.of(parameter(m, -1)), false);
                 else if (name.equals("setVisibility")) prefix(m, visibility, List.of(parameter(m, 0)), true);
                 else prefix(m, measure, List.of(parameter(m, 0), parameter(m, 1)), true);
-                if (!clean.methods.containsKey(m.toString())) {
-                    List<Instruction> retained = retained(m, edits.get(m.toString()));
-                    if (retained.size() != 2 || !retained.get(0).getOpcode().name.startsWith("invoke-super")
-                            || retained.get(1).getOpcode() != Opcode.RETURN_VOID
-                            || !(reference(retained.get(0)) instanceof MethodReference)) {
-                        fail(m + " lost its inherited original behavior"); continue;
-                    }
-                    MethodReference call = (MethodReference) reference(retained.get(0));
-                    List<Integer> args = new ArrayList<>();
-                    for (int p = parameter(m, -1); p < m.getImplementation().getRegisterCount(); p++) args.add(p);
-                    if (!call.getDefiningClass().equals(cd.getSuperclass()) || !call.getName().equals(name)
-                            || !descriptor(call).equals(shape) || !arguments(retained.get(0)).equals(args))
-                        fail(m + " invokes the wrong inherited implementation");
-                }
+                inherited(cd, m, name, shape);
             }
+        }
+
+        /** An override the patch added does nothing but its claimed hooks and the superclass's own call. */
+        void inherited(ClassDef cd, Method m, String name, String shape) {
+            if (clean.methods.containsKey(m.toString())) return;
+            List<Instruction> retained = retained(m, edits.get(m.toString()));
+            if (retained.size() != 2 || !retained.get(0).getOpcode().name.startsWith("invoke-super")
+                    || retained.get(1).getOpcode() != Opcode.RETURN_VOID
+                    || !(reference(retained.get(0)) instanceof MethodReference)) {
+                fail(m + " lost its inherited original behavior"); return;
+            }
+            MethodReference call = (MethodReference) reference(retained.get(0));
+            List<Integer> args = new ArrayList<>();
+            for (int p = parameter(m, -1); p < m.getImplementation().getRegisterCount(); p++) args.add(p);
+            if (!call.getDefiningClass().equals(cd.getSuperclass()) || !call.getName().equals(name)
+                    || !descriptor(call).equals(shape) || !arguments(retained.get(0)).equals(args))
+                fail(m + " invokes the wrong inherited implementation");
+        }
+
+        /**
+         * A view whose dispatchDraw starts with the hook on the view itself and then draws as before.
+         * It has a method of its own, so it can't collide with an onMeasure refresh on the same class.
+         */
+        void draw(Contract c) {
+            String type = c.strings.get(1);
+            String shape = "(Landroid/graphics/Canvas;)V";
+            ClassDef cd = clean.classes.get(type);
+            if (cd == null) { fail("missing view " + type); capability(c.callee, false); return; }
+            boolean overridable = canOverride(type, "dispatchDraw", shape);
+            Method m = overridable ? actual(type + "->dispatchDraw" + shape) : null;
+            if (m != null) {
+                prefix(m, c.strings.get(0), List.of(parameter(m, -1)), false);
+                inherited(cd, m, "dispatchDraw", shape);
+            }
+            capability(c.callee, overridable);
         }
 
         void feed(Contract c) {
@@ -4854,6 +4876,7 @@ public class DexDiff {
                     case "views": views(c); break;
                     case "guard": simpleGuard(c); break;
                     case "refresh": refresh(c); break;
+                    case "draw": draw(c); break;
                     case "navigation": navigation(c); break;
                     case "menu": menu(c); break;
                     case "downloads": downloads(c); break;

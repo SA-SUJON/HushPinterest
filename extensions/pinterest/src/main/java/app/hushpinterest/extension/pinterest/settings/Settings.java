@@ -99,6 +99,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_nav_search", FALSE);
     public static final BooleanSetting HIDE_HEADER_BUTTONS =
             new BooleanSetting("hushpinterest_hide_header_buttons", FALSE);
+    public static final BooleanSetting BLACK_BOTTOM_BAR =
+            new BooleanSetting("hushpinterest_black_bottom_bar", FALSE);
     public static final BooleanSetting HIDE_PIN_MENU_COLLAGE =
             new BooleanSetting("hushpinterest_hide_pin_menu_collage", FALSE);
     public static final BooleanSetting HIDE_PIN_MENU_VISUAL_SEARCH =

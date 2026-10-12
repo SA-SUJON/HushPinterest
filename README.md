@@ -50,10 +50,11 @@ Setup and backup guide in About is optional. It explains installed patches, runt
 
 ## Patches
 
-There are 27 patches so far.
+There are 28 patches so far.
 
 | Patch | What it does |
 |---|---|
+| `AMOLED black` | Paints the bottom bar pure black in dark mode, so it matches Pinterest's black pages on OLED screens. Light mode stays as it is. Starts off. Turn it on in HushPinterest settings > Interface. |
 | `Disable analytics` | Stops Pinterest from sending usage reports, crash reports and ad-tracking data to outside companies, and turns off Google's analytics inside the app. Good if you'd rather share less. On by default. Turn it off in HushPinterest settings > Privacy. |
 | `Disable update nag` | Stops Pinterest's pop-ups asking you to update from the Play Store. You can still update Pinterest yourself. Good if the reminders get annoying. Starts off. Turn it on in HushPinterest settings > More settings > Updates. |
 | `Download board` | Adds Download board to a board's menu. It saves every pin Pinterest has loaded for that board, up to 500, and skips ones already in Download history, so you can keep a board without picking pins one at a time. Needs Download pins on too. Starts off. Turn it on in HushPinterest settings > Pin actions. |
@@ -147,7 +148,7 @@ Exports and import previews use the choices saved on this device. Import setting
   <img src="assets/screenshots/settings-import-preview.png" width="240" alt="Native import review fixture with the switch's old and new values on one card">
 </p>
 
-Interface summaries say which controls change and when. Bottom-bar and header choices take effect on their next layout. Recent searches and comments follow their next layout or visibility update. Pin-menu choices affect new menus. Screenshot suggestions require a restart. Search also recognizes reviewed terms such as Toolbar icons, Recent searches and Reverse image search, in each supported language.
+Interface summaries say which controls change and when. Bottom-bar and header choices take effect on their next layout, and Black bottom bar on the bar's next redraw. Recent searches and comments follow their next layout or visibility update. Pin-menu choices affect new menus. Screenshot suggestions require a restart. Search also recognizes reviewed terms such as Toolbar icons, Recent searches and Reverse image search, in each supported language.
 
 <p>
   <img src="assets/screenshots/settings-interface.png" width="240" alt="Interface switches with wrapped summaries">

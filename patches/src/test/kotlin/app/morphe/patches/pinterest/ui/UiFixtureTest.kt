@@ -35,13 +35,14 @@ import org.junit.experimental.categories.Category
 class UiFixtureTest {
     private val patches = listOf(
         hideScreenshotSharePatch, hideSearchHistoryPatch, hideNavigationButtonsPatch, hideHeaderButtonsPatch,
-        hidePinMenuItemsPatch, hideCommentsPatch, quietEmailReminderPatch, disableUpdateNagPatch,
+        hidePinMenuItemsPatch, hideCommentsPatch, quietEmailReminderPatch, disableUpdateNagPatch, amoledBlackPatch,
     )
     private val flags = listOf(
         "hideScreenshotShare" to "screenshotShare", "hideSearchHistory" to "searchHistory",
         "hideNavigationButtons" to "navigationButtons", "hideHeaderButtons" to "headerButtons",
         "hidePinMenuItems" to "pinMenuItems", "hideComments" to "comments",
         "quietEmailReminder" to "emailReminder", "disableUpdateNag" to "updateNag",
+        "amoledBlack" to "blackBottomBar",
     )
 
     @Test fun `every interface family matches each supported vendor build without a warning`() {
@@ -112,6 +113,17 @@ class UiFixtureTest {
             assertTrue(nav.methods.single { it.name == "onMeasure" }.calls().any {
                 it.definingClass == INTERFACE_CONTROLS && it.name == "refreshNavigation"
             })
+            // Its own dispatchDraw, so it can't share the onMeasure prefix Hide navigation buttons adds.
+            val drawn = context.mutableClassDefBy(BOTTOM_BAR).methods.single {
+                it.name == "dispatchDraw" && it.parameters() == listOf("Landroid/graphics/Canvas;")
+            }.instructions()
+            val paint = (drawn[0] as ReferenceInstruction).reference as MethodReference
+            assertEquals("${build.name}: the bar paints before it draws its tab row", AMOLED_BLACK to "bottomBar",
+                paint.definingClass to paint.name)
+            assertEquals(listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.INVOKE_SUPER_RANGE, Opcode.RETURN_VOID), drawn.map { it.opcode })
+            assertEquals("${build.name}: the bar still draws through its own superclass",
+                classes.single { it.type == BOTTOM_BAR }.superclass,
+                ((drawn[1] as ReferenceInstruction).reference as MethodReference).definingClass)
             val original = classes.flatMap { it.methods }.single { "inAppUpdateManager" in it.strings() }
             val modified = context.mutable(original)
             assertEquals("the shared coroutine's other task must keep its dispatcher", original.instructions()[0].opcode,
@@ -135,7 +147,7 @@ class UiFixtureTest {
         val anchors = setOf("sg_android_new_screenshot_api_14", "BottomNavTabModel(type=",
             "BottomNavBar tab insertion out of range", "confirmEmailButton", "inAppUpdateManager",
             "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=")
-        val required = (SEARCH_HISTORY_VIEWS + COMMENT_PREVIEW + HEADER_BAR + PIN_MENU +
+        val required = (SEARCH_HISTORY_VIEWS + COMMENT_PREVIEW + HEADER_BAR + BOTTOM_BAR + PIN_MENU +
             "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;").toSet()
         val found = mutableMapOf<String, ClassDef>()
         FixtureDex.forEach(build) { dex ->

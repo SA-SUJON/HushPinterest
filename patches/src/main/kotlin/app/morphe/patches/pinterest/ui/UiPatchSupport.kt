@@ -24,7 +24,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 internal const val UI_HOOKS = "$EXTENSION_PACKAGE/ui/UiHooks;"
 internal const val INTERFACE_CONTROLS = "$EXTENSION_PACKAGE/ui/InterfaceControls;"
+internal const val AMOLED_BLACK = "$EXTENSION_PACKAGE/ui/AmoledBlack;"
 internal const val HEADER_BAR = "Lcom/pinterest/gestalt/headerBar/GestaltHeaderBar;"
+internal const val BOTTOM_BAR = "Lcom/pinterest/navigation/view/FloatingBottomNavBar;"
 internal const val PIN_MENU = "Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;"
 internal val SEARCH_HISTORY_VIEWS = listOf(
     "Lcom/pinterest/feature/search/landing/view/SlpRecentSearchCell;",
@@ -98,6 +100,20 @@ internal fun BytecodePatchContext.refreshOnMeasure(view: MutableClass, helper: S
     val own = view.methods.singleOrNull { it.name == "onMeasure" && it.parameters() == parameters }
     if (own != null) own.addInstructions(0, code)
     else addOverride(view, "onMeasure", parameters, code)
+}
+
+/**
+ * Runs [hook] on the view as it starts drawing its children. A ViewGroup with nothing of its own to
+ * draw skips draw() under hardware rendering, but never dispatchDraw(), and its children draw after
+ * the hook, so a change it makes shows in the same frame.
+ */
+internal fun BytecodePatchContext.refreshOnDispatchDraw(view: MutableClass, hook: String) {
+    val parameters = listOf("Landroid/graphics/Canvas;")
+    requireOverride(view, "dispatchDraw", parameters)
+    val code = "invoke-static/range { p0 .. p0 }, $hook"
+    val own = view.methods.singleOrNull { it.name == "dispatchDraw" && it.parameters() == parameters }
+    if (own != null) own.addInstructions(0, code)
+    else addOverride(view, "dispatchDraw", parameters, code)
 }
 
 /** Adds [name] to [view], running [prefix] and then the superclass's own [name] with the same arguments. */

@@ -69,6 +69,8 @@ public final class SettingsStatus {
     public static boolean navigationButtons() { return false; }
     public static boolean hideHeaderButtons() { return false; }
     public static boolean headerButtons() { return false; }
+    public static boolean amoledBlack() { return false; }
+    public static boolean blackBottomBar() { return false; }
     public static boolean hidePinMenuItems() { return false; }
     public static boolean pinMenuItems() { return false; }
     public static boolean hideComments() { return false; }
