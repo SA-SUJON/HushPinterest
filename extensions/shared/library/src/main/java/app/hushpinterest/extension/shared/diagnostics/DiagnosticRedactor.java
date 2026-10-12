@@ -265,13 +265,15 @@ public final class DiagnosticRedactor {
     private static final String NAMED_HANDLE = "(?<![A-Za-z0-9_.@/:])(?<![^\\x00-\\x7F])@(?=(?i:"
             + KNOWN_HANDLE_NAME + "))[A-Za-z0-9_.]{2,}";
     /**
-     * A slash as a URL carries it: plain, escaped for JSON ({@code \/}) or percent-encoded
-     * ({@code %2F}). A URL copied out of a JSON body or a query string keeps the path behind the
-     * host in one of the other two spellings, and the path is where the account name sits.
+     * A slash as a URL carries it: plain, escaped for JSON ({@code \/}, or {@code \\\/} inside a
+     * string that was itself written into JSON) or percent-encoded ({@code %2F}, or {@code %252F}
+     * when a query value was encoded again). A URL copied out of a JSON body or a query string
+     * keeps the path behind the host in one of the other spellings, and the path is where the
+     * account name sits.
      */
-    private static final String SLASH = "(?:/|\\\\/|%2f)";
-    /** A colon the same three ways. */
-    private static final String COLON = "(?::|%3a)";
+    private static final String SLASH = "(?:\\\\*/|%(?:25)*2f)";
+    /** A colon the same ways. */
+    private static final String COLON = "(?::|%(?:25)*3a)";
     /**
      * One of Pinterest's hosts without a scheme, with any port or path after it. The subdomain is
      * optional: the rule asked for one before, so {@code pin.it/abc} passed while

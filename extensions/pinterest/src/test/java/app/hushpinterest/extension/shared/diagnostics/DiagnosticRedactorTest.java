@@ -239,6 +239,8 @@ public class DiagnosticRedactorTest {
     /**
      * A URL copied out of a JSON body spells its slashes {@code \/}, and one out of a query string
      * {@code %2F}. Either way the path after the host goes with it, since that's where a name sits.
+     * A JSON string written into another JSON string escapes the escapes ({@code \\\/}), and a
+     * query value encoded again doubles the percent ({@code %252F}); the name sits behind those too.
      */
     @Test public void anEscapedUrlGoesWithItsPath() {
         assertEquals("opened [url omitted] in the browser",
@@ -247,6 +249,12 @@ public class DiagnosticRedactorTest {
                 DiagnosticRedactor.redact("redirect to https%3A%2F%2Fwww.pinterest.com%2Fdana.q.1987%2F done"));
         assertEquals("[url omitted] then [host omitted]",
                 DiagnosticRedactor.redact("https:\\/\\/evil.example\\/dana.q then pinterest.com\\/dana.q\\/boards"));
+        assertEquals("nested [url omitted] end",
+                DiagnosticRedactor.redact("nested https:\\\\\\/\\\\\\/www.pinterest.com\\\\\\/dana.q.1987 end"));
+        assertEquals("twice [url omitted] end",
+                DiagnosticRedactor.redact("twice https%253A%252F%252Fwww.pinterest.com%252Fdana.q.1987 end"));
+        assertEquals("bare [host omitted] end",
+                DiagnosticRedactor.redact("bare www.pinterest.com\\\\\\/dana.q.1987\\\\\\/boards end"));
     }
 
     @Test public void aBareAccountIdGoesAndATimestampStays() {

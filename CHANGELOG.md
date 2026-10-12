@@ -18,7 +18,7 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Selecting many pins to download no longer shows a "Couldn't start the download" pop-up for each one that fails. The batch counts them and says so once in its summary. A pin downloaded on its own still gets the message.
 
-* **Pinterest:** The diagnostic report also leaves out a Pinterest address whose slashes are written the JSON way (\/) or encoded (%2F), path and all.
+* **Pinterest:** The diagnostic report also leaves out a Pinterest address whose slashes are written the JSON way (\/, or \\\/ when the string was written into JSON twice) or encoded (%2F, or %252F when a query value was encoded twice), path and all.
 
 * **Pinterest:** Clearer wording in settings. Hide AI-labeled pins names the places it filters instead of "the same places", Open links in your browser says it opens a pin's Visit link and profile websites, Strip link tracking mentions Plain pin links only when that switch exists, the Check now row names the switch it works around, download messages say "the Download folder" for the folder and "Downloads" for the app, the batch summary reads "Couldn't save history for one result" with a real singular, "in parentheses" replaces "in brackets", and Autoplay's note says cellular data like its title. The five translations follow.
 
