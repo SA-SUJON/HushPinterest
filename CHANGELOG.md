@@ -10,7 +10,9 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** The diagnostic report counts a promoted pin as removed only once the whole feed list has gone through. When Pinterest's list couldn't be read all the way, the page shows as it was, but the report still said an ad had been removed.
 
-* **Pinterest:** Screen reader and keyboard fixes in settings. The search field is read by its hint and what you typed, Clear search hands focus back to the field, the Check now result is spoken when it lands, and the Back and Clear buttons show where keyboard focus is. Choices that act at once, like Copy quick report, Remove from history and Save in Download again, no longer carry the chevron that means a tap opens something.
+* **Pinterest:** Screen reader and keyboard fixes in settings. The search field is read by its hint and what you typed, Clear search hands focus back to the field, the result of a tapped Check now is spoken when it lands (the daily check settings runs on its own stays quiet), and the Back and Clear buttons show where keyboard focus is. Choices that act at once, like Copy quick report, Remove from history and Save in Download again, no longer carry the chevron that means a tap opens something.
+
+* **Pinterest:** The long-press shortcut's icon is drawn from the settings colors, so its blue matches the icon badges on the settings pages.
 
 * **Pinterest:** A download folder with # or % in its name, such as Pictures/Art #2, now gets the download. Android's download service reads the folder back from text, where # ended the path and % started an escape, so the file landed in the wrong place or nowhere.
 

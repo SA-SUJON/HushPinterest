@@ -207,9 +207,13 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         if (checkNowRow != null) {
             String result = ReleaseCheck.checkNowSummary();
             checkNowRow.setSummary(result);
-            // Spoken as well as shown: a screen reader user who tapped Check now hears what it found.
+            // Spoken as well as shown, but only for a check the user asked for: the daily check
+            // that settings starts on its own ends the same way, and nobody is waiting on that.
             View page = getView();
-            if (page != null && result != null) page.announceForAccessibility(result);
+            if (announceCheckResult && page != null && result != null) {
+                announceCheckResult = false;
+                page.announceForAccessibility(result);
+            }
         }
     }
 
@@ -710,6 +714,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         row.actsAtOnce = true;
         row.setSummary(ReleaseCheck.checkNowSummary());
         row.setOnPreferenceClickListener(p -> {
+            // Set before the check starts, so the result is announced even when it lands at once.
+            announceCheckResult = true;
             if (!ReleaseCheck.checkNow()) Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
             p.setSummary(ReleaseCheck.checkNowSummary());
             return true;
@@ -717,6 +723,9 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         checkNowRow = row;
         return row;
     }
+
+    /** True from a tap on Check now until the next result is spoken. The automatic check stays quiet. */
+    private boolean announceCheckResult;
 
     /** Fixed project pages. Neither a release's body nor its html_url can choose the destination. */
     private Preference releaseLink(Context context, String key, String title, String summary, String url) {

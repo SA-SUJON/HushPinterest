@@ -158,7 +158,7 @@ AI-labeled pins in lists	KI-markierte Pins in Listen
 Android sends pinterest.com and pin.it links to a patched Pinterest only after you select those addresses for it. Selecting them sends their links here. Your other link settings stay as they are.	Android schickt pinterest.com- und pin.it-Links nur dann an ein gepatchtes Pinterest, wenn du diese Adressen dafür auswählst. Wenn du sie auswählst, kommen ihre Links hierher. Deine anderen Link-Einstellungen bleiben, wie sie sind.
 Feed	Feed
 Hide AI-labeled pins	KI-markierte Pins ausblenden
-Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.	Entfernt Pins, die Pinterest als mit KI erstellt oder verändert kennzeichnet, aus deinem Home-Feed, der Suche, ähnlichen Pins und Pinnwänden. KI-Bilder ohne Kennzeichnung werden weiter angezeigt.
+Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.	Entfernt Pins, die Pinterest als mit KI erstellt oder verändert kennzeichnet, aus deinem Startfeed, der Suche, ähnlichen Pins und Pinnwänden. KI-Bilder ohne Kennzeichnung werden weiter angezeigt.
 Promoted and AI-labeled pins	Beworbene und KI-markierte Pins
 Promoted pins	Beworbene Pins
 Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Entfernt beworbene Pins aus deinem Startfeed, der Suche, den ähnlichen Pins und den Pinnwänden und blendet Bereiche aus, die nur Werbung enthalten.

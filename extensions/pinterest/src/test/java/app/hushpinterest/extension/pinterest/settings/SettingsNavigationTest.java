@@ -626,8 +626,12 @@ public class SettingsNavigationTest {
         assertEquals(8, list().getCount());
     }
 
-    /** Check now changes its row's text when the check ends, and a screen reader hears that text too. */
-    @Test public void aFinishedReleaseCheckIsAnnouncedWithTheRowsNewText() {
+    /**
+     * A tapped Check now changes its row's text when the check ends, and a screen reader hears that
+     * text too. The daily check settings starts on its own ends through the same listener and stays
+     * quiet, since nobody is waiting on it.
+     */
+    @Test public void aTappedCheckNowIsAnnouncedAndTheAutomaticCheckIsNot() throws Exception {
         android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
         org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
         java.util.List<CharSequence> announced = new java.util.ArrayList<>();
@@ -641,11 +645,32 @@ public class SettingsNavigationTest {
                 return super.onRequestSendAccessibilityEvent(host, child, event);
             }
         });
+        Preference checkNow = page.findPreference(HushPinterestPreferenceFragment.CHECK_NOW);
+
+        // The automatic check ending: the row changes, nothing is spoken.
         page.releaseCheckFinished();
-        String summary = ReleaseCheck.checkNowSummary();
-        assertNotNull("Check now always has something to say", summary);
-        assertEquals(java.util.Collections.singletonList(summary), announced);
-        assertEquals(summary, String.valueOf(page.findPreference(HushPinterestPreferenceFragment.CHECK_NOW).getSummary()));
+        String idle = ReleaseCheck.checkNowSummary();
+        assertNotNull("Check now always has something to say", idle);
+        assertEquals(idle, String.valueOf(checkNow.getSummary()));
+        assertEquals("a check nobody tapped is not spoken", java.util.Collections.emptyList(), announced);
+
+        // A tap: the check runs against a GitHub that answers with a newer release.
+        ReleaseCheck.Transport original = ReleaseCheck.transport;
+        ReleaseCheck.transport = new FakeGitHub().then(FakeGitHub.Reply.release("v0.2.0", null));
+        String result;
+        try {
+            assertTrue(checkNow.getOnPreferenceClickListener().onPreferenceClick(checkNow));
+            ReleaseCheckForTests.settle();
+            result = ReleaseCheck.checkNowSummary();
+            assertEquals(java.util.Collections.singletonList(result), announced);
+            assertEquals(result, String.valueOf(checkNow.getSummary()));
+            // The next automatic ending is quiet again.
+            page.releaseCheckFinished();
+            assertEquals(1, announced.size());
+        } finally {
+            ReleaseCheck.transport = original;
+            ReleaseCheckForTests.forget();
+        }
     }
 
     @Test public void interfaceRowsNameTheirOwnSurfaceAndRefreshBoundary() {
