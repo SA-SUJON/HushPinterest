@@ -7,13 +7,18 @@
 package app.hushpinterest.extension.pinterest.actions;
 
 import java.io.IOException;
+import java.net.CookieHandler;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.util.Locale;
+
+import app.hushpinterest.extension.pinterest.settings.NoCookies;
 
 /**
  * HEAD requests for downloads and Plain pin links: whether the media host has an original behind a
- * supplied size, and where a pin.it short link leads. Neither follows a redirect or reads a body.
- * The downloads themselves go through Android's DownloadManager.
+ * supplied size, and where a pin.it short link leads. Neither follows a redirect or reads a body,
+ * and neither carries a cookie ({@link NoCookies}). The downloads themselves go through Android's
+ * DownloadManager.
  */
 public final class PinTransfer {
     private PinTransfer() {}
@@ -25,13 +30,38 @@ public final class PinTransfer {
     static final Connection NETWORK = uri -> (HttpURLConnection) uri.toURL().openConnection();
 
     /**
+     * The connection for a HEAD request, unless the process's cookie handler would put a cookie on
+     * it. What a CookieManager keeps for pin.it or the media host is dropped first, but never for a
+     * pinterest.com hop of the short-link redirector, where Pinterest's sign-in lives: a cookie
+     * there stops the request instead.
+     */
+    private static HttpURLConnection open(URI uri, Connection factory) throws IOException {
+        CookieHandler cookies = CookieHandler.getDefault();
+        if (forgettable(uri)) NoCookies.forget(cookies, uri);
+        String refusal = NoCookies.refusal(cookies, uri);
+        if (refusal != null) throw new IOException(refusal);
+        return factory.open(uri);
+    }
+
+    /** Closes [head] and drops what its answer stored, on a host where that's all there is to drop. */
+    private static void close(HttpURLConnection head, URI uri) {
+        head.disconnect();
+        if (forgettable(uri)) NoCookies.forget(CookieHandler.getDefault(), uri);
+    }
+
+    private static boolean forgettable(URI uri) {
+        String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase(Locale.ROOT);
+        return host.equals("pin.it") || host.equals("pinimg.com") || host.endsWith(".pinimg.com");
+    }
+
+    /**
      * True when the media host answers a HEAD request for the address with a 200 and the image
      * type the address names. It follows no redirect.
      */
     static boolean present(PinMedia.Source source, Connection factory) throws IOException {
         URI uri = PinMedia.mediaUri(source.url);
         if (uri == null) throw new IOException("Not a public Pinterest media URL");
-        HttpURLConnection head = factory.open(uri);
+        HttpURLConnection head = open(uri, factory);
         try {
             head.setRequestMethod("HEAD");
             head.setInstanceFollowRedirects(false);
@@ -43,7 +73,7 @@ public final class PinTransfer {
             String type = head.getContentType();
             return type != null && type.split(";", 2)[0].trim().equalsIgnoreCase(source.mime);
         } finally {
-            head.disconnect();
+            close(head, uri);
         }
     }
 
@@ -57,7 +87,7 @@ public final class PinTransfer {
     }
 
     static String location(URI uri, int timeoutMs, Connection factory) throws IOException {
-        HttpURLConnection head = factory.open(uri);
+        HttpURLConnection head = open(uri, factory);
         try {
             head.setRequestMethod("HEAD");
             head.setInstanceFollowRedirects(false);
@@ -69,7 +99,7 @@ public final class PinTransfer {
             if (status != 301 && status != 302 && status != 303 && status != 307 && status != 308) return null;
             return head.getHeaderField("Location");
         } finally {
-            head.disconnect();
+            close(head, uri);
         }
     }
 }
