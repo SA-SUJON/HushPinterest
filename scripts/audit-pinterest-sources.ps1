@@ -224,9 +224,17 @@ function Invoke-SourceRequest {
 }
 
 function ConvertFrom-SourceJson {
-    param([string]$Text, [string]$What)
+    # -AsDictionary keeps keys that differ only in case apart (the tracker has both
+    # immortalzeus:dev and ImmortalZeus:dev), which ConvertFrom-Json refuses. Both editions
+    # answer a case-sensitive dictionary; read it with GetEnumerator(), not PSObject.Properties.
+    param([string]$Text, [string]$What, [switch]$AsDictionary)
     try {
-        return , ($Text | ConvertFrom-Json)
+        if (-not $AsDictionary) { return , ($Text | ConvertFrom-Json) }
+        if ($PSVersionTable.PSVersion.Major -ge 6) { return , ($Text | ConvertFrom-Json -AsHashtable) }
+        Add-Type -AssemblyName System.Web.Extensions
+        $serializer = New-Object System.Web.Script.Serialization.JavaScriptSerializer
+        $serializer.MaxJsonLength = [int]::MaxValue
+        return , $serializer.DeserializeObject($Text)
     } catch {
         throw "$What did not answer JSON: $($_.Exception.Message)"
     }
@@ -241,10 +249,10 @@ function Get-JsonItems {
 }
 
 function Get-SourceJson {
-    param([string]$Uri, [string]$Auth = 'plain', [string]$What = $Uri)
+    param([string]$Uri, [string]$Auth = 'plain', [string]$What = $Uri, [switch]$AsDictionary)
     $answer = Invoke-SourceRequest -Uri $Uri -Auth $Auth
     if ($answer.Status -ne 200) { throw "$What answered HTTP $($answer.Status)." }
-    return , (ConvertFrom-SourceJson -Text $answer.Content -What $What)
+    return , (ConvertFrom-SourceJson -Text $answer.Content -What $What -AsDictionary:$AsDictionary)
 }
 
 function Get-PagedItems {
@@ -440,10 +448,10 @@ Invoke-Source 'Awesome Morphe' {
 }
 
 Invoke-Source 'Morphe Patch Tracker' {
-    $tracker = Get-SourceJson -Uri 'https://raw.githubusercontent.com/drnx64/morphe-track-patches/main/data/bundles.json' -What 'the Morphe Patch Tracker'
+    $tracker = Get-SourceJson -Uri 'https://raw.githubusercontent.com/drnx64/morphe-track-patches/main/data/bundles.json' -What 'the Morphe Patch Tracker' -AsDictionary
     $seen = @{}
     $listed['morphe-patch-tracker'] = $false
-    foreach ($property in $tracker.PSObject.Properties) {
+    foreach ($property in $tracker.GetEnumerator()) {
         $bundle = $property.Value
         $key = ConvertTo-SourceKey ([string]$bundle.repo_url)
         if ($key -and $key -eq $selfKey) { $listed['morphe-patch-tracker'] = $true }
@@ -457,48 +465,39 @@ Invoke-Source 'Morphe Patch Tracker' {
 }
 
 Invoke-Source 'Jman''s bundle index' {
-    $bundleSources = Get-SourceJson -Uri 'https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/bundle-sources.json' `
-        -What 'Jman''s bundle-sources.json'
-    $byName = @{}
+    # The index moved from patch-bundles/ to config/ and database/ in October 2026. config/sources.json
+    # names each repository it follows, the database manifest names the current snapshot, and that
+    # snapshot's app-bundles.json lists every bundle's packages. A Pinterest bundle's own detail
+    # file carries its download address, which names the repository behind it.
+    $root = 'https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles'
+    $bundleSources = Get-SourceJson -Uri "$root/config/sources.json" -What 'Jman''s sources.json'
     $listed['jman-bundles'] = $false
     foreach ($property in $bundleSources.PSObject.Properties) {
         $key = ConvertTo-SourceKey ([string](Get-SourceProperty $property.Value 'patches'))
         if ($key -and $key -eq $selfKey) { $listed['jman-bundles'] = $true }
-        $name = ($property.Name -replace '-(stable|dev|latest)$', '').ToLowerInvariant()
-        if ($key -and -not $byName.ContainsKey($name)) { $byName[$name] = $key }
     }
-    $catalog = Invoke-SourceRequest -Uri 'https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/PATCH-LIST-CATALOG.md'
-    if ($catalog.Status -ne 200) { throw "Jman's patch list catalog answered HTTP $($catalog.Status)." }
-    $appPackages = @{ 'pinterest' = 'com.pinterest'; 'com.pinterest' = 'com.pinterest' }
-    $section = $null
-    $found = @{}
-    foreach ($line in ($catalog.Content -split "`r?`n")) {
-        if ($line.StartsWith('### ') -and $line -match 'Bundle Patch List:\s*$') {
-            $section = (($line -replace '^###\s+\S+\s+', '') -replace '\s+Bundle Patch List:\s*$', '').Trim()
-            continue
-        }
-        if ($null -eq $section -or -not $line.StartsWith('|')) { continue }
-        $cells = $line.Split('|')
-        if ($cells.Count -lt 5) { continue }
-        $name = $cells[1].Replace([string][char]96, '').Trim()
-        foreach ($app in ($cells[3].Replace([string][char]96, '').Trim() -split ',\s*')) {
-            $package = $appPackages[$app.Trim().ToLowerInvariant()]
-            if (-not $package) { continue }
-            if (-not $found.ContainsKey($section)) { $found[$section] = @{ Packages = @{}; Features = New-Object System.Collections.Generic.List[string] } }
-            $found[$section].Packages[$package] = $true
-            if ($name -and -not $found[$section].Features.Contains($name)) { $found[$section].Features.Add($name) }
-        }
-    }
-    foreach ($sectionName in $found.Keys) {
-        $key = $byName[$sectionName.ToLowerInvariant()]
+    $snapshot = [string](Get-SourceJson -Uri "$root/database/manifest.json" -What 'Jman''s database manifest').snapshot
+    if ($snapshot -notmatch '^snapshots/[0-9a-f]+$') { throw "Jman's database manifest names no snapshot it can be read from: '$snapshot'." }
+    $seen = @{}
+    foreach ($bundle in (Get-JsonItems (Get-SourceJson -Uri "$root/database/$snapshot/app-bundles.json" -What 'Jman''s app-bundles.json'))) {
+        if ($bundle.is_latest -ne $true) { continue }
+        $apps = @(Get-JsonItems $bundle.packages | Where-Object { $packages -contains $_ })
+        if ($apps.Count -eq 0) { continue }
+        $detailFile = [string]$bundle.detail_file
+        if ($detailFile -notmatch '^bundles/[0-9a-f]+\.json$') { throw "Jman's app-bundles.json gives bundle $($bundle.id) no detail file it can be read from." }
+        $detail = Get-SourceJson -Uri "$root/database/$snapshot/$detailFile" -What "Jman's bundle $($bundle.id)"
+        $address = [string]$detail.download_url
+        $repository = if ($address -match '^(https://[^/]+/.+?)/(-/)?releases/') { $Matches[1] } else { $null }
+        $key = ConvertTo-SourceKey $repository
         if (-not $key) {
             Add-Finding -Kind 'index-unresolved' -Repository $null `
-                -Detail "Jman's catalog lists Pinterest patches under '$sectionName', and bundle-sources.json names no repository for it" -Evidence $null
+                -Detail "Jman's index lists a Pinterest bundle ($($detail.version)) whose download address names no repository: $address" -Evidence $null
             continue
         }
-        Add-Candidate -Key $key -Source 'Jman''s bundle index' -Packages @($found[$sectionName].Packages.Keys) -Features @($found[$sectionName].Features)
+        Add-Candidate -Key $key -Source 'Jman''s bundle index' -Packages $apps
+        $seen[$key] = $true
     }
-    "$($found.Count) Pinterest bundles; HushPinterest " + $(if ($listed['jman-bundles']) { 'listed' } else { 'not listed' })
+    "$($seen.Count) Pinterest bundles; HushPinterest " + $(if ($listed['jman-bundles']) { 'listed' } else { 'not listed' })
 }
 
 Invoke-Source 'Morphe Archive' {

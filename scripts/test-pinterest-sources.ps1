@@ -553,10 +553,18 @@ function New-FakeAnswers {
             'alpha:stable' = @{ repo_url = 'https://github.com/fixture-owner/alpha-patches'; apps = @(@{ package = 'com.pinterest'; patches = @(@{ name = 'Hide ads' }) }) }
         } | ConvertTo-Json -Depth 8) }
         jmanSources = @{ Status = 200; Content = '{"alpha-stable":{"patches":"https://api.github.com/repos/fixture-owner/alpha-patches"},"gamma-stable":{"patches":"https://gitlab.com/api/v4/projects/fixture-group%2Fgamma-patches"}}' }
-        jmanCatalog = @{ Status = 200; Content = ("# Catalog`n| [Alpha](#alpha) | 1 | 1 | Generated |`n### X Alpha Bundle Patch List:`n" +
-            "| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |`n|---|---|---|---|`n" +
-            "| ${tick}Hide ads${tick} | ${tick}Removes ads.${tick} | ${tick}Pinterest${tick} | ${tick}14.38.0${tick} |`n" +
-            "### X Gamma Bundle Patch List:`n| ${tick}Open links outside${tick} | ${tick}d${tick} | ${tick}Pinterest${tick} | ${tick}Any${tick} |`n") }
+        jmanManifest = @{ Status = 200; Content = '{"schema_version":1,"snapshot":"snapshots/0abc"}' }
+        # Alpha's and gamma's current bundles name Pinterest; alpha's older one and a bundle for
+        # another app stay out, the way Jman's snapshot lists every release of every source.
+        jmanAppBundles = @{ Status = 200; Content = ('[{"id":"a1","is_latest":true,"packages":["com.pinterest"],"detail_file":"bundles/a1.json"},' +
+            '{"id":"a0","is_latest":false,"packages":["com.pinterest"],"detail_file":"bundles/a0.json"},' +
+            '{"id":"c1","is_latest":true,"packages":["com.example","com.pinterest"],"detail_file":"bundles/c1.json"},' +
+            '{"id":"e1","is_latest":true,"packages":["com.example"],"detail_file":"bundles/e1.json"}]') }
+        jmanDetails = @{
+            a1 = @{ Status = 200; Content = '{"version":"v1.0.0","download_url":"https://github.com/fixture-owner/alpha-patches/releases/download/v1.0.0/patches-1.0.0.mpp"}' }
+            c1 = @{ Status = 200; Content = '{"version":"v2.0.0","download_url":"https://gitlab.com/fixture-group/gamma-patches/-/releases/v2.0.0/downloads/patches.mpp"}' }
+            d1 = @{ Status = 200; Content = '{"version":"v0.1.0","download_url":"https://files.example.net/delta/patches-0.1.0.mpp"}' }
+        }
         archive = @{ Status = 200; Content = '{"name":"patches-list.json"}' }
         searchHits = @(
             @{ repository = @{ full_name = 'fixture-owner/alpha-patches' }; path = 'patches/Alpha.kt'; sha = $blobKnown }
@@ -609,8 +617,10 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
             '^https://morphe-patches\.software/data/bundles\.json$' { $answer = $a.directory; break }
             '^https://raw\.githubusercontent\.com/nvbangg/awesome-morphe/main/data/hashes\.json$' { $answer = $a.awesome; break }
             '^https://raw\.githubusercontent\.com/drnx64/morphe-track-patches/main/data/bundles\.json$' { $answer = $a.tracker; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/bundle-sources\.json$' { $answer = $a.jmanSources; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/PATCH-LIST-CATALOG\.md$' { $answer = $a.jmanCatalog; break }
+            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/config/sources\.json$' { $answer = $a.jmanSources; break }
+            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/database/manifest\.json$' { $answer = $a.jmanManifest; break }
+            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/database/snapshots/0abc/app-bundles\.json$' { $answer = $a.jmanAppBundles; break }
+            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/database/snapshots/0abc/bundles/([a-z0-9]+)\.json$' { $answer = $a.jmanDetails[$Matches[1]]; break }
             '^https://api\.github\.com/repos/rushiforai/morphe-archive/contents/examplepatches/SysAdminDoc/HushPinterest/patches-list\.json$' { $answer = $a.archive; break }
             '^https://api\.github\.com/search/code\?q=([^&]+)&per_page=100&page=1$' {
                 $query = [Uri]::UnescapeDataString($Matches[1])
@@ -730,9 +740,10 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
 
     # Schema/date failures must stop the actual audit before the stand-in receives a request.
     foreach ($invalid in @(
-        @{ Json = $fixtureLedgerText.Replace('"schemaVersion": 1', '"schemaVersion": 2'); Detail = '*schema*'; Name = 'unsupported schema' },
-        @{ Json = $fixtureLedgerText.Replace('"checkedAt": "2026-09-01"', '"checkedAt": "2026-02-30"'); Detail = '*census.checkedAt*date*'; Name = 'impossible census date' },
-        @{ Json = $fixtureLedgerText.Replace('"lastChecked": "2026-09-01"', '"lastChecked": "2026-09-26"'); Detail = '*lastChecked*after today*'; Name = 'future source verification' }
+        # Windows PowerShell's ConvertTo-Json puts two spaces after a colon, so match any spacing.
+        @{ Json = $fixtureLedgerText -replace '"schemaVersion":\s*1\b', '"schemaVersion": 2'; Detail = '*schema*'; Name = 'unsupported schema' },
+        @{ Json = $fixtureLedgerText -replace '"checkedAt":\s*"2026-09-01"', '"checkedAt": "2026-02-30"'; Detail = '*census.checkedAt*date*'; Name = 'impossible census date' },
+        @{ Json = $fixtureLedgerText -replace '"lastChecked":\s*"2026-09-01"', '"lastChecked": "2026-09-26"'; Detail = '*lastChecked*after today*'; Name = 'future source verification' }
     )) {
         Assert-True ($invalid.Json -cne $fixtureLedgerText) "The $($invalid.Name) case did not change its input."
         [IO.File]::WriteAllText($fixtureLedgerPath, $invalid.Json)
@@ -886,9 +897,17 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
     Assert-Drift 'license-added' '*beta-module*now has a licence (MIT*' 'An unlicensed source that gained a licence'
     $fakeForge.Answers = New-FakeAnswers
 
-    $tick = [string][char]96 * 3
-    $fakeForge.Answers.jmanCatalog.Content += "### X Delta Bundle Patch List:`n| ${tick}Hide replies${tick} | ${tick}d${tick} | ${tick}Pinterest${tick} | ${tick}Any${tick} |`n"
-    Assert-Drift 'index-unresolved' "*Jman's catalog lists Pinterest patches under 'Delta'*" 'A Jman section no repository stands behind'
+    $fakeForge.Answers.jmanAppBundles.Content = $fakeForge.Answers.jmanAppBundles.Content.TrimEnd(']') +
+        ',{"id":"d1","is_latest":true,"packages":["com.pinterest"],"detail_file":"bundles/d1.json"}]'
+    Assert-Drift 'index-unresolved' "*Jman's index lists a Pinterest bundle (v0.1.0) whose download address names no repository*" 'A Jman bundle no repository stands behind'
+    $fakeForge.Answers = New-FakeAnswers
+
+    # The tracker's keys can differ only in case, which ConvertFrom-Json alone refuses.
+    $fakeForge.Answers.tracker.Content = $fakeForge.Answers.tracker.Content.TrimEnd().TrimEnd('}') +
+        ',"Alpha:stable":{"repo_url":"https://github.com/fixture-owner/alpha-patches","apps":[{"package":"com.pinterest","patches":[{"name":"Hide ads"}]}]}}'
+    $caseKeys = Invoke-Audit
+    Assert-True ($caseKeys.ExitCode -eq 0) ("Tracker keys differing only in case failed the audit: " +
+        (@($caseKeys.Report.findings | ForEach-Object { "$($_.kind): $($_.detail)" }) -join ' | '))
     $fakeForge.Answers = New-FakeAnswers
 
     # An index still spelling a source by its old name is that source, not an addition.
