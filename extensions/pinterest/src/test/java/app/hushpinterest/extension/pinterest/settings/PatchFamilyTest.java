@@ -222,7 +222,7 @@ public class PatchFamilyTest {
         String both = "Firebase and Google Analytics collection is turned off (" + L10n.isolate("Disable analytics")
                 + ") and " + permanent + " (" + L10n.isolate("Remove ad tracking permissions")
                 + "). They were set when you patched, so Pause can't turn them off. To rule one out, patch "
-                + "again and leave out the patch in brackets after it.";
+                + "again and leave out the patch in parentheses after it.";
         assertEquals(both, PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.DISABLE_ANALYTICS, family)));
         assertEquals(both, PatchFamily.staysWhilePausedSummary(EnumSet.complementOf(EnumSet.of(PatchFamily.SPOOF_SIGNATURE))));
 
@@ -261,7 +261,7 @@ public class PatchFamilyTest {
                         + L10n.isolate("Remove ad tracking permissions") + ")",
                 permanent + " (" + L10n.isolate("Spoof signature for Google sign-in") + ")"))
                 + ". They were set when you patched, so Pause can't turn them off. To rule one out, patch "
-                + "again and leave out the patch in brackets after it.";
+                + "again and leave out the patch in parentheses after it.";
         assertEquals(all, PatchFamily.staysWhilePausedSummary(EnumSet.allOf(PatchFamily.class)));
 
         String line = "Spoof signature for Google sign-in: no switch, stays in while paused: " + permanent;
@@ -295,7 +295,7 @@ public class PatchFamilyTest {
                         + ") and the label filter set when you patched ("
                         + L10n.isolate("Hide AI-labeled pins")
                         + "). They were set when you patched, so Pause can't turn them off. To rule one out, patch "
-                        + "again and leave out the patch in brackets after it.",
+                        + "again and leave out the patch in parentheses after it.",
                 PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.HIDE_ADS, PatchFamily.HIDE_AI_PINS)));
 
         String everything = PatchFamily.staysWhilePausedSummary(EnumSet.allOf(PatchFamily.class));

@@ -4,7 +4,13 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** The setup guide's sign-in section now agrees with the rest of the settings. It says Google sign-in doesn't work with stock Google Play services (the Spoof signature patch is for phones with microG-RE or XSpoofSignatures), and that the Fix push notifications patch, on by default, signs the app up for push notifications, instead of calling push untested.
+
+* **Pinterest:** Settings search no longer lists every row without a summary when you type "null".
+
 * **Pinterest:** The diagnostic report counts a promoted pin as removed only once the whole feed list has gone through. When Pinterest's list couldn't be read all the way, the page shows as it was, but the report still said an ad had been removed.
+
+* **Pinterest:** Screen reader and keyboard fixes in settings. The search field is read by its hint and what you typed, Clear search hands focus back to the field, the Check now result is spoken when it lands, and the Back and Clear buttons show where keyboard focus is. Choices that act at once, like Copy quick report, Remove from history and Save in Download again, no longer carry the chevron that means a tap opens something.
 
 * **Pinterest:** A download folder with # or % in its name, such as Pictures/Art #2, now gets the download. Android's download service reads the folder back from text, where # ended the path and % started an escape, so the file landed in the wrong place or nowhere.
 
@@ -13,6 +19,8 @@ Every HushPinterest release, newest first.
 * **Pinterest:** Selecting many pins to download no longer shows a "Couldn't start the download" pop-up for each one that fails. The batch counts them and says so once in its summary. A pin downloaded on its own still gets the message.
 
 * **Pinterest:** The diagnostic report also leaves out a Pinterest address whose slashes are written the JSON way (\/) or encoded (%2F), path and all.
+
+* **Pinterest:** Clearer wording in settings. Hide AI-labeled pins names the places it filters instead of "the same places", Strip link tracking mentions Plain pin links only when that switch exists, the Check now row names the switch it works around, download messages say "the Download folder" for the folder and "Downloads" for the app, the batch summary reads "Couldn't save history for one result" with a real singular, "in parentheses" replaces "in brackets", and Autoplay's note says cellular data like its title. The five translations follow.
 
 * **Tooling:** An interrupted release can resume after a commit repairs its publication checks. It keeps the prepared source, published tag, signed assets and index unchanged, including the original test counts when local results are missing or come from a focused run. It pushes only when needed and checks the index Morphe Manager receives. Changed release files or unrelated source commits stop recovery. Refs #3
 

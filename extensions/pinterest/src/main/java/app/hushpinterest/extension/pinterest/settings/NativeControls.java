@@ -78,7 +78,7 @@ final class NativeControls {
                         new Step("homefeed_tuner_gen_ai_topics_tab", L10n.t("AI content")),
                         new Step("homefeed_tuner_gen_ai_topics_master_toggle_title", L10n.t("Show AI content"))),
                 new Control(L10n.t("Autoplay videos on cellular data"), L10n.t("Turned off, videos don't start on their own on "
-                        + "mobile data. Pinterest may still load some of a video ahead of time."),
+                        + "cellular data. Pinterest may still load some of a video ahead of time."),
                         settings, new Step("settings_main_social_permissions", L10n.t("Social permissions")),
                         new Step("settings_social_permissions_autoplay_cellular_title", L10n.t("Autoplay videos on cellular data"))));
     }

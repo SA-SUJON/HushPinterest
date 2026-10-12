@@ -654,7 +654,7 @@ public final class ReleaseCheck {
     }
 
     static String idleSummary() {
-        return L10n.t("Asks GitHub for the newest release right now, even with the switch above off.");
+        return L10n.t("Asks GitHub for the newest release right now, even with Check for new HushPinterest releases off.");
     }
 
     /** What a try that ended in [result] found, next to the running version [running]. */

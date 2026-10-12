@@ -41,14 +41,26 @@ final class ChoiceCards extends BaseAdapter {
     private final ScreenColors colors;
     private final CharSequence[] names;
     private final CharSequence[] details;
+    /** Per choice, whether a tap opens something else, or null when every choice does. */
+    private final boolean[] opens;
 
     ChoiceCards(ScreenColors colors, CharSequence[] names, CharSequence[] details) {
-        if (names.length != details.length) {
-            throw new IllegalArgumentException(names.length + " choices and " + details.length + " details");
+        this(colors, names, details, null);
+    }
+
+    /**
+     * [opens] says which choices open another screen, picker or app. A chevron means that on the
+     * settings pages, so a choice that acts at once, such as Remove from history, shows none.
+     */
+    ChoiceCards(ScreenColors colors, CharSequence[] names, CharSequence[] details, boolean[] opens) {
+        if (names.length != details.length || (opens != null && opens.length != names.length)) {
+            throw new IllegalArgumentException(names.length + " choices, " + details.length + " details and "
+                    + (opens == null ? "no" : String.valueOf(opens.length)) + " chevron flags");
         }
         this.colors = colors;
         this.names = names.clone();
         this.details = details.clone();
+        this.opens = opens == null ? null : opens.clone();
     }
 
     @Override
@@ -79,6 +91,8 @@ final class ChoiceCards extends BaseAdapter {
         card.name.setText(names[position]);
         card.detail.setText(details[position]);
         card.detail.setVisibility(TextUtils.isEmpty(details[position]) ? View.GONE : View.VISIBLE);
+        // Invisible, not gone: the text keeps the same width on every card.
+        card.arrow.setVisibility(opens == null || opens[position] ? View.VISIBLE : View.INVISIBLE);
         return card;
     }
 
@@ -90,6 +104,7 @@ final class ChoiceCards extends BaseAdapter {
 
         final TextView name;
         final TextView detail;
+        final android.widget.ImageView arrow;
 
         Card(Context context, ScreenColors colors) {
             super(context);
@@ -133,7 +148,7 @@ final class ChoiceCards extends BaseAdapter {
             LayoutParams under = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             under.topMargin = dp(context, 2);
             text.addView(detail, under);
-            android.widget.ImageView arrow = new android.widget.ImageView(context);
+            arrow = new android.widget.ImageView(context);
             arrow.setImageDrawable(chevron);
             arrow.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             LayoutParams trailing = new LayoutParams(dp(context, 24), dp(context, 24));

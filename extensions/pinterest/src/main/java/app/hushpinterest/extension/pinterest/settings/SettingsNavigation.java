@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import app.hushpinterest.extension.shared.L10n;
@@ -319,8 +320,11 @@ final class SettingsNavigation extends BaseAdapter {
                 for (int i = 0; i < section.category.getPreferenceCount(); i++) {
                     Preference row = section.category.getPreference(i);
                     // Search only rows this build shows. An alias never creates an unavailable row.
-                    String text = normalized(section.category.getTitle() + " " + row.getTitle() + " "
-                            + row.getSummary() + " " + searchAliases.getOrDefault(row.getKey(), ""));
+                    // Text a row doesn't have adds nothing: a row with no summary used to carry the
+                    // word "null" and come up for it.
+                    String text = normalized(Objects.toString(section.category.getTitle(), "") + " "
+                            + Objects.toString(row.getTitle(), "") + " " + Objects.toString(row.getSummary(), "") + " "
+                            + searchAliases.getOrDefault(row.getKey(), ""));
                     boolean matches = true;
                     for (String term : terms.split("\\s+")) if (!text.contains(term)) matches = false;
                     if (!matches) continue;

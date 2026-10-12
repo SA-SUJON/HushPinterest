@@ -88,9 +88,9 @@ public final class DownloadFolderPreference extends Preference {
             return L10n.t("Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.");
         }
         if (DownloadFolder.PINTEREST.equals(DownloadFolder.current()) && !DownloadFolder.PINTEREST.equals(picked)) {
-            return L10n.f("%s is picked, but Save in Pinterest's folder is on, so downloads go there.", picked);
+            return L10n.f("%1$s is picked, but Save in Pinterest's folder is on, so downloads go to %2$s.", picked, DownloadFolder.PINTEREST);
         }
-        return L10n.f("Saving downloads in %s. Tap to pick another folder or go back to Download.", picked);
+        return L10n.f("Saving downloads in %s. Tap to pick another folder or go back to the Download folder.", picked);
     }
 
     private void tapped() {
@@ -103,7 +103,7 @@ public final class DownloadFolderPreference extends Preference {
                     .setTitle(getTitle())
                     .setAdapter(new ChoiceCards(ScreenColors.DEFAULT,
                             new CharSequence[]{L10n.t("Pick another folder"), L10n.t("Save in Download again")},
-                            new CharSequence[]{"", ""}), (shown, which) -> {
+                            new CharSequence[]{"", ""}, new boolean[]{true, false}), (shown, which) -> {
                         if (which == 0) pick(page);
                         else forget();
                     })
@@ -168,7 +168,7 @@ public final class DownloadFolderPreference extends Preference {
     private static void forget() {
         DownloadFolder.PICKED.save("");
         refreshRows();
-        Utils.showToastLong(DownloadFolder.current() == null ? L10n.t("Downloads will be saved in Download.")
+        Utils.showToastLong(DownloadFolder.current() == null ? L10n.t("Downloads will be saved in the Download folder.")
                 : L10n.f("Downloads will be saved in %s.", DownloadFolder.current()));
     }
 

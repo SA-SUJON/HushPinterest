@@ -204,7 +204,13 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         Context context = getContext();
         if (context == null) return;
         if (statusCard != null) showStatus(statusCard, context);
-        if (checkNowRow != null) checkNowRow.setSummary(ReleaseCheck.checkNowSummary());
+        if (checkNowRow != null) {
+            String result = ReleaseCheck.checkNowSummary();
+            checkNowRow.setSummary(result);
+            // Spoken as well as shown: a screen reader user who tapped Check now hears what it found.
+            View page = getView();
+            if (page != null && result != null) page.announceForAccessibility(result);
+        }
     }
 
     /**
@@ -261,7 +267,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             if (build.contains(PatchFamily.HIDE_AI_PINS)) {
                 feed.addPreference(mark(toggle(context, Settings.HIDE_AI_PINS, L10n.t("Hide AI-labeled pins"),
                         PatchFamily.HIDE_AI_PINS.coverageSummary(L10n.t("Removes pins that Pinterest labels as made "
-                            + "or changed with AI from the same places. "
+                            + "or changed with AI from your home feed, search, related pins and boards. "
                             + "AI images without the label still show."))), SettingsIcons.BLOCK));
             }
             patchToggle(feed, context, build, PatchFamily.HIDE_SHOPPING, Settings.HIDE_SHOPPING,
@@ -275,11 +281,16 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Disable analytics"), L10n.t("Stops Pinterest from sending usage reports and running its "
                         + "analytics tasks. Google's analytics collection stays off "
                         + "until you patch again without Disable analytics."), SettingsIcons.BLOCK);
+            // Its own hooks: a build where Pinterest's invite logger or direct share wasn't found has no row
+            // for Plain pin links, and then the row above it doesn't point at a switch that isn't there.
+            boolean plainLinks = build.contains(PatchFamily.STRIP_LINK_TRACKING) && PatchFamily.Capability.PLAIN_PIN_LINKS.installed();
             patchToggle(privacy, context, build, PatchFamily.STRIP_LINK_TRACKING, Settings.STRIP_LINK_TRACKING,
-                    L10n.t("Strip link tracking"), L10n.t("Removes tracking tags from links you copy or share. "
-                        + "Short pin.it links stay as Pinterest made them unless Plain pin links is on."), SettingsIcons.LINKS);
-            // Its own hooks: a build where Pinterest's invite logger or direct share wasn't found has no row for it.
-            if (build.contains(PatchFamily.STRIP_LINK_TRACKING) && PatchFamily.Capability.PLAIN_PIN_LINKS.installed()) {
+                    L10n.t("Strip link tracking"), plainLinks
+                        ? L10n.t("Removes tracking tags from links you copy or share. "
+                            + "Short pin.it links stay as Pinterest made them unless Plain pin links is on.")
+                        : L10n.t("Removes tracking tags from links you copy or share. "
+                            + "Short pin.it links stay as Pinterest made them."), SettingsIcons.LINKS);
+            if (plainLinks) {
                 privacy.addPreference(mark(toggle(context, Settings.PLAIN_PIN_LINKS, L10n.t("Plain pin links"),
                         L10n.t("Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. "
                                 + "Pin links from Pinterest's country sites become that same link too. "
@@ -288,7 +299,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             }
             patchToggle(privacy, context, build, PatchFamily.HIDE_ADVERTISING_ID, Settings.HIDE_ADVERTISING_ID,
                     L10n.t("Hide advertising ID"), L10n.t("Pinterest sees an empty advertising ID with ad tracking "
-                        + "limited, as if you deleted your ad ID in Android "
+                        + "limited, as if you deleted your advertising ID in Android "
                         + "settings. Pinterest also stops keeping its browser ID in Google's Block Store, "
                         + "where it would outlast a reinstall."), SettingsIcons.BLOCK);
             // A patch-time fact with no switch: an explanation, so it takes the info mark.
@@ -381,11 +392,11 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(ui, context, build, PatchFamily.HIDE_SURVEY_PROMPTS, Settings.HIDE_SURVEY_PROMPTS,
                     L10n.t("Hide survey prompts"),
                     L10n.t("Turns down Pinterest's \"Got a minute?\" survey invite before it pops up, the way Maybe later "
-                        + "does, so that survey doesn't come back. Advertiser sponsored polls don't pop up either. An "
+                        + "does, so that survey doesn't come back. Advertiser-sponsored polls don't pop up either. An "
                         + "invite that's already open stays."), SettingsIcons.BELL);
             patchToggle(ui, context, build, PatchFamily.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS,
                     L10n.t("Hide save toasts"),
-                    L10n.t("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved."), SettingsIcons.BELL);
+                    L10n.t("Saving a pin no longer shows the \"Saved to\" message or a suggestion to follow its creator. The pin is still saved."), SettingsIcons.BELL);
             patchToggle(ui, context, build, PatchFamily.ORIGINAL_IMAGES, Settings.ORIGINAL_IMAGES,
                     L10n.t("Original-quality images"),
                     L10n.t("Shows the original image instead of the large size in pin closeups and collages, when "
@@ -962,11 +973,13 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         @Override
         protected ListAdapter choices(Context dialogContext) {
             ScreenColors colors = ScreenColors.DEFAULT;
+            // Copy acts at once; only Save opens the file picker, so only it carries the chevron.
             return new ChoiceCards(colors,
                     new CharSequence[]{L10n.t(getContext(), "Copy quick report"),
                             L10n.t(getContext(), "Save full report")},
                     new CharSequence[]{L10n.t(getContext(), "Copy a short report to the clipboard."),
-                            fullReportSummary()});
+                            fullReportSummary()},
+                    new boolean[]{false, true});
         }
 
         /**

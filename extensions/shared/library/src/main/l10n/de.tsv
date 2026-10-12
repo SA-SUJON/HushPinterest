@@ -5,7 +5,7 @@
 %1$d switch will change.	%1$d Schalter wird geändert.
 %1$d switches will change.	%1$d Schalter werden geändert.
 %1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Das wurde beim Patchen festgelegt, deshalb kann die Pause es nicht ausschalten. Um es auszuschließen, patche erneut und lass diesen Patch weg.
-%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Diese wurden beim Patchen festgelegt, deshalb kann die Pause sie nicht ausschalten. Um eines davon auszuschließen, patche erneut und lass den Patch weg, der in Klammern dahinter steht.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in parentheses after it.	%1$s. Diese wurden beim Patchen festgelegt, deshalb kann die Pause sie nicht ausschalten. Um eines davon auszuschließen, patche erneut und lass den Patch weg, der in Klammern dahinter steht.
 A diagnostic report is already being saved.	Ein Diagnosebericht wird bereits gespeichert.
 A file named %1$s in %2$s paused HushPinterest.	Eine Datei namens %1$s in %2$s hat HushPinterest pausiert.
 About	Info
@@ -62,7 +62,7 @@ Save full report	Vollständigen Bericht speichern
 Check for new HushPinterest releases	Nach neuen HushPinterest-Versionen suchen
 Once a day, when Pinterest starts, checks GitHub for a newer HushPinterest and tells you at the top of these settings. Nothing is downloaded.	Prüft einmal am Tag beim Start von Pinterest auf GitHub, ob es ein neueres HushPinterest gibt, und sagt es dir oben in diesen Einstellungen. Es wird nichts heruntergeladen.
 Check now	Jetzt prüfen
-Asks GitHub for the newest release right now, even with the switch above off.	Fragt GitHub sofort nach der neuesten Version, auch wenn der Schalter darüber aus ist.
+Asks GitHub for the newest release right now, even with Check for new HushPinterest releases off.	Fragt GitHub sofort nach der neuesten Version, auch wenn „Nach neuen HushPinterest-Versionen suchen“ aus ist.
 Checking GitHub now.	GitHub wird gerade gefragt.
 HushPinterest %1$s is out. Update it in Morphe Manager.	HushPinterest %1$s ist erschienen. Aktualisiere es im Morphe Manager.
 You have the newest HushPinterest release.	Du hast die neueste Version von HushPinterest.
@@ -158,7 +158,7 @@ AI-labeled pins in lists	KI-markierte Pins in Listen
 Android sends pinterest.com and pin.it links to a patched Pinterest only after you select those addresses for it. Selecting them sends their links here. Your other link settings stay as they are.	Android schickt pinterest.com- und pin.it-Links nur dann an ein gepatchtes Pinterest, wenn du diese Adressen dafür auswählst. Wenn du sie auswählst, kommen ihre Links hierher. Deine anderen Link-Einstellungen bleiben, wie sie sind.
 Feed	Feed
 Hide AI-labeled pins	KI-markierte Pins ausblenden
-Removes pins that Pinterest labels as made or changed with AI from the same places. AI images without the label still show.	Entfernt Pins, die Pinterest als mit KI erstellt oder verändert kennzeichnet, aus denselben Bereichen. KI-Bilder ohne Kennzeichnung werden weiter angezeigt.
+Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.	Entfernt Pins, die Pinterest als mit KI erstellt oder verändert kennzeichnet, aus deinem Home-Feed, der Suche, ähnlichen Pins und Pinnwänden. KI-Bilder ohne Kennzeichnung werden weiter angezeigt.
 Promoted and AI-labeled pins	Beworbene und KI-markierte Pins
 Promoted pins	Beworbene Pins
 Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Entfernt beworbene Pins aus deinem Startfeed, der Suche, den ähnlichen Pins und den Pinnwänden und blendet Bereiche aus, die nur Werbung enthalten.
@@ -177,11 +177,12 @@ Analytics launch tasks	Start von Analysediensten
 Analytics uploads	Analyseberichte
 Strip link tracking	Link-Tracking entfernen
 Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them unless Plain pin links is on.	Entfernt Tracking-Zusätze aus Links, die du kopierst oder teilst. Kurze pin.it-Links bleiben, wie Pinterest sie erstellt hat, außer Einfache Pin-Links ist an.
+Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them.	Entfernt Tracking-Zusätze aus Links, die du kopierst oder teilst. Kurze pin.it-Links bleiben, wie Pinterest sie erstellt hat.
 Plain pin links	Einfache Pin-Links
 Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. Pin links from Pinterest's country sites become that same link too. When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.	Kopierte und geteilte pin.it-Links werden zum eigenen pinterest.com-Link des Pins und verraten so nicht, wer sie geteilt hat. Pin-Links von Pinterests Länderseiten werden ebenfalls zu diesem Link. Kennt HushPinterest den Pin noch nicht, wird ein kopierter Link im Hintergrund bei Pinterest nachgefragt und kurz darauf ersetzt.
 Hide advertising ID	Werbe-ID verbergen
 Block Store browser ID	Browser-ID im Block Store
-Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings. Pinterest also stops keeping its browser ID in Google's Block Store, where it would outlast a reinstall.	Pinterest sieht eine leere Werbe-ID mit eingeschränktem Werbe-Tracking, so als hättest du deine Werbe-ID in den Android-Einstellungen gelöscht. Außerdem hört Pinterest auf, seine Browser-ID in Googles Block Store aufzubewahren, wo sie eine Neuinstallation überdauern würde.
+Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your advertising ID in Android settings. Pinterest also stops keeping its browser ID in Google's Block Store, where it would outlast a reinstall.	Pinterest sieht eine leere Werbe-ID mit eingeschränktem Werbe-Tracking, so als hättest du deine Werbe-ID in den Android-Einstellungen gelöscht. Außerdem hört Pinterest auf, seine Browser-ID in Googles Block Store aufzubewahren, wo sie eine Neuinstallation überdauern würde.
 Remove ad tracking permissions	Werbe-Tracking-Berechtigungen entfernen
 Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Pinterest kann die Werbe-ID-Berechtigung von Google und die Werbedienste von Android nicht mehr nutzen. Das wurde beim Patchen festgelegt. Patche erneut ohne diesen Patch, um sie zurückzubekommen.
 Pinterest's access to the ad ID and Android's ad services is removed	Pinterests Zugriff auf die Werbe-ID und die Werbedienste von Android ist entfernt
@@ -190,7 +191,7 @@ Tells Android this is the original Pinterest, so Google sign-in can work with mi
 Pinterest's original signature is added to the app	Die originale Signatur von Pinterest wurde der App hinzugefügt
 Download pins	Pins herunterladen
 Open links in your browser	Links im Browser öffnen
-Opens a pin's Visit link and profile websites in your browser.	Öffnet Besuchen-Links von Pins und Profil-Websites in deinem Browser.
+Opens a pin's Visit link and profile websites in your browser.	Öffnet den Besuchen-Link eines Pins und Profil-Websites in deinem Browser.
 System share sheet	Systemmenü zum Teilen
 Sharing a pin link opens Android's own share menu.	Beim Teilen eines Pin-Links öffnet sich das eigene Teilen-Menü von Android.
 No screenshot share menu	Kein Teilen-Menü bei Screenshots
@@ -274,7 +275,7 @@ Supplied media details	Bereitgestellte Mediendetails
 Copy media link	Medienlink kopieren
 Media link	Medienlink
 Media link copied.	Medienlink kopiert.
-Couldn't copy the media link. Open the pin again and try again.	Der Medienlink konnte nicht kopiert werden. Öffne den Pin erneut und versuche es noch einmal.
+Couldn't copy the media link. Open the pin again, then retry.	Der Medienlink konnte nicht kopiert werden. Öffne den Pin erneut und versuch es dann noch einmal.
 These details come from the link and file information Pinterest gave the app. HushPinterest hasn't opened the file to check them.	Diese Angaben stammen aus dem Link und den Dateiinformationen, die Pinterest der App gegeben hat. HushPinterest hat die Datei nicht geöffnet, um sie zu prüfen.
 Supplied width: %s	Bereitgestellte Breite: %s
 Supplied size: %s. Downloads look for the original first.	Bereitgestellte Größe: %s. Downloads suchen zuerst nach dem Original.
@@ -284,14 +285,14 @@ Link type: %s	Linktyp: %s
 %d pixels	%d Pixel
 Unknown	Unbekannt
 Close	Schließen
-Couldn't show the supplied media details. Open the pin again and try again.	Die bereitgestellten Mediendetails konnten nicht angezeigt werden. Öffne den Pin erneut und versuch es noch einmal.
+Couldn't show the supplied media details. Open the pin again, then retry.	Die bereitgestellten Mediendetails konnten nicht angezeigt werden. Öffne den Pin erneut und versuch es dann noch einmal.
 Pinterest only offered a streaming video for this pin, not a file that can be downloaded.	Pinterest hat für diesen Pin nur ein Streaming-Video angeboten, keine Datei zum Herunterladen.
 Pinterest didn't offer a downloadable video file for this pin.	Pinterest hat für diesen Pin keine herunterladbare Videodatei angeboten.
 Pinterest hasn't supplied an image to download.	Pinterest hat kein Bild zum Herunterladen bereitgestellt.
 HushPinterest can't download this type of image.	HushPinterest kann diese Bildart nicht herunterladen.
 This media link isn't a public Pinterest link HushPinterest can use.	Dieser Medienlink ist kein öffentlicher Pinterest-Link, den HushPinterest nutzen kann.
-Couldn't start the download. Check system Downloads and try again.	Der Download konnte nicht gestartet werden. Prüfe die System-Downloads und versuch es erneut.
-Couldn't prepare this pin for download. Open the pin again and try again.	Dieser Pin konnte nicht für den Download vorbereitet werden. Öffne ihn erneut und versuch es noch einmal.
+Couldn't start the download. Check Downloads and try again.	Der Download konnte nicht gestartet werden. Prüfe Downloads und versuch es erneut.
+Couldn't prepare this pin for download. Open the pin again, then retry.	Dieser Pin konnte nicht für den Download vorbereitet werden. Öffne ihn erneut und versuch es dann noch einmal.
 %1$s (%2$s to %3$s)	%1$s (%2$s zu %3$s)
 Your choice is saved, but this build doesn't include the patch for it.	Deine Auswahl ist gespeichert, aber dieser Build enthält den Patch dafür nicht.
 Undoing import	Import wird rückgängig gemacht
@@ -322,9 +323,9 @@ Hides Promote pin in pin menus you open from now on. A menu that's already open 
 Hides comments and comment previews under pins. It doesn't change who can comment. The change shows the next time the screen updates.	Blendet Kommentare und Kommentarvorschauen unter Pins aus. Wer kommentieren darf, ändert sich nicht. Die Änderung zeigt sich, wenn sich der Bildschirm das nächste Mal aktualisiert.
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Blendet die Zeile „Ideen, die dir gefallen könnten“ mit Themenblasen unter Pins aus, sobald Pinterest sie das nächste Mal anzeigt. Kommentare und ähnliche Pins bleiben.
 Dismisses the optional reminder to confirm your email. A reminder that's already open stays. Account checks and sign-in still work as usual.	Schließt die optionale Erinnerung, deine E-Mail zu bestätigen. Eine bereits offene Erinnerung bleibt. Kontoprüfungen und Anmeldung funktionieren wie gewohnt.
-Turns down Pinterest's "Got a minute?" survey invite before it pops up, the way Maybe later does, so that survey doesn't come back. Advertiser sponsored polls don't pop up either. An invite that's already open stays.	Lehnt Pinterests Umfrage-Einladung „Hast du eine Minute?“ ab, bevor sie erscheint, so wie „Vielleicht später“, damit diese Umfrage nicht wiederkommt. Gesponserte Umfragen von Werbetreibenden erscheinen auch nicht. Eine Einladung, die schon offen ist, bleibt.
+Turns down Pinterest's "Got a minute?" survey invite before it pops up, the way Maybe later does, so that survey doesn't come back. Advertiser-sponsored polls don't pop up either. An invite that's already open stays.	Lehnt Pinterests Umfrage-Einladung „Hast du eine Minute?“ ab, bevor sie erscheint, so wie „Vielleicht später“, damit diese Umfrage nicht wiederkommt. Gesponserte Umfragen von Werbetreibenden erscheinen auch nicht. Eine Einladung, die schon offen ist, bleibt.
 Hide save toasts	Merken-Hinweise ausblenden
-Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Beim Merken eines Pins erscheint kein „Gemerkt auf“-Hinweis zu deiner Pinnwand und kein Vorschlag mehr, der Person zu folgen. Der Pin wird trotzdem gemerkt.
+Saving a pin no longer shows the "Saved to" message or a suggestion to follow its creator. The pin is still saved.	Beim Merken eines Pins erscheint kein „Gemerkt auf“-Hinweis und kein Vorschlag mehr, der Person zu folgen. Der Pin wird trotzdem gemerkt.
 Original-quality images	Bilder in Originalqualität
 collage images	Collagenbilder
 pin closeups	Pin-Detailansichten
@@ -340,7 +341,7 @@ Optional help with sign-in, supported links, patch choices and backups.	Optional
 Installed patches and switches	Installierte Patches und Schalter
 Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.	Wähle die Patches in Morphe Manager aus, wenn du die App patchst. Die Schalter hier steuern nur Patches, die in deinem Build enthalten sind. Ein Schalter fügt keinen Patch hinzu und entfernt keinen. Pause behält deine gespeicherte Auswahl, aber alles, was beim Patchen festgelegt wurde, bleibt in der App.
 Sign in to your existing account	Mit deinem bestehenden Konto anmelden
-Use the email on your Pinterest account and a Pinterest password. Google sign-in isn't supported, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. Fix push notifications lets it sign up for push notifications.	Nutze die E-Mail-Adresse deines Pinterest-Kontos und ein Pinterest-Passwort. Die Google-Anmeldung wird nicht unterstützt, weil diese gepatchte App mit einem anderen Schlüssel signiert ist. Pinterest bietet kein Facebook-Login mehr an. Mit „Push-Benachrichtigungen reparieren“ kann sie sich für Push-Benachrichtigungen anmelden.
+Use the email on your Pinterest account and a Pinterest password. Google sign-in doesn't work with stock Google Play services, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. The Fix push notifications patch, on by default, lets this app sign up for push notifications.	Nutze die E-Mail-Adresse deines Pinterest-Kontos und ein Pinterest-Passwort. Die Google-Anmeldung funktioniert nicht mit den normalen Google Play-Diensten, weil diese gepatchte App mit einem anderen Schlüssel signiert ist. Pinterest bietet kein Facebook-Login mehr an. Der standardmäßig eingeschaltete Patch „Push-Benachrichtigungen reparieren“ lässt diese App sich für Push-Benachrichtigungen anmelden.
 If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.	Wenn du dich über Google registriert hast oder dein Pinterest-Passwort nicht kennst, wähle auf der Anmeldeseite von Pinterest „Passwort vergessen?“. Gib die E-Mail-Adresse ein, die bereits mit diesem Konto verknüpft ist. Lege dann über den Link in der E-Mail ein Pinterest-Passwort fest. Es ist unabhängig von deinem Google-Passwort. Du musst die Google-Verknüpfung nicht trennen.
 Pinterest password help	Pinterest-Hilfe zum Passwort
 Android may not trust a patched app's links on its own. You can choose the web addresses in Android's Open by default settings.	Android vertraut den Links einer gepatchten App möglicherweise nicht von selbst. Du kannst die Webadressen in den Android-Einstellungen unter Standardmäßig öffnen auswählen.
@@ -360,10 +361,10 @@ Couldn't open the pin selection. Try again from the grid.	Die Pin-Auswahl konnte
 Stop selection	Auswahl stoppen
 Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Eingereiht: %d\nÜbersprungen: %d\nNicht unterstützt: %d\nFehlgeschlagen: %d
 Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Bereits gestartete Downloads laufen weiter. Noch nicht gestartete Auswahlen enden beim Schließen von Pinterest.
-History couldn't be saved for %1$d result. Check Downloads.	Für %1$d Ergebnis konnte kein Verlauf gespeichert werden. Prüfe Downloads.
-History couldn't be saved for %1$d results. Check Downloads.	Für %1$d Ergebnisse konnte kein Verlauf gespeichert werden. Prüfe Downloads.
-History couldn't be saved for %1$d result. Check %2$s.	Für %1$d Ergebnis konnte kein Verlauf gespeichert werden. Prüfe %2$s.
-History couldn't be saved for %1$d results. Check %2$s.	Für %1$d Ergebnisse konnte kein Verlauf gespeichert werden. Prüfe %2$s.
+Couldn't save history for one result. Check Downloads.	Für ein Ergebnis konnte kein Verlauf gespeichert werden. Prüfe Downloads.
+Couldn't save history for %1$d results. Check Downloads.	Für %1$d Ergebnisse konnte kein Verlauf gespeichert werden. Prüfe Downloads.
+Couldn't save history for one result. Check %2$s.	Für ein Ergebnis konnte kein Verlauf gespeichert werden. Prüfe %2$s.
+Couldn't save history for %1$d results. Check %2$s.	Für %1$d Ergebnisse konnte kein Verlauf gespeichert werden. Prüfe %2$s.
 Skipped	Übersprungen
 Unsupported	Nicht unterstützt
 No download was queued. The selection was stopped, canceled or unavailable.	Kein Download eingereiht. Die Auswahl wurde gestoppt, abgebrochen oder war nicht verfügbar.
@@ -411,17 +412,17 @@ Turned off, Pinterest shows less AI content in your feed. Hide AI-labeled pins o
 Refine your recommendations	Verfeinere deine Empfehlungen
 AI content	KI-Inhalte
 Autoplay videos on cellular data	Videos mit Mobilfunkdaten automatisch abspielen
-Turned off, videos don't start on their own on mobile data. Pinterest may still load some of a video ahead of time.	Ausgeschaltet starten Videos über mobile Daten nicht von selbst. Pinterest lädt eventuell trotzdem schon einen Teil eines Videos vorab.
+Turned off, videos don't start on their own on cellular data. Pinterest may still load some of a video ahead of time.	Ausgeschaltet starten Videos über mobile Daten nicht von selbst. Pinterest lädt eventuell trotzdem schon einen Teil eines Videos vorab.
 Social permissions	Sozialberechtigungen
 In Pinterest: %1$s	In Pinterest: %1$s
 Pick a download folder	Download-Ordner auswählen
 Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.	Speichert Downloads in einem Ordner deiner Wahl in Pictures, DCIM, Download oder Documents.
-%s is picked, but Save in Pinterest's folder is on, so downloads go there.	%s ist ausgewählt, aber „Im Pinterest-Ordner speichern“ ist an, also landen Downloads dort.
-Saving downloads in %s. Tap to pick another folder or go back to Download.	Downloads werden in %s gespeichert. Tippe, um einen anderen Ordner zu wählen oder zu Download zurückzukehren.
+%1$s is picked, but Save in Pinterest's folder is on, so downloads go to %2$s.	%1$s ist ausgewählt, aber „Im Pinterest-Ordner speichern“ ist an, also landen Downloads in %2$s.
+Saving downloads in %s. Tap to pick another folder or go back to the Download folder.	Downloads werden in %s gespeichert. Tippe, um einen anderen Ordner zu wählen oder zum Ordner Download zurückzukehren.
 Pick another folder	Anderen Ordner wählen
 Save in Download again	Wieder in Download speichern
 This phone has no folder picker, so there's no way to choose a folder here.	Dieses Handy hat keine Ordnerauswahl, hier lässt sich also kein Ordner wählen.
 Couldn't open the folder picker. Try again.	Die Ordnerauswahl ließ sich nicht öffnen. Versuche es noch einmal.
 Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Wähle einen Ordner in Pictures, DCIM, Download oder Documents im internen Speicher des Handys.
 Downloads will be saved in %s.	Downloads werden in %s gespeichert.
-Downloads will be saved in Download.	Downloads werden in Download gespeichert.
+Downloads will be saved in the Download folder.	Downloads werden im Ordner Download gespeichert.

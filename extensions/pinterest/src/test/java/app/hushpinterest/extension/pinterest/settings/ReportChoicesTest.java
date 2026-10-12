@@ -135,6 +135,22 @@ public class ReportChoicesTest {
         assertEquals("A description", card.detail.getText().toString());
     }
 
+    /** A chevron says a tap opens something. Copy acts at once, so only Save, which opens the picker, has one. */
+    @Test
+    public void copyActsAtOnceSoOnlySaveShowsAChevron() throws Exception {
+        AlertDialog dialog = openChoices();
+        ListView list = dialog.getListView();
+        assertEquals(View.INVISIBLE, ((ChoiceCards.Card) list.getChildAt(0)).arrow.getVisibility());
+        assertEquals(View.VISIBLE, ((ChoiceCards.Card) list.getChildAt(1)).arrow.getVisibility());
+        ChoiceCards adapter = new ChoiceCards(ScreenColors.DEFAULT, new String[]{"Acts", "Opens"},
+                new String[]{"", ""}, new boolean[]{false, true});
+        android.widget.LinearLayout parent = new android.widget.LinearLayout(activity());
+        ChoiceCards.Card card = (ChoiceCards.Card) adapter.getView(0, null, parent);
+        assertEquals(View.INVISIBLE, card.arrow.getVisibility());
+        assertSame(card, adapter.getView(1, card, parent));
+        assertEquals("a recycled card gets the next choice's chevron back", View.VISIBLE, card.arrow.getVisibility());
+    }
+
     @Test @Config(sdk = {29, 30})
     public void saveChoiceAndPreferenceNameTheWritersDirectory() throws Exception {
         SettingsDialog settings = SettingsL10nTest.show(activity());

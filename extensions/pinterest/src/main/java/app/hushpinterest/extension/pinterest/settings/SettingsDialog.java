@@ -19,7 +19,6 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
@@ -158,7 +157,7 @@ public final class SettingsDialog extends DialogFragment {
         arrow.setLayoutDirection(rightToLeft() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
         back.setImageDrawable(arrow);
         back.setPadding(dp(12), dp(12), dp(12), dp(12));
-        back.setBackgroundColor(Color.TRANSPARENT);
+        back.setBackground(iconButtonBackground());
         back.setMinimumWidth(dp(48));
         back.setMinimumHeight(dp(48));
         back.setContentDescription(L10n.t(getContext(), "Back"));
@@ -212,6 +211,17 @@ public final class SettingsDialog extends DialogFragment {
         return root;
     }
 
+    /**
+     * An icon button's background: nothing at rest, the accent's ripple on a tap, and a tint while
+     * it has keyboard focus. A plain transparent colour left a D-pad or keyboard user with no sign
+     * of where focus was.
+     */
+    private android.graphics.drawable.Drawable iconButtonBackground() {
+        return new android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(ScreenColors.half(ScreenColors.DEFAULT.accent)), null,
+                new android.graphics.drawable.ShapeDrawable(new android.graphics.drawable.shapes.OvalShape()));
+    }
+
     private void buildSearch(LinearLayout root) {
         ScreenColors palette = ScreenColors.DEFAULT;
         searchBox = new LinearLayout(getContext());
@@ -227,7 +237,8 @@ public final class SettingsDialog extends DialogFragment {
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         searchBox.addView(icon, new LinearLayout.LayoutParams(dp(24), dp(24)));
         search = new EditText(getContext());
-        // The hint labels the field. A content description would make TalkBack read it in place of the query.
+        // The hint is the field's label. A content description on top of it replaces what's typed
+        // in a screen reader's reading of the field.
         search.setHint(L10n.t("Search settings"));
         search.setSingleLine(true);
         search.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
@@ -241,11 +252,16 @@ public final class SettingsDialog extends DialogFragment {
         searchBox.addView(search, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         android.widget.ImageButton clear = new android.widget.ImageButton(getContext());
         clear.setImageDrawable(SettingsIcons.icon(getContext(), SettingsIcons.CLOSE, palette.summary));
-        clear.setBackgroundColor(Color.TRANSPARENT);
+        clear.setBackground(iconButtonBackground());
         clear.setPadding(dp(12), dp(12), dp(12), dp(12));
         clear.setContentDescription(L10n.t("Clear search"));
         clear.setVisibility(View.INVISIBLE);
-        clear.setOnClickListener(ignored -> search.setText(""));
+        // The button disappears once the field is empty, so focus goes back to the field rather
+        // than being dropped with it.
+        clear.setOnClickListener(ignored -> {
+            search.setText("");
+            search.requestFocus();
+        });
         searchBox.addView(clear, new LinearLayout.LayoutParams(dp(48), dp(48)));
         search.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }

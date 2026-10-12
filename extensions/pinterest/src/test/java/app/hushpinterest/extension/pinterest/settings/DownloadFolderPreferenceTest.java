@@ -96,11 +96,11 @@ public class DownloadFolderPreferenceTest {
             assertFalse("the folder just picked is the one that's used", Settings.SAVE_IN_PINTEREST_FOLDER.savedValue());
             assertEquals("Pictures/Art", DownloadFolder.current());
             assertEquals("Downloads will be saved in Pictures/Art.", ShadowToast.getTextOfLatestToast());
-            assertEquals("Saving downloads in Pictures/Art. Tap to pick another folder or go back to Download.", row.getSummary());
+            assertEquals("Saving downloads in Pictures/Art. Tap to pick another folder or go back to the Download folder.", row.getSummary());
             // Turning Pinterest's folder back on wins, and the row says so.
             Settings.SAVE_IN_PINTEREST_FOLDER.save(true);
             assertEquals(DownloadFolder.PINTEREST, DownloadFolder.current());
-            assertEquals("Pictures/Art is picked, but Save in Pinterest's folder is on, so downloads go there.", row.getSummary());
+            assertEquals("Pictures/Art is picked, but Save in Pinterest's folder is on, so downloads go to Pictures/100PINT/Pins.", row.getSummary());
         });
     }
 
@@ -125,7 +125,7 @@ public class DownloadFolderPreferenceTest {
             answer(activity, pickAnother(activity, row), Activity.RESULT_OK, tree("primary:Download"));
             assertEquals("", DownloadFolder.PICKED.get());
             assertNull(DownloadFolder.current());
-            assertEquals("Downloads will be saved in Download.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Downloads will be saved in the Download folder.", ShadowToast.getTextOfLatestToast());
 
             DownloadFolder.PICKED.save("Pictures/Art");
             row.getOnPreferenceClickListener().onPreferenceClick(row);
@@ -136,7 +136,7 @@ public class DownloadFolderPreferenceTest {
             shadowOf(menu).clickOnItem(1);
             ShadowLooper.idleMainLooper();
             assertEquals("", DownloadFolder.PICKED.get());
-            assertEquals("Downloads will be saved in Download.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Downloads will be saved in the Download folder.", ShadowToast.getTextOfLatestToast());
             assertNull("going back opened no picker", shadowOf(activity).getNextStartedActivityForResult());
             assertEquals("Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.", row.getSummary());
         });

@@ -333,7 +333,7 @@ public enum PatchFamily {
                 "%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again "
                         + "and leave out that patch.",
                 "%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch "
-                        + "again and leave out the patch in brackets after it.",
+                        + "again and leave out the patch in parentheses after it.",
                 L10n.join(parts)));
     }
 

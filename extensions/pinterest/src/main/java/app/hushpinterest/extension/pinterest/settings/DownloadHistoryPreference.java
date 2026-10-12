@@ -216,22 +216,31 @@ public final class DownloadHistoryPreference extends DialogPreference {
             List<CharSequence> names = new ArrayList<>();
             List<CharSequence> details = new ArrayList<>();
             List<Runnable> actions = new ArrayList<>();
+            // Which choices open something else (the chevron): Set as and Open pin do, the two
+            // that change the history act at once.
+            List<Boolean> opens = new ArrayList<>();
             if (retry) {
                 names.add(L10n.t(getContext(), "Retry download"));
                 details.add(L10n.t(getContext(), "Starts a new download. Android manages it."));
                 actions.add(() -> change(job.id, true));
+                opens.add(false);
             }
             if (job.canSetAs() && retryEnabled()) {
                 names.add(L10n.t(getContext(), "Set as wallpaper"));
                 details.add(L10n.t(getContext(), "Opens Android's Set as options for this saved image."));
                 actions.add(() -> DownloadLedger.setAs(getContext(), job));
+                opens.add(true);
             }
             names.add(L10n.t(getContext(), "Open pin"));
             details.add(L10n.t(getContext(), "Open the pin again to get a fresh download link."));
             actions.add(() -> DownloadLedger.reopenPin(getContext(), job));
+            opens.add(true);
             names.add(L10n.t(getContext(), "Remove from history"));
             details.add(L10n.t(getContext(), "Removes this history entry. Files and active downloads are kept."));
             actions.add(() -> change(job.id, false));
+            opens.add(false);
+            boolean[] chevrons = new boolean[opens.size()];
+            for (int i = 0; i < chevrons.length; i++) chevrons[i] = opens.get(i);
 
             LinearLayout header = new LinearLayout(getContext());
             header.setOrientation(LinearLayout.VERTICAL);
@@ -271,7 +280,7 @@ public final class DownloadHistoryPreference extends DialogPreference {
             try {
                 AlertDialog opened = new AlertDialog.Builder(getContext()).setCustomTitle(header)
                         .setAdapter(new ChoiceCards(ScreenColors.DEFAULT, names.toArray(new CharSequence[0]),
-                                details.toArray(new CharSequence[0])), (choice, position) -> {
+                                details.toArray(new CharSequence[0]), chevrons), (choice, position) -> {
                             if (!alive() || busy || jobDialog != choice) return;
                             if (position >= 0 && position < actions.size()) actions.get(position).run();
                         })

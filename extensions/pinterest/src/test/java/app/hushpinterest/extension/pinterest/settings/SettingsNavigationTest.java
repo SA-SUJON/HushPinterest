@@ -581,6 +581,73 @@ public class SettingsNavigationTest {
         assertEquals(8, list().getCount());
     }
 
+    /** A row with no summary used to carry the word "null" into the search text and come up for it. */
+    @Test public void aRowWithoutASummaryDoesNotMatchTheWordNull() {
+        PreferenceCategory category = null;
+        for (int i = 0; i < page.getPreferenceScreen().getPreferenceCount() && category == null; i++) {
+            Preference entry = page.getPreferenceScreen().getPreference(i);
+            if (entry instanceof PreferenceCategory) category = (PreferenceCategory) entry;
+        }
+        assertNotNull("a category to put a bare row in", category);
+        Preference bare = new Preference(page.getContext());
+        bare.setKey("bareRow");
+        bare.setTitle("Bare row");
+        category.addPreference(bare);
+        EditText search = findSearch(dialog.getView());
+        search.setText("null");
+        ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
+        assertFalse(contains("bareRow"));
+        assertEquals("No matching settings", ((Preference) list().getItemAtPosition(0)).getTitle());
+        search.setText("bare row");
+        ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
+        assertTrue(contains("bareRow"));
+    }
+
+    /**
+     * The hint labels the field; a content description on top of it would replace the typed text
+     * in a screen reader's reading. Clear hides itself once the field is empty, so it hands focus
+     * back to the field instead of dropping it.
+     */
+    @Test public void theSearchFieldIsLabeledByItsHintAndClearHandsFocusBack() {
+        EditText search = findSearch(dialog.getView());
+        assertNull(search.getContentDescription());
+        assertEquals("Search settings", search.getHint().toString());
+        View clear = ((android.view.ViewGroup) search.getParent()).getChildAt(2);
+        assertEquals("Clear search", String.valueOf(clear.getContentDescription()));
+        assertEquals(View.INVISIBLE, clear.getVisibility());
+        search.setText("ads");
+        ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
+        assertEquals(View.VISIBLE, clear.getVisibility());
+        assertTrue(clear.performClick());
+        ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
+        assertEquals("", search.getText().toString());
+        assertEquals(View.INVISIBLE, clear.getVisibility());
+        assertTrue("the field has focus after Clear", search.isFocused());
+        assertEquals(8, list().getCount());
+    }
+
+    /** Check now changes its row's text when the check ends, and a screen reader hears that text too. */
+    @Test public void aFinishedReleaseCheckIsAnnouncedWithTheRowsNewText() {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        java.util.List<CharSequence> announced = new java.util.ArrayList<>();
+        android.view.ViewGroup container = (android.view.ViewGroup) page.getView().getParent();
+        container.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public boolean onRequestSendAccessibilityEvent(android.view.ViewGroup host, View child,
+                    android.view.accessibility.AccessibilityEvent event) {
+                if (event.getEventType() == android.view.accessibility.AccessibilityEvent.TYPE_ANNOUNCEMENT) {
+                    announced.addAll(event.getText());
+                }
+                return super.onRequestSendAccessibilityEvent(host, child, event);
+            }
+        });
+        page.releaseCheckFinished();
+        String summary = ReleaseCheck.checkNowSummary();
+        assertNotNull("Check now always has something to say", summary);
+        assertEquals(java.util.Collections.singletonList(summary), announced);
+        assertEquals(summary, String.valueOf(page.findPreference(HushPinterestPreferenceFragment.CHECK_NOW).getSummary()));
+    }
+
     @Test public void interfaceRowsNameTheirOwnSurfaceAndRefreshBoundary() {
         summaryContains(Settings.HIDE_SCREENSHOT_SHARE.key, "share a screenshot", "Restart Pinterest", "Screenshots still work");
         summaryContains(Settings.HIDE_SEARCH_HISTORY.key, "recent searches", "next time the screen updates", "doesn't delete your account's search history");

@@ -126,9 +126,11 @@ public class SetupGuidancePreferenceTest {
         assertTrue(copy.contains("Changing a switch doesn't add or remove a patch."));
         assertTrue(copy.contains("anything set while patching stays in the app"));
         assertTrue(copy.contains("email on your Pinterest account and a Pinterest password"));
-        assertTrue(copy.contains("Google sign-in isn't supported, because this patched app is signed with a different key"));
+        assertTrue(copy.contains("Google sign-in doesn't work with stock Google Play services, because this patched app is signed with a different key"));
         assertTrue(copy.contains("Pinterest no longer offers Facebook login"));
-        assertTrue(copy.contains("Fix push notifications lets it sign up for push notifications."));
+        // The guide agrees with the Notifications page: the patch is on by default and signs the app up.
+        assertTrue(copy.contains("The Fix push notifications patch, on by default, lets this app sign up for push notifications."));
+        assertFalse(copy.contains("haven't been tested"));
         assertTrue(copy.contains("choose Forgot your password on Pinterest's login page"));
         assertTrue(copy.contains("email already linked to that account"));
         assertTrue(copy.contains("reset link sent to your email to set a Pinterest password"));
