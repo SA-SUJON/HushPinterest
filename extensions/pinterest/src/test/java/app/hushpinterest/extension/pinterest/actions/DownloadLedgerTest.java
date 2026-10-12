@@ -913,6 +913,13 @@ public class DownloadLedgerTest {
         info.name = SharePreviewProvider.class.getName();
         info.packageName = app.getPackageName();
         Shadows.shadowOf(app.getPackageManager()).addOrUpdateProvider(info);
+        // MediaStore files the video as one of this app's videos, which is what the provider serves.
+        SharePreviewProviderTest.FakeMedia media = org.robolectric.Robolectric
+                .buildContentProvider(SharePreviewProviderTest.FakeMedia.class).create("media").get();
+        media.types.put("/external_primary/downloads/248", "video/mp4");
+        media.types.put("/external_primary/downloads/249", "image/jpeg");
+        media.owners.put("/external_primary/downloads/248", app.getPackageName());
+        media.owners.put("/external_primary/downloads/249", app.getPackageName());
         long video = owned("456", DownloadManager.STATUS_SUCCESSFUL);
         long image = owned("123", DownloadManager.STATUS_SUCCESSFUL);
         nativeJobs.mimes.put(video, "video/mp4");

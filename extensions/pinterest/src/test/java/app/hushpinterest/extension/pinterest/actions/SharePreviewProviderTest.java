@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.util.Size;
 import org.junit.Before;
@@ -56,6 +57,10 @@ import java.util.Map;
 public class SharePreviewProviderTest {
     private static final String VIDEO = "content://media/external_primary/downloads/248";
     private static final String IMAGE = "content://media/external_primary/downloads/249";
+    /** A video another app saved. */
+    private static final String OTHERS = "content://media/external_primary/video/media/250";
+    /** A download MediaStore didn't file as a video, whatever the request said. */
+    private static final String UNTYPED = "content://media/external_primary/downloads/251";
 
     @Rule public TemporaryFolder temporary = new TemporaryFolder();
 
@@ -87,6 +92,10 @@ public class SharePreviewProviderTest {
         }
         media.types.put(Uri.parse(VIDEO).getPath(), "video/mp4");
         media.types.put(Uri.parse(IMAGE).getPath(), "image/jpeg");
+        media.types.put(Uri.parse(OTHERS).getPath(), "video/mp4");
+        media.types.put(Uri.parse(UNTYPED).getPath(), "application/octet-stream");
+        for (String own : new String[]{VIDEO, IMAGE, UNTYPED}) media.owners.put(Uri.parse(own).getPath(), app.getPackageName());
+        media.owners.put(Uri.parse(OTHERS).getPath(), "com.example.camera");
     }
 
     /**
@@ -101,13 +110,16 @@ public class SharePreviewProviderTest {
         assertEquals("video/mp4", resolver.getType(shared));
         assertEquals(Arrays.asList("video/mp4", "image/jpeg"), Arrays.asList(resolver.getStreamTypes(shared, "*/*")));
         assertEquals(Arrays.asList("image/jpeg"), Arrays.asList(resolver.getStreamTypes(shared, "image/*")));
+        // No projection is how the share sheet asks on Android 11 to 13: it needs the flags column.
         try (Cursor named = resolver.query(shared, null, null, null, null)) {
-            assertEquals(Arrays.asList(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), Arrays.asList(named.getColumnNames()));
+            assertEquals(Arrays.asList(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE, DocumentsContract.Document.COLUMN_FLAGS),
+                    Arrays.asList(named.getColumnNames()));
             assertTrue(named.moveToFirst());
             assertEquals("Pinterest_123_0.mp4", named.getString(0));
             assertEquals(14, named.getLong(1));
+            assertEquals(DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL, named.getInt(2));
         }
-        // The share sheet's own question: unknown columns are left out, the thumbnail flag is set.
+        // The newer share sheet's own question: unknown columns are left out, the thumbnail flag is set.
         String[] sheet = {DocumentsContract.Document.COLUMN_FLAGS, "android.media.metadata.DISPLAY_ICON_URI",
                 OpenableColumns.DISPLAY_NAME, "title"};
         try (Cursor asked = resolver.query(shared, sheet, null, null, null)) {
@@ -129,9 +141,15 @@ public class SharePreviewProviderTest {
         assertEquals(new Point(64, 64), media.sizes.get(0));
     }
 
-    /** An image keeps its MediaStore address, which already previews, and so does anything that isn't one entry. */
+    /**
+     * An image keeps its MediaStore address, which already previews, and so does anything that
+     * isn't one entry, a video another app saved, and a download MediaStore didn't file as a video.
+     */
     @Test public void onlyAMediaStoreVideoEntryIsWrapped() {
         assertEquals(IMAGE, SharePreviewProvider.wrap(app, Uri.parse(IMAGE), "image/jpeg").toString());
+        assertEquals(IMAGE, SharePreviewProvider.wrap(app, Uri.parse(IMAGE), "video/mp4").toString());
+        assertEquals(OTHERS, SharePreviewProvider.wrap(app, Uri.parse(OTHERS), "video/mp4").toString());
+        assertEquals(UNTYPED, SharePreviewProvider.wrap(app, Uri.parse(UNTYPED), "video/mp4").toString());
         for (String other : new String[]{"content://media/external/video/media", "content://downloads/all_downloads/5",
                 "content://media/external/video/media/12x", "file:///storage/emulated/0/Download/clip.mp4"}) {
             assertEquals(other, SharePreviewProvider.wrap(app, Uri.parse(other), "video/mp4").toString());
@@ -147,11 +165,14 @@ public class SharePreviewProviderTest {
     }
 
     /**
-     * Whatever address a grant holder tries here, only a single video entry answers: an image row,
-     * a whole collection or another provider's path gets nothing, and nothing can be written.
+     * Whatever address a grant holder tries here, only a single video entry this app saved answers:
+     * an image row, another app's video, a row MediaStore doesn't call a video, a whole collection
+     * or another provider's path gets nothing, nothing can be written, and a caller without a grant
+     * can't even learn an address's type.
      */
     @Test public void nothingButOneVideoEntryIsServedOrWritten() throws Exception {
-        for (String address : new String[]{"/media/external_primary/downloads/249", "/media/external/video/media",
+        for (String address : new String[]{"/media/external_primary/downloads/249", "/media/external_primary/video/media/250",
+                "/media/external_primary/downloads/251", "/media/external/video/media",
                 "/media/external_primary/downloads/12x", "/downloads/all_downloads/248", "/media/248"}) {
             Uri uri = Uri.parse("content://" + authority + address);
             assertNull(address, resolver.getType(uri));
@@ -160,6 +181,8 @@ public class SharePreviewProviderTest {
             assertThrows(address, FileNotFoundException.class, () -> resolver.openInputStream(uri).close());
         }
         Uri shared = Uri.parse("content://" + authority + "/media/external_primary/downloads/248");
+        assertEquals("video/mp4", resolver.getType(shared));
+        assertNull(provider.getTypeAnonymous(shared));
         assertThrows(SecurityException.class, () -> provider.openFile(shared, "rw"));
         assertThrows(UnsupportedOperationException.class, () -> resolver.insert(shared, new ContentValues()));
         assertThrows(UnsupportedOperationException.class, () -> resolver.delete(shared, null, null));
@@ -167,9 +190,10 @@ public class SharePreviewProviderTest {
         assertTrue(media.sizes.isEmpty());
     }
 
-    /** MediaStore as these tests need it: a video and an image row, the video's bytes and its thumbnail. */
+    /** MediaStore as these tests need it: typed and owned rows, the video's bytes and its thumbnail. */
     public static final class FakeMedia extends ContentProvider {
         final Map<String, String> types = new HashMap<>();
+        final Map<String, String> owners = new HashMap<>();
         final List<Point> sizes = new ArrayList<>();
         File video;
         File thumbnail;
@@ -184,8 +208,15 @@ public class SharePreviewProviderTest {
 
         @Override public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
             if (!types.containsKey(uri.getPath())) return null;
-            MatrixCursor row = new MatrixCursor(new String[]{OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE});
-            row.addRow(new Object[]{"Pinterest_123_0.mp4", video.length()});
+            String[] columns = projection != null ? projection : new String[]{OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE};
+            Object[] values = new Object[columns.length];
+            for (int i = 0; i < columns.length; i++) {
+                if (OpenableColumns.DISPLAY_NAME.equals(columns[i])) values[i] = "Pinterest_123_0.mp4";
+                else if (OpenableColumns.SIZE.equals(columns[i])) values[i] = video == null ? null : video.length();
+                else if (MediaStore.MediaColumns.OWNER_PACKAGE_NAME.equals(columns[i])) values[i] = owners.get(uri.getPath());
+            }
+            MatrixCursor row = new MatrixCursor(columns);
+            row.addRow(values);
             return row;
         }
 

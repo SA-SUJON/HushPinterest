@@ -42,7 +42,8 @@ import java.util.Locale;
  * for the download, together with a frame of it. Android's share sheet asks the shared address
  * itself for a thumbnail, and MediaStore answers none for a video there, so the sheet showed a
  * plain file icon. Nothing here is exported: an app reaches an address only through the read
- * grant a share hands it, and an address names one video entry, never a collection.
+ * grant a share hands it, and an address names one video entry this app saved, never a collection
+ * or another app's file.
  */
 public final class SharePreviewProvider extends ContentProvider {
     /** The first path segment, ahead of the MediaStore path it carries. */
@@ -50,19 +51,24 @@ public final class SharePreviewProvider extends ContentProvider {
     private static final String FRAME_TYPE = "image/jpeg";
     /** The frame's longest side when the asker names no size. */
     private static final int FRAME = 512;
-    private static final String[] DEFAULT_COLUMNS = {OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE};
+    /**
+     * What a query with no projection gets. The share sheet on Android 11 to 13 asks that way and
+     * shows a thumbnail only when the flags column offers one.
+     */
+    private static final String[] DEFAULT_COLUMNS = {OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE,
+            DocumentsContract.Document.COLUMN_FLAGS};
 
     @Override public boolean onCreate() {
         return true;
     }
 
     /**
-     * The address a saved [file] of type [mime] is shared under: one here for a MediaStore video,
-     * so the share sheet gets a frame, and [file] itself for anything else or when this provider
-     * isn't in the app's manifest.
+     * The address a saved [file] of type [mime] is shared under: one here for a MediaStore video
+     * this app saved, so the share sheet gets a frame, and [file] itself for anything else or when
+     * this provider isn't in the app's manifest. It wraps only what the provider will serve.
      */
     static Uri wrap(Context context, Uri file, String mime) {
-        if (context == null || !video(mime) || entry(file) == null) return file;
+        if (context == null || !video(mime) || servable(context, file) == null) return file;
         String authority = authority(context);
         if (authority == null) return file;
         Uri.Builder shared = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(authority).appendPath(MEDIA);
@@ -95,14 +101,32 @@ public final class SharePreviewProvider extends ContentProvider {
         return file;
     }
 
+    /**
+     * [file] when it's one MediaStore row that MediaStore itself types as a video and that this app
+     * owns, as Android files the downloads it makes for it, else null. Sharing and serving both
+     * ask this, so an address handed out is always one that answers, and a grant can't reach a
+     * video some other app saved.
+     */
+    private static Uri servable(Context context, Uri file) {
+        if (entry(file) == null || !video(mediaType(context, file))) return null;
+        long caller = Binder.clearCallingIdentity();
+        try (Cursor row = context.getContentResolver().query(file,
+                new String[]{MediaStore.MediaColumns.OWNER_PACKAGE_NAME}, null, null, null)) {
+            return row != null && row.moveToFirst() && context.getPackageName().equals(row.getString(0)) ? file : null;
+        } catch (RuntimeException unreadable) {
+            return null;
+        } finally {
+            Binder.restoreCallingIdentity(caller);
+        }
+    }
+
     /** The MediaStore video [uri] stands for, or null when it names anything else. */
     private Uri target(Uri uri) {
         List<String> path = uri.getPathSegments();
         if (path.size() < 3 || !MEDIA.equals(path.get(0))) return null;
         Uri.Builder media = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(MEDIA);
         for (String segment : path.subList(1, path.size())) media.appendPath(segment);
-        Uri file = entry(media.build());
-        return file != null && video(mediaType(file)) ? file : null;
+        return servable(getContext(), media.build());
     }
 
     private Uri require(Uri uri) throws FileNotFoundException {
@@ -112,10 +136,10 @@ public final class SharePreviewProvider extends ContentProvider {
     }
 
     /** MediaStore is asked as this app, whoever asked here: the share's grant is what let them in. */
-    private String mediaType(Uri file) {
+    private static String mediaType(Context context, Uri file) {
         long caller = Binder.clearCallingIdentity();
         try {
-            return getContext().getContentResolver().getType(file);
+            return context.getContentResolver().getType(file);
         } catch (RuntimeException unreadable) {
             return null;
         } finally {
@@ -123,9 +147,21 @@ public final class SharePreviewProvider extends ContentProvider {
         }
     }
 
+    private String mediaType(Uri file) {
+        return mediaType(getContext(), file);
+    }
+
     @Override public String getType(Uri uri) {
         Uri file = target(uri);
         return file == null ? null : mediaType(file);
+    }
+
+    /**
+     * Android 14 and later ask this for a caller without a grant. Only a grant holder learns
+     * whether an address names a video.
+     */
+    @Override public String getTypeAnonymous(Uri uri) {
+        return null;
     }
 
     @Override public String[] getStreamTypes(Uri uri, String filter) {
@@ -193,7 +229,9 @@ public final class SharePreviewProvider extends ContentProvider {
      */
     @Override public AssetFileDescriptor openTypedAssetFile(Uri uri, String filter, Bundle opts) throws FileNotFoundException {
         Uri file = require(uri);
-        if (ClipDescription.compareMimeTypes(mediaType(file), filter)) return super.openTypedAssetFile(uri, filter, opts);
+        String type = mediaType(file);
+        if (type == null) throw new FileNotFoundException("No shared video at " + uri);
+        if (ClipDescription.compareMimeTypes(type, filter)) return super.openTypedAssetFile(uri, filter, opts);
         if (!ClipDescription.compareMimeTypes(FRAME_TYPE, filter)) throw new FileNotFoundException("No " + filter + " for " + uri);
         byte[] frame = frame(file, opts);
         // Written whole, opened, then unlinked: the open descriptor keeps it readable, and nothing
@@ -201,7 +239,8 @@ public final class SharePreviewProvider extends ContentProvider {
         File frames = new File(getContext().getCacheDir(), "hushpinterest-share-frames");
         File written = null;
         try {
-            if (!frames.isDirectory() && !frames.mkdirs()) throw new IOException("No folder for " + frames);
+            // Two first previews at once may both try to make it; either one making it is enough.
+            if (!frames.mkdirs() && !frames.isDirectory()) throw new IOException("No folder for " + frames);
             written = File.createTempFile("frame", ".jpg", frames);
             try (OutputStream out = new FileOutputStream(written)) {
                 out.write(frame);

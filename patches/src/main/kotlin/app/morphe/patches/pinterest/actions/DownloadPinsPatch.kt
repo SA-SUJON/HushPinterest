@@ -47,10 +47,25 @@ internal const val SHARE_PREVIEW_PROVIDER = "app.hushpinterest.extension.pintere
 internal const val SHARE_PREVIEW_AUTHORITY = ".hushpinterest.share"
 
 /**
+ * Checks the extension has [SHARE_PREVIEW_PROVIDER] before the manifest names it. Android creates
+ * a declared provider before the app starts, so a missing class would crash every launch.
+ */
+internal val sharePreviewPreflightPatch = bytecodePatch {
+    dependsOn(pinterestExtensionPatch)
+    execute {
+        val previewType = "L" + SHARE_PREVIEW_PROVIDER.replace('.', '/') + ";"
+        if (classDefByOrNull(previewType)?.superclass != "Landroid/content/ContentProvider;") {
+            throw PatchException("$PATCH: the extension has no share preview provider to declare")
+        }
+    }
+}
+
+/**
  * Declares [SHARE_PREVIEW_PROVIDER]. It isn't exported, so another app reads an address there only
  * through the read grant a share hands it.
  */
 internal val sharePreviewProviderPatch = resourcePatch {
+    dependsOn(sharePreviewPreflightPatch)
     execute {
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as? Element
@@ -90,10 +105,6 @@ val downloadPinsPatch = bytecodePatch(
     execute {
         requireStatusMethod("downloadPins")
         requireStatusMethod("pinDownloads")
-        val previewType = "L" + SHARE_PREVIEW_PROVIDER.replace('.', '/') + ";"
-        if (classDefByOrNull(previewType)?.superclass != "Landroid/content/ContentProvider;") {
-            throw PatchException("$PATCH: the manifest declares a share preview provider the extension doesn't have")
-        }
         val menu = pinMenu()
         val pin = pinType()
         val viewField = menu.fields.singleOrNull { it.name == "modalView" }
