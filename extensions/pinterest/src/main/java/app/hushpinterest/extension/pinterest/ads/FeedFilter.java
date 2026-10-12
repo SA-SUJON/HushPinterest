@@ -58,12 +58,16 @@ public final class FeedFilter {
         String owner = ads ? FamilyNames.HIDE_ADS : ai ? FamilyNames.HIDE_AI_PINS : FamilyNames.HIDE_SHOPPING;
         boolean debug = debugLogging();
         List<?> shown;
+        // What the loop takes out, counted only once the whole list went through: a list that fails
+        // partway is shown as it was, so nothing was removed from it. A module pruned before the
+        // failure keeps its own counts, since it did lose those entries.
+        List<String[]> removed = new ArrayList<>();
         try {
             List<Object> kept = null;
             int size = items.size();
             for (int i = 0; i < size; i++) {
                 Object item = items.get(i);
-                String family = judge(item, verdict, owner, debug);
+                String family = judge(item, verdict, owner, debug, removed);
                 if (family != null) {
                     if (kept == null) kept = new ArrayList<>(items.subList(0, i));
                 } else if (kept != null) {
@@ -75,30 +79,34 @@ public final class FeedFilter {
             HookStatus.threw(owner, "list filter", t);
             return items;
         }
+        for (String[] entry : removed) HookStatus.counted(entry[0], entry[1]);
         // Outside the filter's own failure handling: what's kept for a board never decides what's shown.
         BoardDownloads.record(shown);
         return shown;
     }
 
     /**
-     * The family that takes [item] out, or null to keep it. An item that can't be read stays, and the
-     * rest of the page is still filtered, so one odd model never lets every ad on it through.
+     * The family that takes [item] out, or null to keep it, adding its count to [removed]. An item that
+     * can't be read stays, and the rest of the page is still filtered, so one odd model never lets
+     * every ad on it through.
      */
-    private static String judge(Object item, ModuleItems.Verdict verdict, String owner, boolean debug) {
+    private static String judge(Object item, ModuleItems.Verdict verdict, String owner, boolean debug, List<String[]> removed) {
         try {
             String family = verdict.family(item);
+            String count = null;
             // A module that stays loses what's inside it that goes, and goes too when that's everything.
             if (family == null && ModuleItems.isModule(item)) {
                 family = ModuleItems.prune(item, verdict, owner);
-                if (family != null) HookStatus.counted(family, "module left empty removed");
+                if (family != null) count = "module left empty removed";
             } else if (family != null) {
-                HookStatus.counted(family, removal(family));
+                count = removal(family);
             }
             // A kept item with commercial fields set is what a report of an ad that got through needs (#6).
             if (family == null && debug) {
                 String marks = ModuleItems.markers(item);
                 if (!marks.isEmpty()) Logger.printDebug(() -> "Kept " + item.getClass().getSimpleName() + marks);
             }
+            if (count != null) removed.add(new String[]{family, count});
             return family;
         } catch (Throwable t) {
             HookStatus.threw(owner, "item filter", t);

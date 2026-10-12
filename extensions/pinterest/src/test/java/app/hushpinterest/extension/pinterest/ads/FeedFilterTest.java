@@ -227,6 +227,25 @@ public class FeedFilterTest {
         assertTrue(String.join("\n", HookStatus.report()), String.join("\n", HookStatus.report()).contains("promoted pin removed"));
     }
 
+    /**
+     * A list that can't be read all the way through is shown as it was, so the report must not
+     * count the ad the loop had already found: nothing was taken out of what Pinterest shows.
+     */
+    @Test
+    public void aListThatFailsPartwayIsShownAsItWasAndCountsNoRemoval() {
+        Settings.HIDE_AI_PINS.save(false);
+        List<Object> page = new ArrayList<Object>(Arrays.asList(plain, promoted, labeled, ideas)) {
+            @Override public Object get(int index) {
+                if (index == 2) throw new IllegalStateException("unreadable");
+                return super.get(index);
+            }
+        };
+        assertSame(page, FeedFilter.filter(page));
+        assertEquals("[plain, promoted, labeled, ideas]", new ArrayList<>(page).toString());
+        assertFalse(report(), report().contains("promoted pin removed"));
+        assertTrue(report(), report().contains("list filter"));
+    }
+
     @Test
     public void bothSwitchesTakeTheLabeledPinsToo() {
         Settings.HIDE_AI_PINS.save(true);

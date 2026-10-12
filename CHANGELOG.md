@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** The diagnostic report counts a promoted pin as removed only once the whole feed list has gone through. When Pinterest's list couldn't be read all the way, the page shows as it was, but the report still said an ad had been removed.
+
 * **Tooling:** An interrupted release can resume after a commit repairs its publication checks. It keeps the prepared source, published tag, signed assets and index unchanged, including the original test counts when local results are missing or come from a focused run. It pushes only when needed and checks the index Morphe Manager receives. Changed release files or unrelated source commits stop recovery. Refs #3
 
 * **Pinterest:** The diagnostic report's pin menu counts now say they were taken when the menu was built, before Pinterest decided what to show, so a row counted as visible isn't read as one that was on screen.
