@@ -4,6 +4,12 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** Download visible pins has All, Images and Videos filters with counts above the list, so they and the buttons stay on screen however many pins you can pick from, and each row shows the picture its cell already has, so pins are easier to tell apart. Nothing extra is downloaded for those pictures. Download board now asks whether to queue all of a board's loaded pins, only the images or only the videos.
+
+* **Pinterest:** Save list, in Download visible pins and Download board, writes the pins you chose to a JSON file you pick. Each pin has its Pinterest link, its title and the source link Pinterest supplied. A source link with a query, a fragment, a sign-in part or a private or reserved host name is marked as omitted instead of being cut down. Your account and cookies never go in the file. Save list works on a board even when every loaded pin is already in Download history, and when a list can't be written, the empty file the picker made is removed again.
+
+* **Pinterest:** Dialogs that only show something now close with Close, and ones that leave a choice untaken say Cancel. Save in Download again is now Use Download again, and the pin menu's Media details lines read Width, Height and Size. Card edges stand out more against the dark background, the overview card's color follows a right-to-left language, and a finished batch no longer repeats its whole summary in a toast while its dialog still shows it.
+
 * **Pinterest:** The Notifications page shows whether Android lets Pinterest show notifications, and one tap opens Android's notification settings for the patched app. It never changes a permission for you.
 
 * **Pinterest:** The update check gives up after 20 seconds even when GitHub answers slowly or a connection stalls, and Check now can be tapped again right away.
@@ -20,9 +26,9 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Download board keeps far less in memory while boards are loaded. Each pin is kept as its id and the media found for it instead of the whole pin. A Download history too long to read keeps its newest entries instead of starting over empty.
 
-* **Pinterest:** Strip link tracking and Plain pin links no longer swallow text that sits right after a link with no space, like a Japanese caption after `?utm_source=x`. Links with non-ASCII paths or queries stay whole.
+* **Pinterest:** Strip link tracking and Plain pin links no longer swallow text that sits right after a link with no space, like a Japanese caption after `?utm_source=x`. A hashtag or date in that text stays text, and a second link glued on after it is cleaned on its own. Links with non-ASCII paths or queries stay whole.
 
-* **Pinterest:** The quick checks Plain pin links makes against pin.it short links, and Download pins against Pinterest's image host, go out without any cookies the app holds for those hosts. A cookie Pinterest's short-link service sets on its answer is dropped again, so it can't stop the next lookup.
+* **Pinterest:** The quick checks Plain pin links makes against pin.it short links, and Download pins against Pinterest's image host, go out without any cookies the app holds for those hosts. A cookie Pinterest's short-link service sets on its answer is dropped again, so it can't stop the next lookup, and cookies Pinterest itself stores meanwhile are left alone.
 
 * **Tooling:** A fixture test checks that every pin field Hide ads, Hide AI-labeled pins and Hide shopping read is still in Pinterest's build with a type the filters can use. A renamed or retyped field now fails the tests instead of quietly switching a filter off.
 
