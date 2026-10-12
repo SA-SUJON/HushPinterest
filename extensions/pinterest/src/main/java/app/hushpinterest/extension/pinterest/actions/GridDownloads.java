@@ -205,10 +205,10 @@ final class GridDownloads {
                     + (note == null ? "" : "\n\n" + note)
                     + "\n\n" + L10n.t("Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.")
                     + (untracked == 0 ? "" : "\n\n" + (folder != null
-                            ? L10n.quantity(untracked, "History couldn't be saved for %1$d result. Check %2$s.",
-                                    "History couldn't be saved for %1$d results. Check %2$s.", untracked, folder)
-                            : L10n.quantity(untracked, "History couldn't be saved for %1$d result. Check Downloads.",
-                                    "History couldn't be saved for %1$d results. Check Downloads.", untracked)));
+                            ? L10n.quantity(untracked, "Couldn't save history for one result. Check %2$s.",
+                                    "Couldn't save history for %1$d results. Check %2$s.", untracked, folder)
+                            : L10n.quantity(untracked, "Couldn't save history for one result. Check Downloads.",
+                                    "Couldn't save history for %1$d results. Check Downloads.", untracked)));
         }
 
         /** Goes on to the next pin. A failure ends the batch, so the next selection isn't refused as still running. */

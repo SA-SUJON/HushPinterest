@@ -6,7 +6,11 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** The diagnostic report counts a promoted pin as removed only once the whole feed list has gone through. When Pinterest's list couldn't be read all the way, the page shows as it was, but the report still said an ad had been removed.
 
+* **Pinterest:** A download folder with # or % in its name, such as Pictures/Art #2, now gets the download. Android's download service reads the folder back from text, where # ended the path and % started an escape, so the file landed in the wrong place or nowhere.
+
 * **Pinterest:** Open links in your browser no longer keeps a link inside Pinterest just because its address starts with "pinterest." A site named pinterest.example.com isn't Pinterest's, so it opens in your browser like any other link.
+
+* **Pinterest:** Selecting many pins to download no longer shows a "Couldn't start the download" pop-up for each one that fails. The batch counts them and says so once in its summary. A pin downloaded on its own still gets the message.
 
 * **Pinterest:** The diagnostic report also leaves out a Pinterest address whose slashes are written the JSON way (\/) or encoded (%2F), path and all.
 

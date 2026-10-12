@@ -323,9 +323,29 @@ public class GridDownloadsTest {
             picker.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertTrue(ShadowToast.getTextOfLatestToast().contains("Failed: 1"));
-            assertTrue(ShadowToast.getTextOfLatestToast().contains("History couldn't be saved for 1 result. Check"));
+            assertTrue(ShadowToast.getTextOfLatestToast().contains("Couldn't save history for one result."));
         }
         assertTrue(new DownloadLedger(activity).reconcile().isEmpty());
+    }
+
+    /** A batch says its failures once, in the summary. A pin downloaded on its own still says what went wrong. */
+    @Test @Config(shadows = DownloadLedgerTest.NativeDownloads.class)
+    public void aBatchCountsFailuresWithoutAToastForEachPin() throws Exception {
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        DownloadLedgerTest.NativeDownloads downloads = org.robolectric.shadow.api.Shadow.extract(manager);
+        downloads.rejectEnqueue = true;
+        View origin = cell(pin("1"), 0);
+        cell(pin("2"), 100);
+        ShadowToast.reset();
+        choose(origin, 0, 1).getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        settle();
+        assertEquals(1, ShadowToast.shownToastCount());
+        assertTrue(ShadowToast.getTextOfLatestToast().contains("Queued: 0\nSkipped: 0\nUnsupported: 0\nFailed: 2"));
+
+        ShadowToast.reset();
+        assertTrue(PinDownloads.start(pin("3"), activity));
+        settle();
+        assertEquals("Couldn't start the download. Check Downloads and try again.", ShadowToast.getTextOfLatestToast());
     }
 
     /** Stop lands while the first pin's original lookup is still out, so that pin is queued and the rest skipped. */

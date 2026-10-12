@@ -296,6 +296,20 @@ public class PinActionsTest {
         assertEquals("Download started, but its history couldn't be saved. Check DCIM.", PinDownloads.startedMessage(false, "DCIM"));
     }
 
+    /**
+     * A picked folder with # or % in its name keeps the download. DownloadManager's service reads
+     * the destination back from its text form, where a raw # starts a fragment and a raw % an escape.
+     */
+    @Test public void aFolderNamedWithAHashOrPercentSurvivesTheRequestsTextForm() {
+        DownloadFolder.PICKED.save("Pictures/Art #2 100%");
+        PinMedia.Source source = new PinMedia.Source("https://i.pinimg.com/originals/pin.jpg", "image/jpeg", ".jpg");
+        Uri destination = Shadow.<ShadowDownloadManager.ShadowRequest>extract(PinDownloads.request(source, "pin.jpg")).getDestination();
+        // The JVM's external storage path has the host's separators in it, so only the tail is fixed.
+        String path = Uri.parse(destination.toString()).getPath();
+        assertTrue(path, path.endsWith("Pictures/Art #2 100%/pin.jpg"));
+        assertEquals("Pictures/Art #2 100%", DownloadFolder.of(destination.toString()));
+    }
+
     @Test public void aStandInSizeQueuesTheOriginalTheMediaHostHasOrElseItself() throws Exception {
         Map<String, Object> standIn = Map.of("id", "123456", "images", Map.of(
                 "236x", Map.of("url", "https://i.pinimg.com/236x/0b/b2/5b/0bb25b05de960e1fee5da5e9c4e8f12e.jpg"),

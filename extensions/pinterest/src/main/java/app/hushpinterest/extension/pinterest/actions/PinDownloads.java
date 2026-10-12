@@ -194,7 +194,7 @@ public final class PinDownloads {
             HushDialogs.paint(details);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "show supplied media details", failure);
-            Utils.showToastLong(L10n.t("Couldn't show the supplied media details. Open the pin again and try again."));
+            Utils.showToastLong(L10n.t("Couldn't show the supplied media details. Open the pin again, then retry."));
         }
     }
 
@@ -261,7 +261,7 @@ public final class PinDownloads {
 
     private static void copyFailed(Throwable failure) {
         HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "copy media link", failure);
-        Utils.showToastLong(L10n.t("Couldn't copy the media link. Open the pin again and try again."));
+        Utils.showToastLong(L10n.t("Couldn't copy the media link. Open the pin again, then retry."));
     }
 
     enum Result { QUEUED, QUEUED_UNTRACKED, SKIPPED, UNSUPPORTED, FAILED }
@@ -300,17 +300,17 @@ public final class PinDownloads {
                     report(after, tracked ? Result.QUEUED : Result.QUEUED_UNTRACKED);
                     if (after == null) Utils.showToastLong(startedMessage(tracked, folder));
                 } catch (Throwable failure) {
-                    failed(QUEUE_FAILED, failure);
+                    failed(QUEUE_FAILED, failure, after == null);
                     report(after, Result.FAILED);
                 }
             });
             if (!queued) {
-                failed(QUEUE_FAILED, new IllegalStateException("Worker unavailable"));
+                failed(QUEUE_FAILED, new IllegalStateException("Worker unavailable"), after == null);
                 report(after, Result.FAILED);
             }
             return queued;
         } catch (Throwable failure) {
-            failed("start pin download", failure);
+            failed("start pin download", failure, after == null);
             report(after, Result.FAILED);
             return false;
         }
@@ -334,11 +334,16 @@ public final class PinDownloads {
      */
     static DownloadManager.Request request(PinMedia.Source source, String fileName, String folder) {
         if (PinMedia.mediaUri(source.url) == null) throw new IllegalArgumentException("Not a public Pinterest media URL");
+        // DownloadManager appends the sub path to a file: URI as if it were already encoded, and
+        // its service parses that URI back as text. A raw # cut the path there and a raw % was read
+        // as an escape, so a folder named "Art #2" or "100%" lost the download. Encoding everything
+        // but the slashes makes the round trip give back the folder as picked.
+        String subPath = Uri.encode(DownloadFolder.subPath(folder, fileName), "/");
         return new DownloadManager.Request(Uri.parse(source.url))
                 .setMimeType(source.mime)
                 .setTitle(L10n.t("Download pin"))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(DownloadFolder.directory(folder), DownloadFolder.subPath(folder, fileName));
+                .setDestinationInExternalPublicDir(DownloadFolder.directory(folder), subPath);
     }
 
     /**
@@ -357,10 +362,15 @@ public final class PinDownloads {
     /** The diagnostics name for a download Android wouldn't queue; its toast says to try again. */
     private static final String QUEUE_FAILED = "queue pin download";
 
-    private static void failed(String action, Throwable failure) {
+    /**
+     * Records the failure, and says so only for a pin downloaded [alone]. A batch counts its
+     * failures and says them once in its summary; a toast for each of 500 pins ran half an hour.
+     */
+    private static void failed(String action, Throwable failure, boolean alone) {
         HookStatus.threw(FamilyNames.DOWNLOAD_PINS, action, failure);
+        if (!alone) return;
         Utils.showToastLong(action.equals(QUEUE_FAILED)
-                ? L10n.t("Couldn't start the download. Check system Downloads and try again.")
-                : L10n.t("Couldn't prepare this pin for download. Open the pin again and try again."));
+                ? L10n.t("Couldn't start the download. Check Downloads and try again.")
+                : L10n.t("Couldn't prepare this pin for download. Open the pin again, then retry."));
     }
 }
