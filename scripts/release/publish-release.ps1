@@ -4,7 +4,8 @@
 
 .DESCRIPTION
     The last release stage, which release.ps1 -Stage publish runs. It starts from the pushed
-    prepare commit and the assets -Stage build signed, and goes in this order:
+    prepare commit and the assets -Stage build signed. A retry also accepts its unchanged index
+    followed by corrective release-check commits, and goes in this order:
 
       1. The notes: every bullet of the released CHANGELOG section, between -Intro and -Tail.
       2. gh release create vX.Y.Z at the prepare commit with the five assets. GitHub's tag is
@@ -62,20 +63,21 @@ function Get-PublishedRelease {
 }
 
 Assert-ReleaseClean $Root
-$source = Get-PrepareCommit -Root $Root -Version $Version -AllowIndex
-if (-not $source) {
-    throw ("HEAD is neither '$($script:PrepareSubject -f $Version)' nor its index commit. Run release.ps1 " +
+$state = Get-PublishReleaseState -Root $Root -Version $Version
+if (-not $state) {
+    throw ("HEAD doesn't identify '$($script:PrepareSubject -f $Version)' or its unchanged publication chain. Run release.ps1 " +
         '-Stage prepare, preflight, gate and build first.')
 }
-$head = Get-ReleaseGitText -Root $Root -Arguments @('rev-parse', 'HEAD')
-$indexed = $head -cne $source
+$source = $state.Source
+$head = $state.Head
+$indexed = $null -ne $state.Index
 $signing = Get-SigningInputs -Fingerprint $TrustedFingerprint -PublicKey $TrustedPublicKeyPath -NoKeyring
 $built = Test-ReleaseAssets -Root $Root -Version $Version -Commit $source -TrustedPublicKeyPath $signing.PublicKey `
     -TrustedFingerprint $signing.Fingerprint -Gpg $Gpg
 if ($built -ne $true) { throw "The assets aren't ready: $built. Run release.ps1 -Stage build first." }
 $remote = Get-RemoteMain $Root
-if ($remote -cne $source -and $remote -cne $head) {
-    throw "origin's main is at $remote, which is neither the prepare commit $source nor HEAD. A release publishes the commit its gate passed."
+if ($state.Chain -cnotcontains $remote) {
+    throw "origin's main is at $remote, outside the prepared release and its publication recovery chain."
 }
 
 # 1 and 2: the release, made once.
@@ -83,6 +85,7 @@ $release = Get-PublishedRelease
 if ($release) {
     Write-ReleaseStep "$tag is already on GitHub (published $($release.PublishedAt)), so it's checked, not made again"
 } else {
+    if ($indexed) { throw "The index is committed, but GitHub doesn't show $tag. Publication recovery never creates another release." }
     if (-not $Intro -or -not $Tail) { throw '-Intro and -Tail name the files with the notes above and below the CHANGELOG bullets.' }
     $notes = Join-Path $assets 'notes.txt'
     Invoke-ReleaseText -Root $Root -What 'The release notes' -Arguments @('notes', '--version', $Version, '--intro', $Intro, '--tail', $Tail, '--out', $notes)
@@ -118,7 +121,15 @@ try {
 
 # 3: the index, written and checked against the hosted release before it's committed.
 if ($indexed) {
-    Write-ReleaseStep "HEAD is already the $Version index commit"
+    Write-ReleaseStep "the $Version index is already committed at $($state.Index); resuming from $head"
+    Copy-Item -LiteralPath (Join-Path $assets "release-receipt-$Version.json") -Destination (Join-Path $Root "release-receipt-$Version.json") -Force
+    # The unchanged index keeps its release-gate counts. The signed receipt, source, tag and
+    # hosted bytes are checked again; a repair's focused XML (or a clean checkout) isn't that run.
+    Invoke-ReleaseNative 'The published release check' {
+        & (Join-Path $Root 'scripts/validate-release-facts.ps1') -Root $Root -VerifyPublishedAsset -SkipDescriptionTestCount -SkipTestResults `
+            -ArtifactPath (Join-Path $assets "patches-$Version.mpp") -TrustedPublicKeyPath $signing.PublicKey `
+            -TrustedFingerprint $signing.Fingerprint
+    }
 } else {
     if (-not $Summary) { throw "-Summary names the file with the release's sentence or two for Morphe Manager." }
     $created = [DateTimeOffset]::Parse($release.PublishedAt, [Globalization.CultureInfo]::InvariantCulture).UtcDateTime.ToString(
@@ -164,14 +175,14 @@ if ($indexed) {
 
 # 4: pushed at once. The hook compares the hosted bundle with the one built here byte for byte.
 if ((Get-RemoteMain $Root) -cne $head) {
-    Write-ReleaseStep "pushing the index commit $head"
+    Write-ReleaseStep "pushing the publication commit $head"
     Invoke-ReleasePush -Root $Root -Environment @{
         HUSHPINTEREST_RELEASE_PUBLIC_KEY  = $signing.PublicKey
         HUSHPINTEREST_RELEASE_FINGERPRINT = $signing.Fingerprint
     }
     if ((Get-RemoteMain $Root) -cne $head) { throw "The push finished, but origin's main isn't $head." }
 } else {
-    Write-ReleaseStep "origin's main is already the index commit $head"
+    Write-ReleaseStep "origin's main is already at $head"
 }
 
 # 5: what Manager is offered now, asked of GitHub. Always last.

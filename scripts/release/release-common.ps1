@@ -121,6 +121,63 @@ function Get-PrepareCommit {
     return $candidate
 }
 
+function Get-PublishReleaseState {
+    <# Publication may resume after a release-check repair, but never with changed bundle sources or index files. #>
+    param([Parameter(Mandatory = $true)][string]$Root, [Parameter(Mandatory = $true)][string]$Version)
+
+    $head = Get-ReleaseGitText -Root $Root -Arguments @('rev-parse', 'HEAD')
+    $prepared = Get-PrepareCommit -Root $Root -Version $Version
+    if ($prepared) { return [pscustomobject]@{ Source = $prepared; Index = $null; Head = $head; Chain = @($prepared) } }
+
+    $subject = $script:IndexSubject -f $Version
+    $indexes = @(Get-ReleaseGitText -Root $Root -Arguments @('log', '--first-parent', '--format=%H', '--fixed-strings', "--grep=$subject", 'HEAD') |
+        ForEach-Object { $_ -split "`n" } | Where-Object { $_ -and (Get-ReleaseSubject $Root $_) -ceq $subject })
+    if ($indexes.Count -eq 0) { return $null }
+    if ($indexes.Count -ne 1) { throw "Publication recovery found more than one $Version index commit." }
+    $index = $indexes[0]
+    $parents = (Get-ReleaseGitText -Root $Root -Arguments @('rev-list', '--parents', '-n', '1', $index)) -split '\s+'
+    if ($parents.Count -ne 2) { throw 'Publication recovery requires an index commit with exactly one parent.' }
+    $source = $parents[1]
+    $properties = Get-ReleaseGitText -Root $Root -Arguments @('show', "${source}:gradle.properties")
+    if ((Get-ReleaseSubject $Root $source) -cne ($script:PrepareSubject -f $Version) -or
+            $properties -notmatch "(?m)^version\s*=\s*$([regex]::Escape($Version))\s*$") {
+        throw "The $Version index isn't directly after its prepared release."
+    }
+    $indexFiles = @('patches-bundle.json', 'README.md', '.github/ISSUE_TEMPLATE/bug_report.yml')
+    $changed = @(Get-ReleaseGitText -Root $Root -Arguments @('diff-tree', '--no-commit-id', '--name-only', '-r', $index) |
+        ForEach-Object { $_ -split "`n" } | Where-Object { $_ })
+    if ($changed.Count -ne $indexFiles.Count -or @($changed | Where-Object { $indexFiles -cnotcontains $_ }).Count -gt 0) {
+        throw 'Publication recovery requires an index commit changing exactly the index, README and bug form.'
+    }
+
+    # These files can repair a failed publication check without changing the built release.
+    $correctionFiles = @('scripts/test-script-contracts.ps1', 'scripts/test-published-index.ps1',
+        'scripts/pre-push.ps1', 'scripts/validate-release-facts.ps1', 'scripts/verify-published-index.ps1',
+        'scripts/release/release-common.ps1', 'scripts/release/publish-release.ps1', 'scripts/release/release.ps1', 'CHANGELOG.md')
+    $descendants = @(Get-ReleaseGitText -Root $Root -Arguments @('rev-list', '--parents', "$index..$head") |
+        ForEach-Object { $_ -split "`n" } | Where-Object { $_ })
+    $chain = @($source, $index)
+    foreach ($entry in $descendants) {
+        $parts = $entry -split '\s+'
+        if ($parts.Count -ne 2) { throw 'Publication recovery refuses merged or unrelated history after the index.' }
+        $chain += $parts[0]
+        $paths = @(Get-ReleaseGitText -Root $Root -Arguments @('diff-tree', '--no-commit-id', '--name-only', '-r', $parts[0]) |
+            ForEach-Object { $_ -split "`n" } | Where-Object { $_ })
+        $unexpected = @($paths | Where-Object { $correctionFiles -cnotcontains $_ })
+        if ($unexpected.Count -gt 0) {
+            throw "Publication recovery refuses changed source or index files: $($unexpected -join ', ')."
+        }
+    }
+    # A repair's release note belongs in Unreleased; the already published notes must stay intact.
+    $unreleased = '(?ms)(^## Unreleased[^\r\n]*\r?\n).*?(?=^## |\z)'
+    $before = Get-ReleaseGitText -Root $Root -Arguments @('show', "${index}:CHANGELOG.md")
+    $after = Get-ReleaseGitText -Root $Root -Arguments @('show', "${head}:CHANGELOG.md")
+    if ([regex]::Replace($before, $unreleased, '$1') -cne [regex]::Replace($after, $unreleased, '$1')) {
+        throw 'Publication recovery refuses changes to already released CHANGELOG sections.'
+    }
+    return [pscustomobject]@{ Source = $source; Index = $index; Head = $head; Chain = $chain }
+}
+
 function Get-RemoteMain([string]$Root) {
     <# The commit origin's main is at now, asked of the remote rather than read from a fetch. #>
     $global:LASTEXITCODE = 0
@@ -318,7 +375,15 @@ function Test-ReleaseAssets {
         if (-not (Test-Path -LiteralPath (Join-Path $assets $name) -PathType Leaf)) { return "there is no $name in $assets" }
     }
     $receipt = Get-Content -LiteralPath (Join-Path $assets "release-receipt-$Version.json") -Raw | ConvertFrom-Json
+    if ([string]$receipt.release.version -cne $Version -or [string]$receipt.release.tag -cne "v$Version") {
+        return "the receipt there doesn't name release v$Version"
+    }
     if ([string]$receipt.release.commit -cne $Commit) { return "the receipt there is for $($receipt.release.commit), not $Commit" }
+    $bundleName = "patches-$Version.mpp"
+    if ([string]$receipt.bundle.file -cne $bundleName -or
+            [string]$receipt.bundle.sha256 -ine (Get-FileHash -LiteralPath (Join-Path $assets $bundleName) -Algorithm SHA256).Hash) {
+        return "the receipt's bundle name or hash doesn't match $bundleName"
+    }
     try {
         & (Join-Path (Split-Path -Parent $PSScriptRoot) 'verify-release-checksums.ps1') -AssetDirectory $assets `
             -ChecksumsPath (Join-Path $assets 'SHA256SUMS.txt') -SignaturePath (Join-Path $assets 'SHA256SUMS.txt.asc') `

@@ -111,6 +111,259 @@ try {
     Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
 }
 
+# Retry the real publisher against a local bare origin. GitHub and the expensive release-facts
+# checker are recorded answers; git history, asset hashes, the failed push and the retry are real.
+$publishWork = Join-Path ([IO.Path]::GetTempPath()) ('hushpinterest-publish-contract-' + [guid]::NewGuid().ToString('N'))
+$publisher = Join-Path $PSScriptRoot 'release/publish-release.ps1'
+$savedContract = Get-Variable -Name PublishContract -Scope Global -ErrorAction SilentlyContinue
+$global:PublishContract = @{
+    Root = Join-Path $publishWork 'checkout'; Origin = Join-Path $publishWork 'origin.git'
+    FactsRoot = Join-Path $publishWork 'facts'; FactsScript = Join-Path $PSScriptRoot 'validate-release-facts.ps1'
+    Git = (Get-Command git -CommandType Application).Source; FailPush = $false; ReleaseExists = $true
+}
+function Add-PublishEvent([string]$Event) {
+    [IO.File]::AppendAllText((Join-Path $global:PublishContract.Root 'build/events.txt'), "$Event`n")
+}
+function git {
+    if ($args -contains 'push') {
+        Add-PublishEvent 'push'
+        if ($global:PublishContract.FailPush) { $global:LASTEXITCODE = 1; return }
+    }
+    & $global:PublishContract.Git @args
+}
+function gh {
+    $global:LASTEXITCODE = 0
+    if ($args[0] -ceq 'release' -and $args[1] -ceq 'view') {
+        Add-PublishEvent 'release-view'
+        if (-not $global:PublishContract.ReleaseExists) { $global:LASTEXITCODE = 1; return }
+        'false'; '2026-10-11T00:18:19Z'; Get-ReleaseAssetNames '0.0.7'
+    } elseif ($args[0] -ceq 'release' -and $args[1] -ceq 'download') {
+        Add-PublishEvent 'download'
+        $destination = $args[[Array]::IndexOf($args, '-D') + 1]
+        [void][IO.Directory]::CreateDirectory($destination)
+        Get-ChildItem -LiteralPath (Join-Path $global:PublishContract.Root 'build/hosted') -File |
+            Copy-Item -Destination $destination
+    } else {
+        throw "A recovery attempted an unexpected GitHub operation: $($args -join ' ')"
+    }
+}
+function Set-PublishFile([string]$Name, [string]$Text) {
+    $path = Join-Path $global:PublishContract.Root $Name
+    [void][IO.Directory]::CreateDirectory((Split-Path -Parent $path))
+    [IO.File]::WriteAllText($path, $Text, (New-Object Text.UTF8Encoding $false))
+}
+function Invoke-PublishGit([string[]]$Arguments, [switch]$Bare) {
+    # Windows PowerShell 5.1 turns successful native stderr (including autocrlf warnings) into an error under Stop.
+    $ErrorActionPreference = 'Continue'
+    $target = if ($Bare) { $global:PublishContract.Origin } else { $global:PublishContract.Root }
+    $output = @(& $global:PublishContract.Git -C $target -c user.name=contract -c user.email=contract@invalid `
+        -c commit.gpgsign=false @Arguments 2>&1)
+    if ($LASTEXITCODE -ne 0) { throw "git $($Arguments -join ' ') failed in the publication fixture: $($output -join ' ')" }
+    return ($output -join "`n").Trim()
+}
+function Save-PublishCommit([string]$Subject) {
+    Invoke-PublishGit @('add', '--all') | Out-Null
+    Invoke-PublishGit @('commit', '--quiet', '-m', $Subject) | Out-Null
+    return Invoke-PublishGit @('rev-parse', 'HEAD')
+}
+function Invoke-PublishCase {
+    Set-PublishFile 'build/events.txt' ''
+    $problem = $null
+    try {
+        & $publisher -Root $global:PublishContract.Root -Version '0.0.7' `
+            -TrustedFingerprint ('A' * 40) -TrustedPublicKeyPath (Join-Path $global:PublishContract.Root 'build/pinned-key.asc')
+    } catch { $problem = $_.Exception.Message }
+    return [pscustomobject]@{ Problem = $problem; Events = @(Get-Content -LiteralPath (Join-Path $global:PublishContract.Root 'build/events.txt')) }
+}
+function Assert-PublishRefused($Result, [string]$Pattern) {
+    Assert-IndexContract ($Result.Problem -like $Pattern) "Expected recovery refusal [$Pattern], got [$($Result.Problem)]."
+    Assert-IndexContract (@($Result.Events | Where-Object { $_ -eq 'push' -or $_ -eq 'verify-index' }).Count -eq 0) `
+        "An invalid recovery reached a push or final verification: $($Result.Events -join ', ')."
+}
+try {
+    [void][IO.Directory]::CreateDirectory($global:PublishContract.Root)
+    [void][IO.Directory]::CreateDirectory($global:PublishContract.Origin)
+    Invoke-PublishGit @('init', '--quiet') | Out-Null
+    Invoke-PublishGit @('symbolic-ref', 'HEAD', 'refs/heads/main') | Out-Null
+    Invoke-PublishGit @('config', '--local', 'core.autocrlf', 'true') | Out-Null
+    Invoke-PublishGit @('init', '--bare', '--quiet') -Bare | Out-Null
+    Invoke-PublishGit @('remote', 'add', 'origin', $global:PublishContract.Origin) | Out-Null
+    foreach ($name in @('common.ps1', 'release/release-common.ps1', 'release/publish-release.ps1')) {
+        Set-PublishFile "scripts/$name" ([IO.File]::ReadAllText((Join-Path $PSScriptRoot $name)))
+    }
+    $publisher = Join-Path $global:PublishContract.Root 'scripts/release/publish-release.ps1'
+    Set-PublishFile '.gitignore' "build/`nrelease-receipt-*.json`n"
+    Set-PublishFile 'gradle.properties' "version = 0.0.6`n"
+    Set-PublishFile 'patches-list.json' '{"version":"v0.0.6"}'
+    Set-PublishFile 'patches-bundle.json' '{"version":"0.0.6"}'
+    Set-PublishFile 'README.md' "The latest release is v0.0.6.`n"
+    Set-PublishFile '.github/ISSUE_TEMPLATE/bug_report.yml' "version: 0.0.6`n"
+    Set-PublishFile 'extensions/source.txt' 'the prepared bundle source'
+    Set-PublishFile 'scripts/test-script-contracts.ps1' '# the broken release check'
+    Set-PublishFile 'CHANGELOG.md' "# Changelog`n`n## Unreleased`n`n## 0.0.7 (2026-10-10)`n`n* **Tooling:** Original release notes.`n"
+    Set-PublishFile 'scripts/verify-release-checksums.ps1' @'
+param($AssetDirectory, $ChecksumsPath, $SignaturePath, $TrustedPublicKeyPath, $TrustedFingerprint, $ExpectedAssetNames, $Gpg)
+if ((Get-Content -LiteralPath $SignaturePath -Raw) -cne 'recorded signature') { throw 'The recorded signature changed.' }
+$sums = Get-Content -LiteralPath $ChecksumsPath
+foreach ($name in $ExpectedAssetNames) {
+    $wanted = (Get-FileHash -LiteralPath (Join-Path $AssetDirectory $name) -Algorithm SHA256).Hash + '  ' + $name
+    if ($sums -cnotcontains $wanted) { throw "The recorded signed checksum doesn't match $name." }
+}
+'@
+    Set-PublishFile 'scripts/validate-release-facts.ps1' @'
+param($Root, [switch]$VerifyPublishedAsset, [switch]$SkipDescriptionTestCount, [switch]$SkipTestResults,
+    $ArtifactPath, $TrustedPublicKeyPath, $TrustedFingerprint)
+if (-not $VerifyPublishedAsset -or -not (Test-Path -LiteralPath $ArtifactPath)) { throw 'The hosted-asset check was omitted.' }
+# Only hosted I/O is recorded. The real check reads the caller's switches and the real release
+# metadata in an isolated tree, so missing or focused XML still exercises production behavior.
+& $global:PublishContract.FactsScript -Root $global:PublishContract.FactsRoot -SkipUrlCheck `
+    -SkipDescriptionTestCount:$SkipDescriptionTestCount -SkipTestResults:$SkipTestResults 6> $null
+Add-PublishEvent 'facts'
+'@
+    Set-PublishFile 'scripts/verify-published-index.ps1' @'
+param($Repository, $Root)
+$index = (& $global:PublishContract.Git -C $global:PublishContract.Origin show main:patches-bundle.json) | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0 -or $index.version -cne '0.0.7') { throw 'The served index is still behind the release.' }
+Add-PublishEvent 'verify-index'
+'@
+    $previous = Save-PublishCommit 'chore: the previous release'
+    Set-PublishFile 'gradle.properties' "version = 0.0.7`n"
+    Set-PublishFile 'patches-list.json' '{"version":"v0.0.7"}'
+    $prepared = Save-PublishCommit 'release: prepare 0.0.7'
+    Invoke-PublishGit @('tag', 'v0.0.7', $prepared) | Out-Null
+    Invoke-PublishGit @('push', '--quiet', 'origin', 'HEAD:refs/heads/main', 'refs/tags/v0.0.7') | Out-Null
+    Set-PublishFile '.git/hooks/pre-push' "#!/bin/sh`n# hushpinterest-pre-push`nexit 0`n"
+    Set-PublishFile 'patches-bundle.json' '{"version":"0.0.7","download_url":"https://github.com/SysAdminDoc/HushPinterest/releases/download/v0.0.7/patches-0.0.7.mpp"}'
+    Set-PublishFile 'README.md' "The latest release is v0.0.7.`n"
+    Set-PublishFile '.github/ISSUE_TEMPLATE/bug_report.yml' "version: 0.0.7`n"
+    $indexed = Save-PublishCommit 'release: publish the 0.0.7 index to Morphe Manager'
+    Set-PublishFile 'build/pinned-key.asc' 'recorded pinned key'
+    $assets = Join-Path $global:PublishContract.Root 'build/release-assets/0.0.7'
+    Set-PublishFile 'build/release-assets/0.0.7/patches-0.0.7.mpp' 'the original signed bundle'
+    Set-PublishFile 'build/release-assets/0.0.7/patches-0.0.7.cdx.json' '{}'
+    $receipt = @{ release = @{ version = '0.0.7'; tag = 'v0.0.7'; commit = $prepared }
+        bundle = @{ file = 'patches-0.0.7.mpp'; sha256 = (Get-FileHash -LiteralPath (Join-Path $assets 'patches-0.0.7.mpp')).Hash } }
+    $receiptText = $receipt | ConvertTo-Json -Depth 4
+    Set-PublishFile 'build/release-assets/0.0.7/release-receipt-0.0.7.json' $receiptText
+    $sums = @(Get-ReleaseAssetNames '0.0.7' | Select-Object -First 3 | ForEach-Object {
+        (Get-FileHash -LiteralPath (Join-Path $assets $_)).Hash + '  ' + $_
+    }) -join "`n"
+    Set-PublishFile 'build/release-assets/0.0.7/SHA256SUMS.txt' $sums
+    Set-PublishFile 'build/release-assets/0.0.7/SHA256SUMS.txt.asc' 'recorded signature'
+    [void][IO.Directory]::CreateDirectory((Join-Path $global:PublishContract.Root 'build/hosted'))
+    Get-ChildItem -LiteralPath $assets -File | Copy-Item -Destination (Join-Path $global:PublishContract.Root 'build/hosted')
+
+    $repositoryRoot = Split-Path -Parent $PSScriptRoot
+    foreach ($name in @('patches-list.json', 'patches-bundle.json', 'gradle.properties', 'README.md', 'CHANGELOG.md',
+            'gradle/libs.versions.toml', '.github/ISSUE_TEMPLATE/bug_report.yml')) {
+        $path = Join-Path $global:PublishContract.FactsRoot $name
+        [void][IO.Directory]::CreateDirectory((Split-Path -Parent $path))
+        Copy-Item -LiteralPath (Join-Path $repositoryRoot $name) -Destination $path
+    }
+    function Assert-RealFactsRefused([string]$Pattern, [switch]$SkipCount) {
+        $problem = $null
+        try {
+            & $global:PublishContract.FactsScript -Root $global:PublishContract.FactsRoot -SkipUrlCheck `
+                -SkipDescriptionTestCount:$SkipCount 6> $null
+        } catch { $problem = $_.Exception.Message }
+        Assert-IndexContract ($problem -like $Pattern) "The real release-facts check expected [$Pattern], got [$problem]."
+    }
+    Assert-RealFactsRefused '*No runtime test results found*'
+
+    $global:PublishContract.FailPush = $true
+    $failed = Invoke-PublishCase
+    Assert-IndexContract ($failed.Problem -like '*The push*failed*' -and
+        @($failed.Events | Where-Object { $_ -eq 'push' }).Count -eq 1 -and
+        @($failed.Events | Where-Object { $_ -eq 'verify-index' }).Count -eq 0) `
+        "The uploaded release/index fixture didn't stop at its failed push: $($failed.Problem)."
+    $global:PublishContract.FailPush = $false
+    Set-PublishFile 'scripts/test-script-contracts.ps1' '# the corrected release check'
+    Save-PublishCommit 'test(scripts): repair the release check' | Out-Null
+    Set-PublishFile 'CHANGELOG.md' "# Changelog`n`n## Unreleased`n`n* **Tooling:** The release check was corrected.`n`n## 0.0.7 (2026-10-10)`n`n* **Tooling:** Original release notes.`n"
+    $corrected = Save-PublishCommit 'docs(changelog): record the check repair'
+    $retried = Invoke-PublishCase
+    Assert-IndexContract (-not $retried.Problem -and
+        ($retried.Events -join ',') -ceq 'release-view,download,facts,push,verify-index') `
+        "Recovery didn't resume only the missing push and verification: $($retried.Problem); $($retried.Events -join ',')."
+    Assert-IndexContract ((Invoke-PublishGit @('rev-parse', 'refs/heads/main') -Bare) -ceq $corrected) `
+        'The recovery did not push the corrective descendant.'
+    $focusedFolder = Join-Path $global:PublishContract.FactsRoot 'extensions/pinterest/build/test-results/testDebugUnitTest'
+    [void][IO.Directory]::CreateDirectory($focusedFolder)
+    $focusedPath = Join-Path $focusedFolder 'TEST-RuntimeTest.xml'
+    $focusedXml = '<testsuite failures="0" errors="0" skipped="0">' +
+        ((1..18 | ForEach-Object { '<testcase name="focused' + $_ + '" />' }) -join '') + '</testsuite>'
+    [IO.File]::WriteAllText($focusedPath, $focusedXml)
+    Assert-RealFactsRefused '*bundle description test count*'
+    $missingClass = Join-Path $global:PublishContract.FactsRoot 'extensions/pinterest/src/test/MissingRuntimeTest.java'
+    [void][IO.Directory]::CreateDirectory((Split-Path -Parent $missingClass))
+    [IO.File]::WriteAllText($missingClass, 'class MissingRuntimeTest {}')
+    [IO.File]::WriteAllText($focusedPath, $focusedXml)
+    Assert-RealFactsRefused '*Runtime test results are missing*' -SkipCount
+    $again = Invoke-PublishCase
+    Assert-IndexContract (-not $again.Problem -and ($again.Events -join ',') -ceq 'release-view,download,facts,verify-index') `
+        "Completed publication wasn't idempotent: $($again.Problem); $($again.Events -join ',')."
+    Invoke-PublishGit @('update-ref', 'refs/heads/main', $indexed) -Bare | Out-Null
+    $partway = Invoke-PublishCase
+    Assert-IndexContract (-not $partway.Problem -and
+        ($partway.Events -join ',') -ceq 'release-view,download,facts,push,verify-index') `
+        "Recovery refused a remote already at the unchanged index: $($partway.Problem)."
+
+    Set-PublishFile 'patches-bundle.json' '{"version":"0.0.7","download_url":"https://example.invalid/changed.mpp"}'
+    Save-PublishCommit 'test: change the index address' | Out-Null
+    Assert-PublishRefused (Invoke-PublishCase) '*changed source or index files: patches-bundle.json*'
+    Invoke-PublishGit @('reset', '--hard', '--quiet', $corrected) | Out-Null
+    Set-PublishFile 'extensions/source.txt' 'another bundle source'
+    Save-PublishCommit 'test: change the bundle source' | Out-Null
+    Assert-PublishRefused (Invoke-PublishCase) '*changed source or index files: extensions/source.txt*'
+    Invoke-PublishGit @('reset', '--hard', '--quiet', $corrected) | Out-Null
+    Set-PublishFile 'CHANGELOG.md' "# Changelog`n`n## Unreleased`n`n## 0.0.7 (2026-10-10)`n`n* **Tooling:** Changed published notes.`n"
+    Save-PublishCommit 'test: rewrite the released notes' | Out-Null
+    Assert-PublishRefused (Invoke-PublishCase) '*already released CHANGELOG sections*'
+    Invoke-PublishGit @('reset', '--hard', '--quiet', $corrected) | Out-Null
+    $tree = Invoke-PublishGit @('rev-parse', "$corrected`^{tree}")
+    $merged = Invoke-PublishGit @('commit-tree', $tree, '-p', $corrected, '-p', $prepared, '-m', 'test: a merged recovery history')
+    Invoke-PublishGit @('reset', '--hard', '--quiet', $merged) | Out-Null
+    Assert-PublishRefused (Invoke-PublishCase) '*merged or unrelated history after the index*'
+    Invoke-PublishGit @('reset', '--hard', '--quiet', $corrected) | Out-Null
+
+    Set-PublishFile 'build/release-assets/0.0.7/patches-0.0.7.mpp' 'changed local bytes'
+    Assert-PublishRefused (Invoke-PublishCase) "*receipt's bundle name or hash doesn't match*"
+    Set-PublishFile 'build/release-assets/0.0.7/patches-0.0.7.mpp' 'the original signed bundle'
+    Set-PublishFile 'build/release-assets/0.0.7/patches-0.0.7.cdx.json' 'changed local SBOM bytes'
+    Assert-PublishRefused (Invoke-PublishCase) "*recorded signed checksum doesn't match patches-0.0.7.cdx.json*"
+    Set-PublishFile 'build/release-assets/0.0.7/patches-0.0.7.cdx.json' '{}'
+    $receipt.release.tag = 'v0.0.8'
+    Set-PublishFile 'build/release-assets/0.0.7/release-receipt-0.0.7.json' ($receipt | ConvertTo-Json -Depth 4)
+    Assert-PublishRefused (Invoke-PublishCase) "*receipt there doesn't name release v0.0.7*"
+    Set-PublishFile 'build/release-assets/0.0.7/release-receipt-0.0.7.json' $receiptText
+    Set-PublishFile 'build/hosted/patches-0.0.7.mpp' 'changed hosted bytes'
+    Assert-PublishRefused (Invoke-PublishCase) "*hosted patches-0.0.7.mpp isn't the one built here*"
+    Set-PublishFile 'build/hosted/patches-0.0.7.mpp' 'the original signed bundle'
+    Invoke-PublishGit @('update-ref', 'refs/tags/v0.0.7', $indexed) -Bare | Out-Null
+    Invoke-PublishGit @('tag', '-d', 'v0.0.7') | Out-Null
+    Assert-PublishRefused (Invoke-PublishCase) "*GitHub's v0.0.7 points at*not the prepare commit*"
+    Invoke-PublishGit @('update-ref', 'refs/tags/v0.0.7', $prepared) -Bare | Out-Null
+    Invoke-PublishGit @('tag', '-f', 'v0.0.7', $prepared) | Out-Null
+    Invoke-PublishGit @('update-ref', 'refs/heads/main', $previous) -Bare | Out-Null
+    Assert-PublishRefused (Invoke-PublishCase) '*outside the prepared release and its publication recovery chain*'
+    Invoke-PublishGit @('update-ref', 'refs/heads/main', $corrected) -Bare | Out-Null
+    $global:PublishContract.ReleaseExists = $false
+    Assert-PublishRefused (Invoke-PublishCase) '*Publication recovery never creates another release*'
+    $global:PublishContract.ReleaseExists = $true
+    Invoke-PublishGit @('checkout', '--quiet', '--detach', $previous) | Out-Null
+    Set-PublishFile 'unrelated.txt' 'an unrelated history'
+    Save-PublishCommit 'test: an unrelated history' | Out-Null
+    Assert-PublishRefused (Invoke-PublishCase) '*Run release.ps1 -Stage prepare, preflight, gate and build first*'
+    Write-Host '[scripts] publication recovery contracts passed'
+} finally {
+    if ($savedContract) { $global:PublishContract = $savedContract.Value } else { Remove-Variable -Name PublishContract -Scope Global }
+    $resolvedWork = [IO.Path]::GetFullPath($publishWork)
+    if (-not $resolvedWork.StartsWith([IO.Path]::GetFullPath([IO.Path]::GetTempPath()), [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Refusing to remove a publication fixture outside the temporary directory: $resolvedWork"
+    }
+    if (Test-Path -LiteralPath $resolvedWork) { Remove-Item -LiteralPath $resolvedWork -Recurse -Force }
+}
+
 # The missing-head probe leaves git's failure behind, and the suite that runs this reads the exit code.
 $global:LASTEXITCODE = 0
 Write-Host '[scripts] published index contracts passed'
