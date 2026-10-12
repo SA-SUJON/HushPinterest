@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** Media details has Check the file for image pins. One tap reads the first 64 KB of the file a download would save and shows its real width, height, type and file size, since Pinterest's numbers can describe a smaller display copy. Nothing is fetched until you tap it, and every value says whether Pinterest supplied it or the file showed it.
+
 * **Pinterest:** Download visible pins has All, Images and Videos filters with counts above the list, so they and the buttons stay on screen however many pins you can pick from, and each row shows the picture its cell already has, so pins are easier to tell apart. Nothing extra is downloaded for those pictures. Download board now asks whether to queue all of a board's loaded pins, only the images or only the videos.
 
 * **Pinterest:** Save list, in Download visible pins and Download board, writes the pins you chose to a JSON file you pick. Each pin has its Pinterest link, its title and the source link Pinterest supplied. A source link with a query, a fragment, a sign-in part or a private or reserved host name is marked as omitted instead of being cut down. Your account and cookies never go in the file. Save list works on a board even when every loaded pin is already in Download history, and when a list can't be written, the empty file the picker made is removed again.
