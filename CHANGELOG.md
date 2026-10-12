@@ -33,7 +33,7 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Download board keeps far less in memory while boards are loaded. Each pin is kept as its id and the media found for it instead of the whole pin. A Download history too long to read keeps its newest entries instead of starting over empty.
 
-* **Pinterest:** Strip link tracking and Plain pin links no longer swallow text that sits right after a link with no space, like a Japanese caption after `?utm_source=x`. A hashtag or date in that text stays text, and a second link glued on after it is cleaned on its own. A link written into another link's query, like a share text with `&utm_source=` after it, stays part of that link so its tags still come off. Links with non-ASCII paths or queries stay whole.
+* **Pinterest:** Strip link tracking and Plain pin links no longer swallow text that sits right after a link with no space, like a Japanese caption after `?utm_source=x`. A hashtag or date in that text stays text, and a second link glued on after it is cleaned on its own. A link written into another link's query, like a share text with `&utm_source=` after it, stays part of that link so its tags still come off. A link longer than 4,096 characters is left as it is, so a huge pasted text can't hold up a share. Links with non-ASCII paths or queries stay whole.
 
 * **Pinterest:** The quick checks Plain pin links makes against pin.it short links, and Download pins against Pinterest's image host, go out without any cookies the app holds for those hosts. A cookie Pinterest's short-link service sets on its answer is dropped again, so it can't stop the next lookup, and cookies Pinterest itself stores meanwhile are left alone.
 

@@ -73,22 +73,19 @@ public final class LinkTracking {
      * link ends, so a second link glued on after text, as in "見て、https://...", is cleaned too.
      */
     static CharSequence rewrite(CharSequence text, boolean strip, boolean plain) {
-        Matcher matcher = URL.matcher(text);
+        Links links = new Links(text);
         StringBuilder result = null;
         int copied = 0;
-        int from = 0;
-        while (from < text.length() && matcher.find(from)) {
-            String link = matcher.group().substring(0, trimmedEnd(matcher.group()));
+        while (links.next()) {
+            String link = links.link;
             String core = strip ? cleanUrl(link) : link;
             String pin = plain ? PlainPinLinks.plainLink(core) : null;
             String cleaned = pin != null ? pin : core;
-            int stop = matcher.start() + link.length();
             if (!cleaned.equals(link)) {
                 if (result == null) result = new StringBuilder(text.length());
-                result.append(text, copied, matcher.start()).append(cleaned);
-                copied = stop;
+                result.append(text, copied, links.start).append(cleaned);
+                copied = links.start + link.length();
             }
-            from = Math.max(stop, matcher.start() + 1);
         }
         if (result == null) return text;
         return result.append(text, copied, text.length()).toString();
@@ -97,18 +94,66 @@ public final class LinkTracking {
     /** The URLs in [text], each without the punctuation that ends a sentence around it. */
     static List<String> urls(CharSequence text) {
         List<String> found = new ArrayList<>();
-        Matcher matcher = URL.matcher(text);
-        int from = 0;
-        while (from < text.length() && matcher.find(from)) {
-            String link = matcher.group().substring(0, trimmedEnd(matcher.group()));
-            found.add(link);
-            from = Math.max(matcher.start() + link.length(), matcher.start() + 1);
-        }
+        Links links = new Links(text);
+        while (links.next()) found.add(links.link);
         return found;
     }
 
+    /** The longest link cleaned. A longer one is left as it is, so a huge pasted text can't stall a share. */
+    static final int LONGEST_LINK = 4096;
+
+    private static final Pattern START = Pattern.compile("https?://", Pattern.CASE_INSENSITIVE);
+    private static final Pattern RUN = Pattern.compile("[^\\s<>\\\"\\u0000-\\u001f]*");
+
     /**
-     * Where the link in a match ends. URL runs to the next space, so text glued onto a link, as in
+     * Walks the links in a text in order. Each search starts where the last link ended, and a
+     * match is read no further than {@link #LONGEST_LINK}, so the walk stays one pass over the
+     * text even when thousands of links are glued together. A match cut there is still a link when
+     * text glued onto it starts inside the cut; otherwise the whole run is passed over.
+     */
+    private static final class Links {
+        private final CharSequence text;
+        private final Matcher scheme, whole, rest;
+        private int from;
+        /** Where the current link starts in the text. */
+        int start;
+        String link;
+
+        Links(CharSequence text) {
+            this.text = text;
+            scheme = START.matcher(text);
+            whole = URL.matcher(text);
+            rest = RUN.matcher(text);
+        }
+
+        boolean next() {
+            while (from < text.length() && scheme.find(from)) {
+                int at = scheme.start();
+                whole.region(at, Math.min(text.length(), at + LONGEST_LINK + 1));
+                if (!whole.lookingAt()) {
+                    from = at + 1;
+                    continue;
+                }
+                String match = text.subSequence(at, whole.end()).toString();
+                int glued = gluedAt(match);
+                if (whole.end() - at > LONGEST_LINK && glued < 0) {
+                    // Too long to be a link anyone shares: passed over whole.
+                    rest.region(whole.end(), text.length());
+                    from = rest.lookingAt() ? rest.end() : whole.end();
+                    continue;
+                }
+                start = at;
+                link = match.substring(0, withoutPunctuation(match, glued >= 0 ? glued : match.length()));
+                from = Math.max(at + link.length(), at + 1);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Where text glued onto the link in a match starts, or -1 when the link runs to the end of the
+     * match. URL runs to the next space, so text glued onto a link, as in
      * "?utm_source=x見て", would go with the tag it follows. Past the host, a run of characters outside
      * ASCII stays in the link when it's Latin, Greek or Cyrillic letters, as in "/wiki/São_Tomé" or
      * "?q=Tōkyō", when it starts a value right after an =, as in "?utm_campaign=夏セール", or when the
@@ -118,7 +163,7 @@ public final class LinkTracking {
      * separator. A host name has no value to swallow text into, so an international one stays
      * whole. Plain char checks, since ICU and the JVM read \s differently.
      */
-    private static int trimmedEnd(String url) {
+    private static int gluedAt(String url) {
         int end = withoutPunctuation(url, url.length());
         int at = url.indexOf("://") + 3;
         while (at < end && "/?#".indexOf(url.charAt(at)) < 0) at++;
@@ -130,9 +175,9 @@ public final class LinkTracking {
             for (; at < end && url.charAt(at) >= 0x80; at++) letters &= wordLetter(url.charAt(at));
             if (linkStarts(url, at) ? insideQuery(url, at, end, query)
                     : letters || url.charAt(glued - 1) == '=' || carriesOn(url, at, end, query)) continue;
-            return withoutPunctuation(url, glued);
+            return glued;
         }
-        return end;
+        return -1;
     }
 
     /**

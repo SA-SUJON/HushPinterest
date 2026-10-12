@@ -134,6 +134,29 @@ public class LinkTrackingTest {
                 LinkTracking.cleanText("https://a.example/p?utm_source=x見てOKhttps://b.example/q?gclid=2"));
     }
 
+    /** A run past the longest link is left whole, and the links after it are still cleaned. */
+    @Test public void anOverlongLinkIsLeftAsItIsAndTheNextOneIsStillCleaned() {
+        String overlong = "https://example.com/p?q=" + "a".repeat(LinkTracking.LONGEST_LINK) + "&utm_source=x";
+        String shared = overlong + " https://example.com/q?utm_source=y";
+        assertEquals(overlong + " https://example.com/q", LinkTracking.cleanText(shared));
+        assertEquals(Collections.singletonList("https://example.com/q?utm_source=y"), LinkTracking.urls(shared));
+        String start = "https://example.com/p?utm_source=x&q=";
+        String longest = start + "a".repeat(LinkTracking.LONGEST_LINK - start.length());
+        assertEquals(longest.replace("utm_source=x&", ""), LinkTracking.cleanText(longest));
+        // Cut at the longest link, a match is still a link when glued text starts inside the cut.
+        String gluedOn = "https://example.com/p?utm_source=x見て" + "あ".repeat(LinkTracking.LONGEST_LINK);
+        assertEquals("https://example.com/p見て" + "あ".repeat(LinkTracking.LONGEST_LINK), LinkTracking.cleanText(gluedOn));
+    }
+
+    /** Thousands of links glued into one run are each read once, not to the end of the run every time. */
+    @Test(timeout = 20_000) public void thousandsOfGluedLinksAreWalkedInOnePass() {
+        StringBuilder glued = new StringBuilder("https://x.com/p?q=1");
+        for (int i = 0; i < 20_000; i++) glued.append("見https://a.example/?utm_source=").append(i);
+        String cleaned = LinkTracking.cleanText(glued.toString()).toString();
+        assertTrue(cleaned, cleaned.endsWith("見https://a.example/"));
+        assertFalse(cleaned.contains("utm_source"));
+    }
+
     /** A link written into a query value, with the outer query going on after it, is one link: its & is the outer one's. */
     @Test public void aLinkInsideAQueryValueLeavesTheQuerysTagsToBeStripped() {
         String shared = "https://x.com/intent/tweet?text=見てhttps://pin.it/abc&utm_source=pinterest";
