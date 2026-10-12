@@ -167,13 +167,17 @@ final class GridDownloads {
                         List<Object> chosen = choices.chosen();
                         if (!chosen.isEmpty()) queue(activity, chosen, L10n.t("Download visible pins"), null, 0, true);
                     })
+                    .setNeutralButton(L10n.t("Save list"),
+                            (dialog, which) -> PinManifest.export(activity, PinManifest.entries(choices.chosen()), false))
                     .setNegativeButton(L10n.t("Cancel"), null).create();
             ListView list = picker.getListView();
             list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
             Runnable counted = () -> {
                 count.setText(L10n.f("Selected: %1$d (unsupported: %2$d)", choices.selected(false), choices.selected(true)));
-                Button queue = picker.getButton(AlertDialog.BUTTON_POSITIVE);
-                if (queue != null) queue.setEnabled(choices.selected(false) > 0);
+                for (int action : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEUTRAL}) {
+                    Button button = picker.getButton(action);
+                    if (button != null) button.setEnabled(choices.selected(false) > 0);
+                }
             };
             list.setOnItemClickListener((parent, view, position, id) -> {
                 choices.select(position, list.isItemChecked(position));
@@ -196,6 +200,7 @@ final class GridDownloads {
             picker.show();
             HushDialogs.paint(picker);
             picker.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+            picker.getButton(AlertDialog.BUTTON_NEUTRAL).setEnabled(false);
             return true;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "select visible pins", failure);

@@ -52,6 +52,17 @@ internal val PIN_FILTER_FIELDS: Map<String, List<String>> = linkedMapOf(
 private fun expected(key: String) = "$key (expected ${PIN_FILTER_FIELDS.getValue(key).joinToString(" or ")})"
 
 /**
+ * The pin model's type among [models], told from other id and image models as [pinSchemaProblems]
+ * tells it, or null when none or more than one qualifies.
+ */
+internal fun pinModel(models: Map<String, Map<String, String>>): String? {
+    val carried = models.filterValues { "id" in it && "images" in it }
+        .mapValues { (_, fields) -> PIN_FILTER_FIELDS.keys.count { it in fields } }
+    val most = carried.values.maxOrNull() ?: 0
+    return if (most == 0) null else carried.filterValues { it == most }.keys.singleOrNull()
+}
+
+/**
  * Each way the pin model among [models] (class type to its [serializedFields]) fails
  * [PIN_FILTER_FIELDS], naming the key and the type expected; empty when it holds. Boards, users and
  * stories carry a serialized `id` and `images` too, so the pin is the one of those that carries

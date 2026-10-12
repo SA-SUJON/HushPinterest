@@ -457,3 +457,13 @@ Unsupported: %d	Nicht unterstützt: %d
 Queue pins	Pins einreihen
 Download history already has every pin you chose from this board.	Der Download-Verlauf hat schon jeden Pin, den du von dieser Pinnwand gewählt hast.
 Resume HushPinterest and turn on Download pins and Download board to use this.	Setze HushPinterest fort und schalte Pins herunterladen und Pinnwand herunterladen ein, um das zu verwenden.
+Save list	Liste speichern
+This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Diese Liste enthält nur die Pins der gewählten Art, die Pinterest beim Speichern für die Pinnwand geladen hatte, bis zu %d. Pins weiter unten auf der Pinnwand sind nicht enthalten.
+This list has only the pins chosen from those on screen when it was saved.	Diese Liste enthält nur die Pins, die beim Speichern aus den Pins auf dem Bildschirm gewählt wurden.
+A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Ein Quelllink ist "missing", wenn der Pin keinen hatte, und "omitted", wenn er nicht genau so behalten werden konnte, wie er war, etwa ein Link mit Tracking-Angaben oder einer in ein privates Netzwerk.
+Couldn't save the pin list because HushPinterest closed while the file picker was open. Choose the pins again and save the list.	Die Pin-Liste konnte nicht gespeichert werden, weil HushPinterest geschlossen wurde, während die Dateiauswahl offen war. Wähle die Pins erneut aus und speichere die Liste.
+Couldn't save the pin list. Try again.	Die Pin-Liste konnte nicht gespeichert werden. Versuche es noch einmal.
+Saved the pin list. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.	Die Pin-Liste wurde gespeichert. Die App, in der die Datei liegt, ließ HushPinterest sie nicht zurücklesen, daher wurde sie nicht geprüft.
+The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.	Die Pin-Liste wurde gespeichert, liest sich aber nicht so zurück, wie sie geschrieben wurde. Speichere sie noch einmal als neue Datei.
+Saved a list of one pin.	Eine Liste mit einem Pin wurde gespeichert.
+Saved a list of %d pins.	Eine Liste mit %d Pins wurde gespeichert.

@@ -1,0 +1,83 @@
+/*
+ * Original HushPinterest implementation, 2026.
+ * Copyright 2026 HushPinterest contributors
+ * https://github.com/SysAdminDoc/HushPinterest
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+package app.hushpinterest.extension.pinterest.actions;
+
+import android.content.ContentProvider;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.ParcelFileDescriptor;
+
+import org.robolectric.Robolectric;
+import org.robolectric.RuntimeEnvironment;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+
+/** The document app behind a file picked for Save list, and the ways a real one turns a request down. */
+public final class PinListProvider extends ContentProvider {
+    static final String AUTHORITY = "app.hushpinterest.test.pinlists";
+
+    /** Answers "wt" with a refusal and "w" without truncating, which the ContentResolver docs allow. */
+    static volatile boolean refusesTruncate;
+    /** Refuses every open for writing. */
+    static volatile boolean refusesWrite;
+    /** Refuses every open for reading. */
+    static volatile boolean refusesRead;
+
+    private static File folder;
+
+    /** Registers the app and forgets every file and fault. */
+    static void install() {
+        refusesTruncate = false;
+        refusesWrite = false;
+        refusesRead = false;
+        folder = new File(RuntimeEnvironment.getApplication().getCacheDir(), "pin-lists-" + System.nanoTime());
+        if (!folder.mkdirs()) throw new IllegalStateException("No folder for the test files");
+        Robolectric.setupContentProvider(PinListProvider.class, AUTHORITY);
+    }
+
+    /** The address of a file named [name], holding [bytes] when they're given. */
+    static Uri put(String name, byte[] bytes) throws IOException {
+        if (bytes != null) {
+            try (FileOutputStream out = new FileOutputStream(new File(folder, name))) {
+                out.write(bytes);
+            }
+        }
+        return Uri.parse("content://" + AUTHORITY + "/" + name);
+    }
+
+    /** What the file at [uri] holds now, or null when nothing was ever written there. */
+    static byte[] get(Uri uri) throws IOException {
+        File file = new File(folder, uri.getLastPathSegment());
+        return file.exists() ? Files.readAllBytes(file.toPath()) : null;
+    }
+
+    @Override
+    public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
+        File file = new File(folder, uri.getLastPathSegment());
+        if (mode.startsWith("r")) {
+            if (refusesRead) throw new SecurityException("This app doesn't hand its files back");
+            return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+        }
+        if (refusesWrite) throw new FileNotFoundException("The folder is full");
+        if ("wt".equals(mode) && refusesTruncate) throw new IllegalArgumentException("Unsupported mode: wt");
+        int flags = ParcelFileDescriptor.MODE_WRITE_ONLY | ParcelFileDescriptor.MODE_CREATE;
+        if ("wt".equals(mode)) flags |= ParcelFileDescriptor.MODE_TRUNCATE;
+        return ParcelFileDescriptor.open(file, flags);
+    }
+
+    @Override public boolean onCreate() { return true; }
+    @Override public Cursor query(Uri uri, String[] projection, String selection, String[] args, String order) { return null; }
+    @Override public String getType(Uri uri) { return PinManifest.MIME_TYPE; }
+    @Override public Uri insert(Uri uri, ContentValues values) { return null; }
+    @Override public int delete(Uri uri, String selection, String[] args) { return 0; }
+    @Override public int update(Uri uri, ContentValues values, String selection, String[] args) { return 0; }
+}

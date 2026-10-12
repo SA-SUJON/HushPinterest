@@ -457,3 +457,13 @@ Unsupported: %d	Tidak didukung: %d
 Queue pins	Antrekan Pin
 Download history already has every pin you chose from this board.	Riwayat unduhan sudah memiliki semua Pin yang kamu pilih dari papan ini.
 Resume HushPinterest and turn on Download pins and Download board to use this.	Lanjutkan HushPinterest dan aktifkan Unduh Pin dan Unduh papan untuk memakai ini.
+Save list	Simpan daftar
+This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Daftar ini hanya berisi Pin dari jenis yang dipilih yang sudah dimuat Pinterest untuk papan saat daftar disimpan, maksimal %d. Pin yang lebih bawah di papan tidak ada di dalamnya.
+This list has only the pins chosen from those on screen when it was saved.	Daftar ini hanya berisi Pin yang dipilih dari Pin di layar saat daftar disimpan.
+A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Tautan sumber bernilai "missing" jika Pin tidak punya tautan, dan "omitted" jika tautan tidak bisa disimpan persis seperti aslinya, misalnya tautan dengan data pelacakan atau tautan ke jaringan pribadi.
+Couldn't save the pin list because HushPinterest closed while the file picker was open. Choose the pins again and save the list.	Daftar Pin tidak dapat disimpan karena HushPinterest tertutup saat pemilih file terbuka. Pilih lagi Pin-nya lalu simpan daftarnya.
+Couldn't save the pin list. Try again.	Daftar Pin tidak dapat disimpan. Coba lagi.
+Saved the pin list. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.	Daftar Pin disimpan. Aplikasi yang menyimpan file tidak mengizinkan HushPinterest membacanya kembali, jadi file belum diperiksa.
+The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.	Daftar Pin disimpan, tetapi saat dibaca kembali isinya tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.
+Saved a list of one pin.	Daftar berisi satu Pin disimpan.
+Saved a list of %d pins.	Daftar berisi %d Pin disimpan.

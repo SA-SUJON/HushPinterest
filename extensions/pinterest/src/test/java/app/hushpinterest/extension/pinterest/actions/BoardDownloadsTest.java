@@ -11,7 +11,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Looper;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -24,14 +28,17 @@ import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowDownloadManager;
 import org.robolectric.shadows.ShadowToast;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
@@ -232,8 +239,48 @@ public class BoardDownloadsTest {
         assertEquals("Videos (0)\nUnsupported: 0", kinds.getAdapter().getItem(2).toString());
         kinds.performItemClick(kinds.getChildAt(2), 2, 2);
         assertFalse(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        assertFalse("no video loaded, so there's no list of them", choice.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
         kinds.performItemClick(kinds.getChildAt(1), 1, 1);
         assertTrue(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        assertTrue(choice.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
+    }
+
+    /**
+     * Save list names every loaded pin of the kind chosen, Download history's too, with the title
+     * and checked link each carried when it loaded, and downloads nothing.
+     */
+    @Test public void saveListHasTheKindsLoadedPinsAsTheyWereWhenTheyLoaded() throws Exception {
+        PinListProvider.install();
+        Map<String, Object> titled = new HashMap<>(pin("100", "77"));
+        titled.put("title", "Rye bread");
+        titled.put("link", "https://example.com/rye");
+        List<Object> pins = new ArrayList<>(Arrays.asList(titled, pin("101", "77"), video("102", "102.mp4", "77")));
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        long saved = manager.enqueue(new DownloadManager.Request(Uri.parse("https://i.pinimg.com/originals/101.jpg")));
+        assertTrue(DownloadLedger.record(activity, saved, "101"));
+        AlertDialog choice = openChooser(pins);
+        titled.put("title", "Changed after it loaded");
+        android.widget.ListView kinds = choice.getListView();
+        kinds.performItemClick(kinds.getChildAt(1), 1, 1);
+        choice.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        ShadowActivity.IntentForResult started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+        assertEquals(Intent.ACTION_CREATE_DOCUMENT, started.intent.getAction());
+        Uri file = PinListProvider.put("board.json", null);
+        Shadows.shadowOf(activity).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(file));
+        settle();
+        assertEquals("Saved a list of 2 pins.", ShadowToast.getTextOfLatestToast());
+        JSONObject list = new JSONObject(new String(PinListProvider.get(file), StandardCharsets.UTF_8));
+        assertEquals("board_loaded_pins", list.getString("scope"));
+        JSONArray listed = list.getJSONArray("pins");
+        assertEquals(2, listed.length());
+        assertEquals("100", listed.getJSONObject(0).getString("id"));
+        assertEquals("Rye bread", listed.getJSONObject(0).getString("title"));
+        assertEquals("https://example.com/rye", listed.getJSONObject(0).getString("source_link"));
+        assertEquals("101", listed.getJSONObject(1).getString("id"));
+        assertEquals("missing", listed.getJSONObject(1).getString("source_link_status"));
+        assertEquals("only the request made before Save list", 1, Shadows.shadowOf(manager).getRequestCount());
     }
 
     /** Switched off while the choice is open, the board forgets its pins and Queue pins says why nothing starts. */

@@ -454,3 +454,13 @@ Unsupported: %d	Não compatíveis: %d
 Queue pins	Adicionar Pins à fila
 Download history already has every pin you chose from this board.	O Histórico de downloads já tem todos os Pins que você escolheu desta pasta.
 Resume HushPinterest and turn on Download pins and Download board to use this.	Retome o HushPinterest e ative Baixar Pins e Baixar pasta para usar isto.
+Save list	Salvar lista
+This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Esta lista tem só os Pins do tipo escolhido que o Pinterest tinha carregado da pasta quando ela foi salva, até %d. Pins mais abaixo na pasta não estão nela.
+This list has only the pins chosen from those on screen when it was saved.	Esta lista tem só os Pins escolhidos entre os que estavam na tela quando ela foi salva.
+A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Um link de origem é "missing" quando o Pin não tinha nenhum, e "omitted" quando não pôde ser mantido exatamente como veio, como um link com dados de rastreamento ou um para uma rede privada.
+Couldn't save the pin list because HushPinterest closed while the file picker was open. Choose the pins again and save the list.	Não foi possível salvar a lista de Pins porque o HushPinterest fechou enquanto o seletor de arquivos estava aberto. Escolha os Pins de novo e salve a lista.
+Couldn't save the pin list. Try again.	Não foi possível salvar a lista de Pins. Tente de novo.
+Saved the pin list. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.	A lista de Pins foi salva. O app que guarda o arquivo não deixou o HushPinterest ler de volta, então ele não foi conferido.
+The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.	A lista de Pins foi salva, mas não lê de volta igual ao que foi escrito. Salve de novo como um arquivo novo.
+Saved a list of one pin.	Foi salva uma lista com um Pin.
+Saved a list of %d pins.	Foi salva uma lista com %d Pins.

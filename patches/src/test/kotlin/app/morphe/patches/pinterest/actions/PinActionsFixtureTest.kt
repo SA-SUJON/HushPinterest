@@ -13,6 +13,8 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.pinterest.ads.pinModel
+import app.morphe.patches.pinterest.ads.serializedFields
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.Opcode
@@ -44,6 +46,26 @@ private const val SENDABLE_TYPE = "Lcom/pinterest/sendshare/model/SendableObject
 /** Resolves and applies the real native action targets in each declared build. */
 @Category(FixtureTests::class)
 class PinActionsFixtureTest {
+    // Save list reads a pin's title and source link by these JSON names, through the same lookup as the downloads.
+    @Test
+    fun `the pin model in each declared build serializes its title and source link as text`() {
+        val builds = Fixtures.declaredBuilds()
+        assertTrue("no declared build to read", builds.isNotEmpty())
+        for (build in builds) {
+            val models = mutableMapOf<String, Map<String, String>>()
+            FixtureDex.forEach(build) { dex ->
+                for (classDef in dex.classes) {
+                    if (classDef.type.startsWith("Lcom/pinterest/api/model/")) models[classDef.type] = serializedFields(classDef)
+                }
+            }
+            val pin = pinModel(models)
+            assertNotNull("${build.name}: no single pin model", pin)
+            for (name in listOf("id", "title", "link")) {
+                assertEquals("${build.name}: $pin field $name", "Ljava/lang/String;", models.getValue(pin!!)[name])
+            }
+        }
+    }
+
     @Test
     fun `all action hooks use the real pin menu Visit dispatcher and chooser in each declared build`() {
         for (build in Fixtures.declaredBuilds()) {

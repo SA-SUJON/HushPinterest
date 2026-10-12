@@ -457,3 +457,13 @@ Unsupported: %d	No compatibles: %d
 Queue pins	Poner pines en cola
 Download history already has every pin you chose from this board.	El Historial de descargas ya tiene todos los pines que elegiste de este tablero.
 Resume HushPinterest and turn on Download pins and Download board to use this.	Reanuda HushPinterest y activa Descargar Pines y Descargar tablero para usar esto.
+Save list	Guardar lista
+This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Esta lista solo tiene los pines del tipo elegido que Pinterest había cargado del tablero al guardarla, hasta %d. Los pines que están más abajo en el tablero no están incluidos.
+This list has only the pins chosen from those on screen when it was saved.	Esta lista solo tiene los pines elegidos entre los que había en pantalla al guardarla.
+A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Un enlace de origen es "missing" cuando el pin no tenía ninguno, y "omitted" cuando no se pudo guardar tal como venía, como un enlace con datos de seguimiento o uno a una red privada.
+Couldn't save the pin list because HushPinterest closed while the file picker was open. Choose the pins again and save the list.	No se pudo guardar la lista de pines porque HushPinterest se cerró mientras el selector de archivos estaba abierto. Elige los pines de nuevo y guarda la lista.
+Couldn't save the pin list. Try again.	No se pudo guardar la lista de pines. Inténtalo de nuevo.
+Saved the pin list. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.	Se guardó la lista de pines. La app que tiene el archivo no dejó que HushPinterest lo volviera a leer, así que no se comprobó.
+The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.	La lista de pines se guardó, pero al leerla no coincide con lo que se escribió. Guárdala de nuevo como un archivo nuevo.
+Saved a list of one pin.	Se guardó una lista con un pin.
+Saved a list of %d pins.	Se guardó una lista con %d pines.
