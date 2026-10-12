@@ -82,11 +82,16 @@ public final class PinDownloads {
             row.setFocusable(true);
             row.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
             row.setContentDescription(supported ? title : title + ". " + refusalMessage(media.refusal));
+            // The menu takes a moment to close, and a second tap in that time would queue the pin again.
+            AtomicBoolean started = new AtomicBoolean();
             row.setOnClickListener(ignored -> {
-                if (!active()) return;
+                if (!active() || started.get()) return;
                 if (!supported) { showDetails(media); return; }
                 try {
-                    if (start(pin, layout.getContext())) dismissMenu(controller);
+                    if (start(pin, layout.getContext())) {
+                        started.set(true);
+                        dismissMenu(controller);
+                    }
                 } catch (Throwable failure) {
                     HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "dismiss download menu", failure);
                 }
@@ -224,12 +229,14 @@ public final class PinDownloads {
             }
             if (!PinMedia.standIn(media)) return copy(context, media.source.url);
             PinMedia.Source standIn = media.source;
-            // The lookup asks the network, so the menu closes now and the copy follows it.
+            // The lookup asks the network, so the menu closes now and the copy follows it. The app's
+            // context, so the pin screen isn't held while the lookup waits.
+            Context app = context.getApplicationContext();
             boolean queued = Utils.runOnBackgroundThread(() -> {
                 PinMedia.Source chosen = OriginalLookup.find(standIn);
                 Utils.runOnMainThread(() -> {
                     try {
-                        if (active()) copy(context, chosen.url);
+                        if (active()) copy(app, chosen.url);
                     } catch (Throwable failure) {
                         copyFailed(failure);
                     }

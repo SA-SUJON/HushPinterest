@@ -331,6 +331,20 @@ public class PinMenuTest {
         PinDownloads.nativeRow(null);
     }
 
+    @Test public void aSecondTapWhileTheMenuClosesDoesntQueueThePinAgain() throws Exception {
+        Host host = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
+                "url", "https://i.pinimg.com/originals/source.jpg"))));
+        PinDownloads.attach(host);
+        View row = host.layout.findViewWithTag(PinDownloads.ROW_TAG);
+        assertTrue(row.performClick());
+        assertTrue(row.performClick());
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(1, host.dismissed);
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        assertEquals(1, Shadows.shadowOf(manager).getRequestCount());
+    }
+
     /** What the patch's mark does as Pinterest's menu builds its own Download image row. */
     private View nativeDownload(Host host) {
         TextView row = new TextView(activity);

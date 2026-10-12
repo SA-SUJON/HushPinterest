@@ -186,15 +186,16 @@ final class GridDownloads {
                         .setTitle(title)
                         .setMessage(summary())
                         .setNegativeButton(L10n.t("Stop selection"), (dialog, which) -> stopped = true).create();
+                // Back still stops the batch. A stray tap beside the dialog shouldn't end a queue of pins.
+                progress.setCanceledOnTouchOutside(false);
                 progress.setOnCancelListener(dialog -> stopped = true);
                 progress.show();
                 HushDialogs.paint(progress);
-                next();
-            } catch (RuntimeException failure) {
+            } catch (Throwable failure) {
                 HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "show batch progress", failure);
                 stopped = true;
-                next();
             }
+            next();
         }
 
         String summary() {
@@ -208,7 +209,24 @@ final class GridDownloads {
                             : L10n.f("History could not be saved for %d results. Check Downloads.", untracked)));
         }
 
+        /** Goes on to the next pin. A failure ends the batch, so the next selection isn't refused as still running. */
         void next() {
+            try {
+                step();
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "continue batch", failure);
+                RUNNING.set(false);
+                AlertDialog shown = progress;
+                progress = null;
+                try {
+                    if (shown != null) shown.dismiss();
+                } catch (RuntimeException gone) {
+                    // Its window already went with the screen.
+                }
+            }
+        }
+
+        private void step() {
             Activity host = activity.get();
             if ((host == null || host.isFinishing() || host.isDestroyed()) && progress != null) {
                 progress.dismiss();

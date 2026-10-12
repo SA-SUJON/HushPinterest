@@ -10,6 +10,12 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** When one item on a feed page can't be read, Hide ads, Hide AI-labeled pins and Hide shopping keep just that item and still filter everything else on the page. Before, that one item let the whole page through unfiltered.
 
+* **Pinterest:** Tapping Download pin twice while the menu closes saves the pin once.
+
+* **Pinterest:** A tap beside the progress dialog of Download visible pins or Download board doesn't stop the batch anymore. Back and Stop selection still do. A batch that runs into an unexpected error now ends, where it used to leave every later selection refused as still running until Pinterest restarted.
+
+* **Pinterest:** Copy media link doesn't keep the pin screen in memory while it looks for the original.
+
 * **Tooling:** The script contract tests keep the published bug report form as it is when they build a tree whose index lags the source, the way the release check expects, and now also check that a form moved to the catalog's newer Pinterest build is refused there. They used to move the form's build along with the catalog, which went unnoticed until the published form named the catalog's newest build and held up the 0.0.7 index push.
 
 ## 0.0.7 (2026-10-10)

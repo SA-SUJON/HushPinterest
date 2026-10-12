@@ -34,6 +34,7 @@ import org.robolectric.shadows.ShadowToast;
 import org.robolectric.util.ReflectionHelpers;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -189,6 +190,8 @@ public class GridDownloadsTest {
             assertTrue(GridDownloads.running());
             assertEquals("Stop selection", progress.getButton(AlertDialog.BUTTON_NEGATIVE).getText().toString());
             assertTrue(progress.getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled());
+            assertFalse("a tap beside the progress dialog must not stop the batch",
+                    Shadows.shadowOf(progress).isCancelableOnTouchOutside());
             NativeDialogCapture.capture("batch-progress", grid, progress);
         } finally {
             release.countDown();
@@ -360,5 +363,26 @@ public class GridDownloadsTest {
         assertEquals("2", history.get(0).pinId);
         assertEquals(DownloadLedger.State.SKIPPED, history.get(0).state);
         assertTrue(ShadowToast.getTextOfLatestToast(), ShadowToast.getTextOfLatestToast().contains("Queued: 1\nSkipped: 1\n"));
+    }
+
+    @Test public void aBatchThatFailsToContinueEndsSoTheNextSelectionCanStart() throws Exception {
+        List<Object> broken = new AbstractList<Object>() {
+            @Override public Object get(int index) {
+                throw new IllegalStateException("pin list changed under the batch");
+            }
+
+            @Override public int size() {
+                return 1;
+            }
+        };
+        assertTrue(GridDownloads.queue(activity, broken, "Download visible pins", null, 0, true));
+        AlertDialog progress = ShadowAlertDialog.getLatestAlertDialog();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(GridDownloads.running());
+        assertFalse(progress.isShowing());
+        assertTrue(GridDownloads.queue(activity, new ArrayList<>(List.of(pin("4"))), "Download visible pins", null, 0, true));
+        settle();
+        assertFalse(GridDownloads.running());
+        assertEquals(1, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
     }
 }
