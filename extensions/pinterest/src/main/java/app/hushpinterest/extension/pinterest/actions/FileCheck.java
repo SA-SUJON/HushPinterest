@@ -91,16 +91,21 @@ final class FileCheck {
     /**
      * Checks the file a download of [media] would save: for a stand-in size, the original when the
      * media host has one ({@link OriginalLookup}, the downloads' own lookup), else the supplied
-     * address. Throws when the answer can't vouch for anything.
+     * address. Throws when the answer can't vouch for anything. When the lookup couldn't get an
+     * answer, the supplied size is checked but not remembered, so the next tap asks again, as the
+     * next download would.
      */
     static Facts check(PinMedia.Resolution media) throws IOException {
         if (!checkable(media)) throw new IOException("Only a supplied image can be checked");
         Facts known = remembered(media.source.url);
         if (known != null) return known;
-        PinMedia.Source chosen = PinMedia.standIn(media) ? OriginalLookup.find(media.source) : media.source;
+        OriginalLookup.Found found = PinMedia.standIn(media)
+                ? OriginalLookup.look(media.source) : new OriginalLookup.Found(media.source, true);
+        PinMedia.Source chosen = found.source;
         Facts facts = remembered(chosen.url);
         if (facts == null) {
             facts = read(chosen.url, PinTransfer.prefix(chosen, connection, clock));
+            if (!found.settled) return facts;
             remember(chosen.url, facts);
         }
         // The supplied address leads to the checked one, so reopening the details needs no lookup.

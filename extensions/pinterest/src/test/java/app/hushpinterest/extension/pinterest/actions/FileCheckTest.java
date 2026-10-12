@@ -262,6 +262,26 @@ public class FileCheckTest {
         }
     }
 
+    /** A lookup that timed out checks the supplied size, but the next tap asks again, as the next download would. */
+    @Test public void aCheckAfterAnUnansweredLookupIsntRemembered() throws Exception {
+        PinMedia.Resolution media = standIn();
+        try (MediaHostForTests lookup = MediaHostForTests.install()) {
+            lookup.fail(ORIGINALS + ".jpg", new SocketTimeoutException("slow"));
+            host.partial(STAND_IN, "bytes 0-65535/98765",
+                    FileHostForTests.padded(FileHostForTests.picture(736, 1104, Bitmap.CompressFormat.JPEG), 65536));
+            host.partial(ORIGINALS + ".png", "bytes 0-65535/2000000",
+                    FileHostForTests.padded(FileHostForTests.picture(1200, 1800, Bitmap.CompressFormat.PNG), 65536));
+            assertEquals(STAND_IN, FileCheck.check(media).url);
+            assertNull(FileCheck.known(media));
+
+            lookup.answer(ORIGINALS + ".png", 200, "image/png").answer(ORIGINALS + ".jpg", 404, "application/xml");
+            FileCheck.Facts facts = FileCheck.check(media);
+            assertEquals(ORIGINALS + ".png", facts.url);
+            assertEquals(1200, facts.width);
+            assertSame(facts, FileCheck.known(media));
+        }
+    }
+
     @Test public void aCheckIsRememberedForFifteenMinutesThenAskedAgain() throws Exception {
         host.partial(ORIGINAL, "bytes 0-65535/1234567",
                 FileHostForTests.padded(FileHostForTests.picture(30, 20, Bitmap.CompressFormat.PNG), 65536));

@@ -62,6 +62,27 @@ public class OriginalLookupTest {
                 .answer(ORIGINALS + ".png", 200, "image/png");
         assertSame(standIn, OriginalLookup.find(standIn));
         assertEquals(List.of(ORIGINALS + ".jpg"), addresses());
+        assertFalse("asking again later may find it", OriginalLookup.look(standIn).settled);
+    }
+
+    /** A server error or a rate limit says the host is busy, not that the original isn't there. */
+    @Test public void aBusyHostStopsLikeAnUnreachableOneAndLeavesTheAnswerUnsettled() {
+        for (int status : new int[]{500, 503, 429}) {
+            host.asked.clear();
+            host.answer(ORIGINALS + ".jpg", status, "image/jpeg").answer(ORIGINALS + ".png", 200, "image/png");
+            OriginalLookup.Found found = OriginalLookup.look(standIn);
+            assertSame(standIn, found.source);
+            assertFalse(String.valueOf(status), found.settled);
+            assertEquals(List.of(ORIGINALS + ".jpg"), addresses());
+        }
+    }
+
+    @Test public void anOriginalFoundOrRefusedEverywhereSettlesTheAnswer() {
+        OriginalLookup.Found refused = OriginalLookup.look(standIn);
+        assertSame(standIn, refused.source);
+        assertTrue("four 403s are an answer", refused.settled);
+        host.answer(ORIGINALS + ".png", 200, "image/png");
+        assertTrue(OriginalLookup.look(standIn).settled);
     }
 
     @Test public void anAddressWithoutTheHashPathIsNeverAskedAbout() {

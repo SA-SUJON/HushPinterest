@@ -73,7 +73,8 @@ public final class PinTransfer {
 
     /**
      * True when the media host answers a HEAD request for the address with a 200 and the image
-     * type the address names. It follows no redirect.
+     * type the address names. It follows no redirect. A 5xx or 429 throws, like a failed
+     * connection: the host couldn't answer now, which doesn't say the file isn't there.
      */
     static boolean present(PinMedia.Source source, Connection factory) throws IOException {
         URI uri = PinMedia.mediaUri(source.url);
@@ -90,6 +91,7 @@ public final class PinTransfer {
             head.setRequestProperty("Accept-Encoding", "identity");
             int status = head.getResponseCode();
             answered = NoCookies.setBy(head.getHeaderFields());
+            if (status >= 500 || status == 429) throw new IOException("The media host couldn't answer now: " + status);
             if (status != HttpURLConnection.HTTP_OK) return false;
             String type = head.getContentType();
             return type != null && type.split(";", 2)[0].trim().equalsIgnoreCase(source.mime);
