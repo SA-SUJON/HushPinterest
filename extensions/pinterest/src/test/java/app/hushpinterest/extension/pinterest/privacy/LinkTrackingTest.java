@@ -91,6 +91,21 @@ public class LinkTrackingTest {
         assertEquals("https://bücher.example/a", LinkTracking.cleanText("https://bücher.example/a?utm_source=x"));
     }
 
+    /** A value outside ASCII that runs on into ASCII before the next parameter keeps the link whole. */
+    @Test public void anIriValueRunningIntoAsciiKeepsTheLinkWholeAndItsTagGoes() {
+        String shared = "https://example.com/p?q=東京2024&utm_source=x";
+        assertEquals("https://example.com/p?q=東京2024", LinkTracking.cleanText(shared));
+        assertEquals(Collections.singletonList(shared), LinkTracking.urls(shared));
+        assertEquals("See https://example.com/p?q=東京2024 now", LinkTracking.cleanText("See " + shared + " now"));
+
+        // Glued text with no separator after it is still text after the link.
+        assertEquals("https://www.pinterest.com/pin/123/見てね",
+                LinkTracking.cleanText("https://www.pinterest.com/pin/123/?utm_source=x見てね"));
+        assertEquals("https://example.org/a見てOK", LinkTracking.cleanText("https://example.org/a?utm_source=x見てOK"));
+        // A question mark that ends the sentence isn't the link carrying on.
+        assertEquals("https://example.org/a見て?", LinkTracking.cleanText("https://example.org/a?utm_source=x見て?"));
+    }
+
     @Test public void onlySharedTextExtrasChangeAndCopyLabelsStayTheSame() {
         String original = "https://example.org/a?utm_source=pin";
         Intent intent = new Intent(Intent.ACTION_SEND);

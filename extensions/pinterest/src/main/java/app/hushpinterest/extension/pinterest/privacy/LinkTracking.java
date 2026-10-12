@@ -102,11 +102,12 @@ public final class LinkTracking {
     /**
      * Where the link in a match ends. URL runs to the next space, so text glued onto a link, as in
      * "?utm_source=x見て", would go with the tag it follows. Past the host, a run of characters outside
-     * ASCII stays in the link only when the link carries straight on after it: a separator, a + or a
-     * percent escape, as in the IRI query "?q=見て&utm_source=x". Otherwise, at the end of the match or
-     * before a plain letter, the run is text after the link. A host name has no value to swallow text
-     * into, so an international one stays whole. Plain char checks, since ICU and the JVM read \s
-     * differently.
+     * ASCII stays in the link only when the link carries on after it: a separator, a + or a percent
+     * escape straight after it, as in the IRI query "?q=見て&utm_source=x", or a separator further on
+     * in the ASCII before the next run outside ASCII, as in "?q=東京2024&utm_source=x". Otherwise the
+     * run is text after the link. Punctuation that ends a sentence doesn't count, so a closing "?" is
+     * no separator. A host name has no value to swallow text into, so an international one stays
+     * whole. Plain char checks, since ICU and the JVM read \s differently.
      */
     private static int trimmedEnd(String url) {
         int end = withoutPunctuation(url, url.length());
@@ -116,7 +117,11 @@ public final class LinkTracking {
             if (url.charAt(at) < 0x80) continue;
             int glued = at;
             while (at < end && url.charAt(at) >= 0x80) at++;
-            if (at == end || "/?#&=+%".indexOf(url.charAt(at)) < 0) return withoutPunctuation(url, glued);
+            boolean carriesOn = at < end && "+%".indexOf(url.charAt(at)) >= 0;
+            for (int next = at; !carriesOn && next < end && url.charAt(next) < 0x80; next++) {
+                carriesOn = "/?#&=".indexOf(url.charAt(next)) >= 0;
+            }
+            if (!carriesOn) return withoutPunctuation(url, glued);
         }
         return end;
     }
