@@ -8,6 +8,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** A pin's menu has one download entry now. When Download pin can save the pin, Pinterest's own Download image row is hidden, so the two don't sit side by side. Pinterest's row stays for pins HushPinterest can't download, and with Download pins off the menu is untouched. (#2)
 
+* **Pinterest:** When one item on a feed page can't be read, Hide ads, Hide AI-labeled pins and Hide shopping keep just that item and still filter everything else on the page. Before, that one item let the whole page through unfiltered.
+
 * **Tooling:** The script contract tests keep the published bug report form as it is when they build a tree whose index lags the source, the way the release check expects, and now also check that a form moved to the catalog's newer Pinterest build is refused there. They used to move the form's build along with the catalog, which went unnoticed until the published form named the catalog's newest build and held up the 0.0.7 index push.
 
 ## 0.0.7 (2026-10-10)

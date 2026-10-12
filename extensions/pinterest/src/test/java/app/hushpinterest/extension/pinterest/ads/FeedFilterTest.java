@@ -251,6 +251,21 @@ public class FeedFilterTest {
     }
 
     @Test
+    public void anItemThatCantBeReadStaysAndTheRestOfThePageIsStillFiltered() {
+        Settings.HIDE_AI_PINS.save(true);
+        Pin broken = new Pin("broken");
+        broken.aiDisclosures = new ArrayList<Integer>() {
+            @Override public boolean isEmpty() {
+                throw new IllegalStateException("host list changed while it was read");
+            }
+        };
+        List<Object> page = new ArrayList<>(Arrays.asList(plain, promoted, broken, labeled, ideas));
+        assertEquals("[plain, broken, ideas]", FeedFilter.filter(page).toString());
+        assertTrue(report(), report().contains("item filter"));
+        assertTrue(report(), report().contains("java.lang.IllegalStateException"));
+    }
+
+    @Test
     public void pauseLeavesEveryItem() {
         Settings.HIDE_AI_PINS.save(true);
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);

@@ -63,26 +63,11 @@ public final class FeedFilter {
             int size = items.size();
             for (int i = 0; i < size; i++) {
                 Object item = items.get(i);
-                String family = verdict.family(item);
-                // A module that stays loses what's inside it that goes, and goes too when that's everything.
-                if (family == null && ModuleItems.isModule(item)) {
-                    String emptied = ModuleItems.prune(item, verdict, owner);
-                    if (emptied != null) {
-                        family = emptied;
-                        HookStatus.counted(emptied, "module left empty removed");
-                    }
-                } else if (family != null) {
-                    HookStatus.counted(family, removal(family));
-                }
+                String family = judge(item, verdict, owner, debug);
                 if (family != null) {
                     if (kept == null) kept = new ArrayList<>(items.subList(0, i));
                 } else if (kept != null) {
                     kept.add(item);
-                }
-                // A kept item with commercial fields set is what a report of an ad that got through needs (#6).
-                if (family == null && debug) {
-                    String marks = ModuleItems.markers(item);
-                    if (!marks.isEmpty()) Logger.printDebug(() -> "Kept " + item.getClass().getSimpleName() + marks);
                 }
             }
             shown = kept == null ? items : kept;
@@ -93,6 +78,32 @@ public final class FeedFilter {
         // Outside the filter's own failure handling: what's kept for a board never decides what's shown.
         BoardDownloads.record(shown);
         return shown;
+    }
+
+    /**
+     * The family that takes [item] out, or null to keep it. An item that can't be read stays, and the
+     * rest of the page is still filtered, so one odd model never lets every ad on it through.
+     */
+    private static String judge(Object item, ModuleItems.Verdict verdict, String owner, boolean debug) {
+        try {
+            String family = verdict.family(item);
+            // A module that stays loses what's inside it that goes, and goes too when that's everything.
+            if (family == null && ModuleItems.isModule(item)) {
+                family = ModuleItems.prune(item, verdict, owner);
+                if (family != null) HookStatus.counted(family, "module left empty removed");
+            } else if (family != null) {
+                HookStatus.counted(family, removal(family));
+            }
+            // A kept item with commercial fields set is what a report of an ad that got through needs (#6).
+            if (family == null && debug) {
+                String marks = ModuleItems.markers(item);
+                if (!marks.isEmpty()) Logger.printDebug(() -> "Kept " + item.getClass().getSimpleName() + marks);
+            }
+            return family;
+        } catch (Throwable t) {
+            HookStatus.threw(owner, "item filter", t);
+            return null;
+        }
     }
 
     /** Whether Debug logging is on, read once a page; never throws. */
