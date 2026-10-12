@@ -1,0 +1,266 @@
+/*
+ * Original HushPinterest implementation, 2026.
+ * Copyright 2026 HushPinterest contributors
+ * https://github.com/SysAdminDoc/HushPinterest
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+package app.morphe.patches.pinterest.ui
+
+import app.morphe.ExtensionDex
+import app.morphe.FixtureDex
+import app.morphe.FixtureTests
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.writer.io.MemoryDataStore
+import com.android.tools.smali.dexlib2.writer.pool.DexPool
+import java.io.File
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.junit.experimental.categories.Category
+
+/** Every class reading the closeup back arrow's or lens's id, the classes those buttons are, and their ancestors, in each declared APK. */
+@Category(FixtureTests::class)
+class CloseupButtonsFixtureTest {
+    private class Build(val name: String, val readers: List<ClassDef>, val others: List<ClassDef>) {
+        val classes get() = readers + others
+    }
+
+    private val ids = setOf(CLOSEUP_BACK_ID, CLOSEUP_LENS_ID)
+    private val fragments = listOf(
+        "Lcom/pinterest/feature/pin/closeup/view/OrganicPinCloseupFragment;",
+        "Lcom/pinterest/feature/pin/closeup/view/PromotedPinCloseupFragment;",
+    )
+
+    @Test
+    fun `each declared original APK hands both buttons over and holds their visibility`() {
+        for (build in Fixtures.declaredBuilds().map(::read)) {
+            val context = PatchContexts.of(ExtensionDex.classes() + build.classes)
+            hideCloseupButtonsPatch.execute(context)
+            for (flag in listOf("hideCloseupButtons", "closeupButtons")) assertEquals("${build.name}: $flag", 1, flag(context, flag))
+
+            val hooked = mapOf(CLOSEUP_BACK_HOOK to mutableListOf<String>(), CLOSEUP_LENS_HOOK to mutableListOf<String>())
+            val views = mutableSetOf<String>()
+            var relabeled = 0
+            for (method in build.readers.flatMap { it.methods }.filter { it.readsAnId() }) {
+                val original = method.implementation!!.instructions.toList()
+                val body = patched(context, method)
+                val hooks = body.indices.filter { (body[it] as? ReferenceInstruction)?.reference?.toString() in hooked.keys }
+                assertEquals("${build.name}: $method keeps every original instruction", original.map { it.opcode },
+                    body.filterIndexed { at, _ -> at !in hooks }.map { it.opcode })
+                for (at in hooks) {
+                    val hook = (body[at] as ReferenceInstruction).reference.toString()
+                    hooked.getValue(hook) += method.definingClass
+                    val register = (body[at] as RegisterRangeInstruction).let { assertEquals(1, it.registerCount); it.startRegister }
+                    val before = body[at - 1]
+                    if (before.opcode == Opcode.MOVE_RESULT_OBJECT) {
+                        assertEquals("${build.name}: $method hands over the view findViewById found", (before as OneRegisterInstruction).registerA, register)
+                        assertEquals(FIND_VIEW_CALL, (body[at - 2] as ReferenceInstruction).reference.toString())
+                        val cast = body.drop(at + 1).first { it.opcode == Opcode.CHECK_CAST }
+                        assertEquals(register, (cast as OneRegisterInstruction).registerA)
+                        views += ((cast as ReferenceInstruction).reference as TypeReference).type
+                    } else {
+                        val answer = body[at + 1]
+                        assertEquals("${build.name}: $method hands over the view it answers", Opcode.RETURN_OBJECT, answer.opcode)
+                        assertEquals(register, (answer as OneRegisterInstruction).registerA)
+                        views += method.returnType
+                        // A branch that jumped to the return now jumps to the hook, or that path would skip it.
+                        val kept = body.indices.filter { it !in hooks }
+                        val jumps = branchesTo(original, kept.indexOf(at + 1)).map { kept[it] }
+                        assertEquals("${build.name}: $method's branches to its return", jumps, branchesTo(body, at))
+                        assertEquals("${build.name}: $method's return keeps no branch", emptyList<Int>(), branchesTo(body, at + 1))
+                        relabeled += jumps.size
+                    }
+                }
+            }
+            val backs = hooked.getValue(CLOSEUP_BACK_HOOK)
+            assertEquals("${build.name}: the back arrow's finds, $backs", 4, backs.size)
+            assertTrue("${build.name}: both closeup fragments hand the arrow over, $backs", backs.containsAll(fragments))
+            assertEquals("${build.name}: the lens's builders, ${hooked[CLOSEUP_LENS_HOOK]}", 2, hooked.getValue(CLOSEUP_LENS_HOOK).size)
+            assertTrue("${build.name}: a builder whose return is a branch target", relabeled > 0)
+
+            assertEquals("${build.name}: the button classes", 2, views.size)
+            assertTrue(build.name, ICON_BUTTON in views)
+            for (type in views) {
+                val view = context.mutableClassDefBy(type)
+                val code = view.methods.single { it.name == "setVisibility" }.implementation!!.instructions.toList()
+                assertEquals("${build.name}: $type", listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.INVOKE_SUPER_RANGE,
+                    Opcode.RETURN_VOID), code.map { it.opcode })
+                assertEquals(build.name, CLOSEUP_VISIBILITY_HOOK, (code[0] as ReferenceInstruction).reference.toString())
+                assertEquals("${build.name}: the view and what Pinterest asked for", listOf(0, 1), registers(code[0]))
+                assertEquals("${build.name}: the answer replaces the request", 1, (code[1] as OneRegisterInstruction).registerA)
+                val inherited = (code[2] as ReferenceInstruction).reference as MethodReference
+                assertEquals(build.name, "${view.superclass}->setVisibility(I)V",
+                    "${inherited.definingClass}->${inherited.name}(${inherited.parameterTypes.joinToString("")})${inherited.returnType}")
+            }
+        }
+    }
+
+    @Test
+    fun `a missing button, an uncast find, a final setVisibility or a missing status stub refuses before any change`() {
+        val build = read(Fixtures.declaredBuilds().last())
+        val extension = ExtensionDex.classes()
+        val backReaders = build.readers.filter { owner -> owner.methods.any { it.reads(CLOSEUP_BACK_ID) } }
+        val lensReaders = build.readers.filter { owner -> owner.methods.any { it.reads(CLOSEUP_LENS_ID) } }
+        val organic = build.readers.single { it.type == fragments[0] }
+        // The cast after the find becomes no-ops of the same size, so nothing says what the found view is.
+        val uncast = replace(organic, { it.reads(CLOSEUP_BACK_ID) }) { instructions ->
+            val find = instructions.indices.first { (instructions[it] as? ReferenceInstruction)?.reference?.toString() == FIND_VIEW_CALL &&
+                instructions[it - 1].reads(CLOSEUP_BACK_ID) }
+            val cast = (find + 2 until instructions.size).first { instructions[it].opcode == Opcode.CHECK_CAST }
+            instructions.subList(0, cast) + List(instructions[cast].codeUnits) { ImmutableInstruction10x(Opcode.NOP) } +
+                instructions.subList(cast + 1, instructions.size)
+        }
+        val ancestor = build.others.first { it.type == build.others.single { view -> view.type == ICON_BUTTON }.superclass }
+        val finalVisibility = ImmutableClassDef(ancestor.type, ancestor.accessFlags, ancestor.superclass, ancestor.interfaces,
+            ancestor.sourceFile, ancestor.annotations, ancestor.fields, ancestor.methods + ImmutableMethod(ancestor.type, "setVisibility",
+                listOf(ImmutableMethodParameter("I", null, null)), "V", AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+                ImmutableMethodImplementation(2, listOf(ImmutableInstruction10x(Opcode.RETURN_VOID)), null, null)))
+        fun with(vararg swaps: ClassDef) = extension + build.classes.map { owner -> swaps.firstOrNull { it.type == owner.type } ?: owner }
+        val cases = linkedMapOf(
+            "no back arrow" to (extension + build.classes - backReaders.toSet() to "nothing finds the closeup's back arrow"),
+            "no lens" to (extension + build.classes - lensReaders.toSet() to "nothing builds the closeup's visual search button"),
+            "find without a cast" to (with(uncast) to "without casting it to its class"),
+            "final setVisibility above the icon button" to (with(finalVisibility) to "cannot override final"),
+            "missing status stub" to (build.classes + extension.map { owner -> if (owner.type != SETTINGS_STATUS) owner else
+                ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
+                    owner.annotations, owner.fields, owner.methods.filterNot { it.name == "closeupButtons" }) }
+                to "no boolean method closeupButtons()"),
+        )
+        for ((reason, case) in cases) {
+            val (input, message) = case
+            val context = PatchContexts.of(input)
+            val before = snapshot(context, input)
+            val refusal = assertThrows(reason, PatchException::class.java) { hideCloseupButtonsPatch.execute(context) }
+            assertTrue("$reason refused for another reason: ${refusal.message}", refusal.message.orEmpty().contains(message))
+            assertArrayEquals("$reason left retained edits", before, snapshot(context, input))
+            assertEquals("$reason left the family flag set", 0, flag(context, "hideCloseupButtons"))
+        }
+    }
+
+    @Test
+    fun `a builder that reads the lens id but never gives its view the id is passed over`() {
+        val build = read(Fixtures.declaredBuilds().last())
+        val builder = build.readers.single { it.type == LENS_BUILDER }
+        val untied = replace(builder, { it.reads(CLOSEUP_LENS_ID) }) { instructions ->
+            val setId = instructions.indices.single { (instructions[it] as? ReferenceInstruction)?.reference?.toString() == SET_ID_CALL }
+            instructions.subList(0, setId) + List(instructions[setId].codeUnits) { ImmutableInstruction10x(Opcode.NOP) } +
+                instructions.subList(setId + 1, instructions.size)
+        }
+        val context = PatchContexts.of(ExtensionDex.classes() + build.classes.map { if (it.type == LENS_BUILDER) untied else it })
+        hideCloseupButtonsPatch.execute(context)
+        for (method in untied.methods.filter { it.reads(CLOSEUP_LENS_ID) }) {
+            assertEquals("$method is left as it was", method.implementation!!.instructions.map { it.opcode },
+                patched(context, method).map { it.opcode })
+        }
+        assertEquals("the other builder still hands its lens over", 1, flag(context, "closeupButtons"))
+    }
+
+    private fun Instruction.reads(id: String) = opcode == Opcode.SGET &&
+        ((this as ReferenceInstruction).reference as FieldReference).let { it.name == id && it.type == "I" }
+
+    private fun Method.reads(id: String) = implementation?.instructions?.any { it.reads(id) } == true
+    private fun Method.readsAnId() = ids.any { reads(it) }
+
+    private fun flag(context: BytecodePatchContext, name: String) =
+        (context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }.implementation!!.instructions.first()
+            as NarrowLiteralInstruction).narrowLiteral
+
+    private fun snapshot(context: BytecodePatchContext, classes: List<ClassDef>): ByteArray {
+        val pool = DexPool(Opcodes.getDefault())
+        classes.forEach { pool.internClass(context.mutableClassDefBy(it.type)) }
+        val store = MemoryDataStore()
+        try {
+            pool.writeTo(store)
+            return store.data
+        } finally {
+            store.close()
+        }
+    }
+
+    private fun patched(context: BytecodePatchContext, method: Method) =
+        context.mutableClassDefBy(method.definingClass).methods.single {
+            it.name == method.name && it.parameterTypes == method.parameterTypes && it.returnType == method.returnType
+        }.implementation!!.instructions.toList()
+
+    /** The indexes of the branches in [body] that land on the instruction at [index]. */
+    private fun branchesTo(body: List<Instruction>, index: Int): List<Int> {
+        val address = body.runningFold(0) { at, instruction -> at + instruction.codeUnits }
+        return body.indices.filter { (body[it] as? OffsetInstruction)?.let { branch -> address[it] + branch.codeOffset == address[index] } == true }
+    }
+
+    private fun registers(instruction: Instruction): List<Int> {
+        val call = instruction as FiveRegisterInstruction
+        return listOf(call.registerC, call.registerD, call.registerE, call.registerF, call.registerG).take(call.registerCount)
+    }
+
+    /** A copy of [owner] whose methods matching [which] carry [change]d instructions. */
+    private fun replace(owner: ClassDef, which: (Method) -> Boolean, change: (List<Instruction>) -> List<Instruction>) =
+        ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
+            owner.annotations, owner.fields, owner.methods.map { method ->
+                val instructions = method.implementation?.instructions?.toList()
+                if (!which(method) || instructions == null) method else ImmutableMethod(method.definingClass, method.name, method.parameters,
+                    method.returnType, method.accessFlags, method.annotations, method.hiddenApiRestrictions,
+                    ImmutableMethodImplementation(method.implementation!!.registerCount, change(instructions),
+                        method.implementation!!.tryBlocks, null))
+            })
+
+    /**
+     * The classes reading either id, and the classes their methods return or cast to with the
+     * APK's own ancestors of each, which covers both buttons' classes.
+     */
+    private fun read(build: File): Build {
+        val parents = mutableMapOf<String, String?>()
+        val readers = linkedMapOf<String, ClassDef>()
+        val wanted = mutableSetOf<String>()
+        FixtureDex.forEach(build) { dex ->
+            for (classDef in dex.classes) {
+                parents.putIfAbsent(classDef.type, classDef.superclass)
+                val reading = classDef.methods.filter { it.readsAnId() }
+                if (reading.isEmpty() || classDef.type in readers) continue
+                readers[classDef.type] = ImmutableClassDef.of(classDef)
+                for (method in reading) {
+                    wanted += method.returnType
+                    method.implementation!!.instructions.filter { it.opcode == Opcode.CHECK_CAST }
+                        .forEach { wanted += ((it as ReferenceInstruction).reference as TypeReference).type }
+                }
+            }
+        }
+        val types = wanted.filter { it in parents }.flatMap { type -> generateSequence(type) { parents[it] }.filter { it in parents }.toList() }
+            .toSet() - readers.keys
+        val others = FixtureDex.classes(build, types)
+        return Build(build.name, readers.values.toList(), others.values.toList())
+    }
+
+    private companion object {
+        const val FIND_VIEW_CALL = "Landroid/view/View;->findViewById(I)Landroid/view/View;"
+        const val ICON_BUTTON = "Lcom/pinterest/gestalt/iconbutton/GestaltIconButton;"
+        const val LENS_BUILDER = "Lwt/d;"
+        const val SET_ID_CALL = "Landroid/view/View;->setId(I)V"
+    }
+}

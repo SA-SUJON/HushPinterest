@@ -73,6 +73,8 @@ public enum PatchFamily {
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH),
     HIDE_HEADER_BUTTONS(FamilyNames.HIDE_HEADER_BUTTONS, "hideHeaderButtons", null, Settings.HIDE_HEADER_BUTTONS),
     AMOLED_BLACK(FamilyNames.AMOLED_BLACK, "amoledBlack", null, Settings.BLACK_BOTTOM_BAR),
+    HIDE_CLOSEUP_BUTTONS(FamilyNames.HIDE_CLOSEUP_BUTTONS, "hideCloseupButtons", null,
+            Settings.HIDE_CLOSEUP_BACK, Settings.HIDE_CLOSEUP_LENS),
     HIDE_PIN_MENU_ITEMS(FamilyNames.HIDE_PIN_MENU_ITEMS, "hidePinMenuItems", null,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST),
     HIDE_COMMENTS(FamilyNames.HIDE_COMMENTS, "hideComments", null, Settings.HIDE_COMMENTS),
@@ -134,8 +136,9 @@ public enum PatchFamily {
     static final Set<PatchFamily> ACTIONS_PAGE = Collections.unmodifiableSet(EnumSet.of(DOWNLOAD_PINS, DOWNLOAD_BOARD,
             LONG_PRESS_DOWNLOAD, SYSTEM_SHARE));
     static final Set<PatchFamily> INTERFACE_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SCREENSHOT_SHARE,
-            HIDE_SEARCH_HISTORY, HIDE_NAVIGATION_BUTTONS, HIDE_HEADER_BUTTONS, AMOLED_BLACK, HIDE_PIN_MENU_ITEMS,
-            HIDE_COMMENTS, HIDE_TOPIC_SUGGESTIONS, QUIET_EMAIL_REMINDER, HIDE_SURVEY_PROMPTS, HIDE_SAVE_TOASTS, ORIGINAL_IMAGES));
+            HIDE_SEARCH_HISTORY, HIDE_NAVIGATION_BUTTONS, HIDE_HEADER_BUTTONS, AMOLED_BLACK, HIDE_CLOSEUP_BUTTONS,
+            HIDE_PIN_MENU_ITEMS, HIDE_COMMENTS, HIDE_TOPIC_SUGGESTIONS, QUIET_EMAIL_REMINDER, HIDE_SURVEY_PROMPTS,
+            HIDE_SAVE_TOASTS, ORIGINAL_IMAGES));
 
     /** Each independent hook, its owning family and the flag set only after it was inserted. */
     public enum Capability {
@@ -161,6 +164,7 @@ public enum PatchFamily {
         NAVIGATION_BUTTONS(HIDE_NAVIGATION_BUTTONS, "navigationButtons", "Hide navigation buttons"),
         HEADER_BUTTONS(HIDE_HEADER_BUTTONS, "headerButtons", "Hide header buttons"),
         BOTTOM_BAR(AMOLED_BLACK, "blackBottomBar", "Black bottom bar"),
+        CLOSEUP_BUTTONS(HIDE_CLOSEUP_BUTTONS, "closeupButtons", "Hide closeup buttons"),
         PIN_MENU_ITEMS(HIDE_PIN_MENU_ITEMS, "pinMenuItems", "Filter pin menu"),
         COMMENTS(HIDE_COMMENTS, "comments", "Hide comments"),
         TOPIC_SUGGESTIONS(HIDE_TOPIC_SUGGESTIONS, "topicSuggestions", "Hide topic suggestions"),

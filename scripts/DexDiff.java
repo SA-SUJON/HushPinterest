@@ -277,7 +277,7 @@ public class DexDiff {
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 3),
             Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
-            Map.entry("firebaseCertificate", 1));
+            Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -4307,6 +4307,149 @@ public class DexDiff {
             return inherited;
         }
 
+        static final String CLOSEUP_BACK_ID = "closeup_back_button", CLOSEUP_LENS_ID = "flashlight_search_button";
+        static final String FIND_VIEW = "Landroid/view/View;->findViewById(I)Landroid/view/View;";
+        static final String GET_CLASS = "Ljava/lang/Object;->getClass()Ljava/lang/Class;";
+
+        /** Where a closeup button is handed over: in front of clean instruction [at] of [method], with [register]. */
+        record ButtonSite(Method method, int at, int register, String view, boolean found, String hook) {}
+
+        /**
+         * The closeup's back arrow and visual search (lens) buttons. Every clean method reading the R
+         * field named for a button's id hands the button over where the patch finds it. Found: the id,
+         * findViewById with it and move-result-object, then the hook with that register, reached only
+         * from the move-result, and the check-cast after it, past a getClass null check, names the
+         * button's class. Built: a method answering one of the APK's own framework views through a
+         * single return-object, with the hook on the answered register as the only way into the
+         * return. Each button class then gains, or starts its own, setVisibility with the visibility
+         * hook taking the view and the request and answering into the request.
+         */
+        void closeupButtons(Contract c) {
+            String backHook = c.strings.get(0), lensHook = c.strings.get(1), visibilityHook = c.strings.get(2);
+            List<ButtonSite> sites = new ArrayList<>();
+            boolean back = buttonSites(CLOSEUP_BACK_ID, backHook, sites), lens = buttonSites(CLOSEUP_LENS_ID, lensHook, sites);
+            if (!back) fail("nothing finds the closeup's back arrow");
+            if (!lens) fail("nothing builds the closeup's visual search button");
+            Map<Method, List<ButtonSite>> byMethod = new LinkedHashMap<>();
+            for (ButtonSite site : sites) byMethod.computeIfAbsent(site.method(), k -> new ArrayList<>()).add(site);
+            boolean handed = back && lens;
+            for (Map.Entry<Method, List<ButtonSite>> entry : byMethod.entrySet()) {
+                Method m = actual(entry.getKey());
+                List<ButtonSite> here = entry.getValue();
+                here.sort((a, b) -> Integer.compare(a.at(), b.at()));
+                for (String hook : List.of(backHook, lensHook)) {
+                    long expected = here.stream().filter(s -> s.hook().equals(hook)).count();
+                    if (expected > 0) calls(m, hook, (int) expected);
+                }
+                if (m == null) { handed = false; continue; }
+                List<Instruction> body = instructions(m), was = instructions(entry.getKey());
+                for (int n = 0; n < here.size(); n++) {
+                    ButtonSite site = here.get(n);
+                    int at = site.at() + n;
+                    boolean placed = at + 1 < body.size() && site.hook().equals(String.valueOf(reference(body.get(at))))
+                            && arguments(body.get(at)).equals(List.of(site.register()))
+                            && body.get(at + 1).getOpcode() == was.get(site.at()).getOpcode()
+                            && onlyFrom(m, at + 1, at) && (!site.found() || onlyFrom(m, at, at - 1));
+                    if (!placed) { fail(site.hook() + " doesn't hand over the button in front of instruction " + site.at() + " of " + m); handed = false; }
+                    else remove(m, at, at + 1);
+                }
+            }
+            boolean held = !sites.isEmpty();
+            Set<String> views = new TreeSet<>();
+            for (ButtonSite site : sites) views.add(site.view());
+            for (String type : views) {
+                ClassDef cd = clean.classes.get(type);
+                if (cd == null || !frameworkView(type) || !canOverride(type, "setVisibility", "(I)V")) {
+                    fail("the button class " + type + " isn't a view whose setVisibility can be overridden"); held = false; continue;
+                }
+                Method m = actual(type + "->setVisibility(I)V");
+                List<Integer> calls = calls(m, visibilityHook, 1);
+                if (m == null || calls.size() != 1) { held = false; continue; }
+                List<Instruction> body = instructions(m);
+                boolean prefix = calls.get(0) == 0 && body.size() > 2
+                        && arguments(body.get(0)).equals(List.of(parameter(m, -1), parameter(m, 0)))
+                        && isMoveResult(body.get(1).getOpcode()) && firstRegister(body.get(1)) == parameter(m, 0);
+                if (!prefix) { fail(visibilityHook + " does not pass the button and its request, in place, first in " + m); held = false; continue; }
+                remove(m, 0, 2);
+                inherited(cd, m, "setVisibility", "(I)V");
+            }
+            capability(c.callee, handed && held);
+        }
+
+        /** Adds each site where [id]'s button is found or built to [sites]. True when there's at least one. */
+        boolean buttonSites(String id, String hook, List<ButtonSite> sites) {
+            int before = sites.size();
+            for (Method m : clean.methods.values()) {
+                if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null) continue;
+                List<Instruction> body = instructions(m);
+                List<Integer> reads = new ArrayList<>();
+                for (int k = 0; k < body.size(); k++) if (readsId(body.get(k), id)) reads.add(k);
+                if (reads.isEmpty()) continue;
+                List<ButtonSite> found = new ArrayList<>();
+                for (int k : reads) {
+                    ButtonSite site = foundButton(m, body, k, hook);
+                    if (site != null) found.add(site);
+                }
+                if (!found.isEmpty()) { sites.addAll(found); continue; }
+                List<Integer> returns = new ArrayList<>();
+                for (int k = 0; k < body.size(); k++) if (body.get(k).getOpcode() == Opcode.RETURN_OBJECT) returns.add(k);
+                String type = m.getReturnType();
+                if (returns.size() != 1 || !clean.classes.containsKey(type) || !frameworkView(type)) continue;
+                int at = returns.get(0), button = firstRegister(body.get(at));
+                if (tiedToId(body, reads, button)) sites.add(new ButtonSite(m, at, button, type, false, hook));
+            }
+            return sites.size() > before;
+        }
+
+        /** The view in [button] takes the id: setId with it, or a constructor argument whose own constructor took it. */
+        static boolean tiedToId(List<Instruction> body, List<Integer> reads, int button) {
+            Set<Integer> ids = new HashSet<>(), holders = new HashSet<>();
+            for (int k : reads) ids.add(firstRegister(body.get(k)));
+            // [reads] come in body order, so the first is the earliest.
+            for (int k = reads.get(0) + 1; k < body.size(); k++) {
+                Instruction call = body.get(k);
+                if (!(call instanceof FiveRegisterInstruction || call instanceof RegisterRangeInstruction)
+                        || !(reference(call) instanceof MethodReference method)) continue;
+                List<Integer> registers = callRegisters(call);
+                if (registers.isEmpty()) continue;
+                List<Integer> passed = registers.subList(1, registers.size());
+                boolean takesId = passed.stream().anyMatch(ids::contains);
+                if (method.getName().equals("setId") && method.getParameterTypes().size() == 1
+                        && method.getParameterTypes().get(0).toString().equals("I") && registers.get(0) == button && takesId) return true;
+                if (!method.getName().equals("<init>")) continue;
+                if (takesId) holders.add(registers.get(0));
+                if (registers.get(0) == button && passed.stream().anyMatch(holders::contains)) return true;
+            }
+            return false;
+        }
+
+        static boolean readsId(Instruction i, String id) {
+            return i.getOpcode() == Opcode.SGET && reference(i) instanceof FieldReference f && f.getName().equals(id) && f.getType().equals("I");
+        }
+
+        ButtonSite foundButton(Method m, List<Instruction> body, int read, String hook) {
+            if (read + 2 >= body.size() || !(body.get(read + 1) instanceof FiveRegisterInstruction find)
+                    || find.getOpcode() != Opcode.INVOKE_VIRTUAL || !FIND_VIEW.equals(String.valueOf(reference(find)))
+                    || find.getRegisterCount() != 2 || find.getRegisterD() != firstRegister(body.get(read))
+                    || body.get(read + 2).getOpcode() != Opcode.MOVE_RESULT_OBJECT) return null;
+            int button = firstRegister(body.get(read + 2)), next = read + 3;
+            if (next < body.size() && body.get(next) instanceof FiveRegisterInstruction check && check.getOpcode() == Opcode.INVOKE_VIRTUAL
+                    && check.getRegisterCount() == 1 && check.getRegisterC() == button && GET_CLASS.equals(String.valueOf(reference(check)))) next++;
+            if (next >= body.size() || body.get(next).getOpcode() != Opcode.CHECK_CAST || firstRegister(body.get(next)) != button) {
+                fail(m + " finds the button without casting it to its class");
+                return null;
+            }
+            return new ButtonSite(m, read + 3, button, String.valueOf(reference(body.get(next))), true, hook);
+        }
+
+        /** True when the first ancestor of [type] outside the clean target is one of Android's view classes. */
+        boolean frameworkView(String type) {
+            Set<String> seen = new HashSet<>();
+            String at = type;
+            while (clean.classes.containsKey(at) && seen.add(at)) at = clean.classes.get(at).getSuperclass();
+            return at != null && !at.equals(type) && (at.startsWith("Landroid/view/") || at.startsWith("Landroid/widget/"));
+        }
+
         static final String SURVEY_DECLINE = "SURVEY_IN_BROWSER_PROMPT_DECLINE_BUTTON", SURVEY_DECLINE_COUNTER = "%s_%s_%d_%d";
         static final String ALERT_DISMISS_REASON = "Lcom/pinterest/component/alert/AlertContainer$a;";
         static final String FUNCTION1 = "Lkotlin/jvm/functions/Function1;";
@@ -4890,6 +5033,7 @@ public class DexDiff {
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;
                     case "topicSuggestions": topicSuggestions(c); break;
+                    case "closeupButtons": closeupButtons(c); break;
                     case "boardMenu": boardMenu(c); break;
                     case "surveyPrompts": surveyPrompts(c); break;
                     case "pinInvites": pinInvites(c); break;

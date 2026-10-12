@@ -78,6 +78,7 @@ import app.hushpinterest.extension.pinterest.notifications.PushNotificationsTest
 import app.hushpinterest.extension.pinterest.privacy.LinkTracking;
 import app.hushpinterest.extension.pinterest.privacy.PlainPinLinks;
 import app.hushpinterest.extension.pinterest.ui.AmoledBlack;
+import app.hushpinterest.extension.pinterest.ui.CloseupButtons;
 import app.hushpinterest.extension.pinterest.ui.InterfaceControls;
 import app.hushpinterest.extension.pinterest.ui.UiHooks;
 import app.hushpinterest.extension.pinterest.ui.UiHooksForTests;
@@ -182,6 +183,22 @@ public class PausedHooksTest {
         View row = new View(RuntimeEnvironment.getApplication());
         UiHooks.topicSuggestions(row);
         return row.getVisibility() == View.GONE;
+    }
+
+    /** A closeup button handed over: true when it went GONE. */
+    private static boolean hidesCloseupButton(boolean back) {
+        View button = new View(RuntimeEnvironment.getApplication());
+        if (back) CloseupButtons.backArrow(button);
+        else CloseupButtons.lens(button);
+        return button.getVisibility() == View.GONE;
+    }
+
+    /** A closeup button handed over that Pinterest then shows: true when it was kept GONE. */
+    private static boolean keepsCloseupButtonHidden(boolean back) {
+        View button = new View(RuntimeEnvironment.getApplication());
+        if (back) CloseupButtons.backArrow(button);
+        else CloseupButtons.lens(button);
+        return CloseupButtons.visibility(button, View.VISIBLE) != View.VISIBLE;
     }
 
     /** A topic suggestion row Pinterest binds and then measures: true when the measure folded. */
@@ -298,6 +315,8 @@ public class PausedHooksTest {
             return header.getVisibility() != View.INVISIBLE;
         }));
         probes.put(Settings.BLACK_BOTTOM_BAR, Collections.singletonList(PausedHooksTest::paintsBottomBarBlack));
+        probes.put(Settings.HIDE_CLOSEUP_BACK, Arrays.asList(() -> hidesCloseupButton(true), () -> keepsCloseupButtonHidden(true)));
+        probes.put(Settings.HIDE_CLOSEUP_LENS, Arrays.asList(() -> hidesCloseupButton(false), () -> keepsCloseupButtonHidden(false)));
         probes.put(Settings.HIDE_PIN_MENU_COLLAGE, Collections.singletonList(() -> hidesMenuItem("overflow_menu_add_to_collage")));
         probes.put(Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Collections.singletonList(() -> hidesMenuItem("contextmenu_visual_search_image")));
         probes.put(Settings.HIDE_PIN_MENU_PIN_BOOST, Collections.singletonList(() -> hidesMenuItem("overflow_menu_pin_boost")));

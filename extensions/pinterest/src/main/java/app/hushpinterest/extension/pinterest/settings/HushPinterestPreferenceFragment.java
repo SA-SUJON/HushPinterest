@@ -389,6 +389,14 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("In dark mode, paints the bottom bar pure black to match the page, which also saves a "
                         + "little battery on OLED screens. Light mode stays as it is. The change shows the next time "
                         + "the bar redraws."), SettingsIcons.DARK_MODE);
+            patchToggle(ui, context, build, PatchFamily.HIDE_CLOSEUP_BUTTONS, Settings.HIDE_CLOSEUP_BACK,
+                    L10n.t("Hide back arrow on pins"),
+                    L10n.t("Hides the back arrow that floats over a pin you open. Your phone's back gesture or button "
+                        + "still leaves the pin. The change shows on the next pin you open."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_CLOSEUP_BUTTONS, Settings.HIDE_CLOSEUP_LENS,
+                    L10n.t("Hide lens button on pins"),
+                    L10n.t("Hides the visual search button in the corner of a pin you open. Search image in the pin "
+                        + "menu still works. The change shows on the next pin you open."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_COLLAGE,
                     L10n.t("Hide collage menu items"),
                     L10n.t("Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's "

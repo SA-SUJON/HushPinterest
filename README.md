@@ -50,7 +50,7 @@ Setup and backup guide in About is optional. It explains installed patches, runt
 
 ## Patches
 
-There are 28 patches so far.
+There are 29 patches so far.
 
 | Patch | What it does |
 |---|---|
@@ -64,6 +64,7 @@ There are 28 patches so far.
 | `Hide AI-labeled pins` | Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show. Starts off. Turn it on in HushPinterest settings > Feed. |
 | `Hide ads` | Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads. Good for a cleaner feed. On by default. Turn it off in HushPinterest settings > Feed. |
 | `Hide advertising ID` | Pinterest sees an empty advertising ID with ad tracking limited, the same as if you deleted your advertising ID in Android. Pinterest also stops keeping its browser ID in Google's Block Store, so a reinstall doesn't bring the old one back. Good for keeping ads from following you. On by default. Turn it off in HushPinterest settings > Privacy. |
+| `Hide closeup buttons` | Lets you hide the back arrow and the visual search (lens) button that float over a pin you open, each with its own switch, so they stop covering the picture. Your phone's back gesture still leaves the pin, and Search image in the pin menu still works. Both start off. Turn them on in HushPinterest settings > Interface. |
 | `Hide comments` | Collapses the comments and comment previews under pins. It doesn't change who can comment on your pins. Good for a quieter pin page. Starts off. Turn it on in HushPinterest settings > Interface. |
 | `Hide header buttons` | Hides the small icon buttons at the end of the top bar. Back buttons, text buttons and account controls stay. Good for a cleaner top bar. Starts off. Turn it on in HushPinterest settings > Interface. |
 | `Hide navigation buttons` | Lets you hide the Create, Notifications and Search buttons in the bottom bar, each with its own switch. Home and Profile stay. Starts off. Turn them on in HushPinterest settings > Interface. |
@@ -148,7 +149,7 @@ Exports and import previews use the choices saved on this device. Import setting
   <img src="assets/screenshots/settings-import-preview.png" width="240" alt="Native import review fixture with the switch's old and new values on one card">
 </p>
 
-Interface summaries say which controls change and when. Bottom-bar and header choices take effect on their next layout, and Black bottom bar on the bar's next redraw. Recent searches and comments follow their next layout or visibility update. Pin-menu choices affect new menus. Screenshot suggestions require a restart. Search also recognizes reviewed terms such as Toolbar icons, Recent searches and Reverse image search, in each supported language.
+Interface summaries say which controls change and when. Bottom-bar and header choices take effect on their next layout, and Black bottom bar on the bar's next redraw. The closeup's back arrow and lens choices show on the next pin you open. Recent searches and comments follow their next layout or visibility update. Pin-menu choices affect new menus. Screenshot suggestions require a restart. Search also recognizes reviewed terms such as Toolbar icons, Recent searches and Reverse image search, in each supported language.
 
 <p>
   <img src="assets/screenshots/settings-interface.png" width="240" alt="Interface switches with wrapped summaries">

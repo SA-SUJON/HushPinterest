@@ -1,0 +1,188 @@
+/*
+ * Original HushPinterest implementation, 2026.
+ * Copyright 2026 HushPinterest contributors
+ * https://github.com/SysAdminDoc/HushPinterest
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+package app.morphe.patches.pinterest.ui
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.pinterest.misc.extension.enableCapability
+import app.morphe.patches.pinterest.misc.extension.enableStatus
+import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
+import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
+import app.morphe.patches.pinterest.misc.settings.EXTENSION_ROOT
+import app.morphe.patches.pinterest.misc.settings.settingsPatch
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.namedRegisters
+import app.morphe.util.superclassChain
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderInstruction
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+
+private const val PATCH = "Hide closeup buttons"
+
+internal const val CLOSEUP_BUTTONS = "$EXTENSION_PACKAGE/ui/CloseupButtons;"
+internal const val CLOSEUP_BACK_HOOK = "$CLOSEUP_BUTTONS->backArrow(Landroid/view/View;)V"
+internal const val CLOSEUP_LENS_HOOK = "$CLOSEUP_BUTTONS->lens(Landroid/view/View;)V"
+internal const val CLOSEUP_VISIBILITY_HOOK = "$CLOSEUP_BUTTONS->visibility(Landroid/view/View;I)I"
+
+/** The R fields naming each button's id. This build reads ids from R rather than inlining them. */
+internal const val CLOSEUP_BACK_ID = "closeup_back_button"
+internal const val CLOSEUP_LENS_ID = "flashlight_search_button"
+
+private const val FIND_VIEW = "Landroid/view/View;->findViewById(I)Landroid/view/View;"
+private const val GET_CLASS = "Ljava/lang/Object;->getClass()Ljava/lang/Class;"
+private val ANDROID_VIEWS = listOf("Landroid/view/", "Landroid/widget/")
+
+/** Where a button is handed to the extension: the hook goes in at [index], passing [register], a [view]. */
+internal class ButtonSite(val method: Method, val index: Int, val register: Int, val view: String, val found: Boolean)
+
+private fun Instruction.readsId(id: String): Boolean {
+    if (opcode != Opcode.SGET) return false
+    val field = (this as ReferenceInstruction).reference as? FieldReference ?: return false
+    return field.name == id && field.type == "I"
+}
+
+/**
+ * Every place [id]'s button is found or built, from the methods that read the R field of that name.
+ * Found: the id read, `findViewById` with it, and `move-result-object`. The hook goes right after,
+ * and the button's class is the check-cast that follows, after Kotlin's getClass null check if
+ * there is one. Built: a method answering one of the APK's own views through a single
+ * `return-object`, where that view takes the id (see [tiedToId]). The hook goes right before it,
+ * and the class is the method's return type. Anything else reading the id, such as a table
+ * pairing ids with names, isn't a button.
+ */
+internal fun BytecodePatchContext.buttonSites(id: String): List<ButtonSite> {
+    val sites = mutableListOf<ButtonSite>()
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        owner.methods.forEach { method -> sites += buttonSites(method, id) }
+    }
+    return sites
+}
+
+private fun BytecodePatchContext.buttonSites(method: Method, id: String): List<ButtonSite> {
+    val body = method.instructions()
+    val reads = body.indices.filter { body[it].readsId(id) }
+    if (reads.isEmpty()) return emptyList()
+    val found = reads.mapNotNull { foundAt(method, body, it, id) }
+    if (found.isNotEmpty()) return found
+    val returns = body.indices.filter { body[it].opcode == Opcode.RETURN_OBJECT }
+    if (returns.size != 1 || classDefByOrNull(method.returnType) == null || !isFrameworkView(method.returnType)) return emptyList()
+    val at = returns.single()
+    val button = (body[at] as OneRegisterInstruction).registerA
+    if (!tiedToId(body, reads, button)) return emptyList()
+    return listOf(ButtonSite(method, at, button, method.returnType, false))
+}
+
+/**
+ * True when the view answered in [button] takes the id read at [reads]: `setId` is called on it
+ * with the id, or its constructor takes an object whose own constructor took the id. A method
+ * that answers some other view, the parent it looked the button up in for one, doesn't qualify.
+ */
+internal fun tiedToId(body: List<Instruction>, reads: List<Int>, button: Int): Boolean {
+    val ids = reads.map { (body[it] as OneRegisterInstruction).registerA }.toSet()
+    val holders = mutableSetOf<Int>()
+    for (index in reads.min() + 1 until body.size) {
+        val call = body[index]
+        if (call !is FiveRegisterInstruction && call !is RegisterRangeInstruction) continue
+        val method = (call as ReferenceInstruction).reference as? MethodReference ?: continue
+        val registers = call.namedRegisters()
+        if (registers.isEmpty()) continue
+        val passed = registers.drop(1)
+        if (method.name == "setId" && method.parameterTypes.map { it.toString() } == listOf("I") &&
+            registers.first() == button && passed.any { it in ids }) return true
+        if (method.name != "<init>") continue
+        if (passed.any { it in ids }) holders += registers.first()
+        if (registers.first() == button && passed.any { it in holders }) return true
+    }
+    return false
+}
+
+private fun foundAt(method: Method, body: List<Instruction>, at: Int, id: String): ButtonSite? {
+    val find = body.getOrNull(at + 1) as? FiveRegisterInstruction ?: return null
+    if (find.opcode != Opcode.INVOKE_VIRTUAL || (find as ReferenceInstruction).reference.toString() != FIND_VIEW ||
+        find.registerCount != 2 || find.registerD != (body[at] as OneRegisterInstruction).registerA) return null
+    val kept = body.getOrNull(at + 2)
+    if (kept?.opcode != Opcode.MOVE_RESULT_OBJECT) return null
+    val button = (kept as OneRegisterInstruction).registerA
+    var next = at + 3
+    val check = body.getOrNull(next)
+    if (check is FiveRegisterInstruction && check.opcode == Opcode.INVOKE_VIRTUAL && check.registerCount == 1 &&
+        check.registerC == button && (check as ReferenceInstruction).reference.toString() == GET_CLASS) next++
+    val cast = body.getOrNull(next)
+    if (cast?.opcode != Opcode.CHECK_CAST || (cast as OneRegisterInstruction).registerA != button) {
+        throw PatchException("$PATCH: ${method.definingClass}->${method.name} finds the $id button without casting it to its class")
+    }
+    return ButtonSite(method, at + 3, button, ((cast as ReferenceInstruction).reference as TypeReference).type, true)
+}
+
+/** True when the class's first ancestor outside the APK is one of Android's view classes. */
+private fun BytecodePatchContext.isFrameworkView(type: String) =
+    superclassChain(type).drop(1).lastOrNull()?.let { outside -> ANDROID_VIEWS.any { outside.startsWith(it) } } == true
+
+@Suppress("unused")
+val hideCloseupButtonsPatch = bytecodePatch(
+    name = PATCH,
+    description = "Lets you hide the back arrow and the visual search (lens) button that float over a pin you open, " +
+        "each with its own switch, so they stop covering the picture. Your phone's back gesture still leaves the " +
+        "pin, and Search image in the pin menu still works. Both start off. Turn them on in HushPinterest " +
+        "settings > Interface.",
+) {
+    category("Interface")
+    dependsOn(settingsPatch, pinterestExtensionPatch)
+    compatibleWith(*AppCompatibilities.pinterest())
+
+    execute {
+        requireStatusMethod("hideCloseupButtons")
+        requireStatusMethod("closeupButtons")
+        val backs = buttonSites(CLOSEUP_BACK_ID)
+        val lenses = buttonSites(CLOSEUP_LENS_ID)
+        if (backs.isEmpty()) throw PatchException("$PATCH: nothing finds the closeup's back arrow")
+        if (lenses.isEmpty()) throw PatchException("$PATCH: nothing builds the closeup's visual search button")
+
+        // Everything is found and checked before the first change.
+        val views = (backs + lenses).map { it.view }.distinct().map { type ->
+            if (!isFrameworkView(type)) throw PatchException("$PATCH: the button class $type is not an Android view")
+            mutableClassDefBy(type).also { requireOverride(it, "setVisibility", listOf("I")) }
+        }
+        val hooked = backs.map { it to CLOSEUP_BACK_HOOK } + lenses.map { it to CLOSEUP_LENS_HOOK }
+        val edits = hooked.map { (site, hook) -> Triple(mutable(site.method), site, hook) }
+        for ((method, site, _) in edits) {
+            // A found button is only in its register on the path from findViewById.
+            val at = method.implementation!!.instructions[site.index] as BuilderInstruction
+            if (site.found && at.location.labels.isNotEmpty()) {
+                throw PatchException("$PATCH: ${site.method.definingClass}->${site.method.name} branches into the found button")
+            }
+        }
+
+        // Within one method the later site goes in first, so the earlier index still holds.
+        for ((method, site, hook) in edits.sortedByDescending { it.second.index }) {
+            method.addInstructionsAtControlFlowLabel(site.index, "invoke-static/range { v${site.register} .. v${site.register} }, $hook")
+        }
+        val prefix = """
+            invoke-static { p0, p1 }, $CLOSEUP_VISIBILITY_HOOK
+            move-result p1
+        """
+        for (view in views) {
+            val own = view.methods.singleOrNull { it.name == "setVisibility" && it.parameters() == listOf("I") }
+            if (own != null) own.addInstructions(0, prefix) else addOverride(view, "setVisibility", listOf("I"), prefix)
+        }
+        enableCapability("closeupButtons")
+        enableStatus("hideCloseupButtons")
+    }
+}

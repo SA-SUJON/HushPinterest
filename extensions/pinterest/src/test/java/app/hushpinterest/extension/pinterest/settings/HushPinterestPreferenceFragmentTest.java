@@ -104,6 +104,7 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_NAVIGATION_BUTTONS, "Hide Create button");
         ROW_TITLES.put(PatchFamily.HIDE_HEADER_BUTTONS, "Hide header buttons");
         ROW_TITLES.put(PatchFamily.AMOLED_BLACK, "Black bottom bar");
+        ROW_TITLES.put(PatchFamily.HIDE_CLOSEUP_BUTTONS, "Hide back arrow on pins");
         ROW_TITLES.put(PatchFamily.HIDE_PIN_MENU_ITEMS, "Hide collage menu items");
         ROW_TITLES.put(PatchFamily.HIDE_COMMENTS, "Hide comments");
         ROW_TITLES.put(PatchFamily.HIDE_TOPIC_SUGGESTIONS, "Hide topic suggestions");

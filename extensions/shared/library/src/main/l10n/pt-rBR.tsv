@@ -479,6 +479,12 @@ Couldn't check the file, so these are still the details Pinterest supplied.	Não
 Black bottom bar	Barra inferior preta
 In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.	No modo escuro, pinta a barra inferior de preto puro para combinar com a página, o que também economiza um pouco de bateria em telas OLED. O modo claro continua como está. A mudança aparece na próxima vez que a barra for redesenhada.
 AMOLED dark theme	Tema escuro AMOLED
+# context: the two Hide closeup buttons switches on the Interface page. Pinterest calls the lens button's menu entry Search image.
+Hide back arrow on pins	Ocultar seta de voltar nos pins
+Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.	Oculta a seta de voltar que flutua sobre um pin que você abre. O gesto ou botão de voltar do seu celular ainda tira você do pin. A mudança aparece no próximo pin que você abrir.
+Hide lens button on pins	Ocultar botão Lens nos pins
+Hide closeup buttons	Ocultar botões nos pins
+Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.	Oculta o botão de pesquisa visual no canto de um pin que você abre. Pesquisar imagem no menu do pin continua funcionando. A mudança aparece no próximo pin que você abrir.
 # context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
 The picked file was left alone. If it's empty, delete it in your files app.	O arquivo escolhido ficou como estava. Se estiver vazio, apague-o no seu app de arquivos.
 # context: the toast at the end of a pin download selection when its progress dialog has closed. %1$s is the selection's title, Download visible pins or Download board

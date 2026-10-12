@@ -203,7 +203,7 @@ Hide Search button	Ara düğmesini gizle
 Hide header buttons	Başlık düğmelerini gizle
 Filter pin menu	Pin menüsünü filtrele
 Hide collage menu items	Kolaj menü öğelerini gizle
-Hide Search image menu item	Görsel ara menü öğesini gizle
+Hide Search image menu item	Görüntü ara menü öğesini gizle
 Hide Promote pin menu item	Pin tanıt menü öğesini gizle
 Hide comments	Yorumları gizle
 Hide topic suggestions	Konu önerilerini gizle
@@ -323,7 +323,7 @@ Hides Notifications in the bottom bar. The change shows the next time the bar up
 Hides Search in the bottom bar. The change shows the next time the bar updates.	Alt çubuktaki Ara'yı gizler. Değişiklik çubuk bir sonraki güncellenişinde görünür.
 Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.	Üst çubuğun sonundaki küçük simge düğmelerini gizler. Geri, metin düğmeleri ve hesap denetimleri kalır. Değişiklik çubuk bir sonraki güncellenişinde görünür.
 Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.	Bundan sonra açtığın pin menülerinde Kolaja ekle ve Kolajı yeniden düzenle öğelerini gizler. Zaten açık olan menü değişmez.
-Hides Search image in pin menus you open from now on. A menu that's already open won't change.	Bundan sonra açtığın pin menülerinde Görsel ara öğesini gizler. Zaten açık olan menü değişmez.
+Hides Search image in pin menus you open from now on. A menu that's already open won't change.	Bundan sonra açtığın pin menülerinde Görüntü ara öğesini gizler. Zaten açık olan menü değişmez.
 Hides Promote pin in pin menus you open from now on. A menu that's already open won't change.	Bundan sonra açtığın pin menülerinde Pini öne çıkar öğesini gizler. Zaten açık olan menü değişmez.
 Hides comments and comment previews under pins. It doesn't change who can comment. The change shows the next time the screen updates.	Pinlerin altındaki yorumları ve yorum önizlemelerini gizler. Kimin yorum yapabileceğini değiştirmez. Değişiklik ekran bir sonraki güncellenişinde görünür.
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Pinlerin altındaki konu baloncuklarından oluşan "Sevebileceğin fikirler" satırını, Pinterest onu bir sonraki gösterdiğinde gizler. Yorumlar ve ilgili Pinler yerinde kalır.
@@ -482,6 +482,12 @@ Couldn't check the file, so these are still the details Pinterest supplied.	Dosy
 Black bottom bar	Siyah alt çubuk
 In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.	Karanlık modda alt çubuğu sayfaya uyması için tamamen siyaha boyar. Bu, OLED ekranlarda biraz pil de tasarruf ettirir. Aydınlık mod olduğu gibi kalır. Değişiklik çubuk bir sonraki çizilişinde görünür.
 AMOLED dark theme	AMOLED karanlık tema
+# context: the two Hide closeup buttons switches on the Interface page. Pinterest calls the lens button's menu entry Search image.
+Hide back arrow on pins	Pinlerde geri okunu gizle
+Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.	Açtığın bir pinin üzerinde duran geri okunu gizler. Telefonunun geri hareketi veya düğmesi seni yine pinden çıkarır. Değişiklik açtığın bir sonraki pinde görünür.
+Hide lens button on pins	Pinlerde Lens düğmesini gizle
+Hide closeup buttons	Pinlerdeki düğmeleri gizle
+Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.	Açtığın bir pinin köşesindeki görsel arama düğmesini gizler. Pin menüsündeki Görüntü ara çalışmaya devam eder. Değişiklik açtığın bir sonraki pinde görünür.
 # context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
 The picked file was left alone. If it's empty, delete it in your files app.	Seçilen dosyaya dokunulmadı. Boşsa dosyalar uygulamandan sil.
 # context: the toast at the end of a pin download selection when its progress dialog has closed. %1$s is the selection's title, Download visible pins or Download board

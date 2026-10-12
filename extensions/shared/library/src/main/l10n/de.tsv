@@ -323,7 +323,7 @@ Hides Notifications in the bottom bar. The change shows the next time the bar up
 Hides Search in the bottom bar. The change shows the next time the bar updates.	Blendet Suche in der unteren Leiste aus. Die Änderung zeigt sich, wenn sich die Leiste das nächste Mal aktualisiert.
 Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.	Blendet die kleinen Symbolschaltflächen am Ende der oberen Leiste aus. Zurück, Textschaltflächen und Kontosteuerung bleiben. Die Änderung zeigt sich, wenn sich die Leiste das nächste Mal aktualisiert.
 Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.	Blendet Zu Collage hinzufügen und Collage remixen in Pin-Menüs aus, die du ab jetzt öffnest. Ein bereits offenes Menü ändert sich nicht.
-Hides Search image in pin menus you open from now on. A menu that's already open won't change.	Blendet Bildersuche in Pin-Menüs aus, die du ab jetzt öffnest. Ein bereits offenes Menü ändert sich nicht.
+Hides Search image in pin menus you open from now on. A menu that's already open won't change.	Blendet Bild suchen in Pin-Menüs aus, die du ab jetzt öffnest. Ein bereits offenes Menü ändert sich nicht.
 Hides Promote pin in pin menus you open from now on. A menu that's already open won't change.	Blendet Pin bewerben in Pin-Menüs aus, die du ab jetzt öffnest. Ein bereits offenes Menü ändert sich nicht.
 Hides comments and comment previews under pins. It doesn't change who can comment. The change shows the next time the screen updates.	Blendet Kommentare und Kommentarvorschauen unter Pins aus. Wer kommentieren darf, ändert sich nicht. Die Änderung zeigt sich, wenn sich der Bildschirm das nächste Mal aktualisiert.
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Blendet die Zeile „Ideen, die dir gefallen könnten“ mit Themenblasen unter Pins aus, sobald Pinterest sie das nächste Mal anzeigt. Kommentare und ähnliche Pins bleiben.
@@ -482,6 +482,12 @@ Couldn't check the file, so these are still the details Pinterest supplied.	Die 
 Black bottom bar	Schwarze untere Leiste
 In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.	Färbt im dunklen Modus die untere Leiste tiefschwarz, passend zur Seite. Auf OLED-Bildschirmen spart das auch etwas Akku. Der helle Modus bleibt, wie er ist. Die Änderung zeigt sich, wenn die Leiste das nächste Mal neu gezeichnet wird.
 AMOLED dark theme	Dunkles AMOLED-Design
+# context: the two Hide closeup buttons switches on the Interface page. Pinterest calls the lens button's menu entry Search image.
+Hide back arrow on pins	Zurück-Pfeil auf Pins ausblenden
+Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.	Blendet den Zurück-Pfeil aus, der über einem geöffneten Pin schwebt. Mit der Zurück-Geste oder -Taste deines Handys verlässt du den Pin weiterhin. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Hide lens button on pins	Lens-Schaltfläche auf Pins ausblenden
+Hide closeup buttons	Schaltflächen auf Pins ausblenden
+Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.	Blendet die Schaltfläche für die visuelle Suche in der Ecke eines geöffneten Pins aus. Bild suchen im Pin-Menü funktioniert weiterhin. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
 # context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
 The picked file was left alone. If it's empty, delete it in your files app.	Die gewählte Datei wurde nicht angerührt. Wenn sie leer ist, lösche sie in deiner Dateien-App.
 # context: the toast at the end of a pin download selection when its progress dialog has closed. %1$s is the selection's title, Download visible pins or Download board

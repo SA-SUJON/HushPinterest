@@ -43,6 +43,7 @@ public final class FamilyNames {
     public static final String HIDE_NAVIGATION_BUTTONS = "Hide navigation buttons";
     public static final String HIDE_HEADER_BUTTONS = "Hide header buttons";
     public static final String AMOLED_BLACK = "AMOLED black";
+    public static final String HIDE_CLOSEUP_BUTTONS = "Hide closeup buttons";
     public static final String HIDE_PIN_MENU_ITEMS = "Filter pin menu";
     public static final String HIDE_COMMENTS = "Hide comments";
     public static final String HIDE_TOPIC_SUGGESTIONS = "Hide topic suggestions";

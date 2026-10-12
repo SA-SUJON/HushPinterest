@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(944);
+        Map<String, String> table = new HashMap<>(954);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -412,23 +412,29 @@ public final class L10nTranslations {
                 "Werbung ausblenden");
         table.put("Hide advertising ID",
                 "Werbe-ID verbergen");
+        table.put("Hide back arrow on pins",
+                "Zur\u00fcck-Pfeil auf Pins ausblenden");
+        table.put("Hide closeup buttons",
+                "Schaltfl\u00e4chen auf Pins ausblenden");
         table.put("Hide collage menu items",
                 "Collage-Men\u00fceintr\u00e4ge ausblenden");
         table.put("Hide comments",
                 "Kommentare ausblenden");
         table.put("Hide header buttons",
                 "Kopfzeilenschaltfl\u00e4chen ausblenden");
+        table.put("Hide lens button on pins",
+                "Lens-Schaltfl\u00e4che auf Pins ausblenden");
         table.put("Hide navigation buttons",
                 "Navigationsschaltfl\u00e4chen ausblenden");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Hide save toasts",
                 "Merken-Hinweise ausblenden");
         table.put("Hide search history",
                 "Suchverlauf ausblenden");
         table.put("Hide shopping and product pins",
                 "Shopping und Produkt-Pins ausblenden");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Hide survey prompts",
                 "Umfrage-Einladungen ausblenden");
         table.put("Hide topic suggestions",
@@ -444,7 +450,7 @@ public final class L10nTranslations {
         table.put("Hides Promote pin in pin menus you open from now on. A menu that's already open won't change.",
                 "Blendet Pin bewerben in Pin-Men\u00fcs aus, die du ab jetzt \u00f6ffnest. Ein bereits offenes Men\u00fc \u00e4ndert sich nicht.");
         table.put("Hides Search image in pin menus you open from now on. A menu that's already open won't change.",
-                "Blendet Bildersuche in Pin-Men\u00fcs aus, die du ab jetzt \u00f6ffnest. Ein bereits offenes Men\u00fc \u00e4ndert sich nicht.");
+                "Blendet Bild suchen in Pin-Men\u00fcs aus, die du ab jetzt \u00f6ffnest. Ein bereits offenes Men\u00fc \u00e4ndert sich nicht.");
         table.put("Hides Search in the bottom bar. The change shows the next time the bar updates.",
                 "Blendet Suche in der unteren Leiste aus. Die \u00c4nderung zeigt sich, wenn sich die Leiste das n\u00e4chste Mal aktualisiert.");
         table.put("Hides comments and comment previews under pins. It doesn't change who can comment. The change shows the next time the screen updates.",
@@ -453,8 +459,12 @@ public final class L10nTranslations {
                 "Blendet shoppingf\u00e4hige Pins, Shopping-Stories und hervorgehobene Pinnw\u00e4nde aus.");
         table.put("Hides the \"Ideas you might love\" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.",
                 "Blendet die Zeile \u201eIdeen, die dir gefallen k\u00f6nnten\u201c mit Themenblasen unter Pins aus, sobald Pinterest sie das n\u00e4chste Mal anzeigt. Kommentare und \u00e4hnliche Pins bleiben.");
+        table.put("Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.",
+                "Blendet den Zur\u00fcck-Pfeil aus, der \u00fcber einem ge\u00f6ffneten Pin schwebt. Mit der Zur\u00fcck-Geste oder -Taste deines Handys verl\u00e4sst du den Pin weiterhin. Die \u00c4nderung zeigt sich beim n\u00e4chsten Pin, den du \u00f6ffnest.");
         table.put("Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.",
                 "Blendet die kleinen Symbolschaltfl\u00e4chen am Ende der oberen Leiste aus. Zur\u00fcck, Textschaltfl\u00e4chen und Kontosteuerung bleiben. Die \u00c4nderung zeigt sich, wenn sich die Leiste das n\u00e4chste Mal aktualisiert.");
+        table.put("Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.",
+                "Blendet die Schaltfl\u00e4che f\u00fcr die visuelle Suche in der Ecke eines ge\u00f6ffneten Pins aus. Bild suchen im Pin-Men\u00fc funktioniert weiterhin. Die \u00c4nderung zeigt sich beim n\u00e4chsten Pin, den du \u00f6ffnest.");
         table.put("Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.",
                 "Blendet deine letzten Suchanfragen aus. Der Suchverlauf deines Kontos wird nicht gel\u00f6scht. Die \u00c4nderung zeigt sich, wenn sich der Bildschirm das n\u00e4chste Mal aktualisiert.");
         table.put("History removed. Files and active downloads were kept.",
@@ -539,6 +549,9 @@ public final class L10nTranslations {
                 "Es gibt noch keine Version von HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Keine App auf diesem Handy kann den Link \u00f6ffnen. Die Adresse ist %1$s.");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "Kein Download eingereiht. Die Auswahl wurde gestoppt, abgebrochen oder war nicht verf\u00fcgbar.");
         table.put("No downloads while roaming",
@@ -549,9 +562,6 @@ public final class L10nTranslations {
                 "Von dieser Pinnwand wurden noch keine Pins geladen. Scrolle durch die Pinnwand und versuche es dann noch einmal.");
         table.put("No screenshot share menu",
                 "Kein Teilen-Men\u00fc bei Screenshots");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("No visible pins are available. Open a pin menu from the grid and try again.",
                 "Keine sichtbaren Pins verf\u00fcgbar. \u00d6ffne ein Pin-Men\u00fc im Raster und versuche es erneut.");
         table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
@@ -662,6 +672,9 @@ public final class L10nTranslations {
                 "Pinterests eigene Einstellungen");
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Die Webadressen von Pinterest sind in den Android-Einstellungen f\u00fcr diese App ausgew\u00e4hlt, deshalb \u00f6ffnen sich ihre Links hier.");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("Plain pin links",
                 "Einfache Pin-Links");
         table.put("Privacy",
@@ -672,9 +685,6 @@ public final class L10nTranslations {
                 "Beworbene und KI-markierte Pins");
         table.put("Promoted pins",
                 "Beworbene Pins");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("Queue pins",
                 "Pins einreihen");
         table.put("Queue selected",
@@ -785,6 +795,9 @@ public final class L10nTranslations {
                 "Die Einstellungen lie\u00dfen sich nicht vollst\u00e4ndig aktualisieren. \u00d6ffne sie neu und versuche es noch einmal.");
         table.put("Settings exported.",
                 "Einstellungen exportiert.");
+    }
+
+    private static void fillDe6(Map<String, String> table) {
         table.put("Settings exported. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.",
                 "Einstellungen exportiert. Die App, in der die Datei liegt, lie\u00df HushPinterest sie nicht zur\u00fccklesen, daher wurde sie nicht gepr\u00fcft.");
         table.put("Settings imported.",
@@ -795,9 +808,6 @@ public final class L10nTranslations {
                 "Einstellungen importiert. %1$d Schalter wurden ge\u00e4ndert.");
         table.put("Setup and backup guide",
                 "Hilfe zur Einrichtung und Sicherung");
-    }
-
-    private static void fillDe6(Map<String, String> table) {
         table.put("Share file",
                 "Datei teilen");
         table.put("Share pin",
@@ -908,6 +918,9 @@ public final class L10nTranslations {
                 "Dieser Download ist kein fertiges Bild mehr. Sieh unter %s nach.");
         table.put("This download isn't a finished image anymore. Check Downloads.",
                 "Dieser Download ist kein fertiges Bild mehr. Sieh in den Downloads nach.");
+    }
+
+    private static void fillDe7(Map<String, String> table) {
         table.put("This download isn't a saved file anymore. Check %s.",
                 "Dieser Download ist keine gespeicherte Datei mehr. Sieh unter %s nach.");
         table.put("This download isn't a saved file anymore. Check Downloads.",
@@ -918,9 +931,6 @@ public final class L10nTranslations {
                 "Diese Liste enth\u00e4lt nur die Pins, die beim Speichern aus den Pins auf dem Bildschirm gew\u00e4hlt wurden.");
         table.put("This media link isn't a public Pinterest link HushPinterest can use.",
                 "Dieser Medienlink ist kein \u00f6ffentlicher Pinterest-Link, den HushPinterest nutzen kann.");
-    }
-
-    private static void fillDe7(Map<String, String> table) {
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Dieses Handy hat keine Dateiauswahl, hier l\u00e4sst sich also keine Datei w\u00e4hlen.");
         table.put("This phone has no folder picker, so there's no way to choose a folder here.",
@@ -1028,7 +1038,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(944);
+        Map<String, String> table = new HashMap<>(954);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1393,23 +1403,29 @@ public final class L10nTranslations {
                 "Ocultar anuncios");
         table.put("Hide advertising ID",
                 "Ocultar el ID de publicidad");
+        table.put("Hide back arrow on pins",
+                "Ocultar flecha atr\u00e1s en los pines");
+        table.put("Hide closeup buttons",
+                "Ocultar botones en los pines");
         table.put("Hide collage menu items",
                 "Ocultar opciones de collage");
         table.put("Hide comments",
                 "Ocultar comentarios");
         table.put("Hide header buttons",
                 "Ocultar botones del encabezado");
+        table.put("Hide lens button on pins",
+                "Ocultar bot\u00f3n Lens en los pines");
         table.put("Hide navigation buttons",
                 "Ocultar botones de navegaci\u00f3n");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Hide save toasts",
                 "Ocultar avisos al guardar");
         table.put("Hide search history",
                 "Ocultar historial de b\u00fasquedas");
         table.put("Hide shopping and product pins",
                 "Ocultar compras y pines de productos");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Hide survey prompts",
                 "Ocultar invitaciones a encuestas");
         table.put("Hide topic suggestions",
@@ -1434,8 +1450,12 @@ public final class L10nTranslations {
                 "Oculta los pines comprables, las historias de compras y los tableros destacados.");
         table.put("Hides the \"Ideas you might love\" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.",
                 "Oculta la fila \u00abIdeas que te pueden gustar\u00bb con burbujas de temas bajo los Pins la pr\u00f3xima vez que Pinterest la muestre. Los comentarios y los Pins relacionados se quedan.");
+        table.put("Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.",
+                "Oculta la flecha atr\u00e1s que flota sobre un pin que abres. El gesto o bot\u00f3n atr\u00e1s de tu tel\u00e9fono te sigue sacando del pin. El cambio se ve en el siguiente pin que abras.");
         table.put("Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.",
                 "Oculta los botones peque\u00f1os con icono al final de la barra superior. Atr\u00e1s, los botones de texto y los controles de la cuenta se quedan. El cambio se ve la pr\u00f3xima vez que se actualice la barra.");
+        table.put("Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.",
+                "Oculta el bot\u00f3n de b\u00fasqueda visual en la esquina de un pin que abres. Buscar imagen en el men\u00fa del pin sigue funcionando. El cambio se ve en el siguiente pin que abras.");
         table.put("Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.",
                 "Oculta tus b\u00fasquedas recientes. No borra el historial de b\u00fasqueda de tu cuenta. El cambio se ve la pr\u00f3xima vez que se actualice la pantalla.");
         table.put("History removed. Files and active downloads were kept.",
@@ -1520,6 +1540,9 @@ public final class L10nTranslations {
                 "Todav\u00eda no hay ninguna versi\u00f3n de HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Ninguna app de este tel\u00e9fono puede abrir el enlace. La direcci\u00f3n es %1$s.");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "No se puso ninguna descarga en cola. La selecci\u00f3n se detuvo, se cancel\u00f3 o no estaba disponible.");
         table.put("No downloads while roaming",
@@ -1530,9 +1553,6 @@ public final class L10nTranslations {
                 "Todav\u00eda no se carg\u00f3 ning\u00fan pin de este tablero. Despl\u00e1zate por el tablero y vuelve a intentarlo.");
         table.put("No screenshot share menu",
                 "Sin men\u00fa al hacer capturas");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("No visible pins are available. Open a pin menu from the grid and try again.",
                 "No hay pines visibles disponibles. Abre el men\u00fa de un pin en la cuadr\u00edcula e int\u00e9ntalo de nuevo.");
         table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
@@ -1643,6 +1663,9 @@ public final class L10nTranslations {
                 "Configuraci\u00f3n propia de Pinterest");
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Las direcciones web de Pinterest est\u00e1n seleccionadas para esta app en los ajustes de Android, as\u00ed que sus enlaces se abren aqu\u00ed.");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("Plain pin links",
                 "Enlaces de pin simples");
         table.put("Privacy",
@@ -1653,9 +1676,6 @@ public final class L10nTranslations {
                 "Pines promocionados y con etiqueta de IA");
         table.put("Promoted pins",
                 "Pines promocionados");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("Queue pins",
                 "Poner pines en cola");
         table.put("Queue selected",
@@ -1766,6 +1786,9 @@ public final class L10nTranslations {
                 "No se pudo actualizar la configuraci\u00f3n por completo. Vuelve a abrirla e int\u00e9ntalo de nuevo.");
         table.put("Settings exported.",
                 "Configuraci\u00f3n exportada.");
+    }
+
+    private static void fillEs6(Map<String, String> table) {
         table.put("Settings exported. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.",
                 "Configuraci\u00f3n exportada. La app que guarda el archivo no dej\u00f3 que HushPinterest lo volviera a leer, as\u00ed que no se comprob\u00f3.");
         table.put("Settings imported.",
@@ -1776,9 +1799,6 @@ public final class L10nTranslations {
                 "Configuraci\u00f3n importada. Cambiaron %1$d interruptores.");
         table.put("Setup and backup guide",
                 "Gu\u00eda de configuraci\u00f3n y copias de seguridad");
-    }
-
-    private static void fillEs6(Map<String, String> table) {
         table.put("Share file",
                 "Compartir archivo");
         table.put("Share pin",
@@ -1889,6 +1909,9 @@ public final class L10nTranslations {
                 "Esta descarga ya no es una imagen terminada. Revisa %s.");
         table.put("This download isn't a finished image anymore. Check Downloads.",
                 "Esta descarga ya no es una imagen terminada. Revisa Descargas.");
+    }
+
+    private static void fillEs7(Map<String, String> table) {
         table.put("This download isn't a saved file anymore. Check %s.",
                 "Esta descarga ya no es un archivo guardado. Revisa %s.");
         table.put("This download isn't a saved file anymore. Check Downloads.",
@@ -1899,9 +1922,6 @@ public final class L10nTranslations {
                 "Esta lista solo tiene los pines elegidos entre los que hab\u00eda en pantalla al guardarla.");
         table.put("This media link isn't a public Pinterest link HushPinterest can use.",
                 "Este enlace de medios no es un enlace p\u00fablico de Pinterest que HushPinterest pueda usar.");
-    }
-
-    private static void fillEs7(Map<String, String> table) {
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Este tel\u00e9fono no tiene selector de archivos, as\u00ed que aqu\u00ed no hay forma de elegir un archivo.");
         table.put("This phone has no folder picker, so there's no way to choose a folder here.",
@@ -2009,7 +2029,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(944);
+        Map<String, String> table = new HashMap<>(954);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -2374,23 +2394,29 @@ public final class L10nTranslations {
                 "Sembunyikan iklan");
         table.put("Hide advertising ID",
                 "Sembunyikan ID iklan");
+        table.put("Hide back arrow on pins",
+                "Sembunyikan panah kembali di pin");
+        table.put("Hide closeup buttons",
+                "Sembunyikan tombol di pin");
         table.put("Hide collage menu items",
                 "Sembunyikan opsi kolase");
         table.put("Hide comments",
                 "Sembunyikan komentar");
         table.put("Hide header buttons",
                 "Sembunyikan tombol header");
+        table.put("Hide lens button on pins",
+                "Sembunyikan tombol Lens di pin");
         table.put("Hide navigation buttons",
                 "Sembunyikan tombol navigasi");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Hide save toasts",
                 "Sembunyikan notifikasi simpan");
         table.put("Hide search history",
                 "Sembunyikan riwayat pencarian");
         table.put("Hide shopping and product pins",
                 "Sembunyikan belanja dan Pin produk");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Hide survey prompts",
                 "Sembunyikan ajakan survei");
         table.put("Hide topic suggestions",
@@ -2415,8 +2441,12 @@ public final class L10nTranslations {
                 "Menyembunyikan pin yang bisa dibeli, cerita belanja, dan papan unggulan.");
         table.put("Hides the \"Ideas you might love\" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.",
                 "Menyembunyikan baris \"Ide yang mungkin Anda sukai\" berisi gelembung topik di bawah Pin saat Pinterest menampilkannya lagi. Komentar dan Pin terkait tetap ada.");
+        table.put("Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.",
+                "Menyembunyikan panah kembali yang mengambang di atas pin yang Anda buka. Gestur atau tombol kembali ponsel Anda tetap membawa Anda keluar dari pin. Perubahan terlihat pada pin berikutnya yang Anda buka.");
         table.put("Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.",
                 "Menyembunyikan tombol ikon kecil di ujung bilah atas. Kembali, tombol teks, dan kontrol akun tetap ada. Perubahan terlihat saat bilah diperbarui berikutnya.");
+        table.put("Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.",
+                "Menyembunyikan tombol pencarian visual di sudut pin yang Anda buka. Cari gambar di menu pin tetap berfungsi. Perubahan terlihat pada pin berikutnya yang Anda buka.");
         table.put("Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.",
                 "Menyembunyikan pencarian terbaru Anda. Riwayat pencarian akun Anda tidak dihapus. Perubahan terlihat saat layar diperbarui berikutnya.");
         table.put("History removed. Files and active downloads were kept.",
@@ -2501,6 +2531,9 @@ public final class L10nTranslations {
                 "Belum ada rilis HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "Tidak ada unduhan yang diantrekan. Pilihan dihentikan, dibatalkan, atau tidak tersedia.");
         table.put("No downloads while roaming",
@@ -2511,9 +2544,6 @@ public final class L10nTranslations {
                 "Belum ada Pin dari papan ini yang dimuat. Gulir papan, lalu coba lagi.");
         table.put("No screenshot share menu",
                 "Matikan menu berbagi tangkapan layar");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("No visible pins are available. Open a pin menu from the grid and try again.",
                 "Tidak ada Pin terlihat yang tersedia. Buka menu Pin dari kisi lalu coba lagi.");
         table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
@@ -2624,6 +2654,9 @@ public final class L10nTranslations {
                 "Pengaturan Pinterest sendiri");
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Alamat web Pinterest dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("Plain pin links",
                 "Tautan pin biasa");
         table.put("Privacy",
@@ -2634,9 +2667,6 @@ public final class L10nTranslations {
                 "Pin promosi dan pin berlabel AI");
         table.put("Promoted pins",
                 "Pin promosi");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("Queue pins",
                 "Antrekan Pin");
         table.put("Queue selected",
@@ -2747,6 +2777,9 @@ public final class L10nTranslations {
                 "Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.");
         table.put("Settings exported.",
                 "Pengaturan diekspor.");
+    }
+
+    private static void fillIn6(Map<String, String> table) {
         table.put("Settings exported. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.",
                 "Pengaturan diekspor. Aplikasi yang menyimpan file itu tidak mengizinkan HushPinterest membacanya kembali, jadi file itu tidak diperiksa.");
         table.put("Settings imported.",
@@ -2757,9 +2790,6 @@ public final class L10nTranslations {
                 "Pengaturan diimpor. %1$d sakelar berubah.");
         table.put("Setup and backup guide",
                 "Panduan penyiapan dan pencadangan");
-    }
-
-    private static void fillIn6(Map<String, String> table) {
         table.put("Share file",
                 "Bagikan file");
         table.put("Share pin",
@@ -2870,6 +2900,9 @@ public final class L10nTranslations {
                 "Unduhan ini bukan lagi gambar yang selesai. Periksa %s.");
         table.put("This download isn't a finished image anymore. Check Downloads.",
                 "Unduhan ini bukan lagi gambar yang selesai. Periksa Download.");
+    }
+
+    private static void fillIn7(Map<String, String> table) {
         table.put("This download isn't a saved file anymore. Check %s.",
                 "Unduhan ini bukan lagi file tersimpan. Periksa %s.");
         table.put("This download isn't a saved file anymore. Check Downloads.",
@@ -2880,9 +2913,6 @@ public final class L10nTranslations {
                 "Daftar ini hanya berisi Pin yang dipilih dari Pin di layar saat daftar disimpan.");
         table.put("This media link isn't a public Pinterest link HushPinterest can use.",
                 "Tautan media ini bukan tautan publik Pinterest yang bisa dipakai HushPinterest.");
-    }
-
-    private static void fillIn7(Map<String, String> table) {
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.");
         table.put("This phone has no folder picker, so there's no way to choose a folder here.",
@@ -2990,7 +3020,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(944);
+        Map<String, String> table = new HashMap<>(954);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -3355,23 +3385,29 @@ public final class L10nTranslations {
                 "Ocultar an\u00fancios");
         table.put("Hide advertising ID",
                 "Ocultar ID de publicidade");
+        table.put("Hide back arrow on pins",
+                "Ocultar seta de voltar nos pins");
+        table.put("Hide closeup buttons",
+                "Ocultar bot\u00f5es nos pins");
         table.put("Hide collage menu items",
                 "Ocultar op\u00e7\u00f5es de colagem");
         table.put("Hide comments",
                 "Ocultar coment\u00e1rios");
         table.put("Hide header buttons",
                 "Ocultar bot\u00f5es do cabe\u00e7alho");
+        table.put("Hide lens button on pins",
+                "Ocultar bot\u00e3o Lens nos pins");
         table.put("Hide navigation buttons",
                 "Ocultar bot\u00f5es de navega\u00e7\u00e3o");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Hide save toasts",
                 "Ocultar avisos ao salvar");
         table.put("Hide search history",
                 "Ocultar hist\u00f3rico de pesquisa");
         table.put("Hide shopping and product pins",
                 "Ocultar compras e Pins de produtos");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Hide survey prompts",
                 "Ocultar convites de pesquisa");
         table.put("Hide topic suggestions",
@@ -3396,8 +3432,12 @@ public final class L10nTranslations {
                 "Oculta pins de compra, stories de compras e quadros em destaque.");
         table.put("Hides the \"Ideas you might love\" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.",
                 "Oculta a linha \"Ideias que voc\u00ea pode amar\" com bolhas de temas abaixo dos Pins na pr\u00f3xima vez que o Pinterest a mostrar. Os coment\u00e1rios e os Pins relacionados continuam.");
+        table.put("Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.",
+                "Oculta a seta de voltar que flutua sobre um pin que voc\u00ea abre. O gesto ou bot\u00e3o de voltar do seu celular ainda tira voc\u00ea do pin. A mudan\u00e7a aparece no pr\u00f3ximo pin que voc\u00ea abrir.");
         table.put("Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.",
                 "Oculta os bot\u00f5es de \u00edcone pequenos no fim da barra superior. Voltar, bot\u00f5es de texto e controles da conta continuam. A mudan\u00e7a aparece na pr\u00f3xima vez que a barra for atualizada.");
+        table.put("Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.",
+                "Oculta o bot\u00e3o de pesquisa visual no canto de um pin que voc\u00ea abre. Pesquisar imagem no menu do pin continua funcionando. A mudan\u00e7a aparece no pr\u00f3ximo pin que voc\u00ea abrir.");
         table.put("Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.",
                 "Oculta suas buscas recentes. N\u00e3o apaga o hist\u00f3rico de busca da sua conta. A mudan\u00e7a aparece na pr\u00f3xima vez que a tela for atualizada.");
         table.put("History removed. Files and active downloads were kept.",
@@ -3482,6 +3522,9 @@ public final class L10nTranslations {
                 "Ainda n\u00e3o h\u00e1 nenhuma vers\u00e3o do HushPinterest.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Nenhum aplicativo neste dispositivo consegue abrir o link. O endere\u00e7o \u00e9 %1$s.");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "Nenhum download foi adicionado \u00e0 fila. A sele\u00e7\u00e3o foi parada, cancelada ou estava indispon\u00edvel.");
         table.put("No downloads while roaming",
@@ -3492,9 +3535,6 @@ public final class L10nTranslations {
                 "Nenhum Pin desta pasta foi carregado ainda. Role a pasta e tente de novo.");
         table.put("No screenshot share menu",
                 "Sem menu ao tirar capturas de tela");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("No visible pins are available. Open a pin menu from the grid and try again.",
                 "Nenhum Pin vis\u00edvel dispon\u00edvel. Abra o menu de um Pin na grade e tente novamente.");
         table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
@@ -3605,6 +3645,9 @@ public final class L10nTranslations {
                 "Configura\u00e7\u00f5es do pr\u00f3prio Pinterest");
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Os endere\u00e7os web do Pinterest est\u00e3o selecionados para este app nas configura\u00e7\u00f5es do Android, ent\u00e3o os links deles abrem aqui.");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Plain pin links",
                 "Links de pin simples");
         table.put("Privacy",
@@ -3615,9 +3658,6 @@ public final class L10nTranslations {
                 "Pins promovidos e com selo de IA");
         table.put("Promoted pins",
                 "Pins promovidos");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Queue pins",
                 "Adicionar Pins \u00e0 fila");
         table.put("Queue selected",
@@ -3728,6 +3768,9 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel atualizar completamente as configura\u00e7\u00f5es. Reabra as configura\u00e7\u00f5es e tente novamente.");
         table.put("Settings exported.",
                 "Configura\u00e7\u00f5es exportadas.");
+    }
+
+    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Settings exported. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.",
                 "Configura\u00e7\u00f5es exportadas. O app que guarda o arquivo n\u00e3o deixou o HushPinterest l\u00ea-lo de volta, ent\u00e3o ele n\u00e3o foi conferido.");
         table.put("Settings imported.",
@@ -3738,9 +3781,6 @@ public final class L10nTranslations {
                 "Configura\u00e7\u00f5es importadas. %1$d op\u00e7\u00f5es foram alteradas.");
         table.put("Setup and backup guide",
                 "Guia de configura\u00e7\u00e3o e backup");
-    }
-
-    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Share file",
                 "Compartilhar arquivo");
         table.put("Share pin",
@@ -3851,6 +3891,9 @@ public final class L10nTranslations {
                 "Este download n\u00e3o \u00e9 mais uma imagem conclu\u00edda. Confira %s.");
         table.put("This download isn't a finished image anymore. Check Downloads.",
                 "Este download n\u00e3o \u00e9 mais uma imagem conclu\u00edda. Confira Downloads.");
+    }
+
+    private static void fillPt_rBR7(Map<String, String> table) {
         table.put("This download isn't a saved file anymore. Check %s.",
                 "Este download n\u00e3o \u00e9 mais um arquivo salvo. Confira %s.");
         table.put("This download isn't a saved file anymore. Check Downloads.",
@@ -3861,9 +3904,6 @@ public final class L10nTranslations {
                 "Esta lista tem s\u00f3 os Pins escolhidos entre os que estavam na tela quando ela foi salva.");
         table.put("This media link isn't a public Pinterest link HushPinterest can use.",
                 "Este link de m\u00eddia n\u00e3o \u00e9 um link p\u00fablico do Pinterest que o HushPinterest possa usar.");
-    }
-
-    private static void fillPt_rBR7(Map<String, String> table) {
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Este dispositivo n\u00e3o tem seletor de arquivos, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel escolher um arquivo aqui.");
         table.put("This phone has no folder picker, so there's no way to choose a folder here.",
@@ -3971,7 +4011,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(944);
+        Map<String, String> table = new HashMap<>(954);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -4331,28 +4371,34 @@ public final class L10nTranslations {
         table.put("Hide Search button",
                 "Ara d\u00fc\u011fmesini gizle");
         table.put("Hide Search image menu item",
-                "G\u00f6rsel ara men\u00fc \u00f6\u011fesini gizle");
+                "G\u00f6r\u00fcnt\u00fc ara men\u00fc \u00f6\u011fesini gizle");
         table.put("Hide ads",
                 "Reklamlar\u0131 gizle");
         table.put("Hide advertising ID",
                 "Reklam kimli\u011fini gizle");
+        table.put("Hide back arrow on pins",
+                "Pinlerde geri okunu gizle");
+        table.put("Hide closeup buttons",
+                "Pinlerdeki d\u00fc\u011fmeleri gizle");
         table.put("Hide collage menu items",
                 "Kolaj men\u00fc \u00f6\u011felerini gizle");
         table.put("Hide comments",
                 "Yorumlar\u0131 gizle");
         table.put("Hide header buttons",
                 "Ba\u015fl\u0131k d\u00fc\u011fmelerini gizle");
+        table.put("Hide lens button on pins",
+                "Pinlerde Lens d\u00fc\u011fmesini gizle");
         table.put("Hide navigation buttons",
                 "Gezinme d\u00fc\u011fmelerini gizle");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Hide save toasts",
                 "Kaydetme bildirimlerini gizle");
         table.put("Hide search history",
                 "Arama ge\u00e7mi\u015fini gizle");
         table.put("Hide shopping and product pins",
                 "Al\u0131\u015fveri\u015f ve \u00fcr\u00fcn Pinlerini gizle");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Hide survey prompts",
                 "Anket davetlerini gizle");
         table.put("Hide topic suggestions",
@@ -4368,7 +4414,7 @@ public final class L10nTranslations {
         table.put("Hides Promote pin in pin menus you open from now on. A menu that's already open won't change.",
                 "Bundan sonra a\u00e7t\u0131\u011f\u0131n pin men\u00fclerinde Pini \u00f6ne \u00e7\u0131kar \u00f6\u011fesini gizler. Zaten a\u00e7\u0131k olan men\u00fc de\u011fi\u015fmez.");
         table.put("Hides Search image in pin menus you open from now on. A menu that's already open won't change.",
-                "Bundan sonra a\u00e7t\u0131\u011f\u0131n pin men\u00fclerinde G\u00f6rsel ara \u00f6\u011fesini gizler. Zaten a\u00e7\u0131k olan men\u00fc de\u011fi\u015fmez.");
+                "Bundan sonra a\u00e7t\u0131\u011f\u0131n pin men\u00fclerinde G\u00f6r\u00fcnt\u00fc ara \u00f6\u011fesini gizler. Zaten a\u00e7\u0131k olan men\u00fc de\u011fi\u015fmez.");
         table.put("Hides Search in the bottom bar. The change shows the next time the bar updates.",
                 "Alt \u00e7ubuktaki Ara'y\u0131 gizler. De\u011fi\u015fiklik \u00e7ubuk bir sonraki g\u00fcncelleni\u015finde g\u00f6r\u00fcn\u00fcr.");
         table.put("Hides comments and comment previews under pins. It doesn't change who can comment. The change shows the next time the screen updates.",
@@ -4377,8 +4423,12 @@ public final class L10nTranslations {
                 "Sat\u0131n al\u0131nabilir pinleri, al\u0131\u015fveri\u015f hikayelerini ve \u00f6ne \u00e7\u0131kan panolar\u0131 gizler.");
         table.put("Hides the \"Ideas you might love\" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.",
                 "Pinlerin alt\u0131ndaki konu baloncuklar\u0131ndan olu\u015fan \"Sevebilece\u011fin fikirler\" sat\u0131r\u0131n\u0131, Pinterest onu bir sonraki g\u00f6sterdi\u011finde gizler. Yorumlar ve ilgili Pinler yerinde kal\u0131r.");
+        table.put("Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.",
+                "A\u00e7t\u0131\u011f\u0131n bir pinin \u00fczerinde duran geri okunu gizler. Telefonunun geri hareketi veya d\u00fc\u011fmesi seni yine pinden \u00e7\u0131kar\u0131r. De\u011fi\u015fiklik a\u00e7t\u0131\u011f\u0131n bir sonraki pinde g\u00f6r\u00fcn\u00fcr.");
         table.put("Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.",
                 "\u00dcst \u00e7ubu\u011fun sonundaki k\u00fc\u00e7\u00fck simge d\u00fc\u011fmelerini gizler. Geri, metin d\u00fc\u011fmeleri ve hesap denetimleri kal\u0131r. De\u011fi\u015fiklik \u00e7ubuk bir sonraki g\u00fcncelleni\u015finde g\u00f6r\u00fcn\u00fcr.");
+        table.put("Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.",
+                "A\u00e7t\u0131\u011f\u0131n bir pinin k\u00f6\u015fesindeki g\u00f6rsel arama d\u00fc\u011fmesini gizler. Pin men\u00fcs\u00fcndeki G\u00f6r\u00fcnt\u00fc ara \u00e7al\u0131\u015fmaya devam eder. De\u011fi\u015fiklik a\u00e7t\u0131\u011f\u0131n bir sonraki pinde g\u00f6r\u00fcn\u00fcr.");
         table.put("Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.",
                 "Son aramalar\u0131n\u0131 gizler. Hesab\u0131n\u0131n arama ge\u00e7mi\u015fini silmez. De\u011fi\u015fiklik ekran bir sonraki g\u00fcncelleni\u015finde g\u00f6r\u00fcn\u00fcr.");
         table.put("History removed. Files and active downloads were kept.",
@@ -4463,6 +4513,9 @@ public final class L10nTranslations {
                 "Hen\u00fcz bir HushPinterest s\u00fcr\u00fcm\u00fc yay\u0131nlanmad\u0131.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Bu telefondaki hi\u00e7bir uygulama ba\u011flant\u0131y\u0131 a\u00e7am\u0131yor. Adres: %1$s.");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "\u0130ndirme s\u0131raya al\u0131nmad\u0131. Se\u00e7im durduruldu, iptal edildi veya kullan\u0131lam\u0131yordu.");
         table.put("No downloads while roaming",
@@ -4473,9 +4526,6 @@ public final class L10nTranslations {
                 "Bu panodan hen\u00fcz Pin y\u00fcklenmedi. Panoda biraz kayd\u0131r, sonra tekrar dene.");
         table.put("No screenshot share menu",
                 "Ekran g\u00f6r\u00fcnt\u00fcs\u00fc payla\u015f\u0131m men\u00fcs\u00fcn\u00fc kapat");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("No visible pins are available. Open a pin menu from the grid and try again.",
                 "G\u00f6r\u00fcn\u00fcr Pin bulunamad\u0131. Izgaradan bir Pin men\u00fcs\u00fc a\u00e7\u0131p tekrar deneyin.");
         table.put("None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
@@ -4586,6 +4636,9 @@ public final class L10nTranslations {
                 "Pinterest'in kendi ayarlar\u0131");
         table.put("Pinterest's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Pinterest'\u0131n web adresleri Android ayarlar\u0131nda bu uygulama i\u00e7in se\u00e7ili, bu y\u00fczden ba\u011flant\u0131lar\u0131 burada a\u00e7\u0131l\u0131r.");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("Plain pin links",
                 "Sade pin ba\u011flant\u0131lar\u0131");
         table.put("Privacy",
@@ -4596,9 +4649,6 @@ public final class L10nTranslations {
                 "Reklaml\u0131 ve yapay zeka etiketli pinler");
         table.put("Promoted pins",
                 "Reklaml\u0131 pinler");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("Queue pins",
                 "Pinleri s\u0131raya al");
         table.put("Queue selected",
@@ -4709,6 +4759,9 @@ public final class L10nTranslations {
                 "Ayarlar tamamen yenilenemedi. Ayarlar\u0131 yeniden a\u00e7\u0131p tekrar dene.");
         table.put("Settings exported.",
                 "Ayarlar d\u0131\u015fa aktar\u0131ld\u0131.");
+    }
+
+    private static void fillTr6(Map<String, String> table) {
         table.put("Settings exported. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.",
                 "Ayarlar d\u0131\u015fa aktar\u0131ld\u0131. Dosyay\u0131 tutan uygulama HushPinterest'un onu geri okumas\u0131na izin vermedi, bu y\u00fczden kontrol edilmedi.");
         table.put("Settings imported.",
@@ -4719,9 +4772,6 @@ public final class L10nTranslations {
                 "Ayarlar i\u00e7e aktar\u0131ld\u0131. %1$d anahtar de\u011fi\u015fti.");
         table.put("Setup and backup guide",
                 "Kurulum ve yedekleme rehberi");
-    }
-
-    private static void fillTr6(Map<String, String> table) {
         table.put("Share file",
                 "Dosyay\u0131 payla\u015f");
         table.put("Share pin",
@@ -4832,6 +4882,9 @@ public final class L10nTranslations {
                 "Bu indirme art\u0131k tamamlanm\u0131\u015f bir g\u00f6rsel de\u011fil. %s klas\u00f6r\u00fcne bak.");
         table.put("This download isn't a finished image anymore. Check Downloads.",
                 "Bu indirme art\u0131k tamamlanm\u0131\u015f bir g\u00f6rsel de\u011fil. \u0130ndirilenler'e bak.");
+    }
+
+    private static void fillTr7(Map<String, String> table) {
         table.put("This download isn't a saved file anymore. Check %s.",
                 "Bu indirme art\u0131k kay\u0131tl\u0131 bir dosya de\u011fil. %s klas\u00f6r\u00fcne bak.");
         table.put("This download isn't a saved file anymore. Check Downloads.",
@@ -4842,9 +4895,6 @@ public final class L10nTranslations {
                 "Bu liste yaln\u0131zca kaydedildi\u011fi s\u0131rada ekrandakiler aras\u0131ndan se\u00e7ilen Pinleri i\u00e7erir.");
         table.put("This media link isn't a public Pinterest link HushPinterest can use.",
                 "Bu medya ba\u011flant\u0131s\u0131, HushPinterest'in kullanabilece\u011fi herkese a\u00e7\u0131k bir Pinterest ba\u011flant\u0131s\u0131 de\u011fil.");
-    }
-
-    private static void fillTr7(Map<String, String> table) {
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Bu telefonda dosya se\u00e7ici yok, bu y\u00fczden burada dosya se\u00e7menin bir yolu yok.");
         table.put("This phone has no folder picker, so there's no way to choose a folder here.",
