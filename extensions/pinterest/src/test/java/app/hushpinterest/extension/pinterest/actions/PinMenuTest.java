@@ -321,6 +321,14 @@ public class PinMenuTest {
         assertEquals("Download unavailable", ((TextView) adaptive.layout.getChildAt(0)).getText());
         assertEquals(View.VISIBLE, kept.getVisibility());
 
+        Host video = host(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
+                "large", Map.of("url", "https://v.pinimg.com/large.mp4", "width", 1920, "height", 1080)))));
+        View cover = nativeDownload(video);
+        PinDownloads.attach(video);
+        assertEquals("Download pin", ((TextView) video.layout.getChildAt(0)).getText());
+        assertEquals("Download pin saves the video, not a still image, so Pinterest's row stays",
+                View.VISIBLE, cover.getVisibility());
+
         Settings.DOWNLOAD_PINS.save(false);
         Host off = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
                 "url", "https://i.pinimg.com/originals/source.jpg"))));

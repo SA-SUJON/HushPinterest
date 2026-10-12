@@ -97,8 +97,9 @@ public final class PinDownloads {
                 }
             });
             layout.addView(row, 0);
-            if (supported) hideNativeDownload(layout);
-            ViewGroup grid =menuCloseup(controller) ? null : GridDownloads.grid(menuOrigin(controller), pin);
+            // For a video, Download pin saves the video and not a still image, so Pinterest's row stays.
+            if (supported && !media.source.mime.startsWith("video/")) hideNativeDownload(layout);
+            ViewGroup grid = menuCloseup(controller) ? null : GridDownloads.grid(menuOrigin(controller), pin);
             if (grid != null) {
                 String batchTitle = L10n.t("Download visible pins");
                 View batch = menuRow(layout, batchTitle);
@@ -156,8 +157,8 @@ public final class PinDownloads {
     }
 
     /**
-     * With Download pin in the menu, Pinterest's own row is a second download entry (#2). It stays when
-     * ours can't download the pin. GONE leaves its model and click handler untouched.
+     * With Download pin saving an image, Pinterest's own Download image row repeats it (#2). GONE leaves
+     * its model and click handler untouched.
      */
     private static void hideNativeDownload(ViewGroup layout) {
         for (int i = 0; i < layout.getChildCount(); i++) {

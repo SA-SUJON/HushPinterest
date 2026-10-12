@@ -42,7 +42,8 @@ internal const val NATIVE_DOWNLOAD_TITLE = "save_to_device"
 val downloadPinsPatch = bytecodePatch(
     name = PATCH,
     description = "Adds downloads for a pin, or for several pins you select in a grid. Saves the original image or " +
-        "the highest-quality video Pinterest supplies to your phone. Downloads go to the Download folder. Turn on " +
+        "the highest-quality video Pinterest supplies to your phone. When it saves an image, Pinterest's own " +
+        "Download image row is hidden. Downloads go to the Download folder. Turn on " +
         "Save in Pinterest's folder to keep them in Pictures/100PINT/Pins with Pinterest's own saves, or use Pick a " +
         "download folder to choose any folder inside Pictures, DCIM, Download or Documents. Starts off. " +
         "Turn it on in HushPinterest settings > Pin actions.",
