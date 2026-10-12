@@ -102,8 +102,10 @@ final class ModuleItems {
 
     /**
      * [module]'s story type and each list it carries after filtering: its size, and for each model
-     * kept, its class and the commercial fields it has set. Built only with Debug logging on, so a bug
-     * report about an ad that got through says what the module held (#6).
+     * kept, its class and the commercial fields it has set. An entry that isn't a model shows only its
+     * full class name in parentheses, never its value, so a list the filter can't judge still says
+     * what it holds. Built only with Debug logging on, so a bug report about an ad that got through
+     * says what the module held (#6).
      */
     static String describe(Object module) {
         StringBuilder line = new StringBuilder("Module ");
@@ -120,13 +122,16 @@ final class ModuleItems {
             line.append("; ").append(field.getName()).append(' ').append(entries.size()).append(':');
             int shown = 0;
             for (Object entry : entries) {
-                Object model = model(entry);
-                if (model == null) continue;
                 if (shown++ == 8) {
                     line.append(" ...");
                     break;
                 }
-                line.append(' ').append(model.getClass().getSimpleName()).append(markers(model));
+                Object model = model(entry);
+                if (model != null) {
+                    line.append(' ').append(model.getClass().getSimpleName()).append(markers(model));
+                } else {
+                    line.append(" (").append(entry == null ? "null" : entry.getClass().getName()).append(')');
+                }
             }
         }
         return line.toString();

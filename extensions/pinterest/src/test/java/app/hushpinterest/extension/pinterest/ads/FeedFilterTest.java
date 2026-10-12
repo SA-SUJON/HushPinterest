@@ -440,8 +440,9 @@ public class FeedFilterTest {
         Module module = new Module("module", plain, promoted, "a note", adData);
         String line = ModuleItems.describe(module);
         assertTrue(line, line.startsWith("Module ideas_for_you; "));
-        assertTrue(line, line.contains("objects 4: Pin Pin[is_promoted=true] Pin[ad_data=set]"));
-        assertTrue(line, line.contains("images 2:"));
+        assertTrue(line, line.contains("objects 4: Pin Pin[is_promoted=true] (java.lang.String) Pin[ad_data=set]"));
+        assertTrue(line, line.contains("images 2: (java.lang.String) (java.lang.String)"));
+        assertFalse("an entry's own text stays out: " + line, line.contains("a note") || line.contains("a.jpg"));
         assertFalse("a promotion id's value stays out: " + line, ModuleItems.describe(new Module("ids", promotionId)).contains("123"));
     }
 
