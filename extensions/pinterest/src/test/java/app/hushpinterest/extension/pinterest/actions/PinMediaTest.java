@@ -152,7 +152,11 @@ public class PinMediaTest {
         assertTrue(PinMedia.pinterestUri(PinMedia.webUri("https://accounts.pinterest.com/login/")));
         assertTrue(PinMedia.pinterestUri(PinMedia.webUri("https://www.pinterest.co.uk/pin/123/")));
         assertTrue(PinMedia.pinterestUri(PinMedia.webUri("https://pin.it/short")));
+        assertTrue(PinMedia.pinterestUri(PinMedia.webUri("https://www.pinterest.de/pin/123/")));
         assertFalse(PinMedia.pinterestUri(PinMedia.webUri("https://www.example.com/page")));
+        // A host that only starts with Pinterest's name isn't Pinterest's, so the browser gets it.
+        assertFalse(PinMedia.pinterestUri(PinMedia.webUri("https://pinterest.evil.example/pin/123/")));
+        assertFalse(PinMedia.pinterestUri(PinMedia.webUri("https://www.pinterest.com.evil.example/pin/123/")));
     }
 
     @Test public void suppliedMetadataBelongsToTheSelectedOriginalOrMp4() {

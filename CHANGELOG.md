@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** The diagnostic report counts a promoted pin as removed only once the whole feed list has gone through. When Pinterest's list couldn't be read all the way, the page shows as it was, but the report still said an ad had been removed.
 
+* **Pinterest:** Open links in your browser no longer keeps a link inside Pinterest just because its address starts with "pinterest." A site named pinterest.example.com isn't Pinterest's, so it opens in your browser like any other link.
+
 * **Pinterest:** The diagnostic report also leaves out a Pinterest address whose slashes are written the JSON way (\/) or encoded (%2F), path and all.
 
 * **Tooling:** An interrupted release can resume after a commit repairs its publication checks. It keeps the prepared source, published tag, signed assets and index unchanged, including the original test counts when local results are missing or come from a focused run. It pushes only when needed and checks the index Morphe Manager receives. Changed release files or unrelated source commits stop recovery. Refs #3

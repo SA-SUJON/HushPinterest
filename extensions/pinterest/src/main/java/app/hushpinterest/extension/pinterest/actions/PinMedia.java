@@ -17,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.hushpinterest.extension.pinterest.ads.ModelFields;
+import app.hushpinterest.extension.pinterest.privacy.PlainPinLinks;
 
 /** Resolves public media and metadata Pinterest already supplied with a pin, without inspecting a file. */
 final class PinMedia {
@@ -60,10 +61,15 @@ final class PinMedia {
         }
     }
 
+    /**
+     * True for Pinterest's own hosts: pin.it, any pinterest.com subdomain and the country sites
+     * Pinterest claims. A host that only starts with "pinterest." (pinterest.evil.example) isn't
+     * one, so a link there still leaves for the browser.
+     */
     static boolean pinterestUri(URI uri) {
         String host = uri.getHost().toLowerCase(java.util.Locale.ROOT).replaceFirst("\\.$", "");
-        return host.equals("pin.it") || host.endsWith(".pin.it") ||
-                host.matches("(?:[a-z0-9-]+\\.)*pinterest\\.[a-z.]+");
+        return host.equals("pin.it") || host.endsWith(".pin.it") || host.endsWith(".pinterest.com") ||
+                PlainPinLinks.pinterestSite(host);
     }
 
     static URI mediaUri(String url) {

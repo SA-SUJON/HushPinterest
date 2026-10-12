@@ -214,7 +214,7 @@ public final class PlainPinLinks {
     }
 
     /** True for pinterest.com, www.pinterest.com and the country sites Pinterest claims as its own. */
-    static boolean pinterestSite(String host) {
+    public static boolean pinterestSite(String host) {
         if (host.equals("pinterest.com") || host.equals("www.pinterest.com")) return true;
         if (host.endsWith(".pinterest.com")) {
             return COUNTRY_SUBDOMAINS.contains(host.substring(0, host.length() - ".pinterest.com".length()));
