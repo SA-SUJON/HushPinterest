@@ -447,7 +447,13 @@ function Invoke-ReleasePush {
         foreach ($name in $Environment.Keys) {
             [Environment]::SetEnvironmentVariable($name, [string]$Environment[$name], [EnvironmentVariableTarget]::Process)
         }
-        Invoke-ReleaseNative 'The push (its gate output is above)' { & git -C $Root push origin HEAD:refs/heads/main }
+        # git reports the push, and the hook its whole gate, on stderr. With the error stream redirected
+        # (release.ps1 ... *> run.log), Windows PowerShell under Stop throws at the first such line, so
+        # git's exit code decides here.
+        Invoke-ReleaseNative 'The push (its gate output is above)' {
+            $ErrorActionPreference = 'Continue'
+            & git -C $Root push origin HEAD:refs/heads/main
+        }
     } finally {
         foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name, $saved[$name], [EnvironmentVariableTarget]::Process) }
     }
