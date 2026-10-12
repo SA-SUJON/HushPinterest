@@ -8,6 +8,7 @@ package app.morphe.patches.pinterest.ui
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.pinterest.misc.extension.enableCapability
@@ -18,7 +19,11 @@ import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+
+/** Play Core's in-app update package, which the guarded branch calls to show the prompt. */
+internal const val PLAY_CORE_UPDATES = "Lcom/google/android/play/core/appupdate/"
 
 /**
  * Guards the update branch of the one coroutine that hands Play Core's in-app update manager its
@@ -44,6 +49,15 @@ val disableUpdateNagPatch = bytecodePatch(
         val target = mutable(candidates.one("In-app Play Store update prompt"))
         val at = target.instructions().indexOfFirst {
             ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "inAppUpdateManager"
+        }
+        // A build that reaches Play Core before it reads the update manager would prompt before the
+        // hook runs, so the anchor has to come first.
+        val prompt = target.instructions().indexOfFirst {
+            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.definingClass
+                ?.startsWith(PLAY_CORE_UPDATES) == true
+        }
+        if (prompt < 0 || at > prompt) {
+            throw PatchException("Disable update nag: the update manager's anchor no longer comes before Play Core's update call")
         }
         val unit = target.fields().filter { it.definingClass == "Lkotlin/Unit;" && it.type == "Lkotlin/Unit;" }
             .distinctBy { it.toString() }.one("Coroutine Unit result")

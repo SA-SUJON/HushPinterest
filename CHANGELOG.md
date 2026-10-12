@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** Disable update nag checks that the spot it guards still comes before Pinterest's call to the Play Store update prompt. A future Pinterest build that asks Play Store first now stops patching with a clear message, rather than getting a guard that would run too late to stop the pop-up.
+
 * **Pinterest:** New patch, AMOLED black. Its Black bottom bar switch paints the bottom bar pure black in dark mode, so it no longer sits as a gray strip under Pinterest's black pages. It works whether Pinterest shows the bar as one rounded piece or each tab as its own rounded button, and the strip behind the gesture handle turns black with it. Menus and buttons that share the bar's gray keep it, and light mode stays as it is. It starts off and lives on the Interface page.
 
 * **Pinterest:** New patch, Hide closeup buttons. Two switches hide the back arrow and the visual search (lens) button that float over a pin you open, so they stop covering the picture. Your phone's back gesture still leaves the pin, and Search image in the pin menu still works. Other icon buttons in the app aren't touched. Both start off and live on the Interface page.
