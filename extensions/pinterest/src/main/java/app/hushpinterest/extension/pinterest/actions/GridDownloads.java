@@ -12,6 +12,8 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Picture;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -246,13 +248,15 @@ final class GridDownloads {
 
     /**
      * A small copy of the largest picture an attached cell already shows, or null when it shows
-     * none. Nothing is fetched, so a cell that draws its picture itself gets a row of text. The
+     * none. Nothing is fetched. Pinterest's grid cells paint their picture themselves rather than
+     * through an ImageView, so without one the cell's largest view is drawn into the copy. The
      * copy is the chooser's own, so the grid can reuse or release its bitmap while the chooser is open.
      */
     static Bitmap thumbnail(View cell, int box) {
         if (cell == null || box <= 0) return null;
         Drawable shown = null;
-        int largest = 0, examined = 0;
+        View painter = null;
+        int largest = 0, largestPainter = 0, examined = 0;
         ArrayDeque<View> pending = new ArrayDeque<>();
         pending.add(cell);
         while (!pending.isEmpty() && ++examined <= 64) {
@@ -267,9 +271,12 @@ final class GridDownloads {
             if (view instanceof ViewGroup) {
                 ViewGroup group = (ViewGroup) view;
                 for (int i = 0; i < group.getChildCount(); i++) pending.addLast(group.getChildAt(i));
+            } else if (area > largestPainter) {
+                painter = view;
+                largestPainter = area;
             }
         }
-        if (shown == null) return null;
+        if (shown == null) return painter == null ? null : drawn(painter, box);
         try {
             if (shown instanceof BitmapDrawable) {
                 Bitmap source = ((BitmapDrawable) shown).getBitmap();
@@ -293,6 +300,29 @@ final class GridDownloads {
             return small;
         } catch (RuntimeException unreadable) {
             // A released bitmap, or one only the GPU can draw: the row keeps its text.
+            return null;
+        }
+    }
+
+    /**
+     * The view drawn small, or null when it draws nothing. It's recorded first, so a picture only
+     * the GPU can draw comes along too: Android renders such a recording on the GPU and reads it back.
+     */
+    private static Bitmap drawn(View view, int box) {
+        int width = view.getWidth(), height = view.getHeight();
+        if (width <= 0 || height <= 0) return null;
+        try {
+            Picture recorded = new Picture();
+            view.draw(recorded.beginRecording(width, height));
+            recorded.endRecording();
+            float scale = Math.min(1f, (float) box / Math.max(width, height));
+            Bitmap small = Bitmap.createBitmap(recorded, Math.max(1, Math.round(width * scale)),
+                    Math.max(1, Math.round(height * scale)), Bitmap.Config.ARGB_8888);
+            int[] pixels = new int[small.getWidth() * small.getHeight()];
+            small.getPixels(pixels, 0, small.getWidth(), 0, 0, small.getWidth(), small.getHeight());
+            for (int pixel : pixels) if (Color.alpha(pixel) != 0) return small;
+            return null;
+        } catch (RuntimeException undrawable) {
             return null;
         }
     }

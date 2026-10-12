@@ -382,6 +382,37 @@ public class GridDownloadsTest {
         }
     }
 
+    /** Pinterest's grid cells paint their picture themselves, with no ImageView, so the cell is drawn small instead. */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aCellThatPaintsItsOwnPictureIsDrawnSmall() {
+        android.widget.FrameLayout cell = new android.widget.FrameLayout(activity);
+        cell.setTag(pin("1"));
+        View painted = new View(activity) {
+            @Override protected void onDraw(android.graphics.Canvas canvas) {
+                canvas.drawColor(0xFFCC2233);
+            }
+        };
+        View overflow = new View(activity);
+        cell.addView(painted);
+        cell.addView(overflow);
+        grid.addView(cell);
+        cell.layout(0, 0, 200, 300);
+        painted.layout(0, 0, 200, 300);
+        overflow.layout(160, 260, 190, 290);
+        cell(pin("2"), 300);
+
+        ListView list = choose(cell).getListView();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        android.graphics.Bitmap thumbnail = ((BitmapDrawable) ((CheckedTextView) list.getChildAt(0))
+                .getCompoundDrawablesRelative()[2]).getBitmap();
+        int box = Math.round(48 * activity.getResources().getDisplayMetrics().density);
+        assertEquals(box, thumbnail.getHeight());
+        assertEquals(Math.round(box * 2 / 3f), thumbnail.getWidth());
+        assertEquals(0xFFCC2233, thumbnail.getPixel(thumbnail.getWidth() / 2, thumbnail.getHeight() / 2));
+        assertNull("a cell that draws nothing keeps a row of text",
+                ((CheckedTextView) list.getChildAt(1)).getCompoundDrawablesRelative()[2]);
+    }
+
     /** TalkBack hears each row's kind and checked state and the count as it changes; rows mirror and grow with the text. */
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Config(qualifiers = "ar-rXB-ldrtl-w390dp-h844dp-night-xhdpi")
