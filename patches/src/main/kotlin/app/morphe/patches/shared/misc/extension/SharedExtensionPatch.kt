@@ -28,14 +28,12 @@ internal const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/hushpinterest/extension/sh
  * A patch to extend with an extension shared with multiple patches.
  *
  * @param extensionName The name of the extension to extend with.
- * @param isYouTubeOrYouTubeMusic Whether the patch targets YouTube and YouTube Music.
  */
 fun sharedExtensionPatch(
     extensionName: String,
-    isYouTubeOrYouTubeMusic: Boolean,
     vararg hooks: ExtensionHook,
 ) = bytecodePatch {
-    dependsOn(sharedExtensionPatch(isYouTubeOrYouTubeMusic, *hooks))
+    dependsOn(sharedExtensionPatch(*hooks))
 
     extendWith("extensions/$extensionName.mpe")
 }
@@ -47,11 +45,9 @@ fun sharedExtensionPatch(
  * commonly for the onCreate method of exported activities.
  */
 fun sharedExtensionPatch(
-    isYouTubeOrYouTubeMusic: Boolean,
     vararg hooks: ExtensionHook,
 ) = bytecodePatch {
-    val extensionName = if (isYouTubeOrYouTubeMusic) "shared-youtube" else "shared"
-    extendWith("extensions/$extensionName.mpe")
+    extendWith("extensions/shared.mpe")
 
     execute {
         // Verify the extension class exists.
@@ -130,31 +126,4 @@ open class ExtensionHook(
             }
         }
     }
-}
-
-/**
- * Creates an extension hook from a non-obfuscated activity, which typically is the main activity
- * defined in the app manifest.xml file.
- *
- * @param activityClassType Either the full activity class type such as `Lcom/company/MainActivity;`
- *                          or the 'ends with' string for the activity such as `/MainActivity;`
- * @param targetBundleMethod If the extension should hook `onCreate(Landroid/os/Bundle;)` or `onCreate()`
- */
-fun activityOnCreateExtensionHook(activityClassType: String, targetBundleMethod: Boolean = true): ExtensionHook {
-    require(activityClassType.endsWith(';')) {
-        "Class type must end with a semicolon: $activityClassType"
-    }
-
-    val fingerprint = Fingerprint(
-        definingClass = activityClassType,
-        name = "onCreate",
-        returnType = "V",
-        parameters = if (targetBundleMethod) {
-            listOf("Landroid/os/Bundle;")
-        } else {
-            listOf()
-        }
-    )
-
-    return ExtensionHook(fingerprint)
 }

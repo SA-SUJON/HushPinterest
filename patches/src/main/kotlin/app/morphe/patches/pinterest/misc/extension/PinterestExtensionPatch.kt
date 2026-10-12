@@ -34,7 +34,7 @@ internal const val PINTEREST_APPLICATION = "Lcom/pinterest/ReleaseHiltApplicatio
  * hook asks for a switch.
  */
 val pinterestExtensionPatch = bytecodePatch {
-    dependsOn(sharedExtensionPatch(extensionName = "pinterest", isYouTubeOrYouTubeMusic = false))
+    dependsOn(sharedExtensionPatch(extensionName = "pinterest"))
 
     execute {
         // The chain starts at the application class itself and stops at the first framework class

@@ -76,105 +76,19 @@ import com.android.tools.smali.dexlib2.Opcode.MOVE_RESULT_WIDE
 import com.android.tools.smali.dexlib2.Opcode.RETURN
 import com.android.tools.smali.dexlib2.Opcode.RETURN_OBJECT
 import com.android.tools.smali.dexlib2.Opcode.RETURN_WIDE
-import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.MethodParameter
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.Reference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.util.MethodUtil
-
-/**
- * Find the instruction index used for a toString() StringBuilder write of a given String name.
- *
- * @param fieldName The name of the field to find.  Partial matches are allowed.
- */
-private fun Method.findInstructionIndexFromToString(fieldName: String) : Int {
-    val stringIndex = indexOfFirstInstruction {
-        val reference = getReference<StringReference>()
-        reference?.string?.contains(fieldName) == true
-    }
-    if (stringIndex < 0) {
-        throw IllegalArgumentException("Could not find usage of string: '$fieldName'")
-    }
-    val stringRegister = getInstruction<OneRegisterInstruction>(stringIndex).registerA
-
-    // Find use of the string with a StringBuilder.
-    val stringUsageIndex = indexOfFirstInstruction(stringIndex) {
-        val reference = getReference<MethodReference>()
-        reference?.definingClass == "Ljava/lang/StringBuilder;" &&
-                (this as? FiveRegisterInstruction)?.registerD == stringRegister
-    }
-    if (stringUsageIndex < 0) {
-        throw IllegalArgumentException("Could not find StringBuilder usage in: $this")
-    }
-
-    // Find the next usage of StringBuilder, which should be the desired field.
-    val fieldUsageIndex = indexOfFirstInstruction(stringUsageIndex + 1) {
-        val reference = getReference<MethodReference>()
-        reference?.definingClass == "Ljava/lang/StringBuilder;" && reference.name == "append"
-    }
-    if (fieldUsageIndex < 0) {
-        // Should never happen.
-        throw IllegalArgumentException("Could not find StringBuilder append usage in: $this")
-    }
-    val fieldUsageRegister = getInstruction<FiveRegisterInstruction>(fieldUsageIndex).registerD
-
-    // Look backwards up the method to find the instruction that sets the register.
-    var fieldSetIndex = indexOfFirstInstructionReversedOrThrow(fieldUsageIndex - 1) {
-        fieldUsageRegister == writeRegister
-    }
-
-    // If the field is a method call, then adjust from MOVE_RESULT to the method call.
-    val fieldSetOpcode = getInstruction(fieldSetIndex).opcode
-    if (fieldSetOpcode == MOVE_RESULT ||
-        fieldSetOpcode == MOVE_RESULT_WIDE ||
-        fieldSetOpcode == MOVE_RESULT_OBJECT) {
-        fieldSetIndex--
-    }
-
-    return fieldSetIndex
-}
-
-/**
- * Find the method used for a toString() StringBuilder write of a given String name.
- *
- * @param fieldName The name of the field to find.  Partial matches are allowed.
- */
-context(patchContext: BytecodePatchContext)
-internal fun Method.findMethodFromToString(fieldName: String) : MutableMethod {
-    val methodUsageIndex = findInstructionIndexFromToString(fieldName)
-    return patchContext.navigate(this).to(methodUsageIndex).stop()
-}
-
-/**
- * Find the field used for a toString() StringBuilder write of a given String name.
- *
- * @param fieldName The name of the field to find.  Partial matches are allowed.
- */
-internal fun Method.findFieldFromToString(fieldName: String) : FieldReference {
-    val methodUsageIndex = findInstructionIndexFromToString(fieldName)
-    return getInstruction<ReferenceInstruction>(methodUsageIndex).getReference<FieldReference>()!!
-}
-
-/**
- * Adds public [AccessFlags] and removes private and protected flags (if present).
- */
-internal fun Int.toPublicAccessFlags(): Int {
-    return this.or(AccessFlags.PUBLIC.value)
-        .and(AccessFlags.PROTECTED.value.inv())
-        .and(AccessFlags.PRIVATE.value.inv())
-}
 
 /**
  * Find the [MutableMethod] from a given [Method] in a [MutableClass].
@@ -185,35 +99,6 @@ internal fun Int.toPublicAccessFlags(): Int {
 fun MutableClass.findMutableMethodOf(method: MethodReference) = this.methods.first {
     MethodUtil.methodSignaturesMatch(it, method)
 }
-
-/**
- * Apply a transform to all methods of the class.
- *
- * @param transform The transformation function. Accepts a [MutableMethod] and returns a transformed [MutableMethod].
- */
-fun MutableClass.transformMethods(transform: MutableMethod.() -> MutableMethod) {
-    val transformedMethods = methods.map { it.transform() }
-    methods.clear()
-    methods.addAll(transformedMethods)
-}
-
-/**
- * Inject a call to a method that hides a view.
- *
- * @param insertIndex The index to insert the call at.
- * @param viewRegister The register of the view to hide.
- * @param classDescriptor The descriptor of the class that contains the method.
- * @param targetMethod The name of the method to call.
- */
-fun MutableMethod.injectHideViewCall(
-    insertIndex: Int,
-    viewRegister: Int,
-    classDescriptor: String,
-    targetMethod: String,
-) = addInstruction(
-    insertIndex,
-    "invoke-static { v$viewRegister }, $classDescriptor->$targetMethod(Landroid/view/View;)V",
-)
 
 /**
  * Inserts instructions at a given index, using the existing control flow label at that index.
@@ -695,15 +580,6 @@ fun Method.indexOfFirstStringInstruction(str: String) =
                 getReference<StringReference>()?.string == str
     }
 
-fun Method.indexOfFirstStringInstructionOrThrow(str: String): Int {
-    val index = indexOfFirstStringInstruction(str)
-    if (index < 0) {
-        throw PatchException("Found string value for: '$str' but method does not contain the id: $this")
-    }
-
-    return index
-}
-
 /**
  * Get the index of matching instruction,
  * starting from and [startIndex] and searching down.
@@ -847,145 +723,6 @@ fun Method.findInstructionIndicesReversedOrThrow(filter: InstructionFilter): Lis
     if (indexes.isEmpty()) throw PatchException("No matching instructions found in: $this")
 
     return indexes
-}
-
-/**
- * Overrides the first move result with an extension call.
- * Suitable for calls to extension code to override boolean and integer values.
- */
-/**
- * The `move-result` belonging to the call the literal was loaded for. A `const-string` counts as a
- * literal here: a settings key is loaded and handed to its lookup the same way a number is.
- *
- * <p>Both overrides used to take the first `move-result` anywhere after the literal. A literal
- * is usually loaded a few instructions before the call it is an argument to, and any other call
- * that lands in that gap owns a `move-result` of its own, so the override could be written onto
- * a value that has nothing to do with the literal. The call the literal belongs to is the first
- * one that reads the register it was loaded into, and a `move-result` belongs to the invoke
- * directly above it.
- */
-internal fun MutableMethod.indexOfLiteralCallResult(literalIndex: Int): Int {
-    val literalRegister = getInstruction<OneRegisterInstruction>(literalIndex).registerA
-    var invokeIndex = -1
-    for (index in literalIndex + 1 until instructions.count()) {
-        val instruction = getInstruction(index)
-        if (instruction.opcode.name.startsWith("invoke-") &&
-            literalRegister in instruction.registersUsed
-        ) {
-            invokeIndex = index
-            break
-        }
-        // Anything that writes the register again ends the literal's life. An invoke past
-        // that point reads whatever was written last, which is not what was loaded here. A wide
-        // write names only its low half, so one into the register below covers this one too.
-        // Wide here means the destination is a pair, not that the mnemonic says long: long-to-int
-        // and cmp-long both read a pair and answer in one register.
-        val written = instruction.writeRegister
-        if (written == literalRegister) break
-        if (written != null && instruction.writesAWideRegister && written + 1 == literalRegister) {
-            break
-        }
-    }
-    check(invokeIndex >= 0) {
-        "No call reads the literal loaded at index $literalIndex"
-    }
-    val resultIndex = invokeIndex + 1
-    check(
-        resultIndex < instructions.count() &&
-            getInstruction(resultIndex).opcode == MOVE_RESULT
-    ) {
-        "The call after the literal at index $literalIndex does not take its result"
-    }
-    return resultIndex
-}
-
-internal fun MutableMethod.insertLiteralOverride(literal: Long, extensionMethodDescriptor: String) {
-    val literalIndex = indexOfFirstLiteralInstructionOrThrow(literal)
-    insertLiteralOverride(literalIndex, extensionMethodDescriptor)
-}
-
-internal fun MutableMethod.insertLiteralOverride(literalIndex: Int, extensionMethodDescriptor: String) {
-    // TODO: make this work with objects and wide primitive values.
-    val index = indexOfLiteralCallResult(literalIndex)
-    val register = getInstruction<OneRegisterInstruction>(index).registerA
-
-    val operation = if (register < 16) {
-        "invoke-static { v$register }"
-    } else {
-        "invoke-static/range { v$register .. v$register }"
-    }
-
-    addInstructions(
-        index + 1,
-        """
-            $operation, $extensionMethodDescriptor
-            move-result v$register
-        """
-    )
-}
-
-/**
- * Overrides a literal value result with a constant value.
- */
-internal fun MutableMethod.insertLiteralOverride(literal: Long, override: Boolean) {
-    val literalIndex = indexOfFirstLiteralInstructionOrThrow(literal)
-    return insertLiteralOverride(literalIndex, override)
-}
-
-/**
- * Constant value override of the first MOVE_RESULT after the index parameter.
- */
-internal fun MutableMethod.insertLiteralOverride(literalIndex: Int, override: Boolean) {
-    val index = indexOfLiteralCallResult(literalIndex)
-    val register = getInstruction<OneRegisterInstruction>(index).registerA
-    val overrideValue = if (override) "0x1" else "0x0"
-
-    addInstruction(
-        index + 1,
-        "const v$register, $overrideValue"
-    )
-}
-
-/**
- * Called for _all_ methods with the given literal value.
- * Method indices are iterated from last to first.
- *
- * <p>Editing inside the walk is safe, which is worth writing down because it does not look it.
- * The indices are collected on the immutable method and applied in reverse, so an edit never
- * moves an index still to be used. And the walk itself survives the edit: classDefForEach
- * iterates PatchClasses.classMap.values(), while mutableClassDefBy only reads that map and
- * swaps a field on the wrapper it finds there. Nothing is put into the map, so there is no
- * structural change to the collection being iterated. Checked against morphe-patcher 1.12.0 by
- * disassembling PatchClasses.mutableClassByOrNull, which is a Map.get and a
- * ClassDefWrapper.getMutableClass and nothing else.
- */
-fun BytecodePatchContext.forEachLiteralValueInstruction(
-    literal: Long,
-    block: MutableMethod.(matchingIndex: Int) -> Unit,
-) {
-    val matchingIndexes = ArrayList<Int>()
-
-    classDefForEach { classDef ->
-        classDef.methods.forEach { method ->
-            method.implementation?.instructions?.let { instructions ->
-                matchingIndexes.clear()
-
-                instructions.forEachIndexed { index, instruction ->
-                    if ((instruction as? WideLiteralInstruction)?.wideLiteral == literal) {
-                        matchingIndexes.add(index)
-                    }
-                }
-
-                if (matchingIndexes.isNotEmpty()) {
-                    val mutableMethod = mutableClassDefBy(classDef).findMutableMethodOf(method)
-                    matchingIndexes.asReversed().forEach { index ->
-                        block.invoke(mutableMethod, index)
-                    }
-                }
-            }
-        }
-    }
-
 }
 
 /**
@@ -1551,96 +1288,4 @@ private fun MutableMethod.overrideReturnValue(
 internal fun MutableField.removeFlags(vararg flags: AccessFlags) {
     val bitField = flags.map { it.value }.reduce { acc, flag -> acc or flag }
     this.accessFlags = this.accessFlags and bitField.inv()
-}
-
-internal fun BytecodePatchContext.addStaticFieldToExtension(
-    className: String,
-    methodName: String,
-    fieldName: String,
-    objectClass: String,
-    smaliInstructions: String
-) {
-    val mutableClass = mutableClassDefBy(className)
-    val objectCall = "$mutableClass->$fieldName:$objectClass"
-
-    mutableClass.apply {
-        methods.first { method -> method.name == methodName }.apply {
-            staticFields.add(
-                ImmutableField(
-                    definingClass,
-                    fieldName,
-                    objectClass,
-                    AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
-                    null,
-                    annotations,
-                    null
-                ).toMutable()
-            )
-
-            addInstructionsWithLabels(
-                0,
-                """
-                    sget-object v0, $objectCall
-                """ + smaliInstructions
-            )
-        }
-    }
-}
-
-context(patchContext: BytecodePatchContext)
-internal fun setExtensionIsPatchIncluded(patchExtensionClassType: String) {
-    val methodName = "isPatchIncluded"
-    val returnType = "Z"
-
-    val fingerprint = Fingerprint(
-        definingClass = patchExtensionClassType,
-        name = methodName,
-        returnType = returnType,
-        parameters = listOf(),
-        custom = { method, _ ->
-            AccessFlags.STATIC.isSet(method.accessFlags)
-        }
-    )
-
-    with(patchContext) {
-        if (fingerprint.methodOrNull == null) {
-            throw PatchException(
-                "Could not find required extension method: $patchExtensionClassType->$methodName()$returnType"
-            )
-        }
-
-        fingerprint.method.returnEarly(true)
-    }
-}
-
-/**
- * Set the custom condition for this fingerprint to check for a literal value.
- *
- * @param customLiteral The literal value.
- */
-@Deprecated("Instead use InstructionFilter and `literal()`")
-fun customLiteral(literalSupplier: () -> Long): ((method: Method, classDef: ClassDef) -> Boolean) =
-    { method, _ ->
-        method.containsLiteralInstruction(literalSupplier())
-    }
-
-/**
- * The register the call at [callIndex] leaves its result in: the `move-result` family
- * instruction right after it. Cast without a check, the instruction after a call whose result
- * a build stopped keeping is whatever comes next, and a `const/4 v2` there is also a
- * one-register instruction, so the override would be applied to a register the call never
- * wrote. This names the method and the index instead.
- */
-fun Method.moveResultRegisterAfter(callIndex: Int, what: String): Int {
-    val next = implementation?.instructions?.elementAtOrNull(callIndex + 1)
-        ?: throw PatchException("$what: nothing follows the call at $callIndex in $definingClass->$name")
-    if (next.opcode != Opcode.MOVE_RESULT && next.opcode != Opcode.MOVE_RESULT_OBJECT &&
-        next.opcode != Opcode.MOVE_RESULT_WIDE
-    ) {
-        throw PatchException(
-            "$what: the call at $callIndex in $definingClass->$name is followed by " +
-                "${next.opcode.name}, not a move-result, so its result is not kept.",
-        )
-    }
-    return (next as OneRegisterInstruction).registerA
 }
