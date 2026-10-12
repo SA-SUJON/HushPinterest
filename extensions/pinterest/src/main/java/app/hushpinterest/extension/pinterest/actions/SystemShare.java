@@ -32,9 +32,9 @@ public final class SystemShare {
     }
 
     private static boolean openUrl(String url, Object source) {
-        if (!Utils.settingsReady() || !PatchFamily.Capability.PIN_SHARE.installed() ||
-                !Settings.SYSTEM_SHARE.get()) return false;
         try {
+            if (!Utils.settingsReady() || !PatchFamily.Capability.PIN_SHARE.installed() ||
+                    !Settings.SYSTEM_SHARE.get()) return false;
             if (source instanceof Enum<?>) {
                 String name = ((Enum<?>) source).name();
                 if ("SCREENSHOT".equals(name) || "DOWNLOAD".equals(name)) return false;

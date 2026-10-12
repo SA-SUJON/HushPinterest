@@ -16,6 +16,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Copy media link doesn't keep the pin screen in memory while it looks for the original.
 
+* **Pinterest:** System share sheet reads its switch inside its own error handling, so a settings failure leaves Pinterest's share picker in place instead of reaching Pinterest's code.
+
 * **Tooling:** The script contract tests keep the published bug report form as it is when they build a tree whose index lags the source, the way the release check expects, and now also check that a form moved to the catalog's newer Pinterest build is refused there. They used to move the form's build along with the catalog, which went unnoticed until the published form named the catalog's newest build and held up the 0.0.7 index push.
 
 ## 0.0.7 (2026-10-10)
