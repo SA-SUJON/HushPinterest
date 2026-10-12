@@ -96,6 +96,20 @@ class FeedFixtureTest {
         }
     }
 
+    // The hooks above can all land while a retyped pin field quietly stops every filter that reads it.
+    @Test
+    fun `the pin model in each declared build keeps the JSON names and types the feed filters read`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val models = mutableMapOf<String, Map<String, String>>()
+            FixtureDex.forEach(build) { dex ->
+                for (classDef in dex.classes) {
+                    if (classDef.type.startsWith("Lcom/pinterest/api/model/")) models[classDef.type] = serializedFields(classDef)
+                }
+            }
+            assertEquals("${build.name}: pin model", emptyList<String>(), pinSchemaProblems(models))
+        }
+    }
+
     /** The holder classes by literal, and those classes with the ad-only views and every app class above them. */
     private fun read(build: File): Pair<List<ClassDef>, Map<String, List<String>>> {
         val wanted = mutableMapOf<String, ClassDef>()
