@@ -455,8 +455,8 @@ private fun Method.findFreeRegistersInternal(
             // the same shape as a conditional branch with more than two arms: a register is free
             // at the switch when it is free down every arm and down the fall-through, so the
             // answer is the intersection of all of them. R8 turns a chain of string comparisons
-            // into one of these, so a method that is an if-else chain in one Facebook build is a
-            // packed switch in the next and nothing about the patch has changed.
+            // into one of these, so a method that is an if-else chain in one build is a packed
+            // switch in the next and nothing about the patch has changed.
             val paths = switchPathIndices(instruction, i, offsetArray)
             if (paths == null) {
                 // A payload this could not read. Fall back to the old leaf-node answer rather
