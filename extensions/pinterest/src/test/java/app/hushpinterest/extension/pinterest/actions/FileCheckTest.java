@@ -24,11 +24,15 @@ import java.io.IOException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.HttpCookie;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Check the file: one ranged GET to the address a download would save, a body read no further
@@ -171,6 +175,34 @@ public class FileCheckTest {
         FileHostForTests.Answer get = host.asked.get(0);
         assertTrue("read " + get.body.served, get.body.served <= 3);
         assertTrue(get.disconnected);
+    }
+
+    /** The deadline counts the wait for headers too: a host that never answers is dropped when it's up. */
+    @Test public void aHostThatNeverAnswersIsDroppedAtTheDeadline() throws Exception {
+        CountDownLatch dropped = new CountDownLatch(1);
+        PinTransfer.Connection silent = uri -> new HttpURLConnection(uri.toURL()) {
+            @Override public int getResponseCode() throws IOException {
+                try {
+                    dropped.await(10, TimeUnit.SECONDS);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+                throw new SocketException("Socket closed");
+            }
+
+            @Override public void disconnect() { dropped.countDown(); }
+            @Override public boolean usingProxy() { return false; }
+            @Override public void connect() {}
+        };
+        long started = System.nanoTime();
+        try {
+            PinTransfer.prefix(new PinMedia.Source(ORIGINAL, "image/png", ".png"), silent, () -> 0L, 300);
+            fail("a host that never answered gave an answer");
+        } catch (SocketTimeoutException expected) {
+            assertEquals("The media host took too long", expected.getMessage());
+        }
+        assertTrue("waited out the host", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started) < 5000);
+        assertEquals("the waiting request was dropped", 0, dropped.getCount());
     }
 
     @Test public void aRedirectIsNotFollowedAndOtherAnswersReadNoBody() {

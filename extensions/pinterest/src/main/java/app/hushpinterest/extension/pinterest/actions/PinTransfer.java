@@ -20,6 +20,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.LongSupplier;
 
 import app.hushpinterest.extension.pinterest.settings.NoCookies;
@@ -159,15 +163,45 @@ public final class PinTransfer {
      * One GET for the first {@link #PREFIX_BYTES} bytes of the media file at [source], for Media
      * details' Check the file. Like the HEAD requests it follows no redirect and carries no cookie.
      * It reads no more than {@link #PREFIX_BYTES} bytes of the body, whatever the host sends, and
-     * gives up after {@link #PREFIX_DEADLINE_MS} however slowly they come. An answer other than
-     * 200 or 206 comes back with no body read.
+     * gives up {@link #PREFIX_DEADLINE_MS} after it starts, counting the connection, the headers
+     * and the body. The original lookup before it has its own timeouts. An answer other than 200
+     * or 206 comes back with no body read.
      */
     static Prefix prefix(PinMedia.Source source, Connection factory, LongSupplier clock) throws IOException {
+        return prefix(source, factory, clock, PREFIX_DEADLINE_MS);
+    }
+
+    /** {@link #prefix} with a deadline of [deadlineMs]. Tests shorten it. */
+    static Prefix prefix(PinMedia.Source source, Connection factory, LongSupplier clock, long deadlineMs) throws IOException {
         URI uri = PinMedia.mediaUri(source.url);
         if (uri == null) throw new IOException("Not a public Pinterest media URL");
-        long deadline = clock.getAsLong() + PREFIX_DEADLINE_MS;
+        long deadline = clock.getAsLong() + deadlineMs;
         List<HttpCookie> kept = NoCookies.kept(CookieHandler.getDefault(), uri);
         HttpURLConnection get = open(uri, factory);
+        // A thread of its own, so the deadline holds while a connect, the headers or a read is still
+        // waiting: at the deadline the connection is dropped, which ends the wait, and the check
+        // gives up without it.
+        FutureTask<Prefix> exchange = new FutureTask<>(() -> exchange(get, uri, kept, clock, deadline));
+        Thread thread = new Thread(exchange, "hushpinterest-file-check");
+        thread.setDaemon(true);
+        thread.start();
+        try {
+            return exchange.get(deadlineMs, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException | InterruptedException stopped) {
+            if (stopped instanceof InterruptedException) Thread.currentThread().interrupt();
+            get.disconnect();
+            throw new SocketTimeoutException("The media host took too long");
+        } catch (ExecutionException failed) {
+            Throwable cause = failed.getCause();
+            if (cause instanceof IOException) throw (IOException) cause;
+            if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+            if (cause instanceof Error) throw (Error) cause;
+            throw new IOException(cause);
+        }
+    }
+
+    private static Prefix exchange(HttpURLConnection get, URI uri, List<HttpCookie> kept, LongSupplier clock,
+                                   long deadline) throws IOException {
         Set<String> answered = Collections.emptySet();
         try {
             get.setRequestMethod("GET");
