@@ -107,7 +107,8 @@ public final class PinManifest {
 
     /** Names that only mean something on a private network or on this device. */
     private static final Pattern LOCAL_HOST = Pattern.compile(
-            "(?:.+\\.)?(?:localhost|local|localdomain|internal|intranet|lan|home|corp|home\\.arpa)");
+            "(?:.+\\.)?(?:localhost|local|localdomain|internal|intranet|lan|home|corp|home\\.arpa"
+                    + "|test|invalid|example|onion|alt)");
 
     /** A host made of numbers alone, in any of the forms an address can be written. */
     private static final Pattern NUMERIC_HOST = Pattern.compile("(?:(?:0x[0-9a-f]+|[0-9]+)\\.?)+");

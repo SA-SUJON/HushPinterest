@@ -158,6 +158,9 @@ public class PinManifestTest {
                 "https://localhost/a", "https://localhost./a", "http://printer.local/", "https://nas.home.arpa/files",
                 "https://wiki.corp/", "https://intranet/page", "http://192.168.1.10/admin", "http://127.1/",
                 "http://0x7f000001/", "http://10.0.0.1:8080/", "http://[::1]/", "http://[fe80::1]/",
+                // Names kept for testing, examples and networks of their own.
+                "https://shop.test/a", "https://a.invalid/", "https://blog.example/post", "http://abc.onion/",
+                "https://name.alt/",
                 // A sign-in, a token, a session or tracking.
                 "https://user:secret@example.com/", "https://token@example.com/", "https://example.com/a?utm_source=pinterest",
                 "https://example.com/a?", "https://example.com/a#top", "https://example.com/a#", "https://example.com/a;jsessionid=ABC123",
