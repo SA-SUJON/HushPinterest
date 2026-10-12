@@ -219,7 +219,7 @@ public class PushReadinessTest {
         assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
         ShadowLooper.idleMainLooper();
         assertNull(Shadows.shadowOf(controller.get()).getNextStartedActivity());
-        assertEquals("Android's notification settings didn't open. Open App info from Pinterest's icon, then Notifications.",
+        assertEquals("Couldn't show Notifications. It's in Pinterest's App info.",
                 ShadowToast.getTextOfLatestToast());
         assertFalse(controller.get().isFinishing());
     }

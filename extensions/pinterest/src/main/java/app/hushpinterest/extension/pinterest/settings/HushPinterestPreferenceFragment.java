@@ -540,7 +540,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             } catch (ActivityNotFoundException | SecurityException missing) {
                 // No browser, or none switched on. Uncaught, Android's exception closed Pinterest.
                 Logger.printInfo(() -> "No app opened the source code link");
-                Utils.showToastLong(L10n.f("No app on this phone can open the link. The address is %1$s.",
+                Utils.showToastLong(L10n.f("No app can open %1$s.",
                         L10n.isolate(SOURCE_ADDRESS)));
             }
             return true;
@@ -691,8 +691,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             String folder = L10n.isolate(markerFolder(context.getPackageName()));
             // The switches stay as they were until the file goes, so say when they still pause.
             String left = BaseSettings.PAUSED.savedValue() || BaseSettings.SAFE_MODE.savedValue()
-                    ? L10n.f("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.", file, folder)
-                    : L10n.f("The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.",
+                    ? L10n.f("Delete %1$s from %2$s, then tap Resume again.", file, folder)
+                    : L10n.f("Delete %1$s from %2$s to turn HushPinterest back on.",
                     file, folder);
             statusCard.setSummary(left);
             // Resume can be tapped on a category page too, where the card isn't in view.
@@ -768,7 +768,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             } catch (ActivityNotFoundException | SecurityException missing) {
                 Logger.printInfo(() -> "No app opened the release help link");
                 String address = url.substring(url.indexOf("://") + 3);
-                Utils.showToastLong(L10n.f("No app on this phone can open the link. The address is %1$s.",
+                Utils.showToastLong(L10n.f("No app can open %1$s.",
                         L10n.isolate(address)));
             }
             return true;
@@ -810,8 +810,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             }
         }
         Logger.printInfo(() -> "No settings page opened for supported links");
-        Utils.showToastLong(L10n.t("Android's settings for this app didn't open. Open App info from Pinterest's icon, "
-                + "then Open by default."));
+        Utils.showToastLong(L10n.t("Couldn't show Open by default. It's in Pinterest's App info."));
     }
 
     /**
@@ -848,8 +847,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             }
         }
         Logger.printInfo(() -> "No settings page opened for notifications");
-        Utils.showToastLong(L10n.t("Android's notification settings didn't open. Open App info from Pinterest's icon, "
-                + "then Notifications."));
+        Utils.showToastLong(L10n.t("Couldn't show Notifications. It's in Pinterest's App info."));
     }
 
     /** A switch whose change waits for a restart: the card says what the next start brings. */
@@ -906,7 +904,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         } catch (ActivityNotFoundException | SecurityException missing) {
             // No browser, or none switched on. Uncaught, Android's exception closed Pinterest.
             Logger.printInfo(() -> "No app opened the support link");
-            Utils.showToastLong(L10n.f("No app on this phone can open the link. The address is %1$s.",
+            Utils.showToastLong(L10n.f("No app can open %1$s.",
                     L10n.isolate(SUPPORT_ADDRESS)));
         }
     }

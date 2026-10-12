@@ -111,7 +111,7 @@ public class PinMenuTest {
         assertTrue(host.layout.findViewWithTag(PinDownloads.ROW_TAG).performClick());
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         String text = details();
-        assertTrue(text, text.contains("This media link isn't a public Pinterest link HushPinterest can use."));
+        assertTrue(text, text.contains("This media link isn't a public Pinterest link."));
         assertTrue(text, text.contains("Width: 3000 pixels"));
         assertTrue(text, text.contains("Link type: Unknown"));
         assertNoDownload();
@@ -388,8 +388,7 @@ public class PinMenuTest {
         assertTrue(row.isFocusable());
         assertTrue(row.getContentDescription().toString().contains("streaming video"));
         assertTrue(row.performClick());
-        assertTrue(details().contains("Pinterest only offered a streaming video for this pin, not a file that can "
-            + "be downloaded."));
+        assertTrue(details().contains("Pinterest only streams this video. There's no file to download."));
         assertEquals(0, host.dismissed);
         assertNoDownload();
     }
@@ -461,7 +460,7 @@ public class PinMenuTest {
         assertTrue(host.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         assertFalse(clipboard().hasPrimaryClip());
-        assertEquals("This media link isn't a public Pinterest link HushPinterest can use.", ShadowToast.getTextOfLatestToast());
+        assertEquals("This media link isn't a public Pinterest link.", ShadowToast.getTextOfLatestToast());
         assertEquals(0, host.dismissed);
     }
 

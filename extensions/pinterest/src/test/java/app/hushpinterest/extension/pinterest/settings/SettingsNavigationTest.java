@@ -132,7 +132,7 @@ public class SettingsNavigationTest {
 
         org.robolectric.Shadows.shadowOf(org.robolectric.RuntimeEnvironment.getApplication()).checkActivities(true);
         tap(HushPinterestPreferenceFragment.SUPPORT);
-        assertEquals("No app on this phone can open the link. The address is " + L10n.isolate("ko-fi.com/X8K126YVER") + ".",
+        assertEquals("No app can open " + L10n.isolate("ko-fi.com/X8K126YVER") + ".",
                 ShadowToast.getTextOfLatestToast());
         assertFalse(controller.get().isFinishing());
         assertEquals(before, savedValues());

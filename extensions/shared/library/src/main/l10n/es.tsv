@@ -14,7 +14,7 @@ Back	Atrás
 Cancel	Cancelar
 Clear diagnostic data	Borrar datos de diagnóstico
 Copy quick report	Copiar informe rápido
-Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	No se pudo importar la configuración ni restaurar la que tenías. Revisa los interruptores de esta pantalla.
+Couldn't import or put back your old switches. Check them here.	No se pudo importar ni restaurar tus ajustes. Revísalos aquí.
 Couldn't import the settings. Nothing was changed.	No se pudo importar la configuración. No se cambió nada.
 Couldn't open that file. Nothing was changed.	No se pudo abrir ese archivo. No se cambió nada.
 Couldn't open the file picker. Try again.	No se pudo abrir el selector de archivos. Inténtalo de nuevo.
@@ -35,12 +35,12 @@ Turns off every HushPinterest switch except Debug logging the next time Pinteres
 Hide ads	Ocultar anuncios
 Links, updates, backup and more	Enlaces, actualizaciones, copia de seguridad y más
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Guarda tus interruptores en un archivo. Cubren todas las cuentas de esta app de Pinterest. La pausa y el Registro de depuración no se incluyen, y la búsqueda de nuevas versiones tampoco.
-Settings exported. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.	Configuración exportada. La app que guarda el archivo no dejó que HushPinterest lo volviera a leer, así que no se comprobó.
+Settings exported, but the app holding it blocked the check.	Ajustes exportados, pero la app del archivo impidió comprobarlo.
 The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.	La app que guarda ese archivo tarda demasiado, así que HushPinterest dejó de esperar. No se cambió nada.
-The app holding the last settings file still hasn't answered. Try again later.	La app del último archivo de configuración aún no ha respondido. Inténtalo más tarde.
+The app with the last settings file hasn't answered. Try later.	La app del último archivo de ajustes no responde. Inténtalo luego.
 The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.	La app que guarda el archivo de configuración tarda demasiado, así que HushPinterest dejó de esperar. Esa app aún puede terminar de guardarlo, así que revisa el archivo antes de confiar en él.
-The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	No se pudo eliminar el archivo %1$s. Bórralo de %2$s y luego vuelve a tocar Reanudar.
-The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	El archivo de configuración se guardó, pero al volver a leerlo no coincide con lo que se escribió. Guárdalo de nuevo como un archivo nuevo.
+Delete %1$s from %2$s, then tap Resume again.	Borra %1$s de %2$s y luego vuelve a tocar Reanudar.
+Settings file saved but reads back wrong. Save it as a new file.	Ajustes guardados, pero el archivo no se lee bien. Guárdalo como nuevo.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Hasta que reanudes, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene.
 Full report saved to %1$s	Informe completo guardado en %1$s
 GPL-3.0, with the notices of the projects this is built on	GPL-3.0, con los avisos de los proyectos en los que se basa
@@ -73,34 +73,34 @@ GitHub sent back something HushPinterest couldn't read. Try again later.	GitHub 
 Saving the settings file	Guardando el archivo de configuración
 Set when you patched	Aplicado al parchear
 Settings couldn't open	No se pudo abrir la configuración
-Settings couldn't refresh completely. Reopen settings and try again.	No se pudo actualizar la configuración por completo. Vuelve a abrirla e inténtalo de nuevo.
+Settings didn't fully refresh. Reopen them and try again.	Los ajustes no se actualizaron del todo. Vuelve a abrirlos e inténtalo.
 Settings exported.	Configuración exportada.
 Settings imported. %1$d switch changed.	Configuración importada. Cambió %1$d interruptor.
 Settings imported. %1$d switches changed.	Configuración importada. Cambiaron %1$d interruptores.
 Source code and issues	Código fuente e incidencias
 Stays in while paused	Se mantiene durante la pausa
 Tap to turn it back on.	Toca para volver a activarlo.
-That file is too large to be a settings file. Nothing was changed.	Ese archivo es demasiado grande para ser un archivo de configuración. No se cambió nada.
-That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	Ese archivo no es texto legible, así que puede haberse dañado por el camino. No se cambió nada.
-That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	Ese archivo incluye un ajuste dos veces, así que no se sabe qué valor usar. No se cambió nada.
+That file is too large for a settings file. Nothing was changed.	Ese archivo es demasiado grande para ser de ajustes. No se cambió nada.
+That file isn't readable text. Nothing was changed.	Ese archivo no es texto legible. No se cambió nada.
+That file lists a setting twice. Nothing was changed.	Ese archivo repite un ajuste. No se cambió nada.
 That isn't a HushPinterest settings file. Nothing was changed.	Eso no es un archivo de configuración de HushPinterest. No se cambió nada.
-That settings file holds a value HushPinterest can't read. Nothing was changed.	Ese archivo de configuración contiene un valor que HushPinterest no puede leer. No se cambió nada.
-That settings file is damaged or only partly downloaded. Nothing was changed.	Ese archivo de configuración está dañado o solo se descargó en parte. No se cambió nada.
-That settings file was written by a newer HushPinterest than this one. Nothing was changed.	Ese archivo de configuración lo escribió una versión de HushPinterest más reciente que esta. No se cambió nada.
-The diagnostic report couldn't be saved yet. Try again in a moment.	Todavía no se pudo guardar el informe de diagnóstico. Inténtalo de nuevo en un momento.
+A value in that file can't be read. Nothing was changed.	Un valor de ese archivo no se puede leer. No se cambió nada.
+That file is damaged or partly downloaded. Nothing was changed.	Ese archivo está dañado o incompleto. No se cambió nada.
+That file is from a newer HushPinterest. Nothing was changed.	Ese archivo es de un HushPinterest más reciente. No se cambió nada.
+The diagnostic report couldn't be saved yet. Try again soon.	Aún no se pudo guardar el informe de diagnóstico. Inténtalo pronto.
 The diagnostic report couldn't be saved. Try again.	No se pudo guardar el informe de diagnóstico. Inténtalo de nuevo.
-The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.	No se pudo eliminar el archivo %1$s. Bórralo de %2$s para volver a activar HushPinterest.
+Delete %1$s from %2$s to turn HushPinterest back on.	Borra %1$s de %2$s para volver a activar HushPinterest.
 The setting couldn't finish updating. Its saved value is shown.	No se pudo terminar de actualizar el ajuste. Se muestra su valor guardado.
 There's no diagnostic data to clear.	No hay datos de diagnóstico que borrar.
 There's no diagnostic data to put back.	No hay datos de diagnóstico que restaurar.
-This phone has no file picker, so there's no way to choose a file here.	Este teléfono no tiene selector de archivos, así que aquí no hay forma de elegir un archivo.
+This phone has no file picker, so a file can't be chosen.	Este teléfono no tiene selector de archivos, así que no se puede elegir uno.
 Version	Versión
 Record patch activity and show errors for a bug report. Leave off during normal use.	Registra la actividad de los parches y muestra errores para un informe. Déjalo desactivado en el uso normal.
 You paused HushPinterest.	Pausaste HushPinterest.
 Your switches already match that file, so nothing will change.	Tus interruptores ya coinciden con ese archivo, así que no cambiará nada.
 Copy a short report to the clipboard.	Copia un informe breve en el portapapeles.
 Settings imported.	Configuración importada.
-No app on this phone can open the link. The address is %1$s.	Ninguna app de este teléfono puede abrir el enlace. La dirección es %1$s.
+No app can open %1$s.	Ninguna app puede abrir %1$s.
 Pause, backup and diagnostics	Pausa, copia de seguridad y diagnóstico
 Updates	Actualizaciones
 Jump to a section	Ir a una sección
@@ -130,7 +130,7 @@ Selecting links by hand	Seleccionar enlaces a mano
 
 A change here applies after Pinterest restarts.	Un cambio de aquí se aplica cuando Pinterest se reinicie.
 Android verified this app for Pinterest's web addresses, so their links open here.	Android verificó esta app para las direcciones web de Pinterest, así que sus enlaces se abren aquí.
-Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.	No se abrieron los ajustes de Android para esta app. Abre Información de la app desde el icono de Pinterest y luego Abrir de forma predeterminada.
+Couldn't show Open by default. It's in Pinterest's App info.	No se abrió Abrir de forma predeterminada. Está en la info de Pinterest.
 HushPinterest %1$s on Pinterest %2$s	HushPinterest %1$s en Pinterest %2$s
 HushPinterest %1$s supports Pinterest %2$s.	HushPinterest %1$s es compatible con Pinterest %2$s.
 HushPinterest pauses when Pinterest restarts.	HushPinterest se pausa cuando Pinterest se reinicie.
@@ -225,7 +225,7 @@ Missing	No encontrado
 Unavailable	No disponible
 Android will retry the download.	Android volverá a intentar la descarga.
 Waiting for a network connection this download can use.	Esperando una conexión de red que esta descarga pueda usar.
-Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.	Esperando una red de uso no medido. El Wi-Fi marcado como de uso medido, como el punto de acceso de un teléfono, no cuenta.
+Waiting for Wi-Fi that isn't metered. A hotspot doesn't count.	Esperando Wi-Fi sin uso medido. Un punto de acceso no cuenta.
 Paused by Android.	Android lo puso en pausa.
 Not enough storage.	No hay suficiente espacio.
 Download storage is unavailable.	El almacenamiento de descargas no está disponible.
@@ -236,15 +236,15 @@ Android couldn't save the file.	Android no pudo guardar el archivo.
 Download failed.	La descarga falló.
 Check Downloads for the saved file.	Busca el archivo guardado en Descargas.
 Saved in %s.	Guardado en %s.
-Android no longer has this request. Check Downloads before saving again.	Android ya no tiene esta solicitud. Revisa Descargas antes de volver a guardar.
-Android no longer has this request. Check %s before saving again.	Android ya no tiene esta solicitud. Revisa %s antes de volver a guardar.
+Android dropped this request. Check Downloads before retrying.	Android descartó esta solicitud. Revisa Descargas antes de reintentar.
+Android dropped this request. Check %s before retrying.	Android descartó esta solicitud. Revisa %s antes de reintentar.
 Couldn't check Downloads. Try again.	No se pudo consultar Descargas. Inténtalo de nuevo.
 Resume HushPinterest and turn on Download pins to retry.	Reanuda HushPinterest y activa Descargar pines para volver a intentarlo.
 Open the pin again to get a fresh download link.	Abre el pin de nuevo para obtener un enlace de descarga actualizado.
-This request can't be retried. Check Downloads or open the pin again.	Esta solicitud no puede repetirse. Revisa Descargas o abre el pin de nuevo.
-This request can't be retried. Check %s or open the pin again.	Esta solicitud no puede repetirse. Revisa %s o abre el pin de nuevo.
-Download started, but its history couldn't be saved. Check Downloads.	La descarga comenzó, pero no se pudo guardar su historial. Revisa Descargas.
-Download started, but its history couldn't be saved. Check %s.	La descarga comenzó, pero no se pudo guardar su historial. Revisa %s.
+Can't retry this. Check Downloads or open the pin again.	No se puede reintentar. Revisa Descargas o abre el pin de nuevo.
+Can't retry this. Check %s or open the pin again.	No se puede reintentar. Revisa %s o abre el pin de nuevo.
+Download started, but history wasn't saved. Check Downloads.	Descarga iniciada, pero no se guardó el historial. Revisa Descargas.
+Download started, but history wasn't saved. Check %s.	Descarga iniciada, pero no se guardó el historial. Revisa %s.
 History removed. Files and active downloads were kept.	Historial eliminado. Se conservaron los archivos y las descargas activas.
 Couldn't remove this history entry. Try again.	No se pudo eliminar esta entrada del historial. Inténtalo de nuevo.
 Couldn't open Downloads.	No se pudo abrir Descargas.
@@ -290,14 +290,14 @@ Link type: %s	Tipo de enlace: %s
 %d pixels	%d píxeles
 Unknown	Desconocido
 Close	Cerrar
-Couldn't show the supplied media details. Open the pin again, then retry.	No se pudieron mostrar los detalles proporcionados. Vuelve a abrir el Pin y reinténtalo.
-Pinterest only offered a streaming video for this pin, not a file that can be downloaded.	Pinterest solo ofreció un video en streaming para este pin, no un archivo que se pueda descargar.
+Couldn't show the media details. Open the pin again and retry.	No se pudieron mostrar los detalles. Vuelve a abrir el Pin y reinténtalo.
+Pinterest only streams this video. There's no file to download.	Pinterest solo transmite este video. No hay archivo para descargar.
 Pinterest didn't offer a downloadable video file for this pin.	Pinterest no ofreció un archivo de video descargable para este pin.
 Pinterest hasn't supplied an image to download.	Pinterest no ha proporcionado una imagen para descargar.
 HushPinterest can't download this type of image.	HushPinterest no puede descargar este tipo de imagen.
-This media link isn't a public Pinterest link HushPinterest can use.	Este enlace de medios no es un enlace público de Pinterest que HushPinterest pueda usar.
+This media link isn't a public Pinterest link.	Este enlace de medios no es un enlace público de Pinterest.
 Couldn't start the download. Check Downloads and try again.	No se pudo iniciar la descarga. Revisa Descargas e inténtalo de nuevo.
-Couldn't prepare this pin for download. Open the pin again, then retry.	No se pudo preparar este Pin para descargarlo. Vuelve a abrirlo y reinténtalo.
+Couldn't prepare this pin. Open it again, then retry.	No se pudo preparar este Pin. Vuelve a abrirlo y reinténtalo.
 %1$s (%2$s to %3$s)	%1$s (de %2$s a %3$s)
 Your choice is saved, but this build doesn't include the patch for it.	Tu elección está guardada, pero esta versión no incluye el parche para ella.
 Undoing import	Deshaciendo importación
@@ -305,7 +305,7 @@ Import undone. Your earlier switches are back.	Importación deshecha. Se restaur
 Undo ended because a saved switch changed.	Ya no se puede deshacer porque cambió un ajuste guardado.
 There's no import to undo.	No hay ninguna importación que deshacer.
 Couldn't undo the import. Your imported switches are unchanged.	No se pudo deshacer la importación. Tus ajustes importados no cambiaron.
-Couldn't undo the import or restore the imported switches. Check the switches on this screen.	No se pudo deshacer la importación ni restaurar los ajustes importados. Revisa los ajustes de esta pantalla.
+Couldn't undo the import or restore it. Check the switches here.	No se pudo deshacer ni restaurar la importación. Revisa los ajustes aquí.
 Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Restaura los ajustes anteriores a la última importación. Cambiar un ajuste o reiniciar Pinterest termina la opción de deshacer.
 Undo import	Deshacer importación
 Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Elige un archivo de ajustes. Revisa el nombre y los valores anteriores y nuevos de cada ajuste antes de importar. Tus elecciones se aplican a todas las cuentas de esta app de Pinterest.
@@ -359,7 +359,7 @@ Pinterest data export help	Ayuda de Pinterest para exportar datos
 Couldn't open the setup guide. Try again.	No se pudo abrir la guía de configuración. Inténtalo de nuevo.
 Download visible pins	Descargar pines visibles
 A pin selection is still being saved.	Aún se está guardando una selección de pines.
-No visible pins are available. Open a pin menu from the grid and try again.	No hay pines visibles disponibles. Abre el menú de un pin en la cuadrícula e inténtalo de nuevo.
+No visible pins. Open a pin menu in the grid and try again.	No hay pines visibles. Abre el menú de un pin en la cuadrícula.
 Select visible pins (up to %d)	Seleccionar pines visibles (hasta %d)
 Queue selected	Poner selección en cola
 Couldn't open the pin selection. Try again from the grid.	No se pudo abrir la selección de pines. Inténtalo de nuevo desde la cuadrícula.
@@ -372,7 +372,7 @@ Couldn't save history for one result. Check %2$s.	No se pudo guardar el historia
 Couldn't save history for %1$d results. Check %2$s.	No se pudo guardar el historial de %1$d resultados. Revisa %2$s.
 Skipped	Omitido
 Unsupported	No compatible
-No download was queued. The selection was stopped, canceled or unavailable.	No se puso ninguna descarga en cola. La selección se detuvo, se canceló o no estaba disponible.
+Nothing was queued. The selection stopped or wasn't available.	No se puso nada en cola. La selección se detuvo o no estaba disponible.
 Pinterest didn't supply supported media for this pin.	Pinterest no proporcionó contenido compatible para este pin.
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Descarga un pin o selecciona varios en una cuadrícula. Guarda videos e imágenes originales, o el mayor tamaño que tenga Pinterest.
 Save in Pinterest's folder	Guardar en la carpeta de Pinterest
@@ -387,9 +387,9 @@ Download board	Descargar tablero
 Adds Download board to a board's menu. It saves the pins Pinterest has loaded for that board so far and skips any already in Download history. Download pins has to be on too.	Añade Descargar tablero al menú de un tablero. Guarda los pines que Pinterest cargó hasta ahora de ese tablero y omite los que ya están en el Historial de descargas. Descargar pines también tiene que estar activado.
 Skipped because they're already in Download history: %d	Omitidos porque ya están en el Historial de descargas: %d
 Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.	Solo se incluyen los pines que Pinterest cargó hasta ahora de este tablero, hasta %d. Para incluir más, desplázate primero más abajo en el tablero.
-No pins from this board have loaded yet. Scroll through the board, then try again.	Todavía no se cargó ningún pin de este tablero. Desplázate por el tablero y vuelve a intentarlo.
+This board's pins haven't loaded yet. Scroll it and try again.	Los pines de este tablero aún no cargaron. Desplázate y reinténtalo.
 Every pin loaded from this board is already in Download history.	Todos los pines cargados de este tablero ya están en el Historial de descargas.
-Couldn't start the board download. Open the board menu and try again.	No se pudo iniciar la descarga del tablero. Abre el menú del tablero y vuelve a intentarlo.
+Couldn't start the board download. Try again from its menu.	No se pudo iniciar la descarga del tablero. Reinténtalo desde su menú.
 board menus	menús de tableros
 loaded board pins	pines cargados del tablero
 # context: Long-press download, a button added to the round menu a held pin opens, and its switch on the Pin actions page.
@@ -429,16 +429,16 @@ Saves downloads in a folder you pick inside Pictures, DCIM, Download or Document
 %1$s is picked, but Save in Pinterest's folder is on, so downloads go to %2$s.	%1$s está elegida, pero Guardar en la carpeta de Pinterest está activado, así que las descargas van a %2$s.
 Saving downloads in %s. Tap to pick another folder or go back to the Download folder.	Las descargas se guardan en %s. Toca para elegir otra carpeta o volver a la carpeta Download.
 Pick another folder	Elegir otra carpeta
-This phone has no folder picker, so there's no way to choose a folder here.	Este teléfono no tiene selector de carpetas, así que aquí no hay forma de elegir una carpeta.
+This phone has no folder picker, so a folder can't be chosen.	Este teléfono no tiene selector de carpetas, así que no se puede elegir una.
 Couldn't open the folder picker. Try again.	No se pudo abrir el selector de carpetas. Inténtalo de nuevo.
-Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Elige una carpeta dentro de Pictures, DCIM, Download o Documents en el almacenamiento interno del teléfono.
+Pick a folder in Pictures, DCIM, Download or Documents.	Elige una carpeta en Pictures, DCIM, Download o Documents.
 Downloads will be saved in %s.	Las descargas se guardarán en %s.
 Downloads will be saved in the Download folder.	Las descargas se guardarán en la carpeta Download.
 Android notification settings	Ajustes de notificaciones de Android
 Android lets this app show notifications. That only means they can show, not that push notifications reach this phone. Tap to change them in Android's settings.	Android permite que esta app muestre notificaciones. Eso solo significa que pueden mostrarse, no que las notificaciones push lleguen a este teléfono. Toca para cambiarlas en los ajustes de Android.
 Notifications are off for this app in Android's settings, so none can show. Tap to turn them on there.	Las notificaciones están desactivadas para esta app en los ajustes de Android, así que no puede mostrarse ninguna. Toca para activarlas allí.
 Android didn't say whether this app can show notifications. Tap to check in Android's settings.	Android no indicó si esta app puede mostrar notificaciones. Toca para comprobarlo en los ajustes de Android.
-Android's notification settings didn't open. Open App info from Pinterest's icon, then Notifications.	No se abrieron los ajustes de notificaciones de Android. Abre Información de la app desde el icono de Pinterest y luego Notificaciones.
+Couldn't show Notifications. It's in Pinterest's App info.	No se abrió Notificaciones. Está en la info de la app de Pinterest.
 All (%d)	Todos (%d)
 Images (%d)	Imágenes (%d)
 Videos (%d)	Videos (%d)
@@ -449,16 +449,16 @@ Unsupported video	Video no compatible
 Selected: %1$d (unsupported: %2$d)	Seleccionados: %1$d (no compatibles: %2$d)
 Unsupported: %d	No compatibles: %d
 Queue pins	Poner pines en cola
-Download history already has every pin you chose from this board.	El Historial de descargas ya tiene todos los pines que elegiste de este tablero.
-Resume HushPinterest and turn on Download pins and Download board to use this.	Reanuda HushPinterest y activa Descargar Pines y Descargar tablero para usar esto.
+Download history already has each pin chosen from this board.	El Historial de descargas ya tiene cada pin elegido de este tablero.
+Resume and turn on Download pins and Download board first.	Reanuda y activa Descargar Pines y Descargar tablero primero.
 Save list	Guardar lista
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Esta lista solo tiene los pines del tipo elegido que Pinterest había cargado del tablero al guardarla, hasta %d. Los pines que están más abajo en el tablero no están incluidos.
 This list has only the pins chosen from those on screen when it was saved.	Esta lista solo tiene los pines elegidos entre los que había en pantalla al guardarla.
 A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Un enlace de origen es "missing" cuando el pin no tenía ninguno, y "omitted" cuando no se pudo guardar tal como venía, como un enlace con datos de seguimiento o uno a una red privada.
-HushPinterest closed while the picker was open. Choose the pins and save again.	HushPinterest se cerró con el selector abierto. Elige los pines y vuelve a guardar.
+HushPinterest closed with the picker open. Pick and save again.	HushPinterest se cerró con el selector abierto. Elige y guarda de nuevo.
 Couldn't save the pin list. Try again.	No se pudo guardar la lista de pines. Inténtalo de nuevo.
-Saved the pin list, but the app holding it wouldn't let it be checked.	Se guardó la lista de pines, pero la app que la tiene no dejó comprobarla.
-The saved list doesn't read back as written. Save it again as a new file.	La lista guardada no coincide al leerla. Guárdala de nuevo como un archivo nuevo.
+Pin list saved, but the app holding it blocked the check.	Lista de pines guardada, pero la app del archivo impidió comprobarla.
+The saved list reads back wrong. Save it again as a new file.	La lista guardada no se lee bien. Guárdala como un archivo nuevo.
 Saved a list of one pin.	Se guardó una lista con un pin.
 Saved a list of %d pins.	Se guardó una lista con %d pines.
 Use Download again	Volver a usar Download
@@ -467,7 +467,7 @@ Width: %s	Ancho: %s
 Height: %s	Alto: %s
 Size: %s. Downloads look for the original first.	Tamaño: %s. Las descargas buscan primero el original.
 Size: the original image	Tamaño: la imagen original
-Couldn't remove the empty file the picker made. Delete it in your files app.	No se pudo quitar el archivo vacío que creó el selector. Bórralo en tu app de archivos.
+Couldn't remove the empty file. Delete it in your files app.	No se pudo quitar el archivo vacío. Bórralo en tu app de archivos.
 Check the file	Comprobar el archivo
 Checking the file	Comprobando el archivo
 These details were checked from the first part of the file. HushPinterest didn't download the whole file.	Estos datos se comprobaron con la primera parte del archivo. HushPinterest no descargó el archivo completo.
@@ -489,6 +489,6 @@ Hide lens button on pins	Ocultar botón Lens en los pines
 Hide closeup buttons	Ocultar botones en los pines
 Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.	Oculta el botón de búsqueda visual en la esquina de un pin que abres. Buscar imagen en el menú del pin sigue funcionando. El cambio se ve en el siguiente pin que abras.
 # context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
-The picked file was left alone. If it's empty, delete it in your files app.	El archivo elegido se dejó como estaba. Si está vacío, bórralo en tu app de archivos.
+File left alone. If it's empty, delete it in your files app.	El archivo quedó igual. Si está vacío, bórralo en tu app de archivos.
 # context: the toast at the end of a pin download selection when its progress dialog has closed. %1$s is the selection's title, Download visible pins or Download board
 %1$s: queued %2$d, skipped %3$d, unsupported %4$d, failed %5$d.	%1$s: en cola %2$d, omitidos %3$d, no compatibles %4$d, fallidos %5$d.

@@ -195,7 +195,7 @@ public final class SetupGuidancePreference extends DialogPreference {
                 }
             }
             Logger.printInfo(() -> "No settings page opened from setup guidance");
-            Utils.showToastLong(L10n.t(getContext(), "Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default."));
+            Utils.showToastLong(L10n.t(getContext(), "Couldn't show Open by default. It's in Pinterest's App info."));
         }
 
         void openHelp(String address) {
@@ -204,7 +204,7 @@ public final class SetupGuidancePreference extends DialogPreference {
                 host.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(address)).addCategory(Intent.CATEGORY_BROWSABLE));
             } catch (RuntimeException unavailable) {
                 Logger.printInfo(() -> "No app opened a setup help link");
-                Utils.showToastLong(L10n.f(getContext(), "No app on this phone can open the link. The address is %1$s.", L10n.isolate(address)));
+                Utils.showToastLong(L10n.f(getContext(), "No app can open %1$s.", L10n.isolate(address)));
             }
         }
 

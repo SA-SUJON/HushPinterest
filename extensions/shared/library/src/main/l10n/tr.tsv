@@ -14,7 +14,7 @@ Back	Geri
 Cancel	İptal
 Clear diagnostic data	Tanılama verilerini temizle
 Copy quick report	Hızlı raporu kopyala
-Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Ayarlar içe aktarılamadı ve önceki ayarların geri yüklenemedi. Bu ekrandaki anahtarları kontrol et.
+Couldn't import or put back your old switches. Check them here.	İçe aktarılamadı, eski anahtarların da geri gelmedi. Burada kontrol et.
 Couldn't import the settings. Nothing was changed.	Ayarlar içe aktarılamadı. Hiçbir şey değiştirilmedi.
 Couldn't open that file. Nothing was changed.	Bu dosya açılamadı. Hiçbir şey değiştirilmedi.
 Couldn't open the file picker. Try again.	Dosya seçici açılamadı. Tekrar dene.
@@ -35,12 +35,12 @@ Turns off every HushPinterest switch except Debug logging the next time Pinteres
 Hide ads	Reklamları gizle
 Links, updates, backup and more	Bağlantılar, güncellemeler, yedekleme ve daha fazlası
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Anahtarlarını bir dosyaya kaydet. Anahtarlar bu Pinterest uygulamasındaki tüm hesaplar için geçerlidir. Duraklatma ve Hata ayıklama günlüğü dahil edilmez, sürüm denetimi de edilmez.
-Settings exported. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.	Ayarlar dışa aktarıldı. Dosyayı tutan uygulama HushPinterest'un onu geri okumasına izin vermedi, bu yüzden kontrol edilmedi.
+Settings exported, but the app holding it blocked the check.	Ayarlar dışa aktarıldı ama dosyayı tutan uygulama kontrolü engelledi.
 The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.	O dosyayı tutan uygulama çok uzun sürüyor, bu yüzden HushPinterest beklemeyi bıraktı. Hiçbir şey değiştirilmedi.
-The app holding the last settings file still hasn't answered. Try again later.	Son ayar dosyasını tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.
+The app with the last settings file hasn't answered. Try later.	Son ayar dosyasını tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.
 The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Ayar dosyasını tutan uygulama çok uzun sürüyor, bu yüzden HushPinterest beklemeyi bıraktı. O uygulama kaydetmeyi yine de bitirebilir, bu yüzden dosyaya güvenmeden önce onu kontrol et.
-The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	%1$s dosyası kaldırılamadı. Onu %2$s içinden sil, sonra yeniden Devam et'e dokun.
-The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Ayar dosyası kaydedildi, ancak geri okunduğunda yazılanla aynı değil. Yeni bir dosya olarak tekrar kaydet.
+Delete %1$s from %2$s, then tap Resume again.	%1$s dosyasını %2$s içinden sil, sonra yeniden Devam et'e dokun.
+Settings file saved but reads back wrong. Save it as a new file.	Ayar dosyası kaydedildi ama yanlış okunuyor. Yeni dosya olarak kaydet.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Devam ettirene kadar Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır.
 Full report saved to %1$s	Tam rapor şuraya kaydedildi: %1$s
 GPL-3.0, with the notices of the projects this is built on	GPL-3.0, üzerine kurulduğu projelerin lisans bildirimleriyle
@@ -73,34 +73,34 @@ GitHub sent back something HushPinterest couldn't read. Try again later.	GitHub,
 Saving the settings file	Ayar dosyası kaydediliyor
 Set when you patched	Yamaladığında ayarlananlar
 Settings couldn't open	Ayarlar açılamadı
-Settings couldn't refresh completely. Reopen settings and try again.	Ayarlar tamamen yenilenemedi. Ayarları yeniden açıp tekrar dene.
+Settings didn't fully refresh. Reopen them and try again.	Ayarlar tamamen yenilenemedi. Ayarları yeniden açıp tekrar dene.
 Settings exported.	Ayarlar dışa aktarıldı.
 Settings imported. %1$d switch changed.	Ayarlar içe aktarıldı. %1$d anahtar değişti.
 Settings imported. %1$d switches changed.	Ayarlar içe aktarıldı. %1$d anahtar değişti.
 Source code and issues	Kaynak kodu ve sorunlar
 Stays in while paused	Duraklatılsa da devrede kalır
 Tap to turn it back on.	Yeniden açmak için dokun.
-That file is too large to be a settings file. Nothing was changed.	Bu dosya bir ayar dosyası olamayacak kadar büyük. Hiçbir şey değiştirilmedi.
-That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	Bu dosya okunabilir bir metin değil, aktarım sırasında hasar görmüş olabilir. Hiçbir şey değiştirilmedi.
-That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	Bu dosyada bir ayar iki kez geçiyor, bu yüzden hangi değerin kullanılacağı belli değil. Hiçbir şey değiştirilmedi.
+That file is too large for a settings file. Nothing was changed.	Bu dosya ayar dosyası olamayacak kadar büyük. Hiçbir şey değiştirilmedi.
+That file isn't readable text. Nothing was changed.	Bu dosya okunabilir bir metin değil. Hiçbir şey değiştirilmedi.
+That file lists a setting twice. Nothing was changed.	Bu dosyada bir ayar iki kez geçiyor. Hiçbir şey değiştirilmedi.
 That isn't a HushPinterest settings file. Nothing was changed.	Bu bir HushPinterest ayar dosyası değil. Hiçbir şey değiştirilmedi.
-That settings file holds a value HushPinterest can't read. Nothing was changed.	Bu ayar dosyasında HushPinterest'un okuyamadığı bir değer var. Hiçbir şey değiştirilmedi.
-That settings file is damaged or only partly downloaded. Nothing was changed.	Bu ayar dosyası hasarlı ya da yalnızca bir kısmı indirilmiş. Hiçbir şey değiştirilmedi.
-That settings file was written by a newer HushPinterest than this one. Nothing was changed.	Bu ayar dosyası, HushPinterest'un bu sürümünden daha yeni bir sürümüyle oluşturulmuş. Hiçbir şey değiştirilmedi.
-The diagnostic report couldn't be saved yet. Try again in a moment.	Tanılama raporu henüz kaydedilemedi. Birazdan tekrar dene.
+A value in that file can't be read. Nothing was changed.	Bu dosyadaki bir değer okunamıyor. Hiçbir şey değiştirilmedi.
+That file is damaged or partly downloaded. Nothing was changed.	Bu dosya hasarlı ya da eksik indirilmiş. Hiçbir şey değiştirilmedi.
+That file is from a newer HushPinterest. Nothing was changed.	Bu dosya daha yeni bir HushPinterest'ten. Hiçbir şey değiştirilmedi.
+The diagnostic report couldn't be saved yet. Try again soon.	Tanılama raporu henüz kaydedilemedi. Birazdan tekrar dene.
 The diagnostic report couldn't be saved. Try again.	Tanılama raporu kaydedilemedi. Tekrar dene.
-The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.	%1$s dosyası kaldırılamadı. HushPinterest'u yeniden açmak için onu %2$s içinden sil.
+Delete %1$s from %2$s to turn HushPinterest back on.	HushPinterest'i yeniden açmak için %1$s dosyasını %2$s içinden sil.
 The setting couldn't finish updating. Its saved value is shown.	Ayarın güncellenmesi tamamlanamadı. Kayıtlı değeri gösteriliyor.
 There's no diagnostic data to clear.	Temizlenecek tanılama verisi yok.
 There's no diagnostic data to put back.	Geri getirilecek tanılama verisi yok.
-This phone has no file picker, so there's no way to choose a file here.	Bu telefonda dosya seçici yok, bu yüzden burada dosya seçmenin bir yolu yok.
+This phone has no file picker, so a file can't be chosen.	Bu telefonda dosya seçici yok, bu yüzden dosya seçilemiyor.
 Version	Sürüm
 Record patch activity and show errors for a bug report. Leave off during normal use.	Hata raporu için yama etkinliğini kaydeder ve hataları gösterir. Normal kullanımda kapalı bırakın.
 You paused HushPinterest.	HushPinterest'u duraklattın.
 Your switches already match that file, so nothing will change.	Anahtarların zaten o dosyayla aynı, bu yüzden hiçbir şey değişmeyecek.
 Copy a short report to the clipboard.	Kısa raporu panoya kopyalar.
 Settings imported.	Ayarlar içe aktarıldı.
-No app on this phone can open the link. The address is %1$s.	Bu telefondaki hiçbir uygulama bağlantıyı açamıyor. Adres: %1$s.
+No app can open %1$s.	%1$s adresini açabilen uygulama yok.
 Pause, backup and diagnostics	Duraklatma, yedekleme ve tanılama
 Updates	Güncellemeler
 Jump to a section	Bir bölüme git
@@ -130,7 +130,7 @@ Selecting links by hand	Bağlantıları elle seçme
 
 A change here applies after Pinterest restarts.	Buradaki bir değişiklik Pinterest yeniden başladıktan sonra geçerli olur.
 Android verified this app for Pinterest's web addresses, so their links open here.	Android bu uygulamayı Pinterest'ın web adresleri için doğruladı, bu yüzden bağlantıları burada açılır.
-Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.	Bu uygulamanın Android ayarları açılamadı. Pinterest simgesinden Uygulama bilgileri'ni, ardından Varsayılan olarak aç'ı açın.
+Couldn't show Open by default. It's in Pinterest's App info.	Varsayılan olarak aç açılamadı. Pinterest'in Uygulama bilgileri'nde.
 HushPinterest %1$s on Pinterest %2$s	Pinterest %2$s üzerinde HushPinterest %1$s
 HushPinterest %1$s supports Pinterest %2$s.	HushPinterest %1$s, Pinterest %2$s sürümlerini destekler.
 HushPinterest pauses when Pinterest restarts.	HushPinterest, Pinterest yeniden başladığında duraklatılır.
@@ -225,7 +225,7 @@ Missing	Bulunamadı
 Unavailable	Kullanılamıyor
 Android will retry the download.	Android indirmeyi yeniden deneyecek.
 Waiting for a network connection this download can use.	Bu indirmenin kullanabileceği bir ağ bağlantısı bekleniyor.
-Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.	Sayaçsız bir ağ bekleniyor. Sayaçlı olarak işaretlenmiş Wi-Fi, örneğin bir telefonun hotspot'u, sayılmaz.
+Waiting for Wi-Fi that isn't metered. A hotspot doesn't count.	Sayaçsız Wi-Fi bekleniyor. Hotspot sayılmaz.
 Paused by Android.	Android tarafından duraklatıldı.
 Not enough storage.	Yeterli depolama alanı yok.
 Download storage is unavailable.	İndirme depolaması kullanılamıyor.
@@ -236,15 +236,15 @@ Android couldn't save the file.	Android dosyayı kaydedemedi.
 Download failed.	İndirme başarısız oldu.
 Check Downloads for the saved file.	Kaydedilen dosya için İndirilenler'e bakın.
 Saved in %s.	%s klasörüne kaydedildi.
-Android no longer has this request. Check Downloads before saving again.	Android'de bu istek artık yok. Yeniden kaydetmeden önce İndirilenler'i kontrol edin.
-Android no longer has this request. Check %s before saving again.	Android'de bu istek artık yok. Yeniden kaydetmeden önce %s klasörünü kontrol edin.
+Android dropped this request. Check Downloads before retrying.	Android bu isteği bıraktı. Yeniden denemeden önce İndirilenler'e bak.
+Android dropped this request. Check %s before retrying.	Android bu isteği bıraktı. Yeniden denemeden önce %s klasörüne bak.
 Couldn't check Downloads. Try again.	İndirilenler kontrol edilemedi. Yeniden deneyin.
 Resume HushPinterest and turn on Download pins to retry.	Yeniden denemek için HushPinterest'i sürdürün ve Pinleri indir'i açın.
 Open the pin again to get a fresh download link.	Yeni bir indirme bağlantısı almak için pini yeniden açın.
-This request can't be retried. Check Downloads or open the pin again.	Bu istek yeniden denenemiyor. İndirilenler'i kontrol edin veya pini yeniden açın.
-This request can't be retried. Check %s or open the pin again.	Bu istek yeniden denenemiyor. %s klasörünü kontrol edin veya pini yeniden açın.
-Download started, but its history couldn't be saved. Check Downloads.	İndirme başladı ancak geçmişi kaydedilemedi. İndirilenler'i kontrol edin.
-Download started, but its history couldn't be saved. Check %s.	İndirme başladı ancak geçmişi kaydedilemedi. %s klasörünü kontrol edin.
+Can't retry this. Check Downloads or open the pin again.	Yeniden denenemiyor. İndirilenler'e bak veya pini yeniden aç.
+Can't retry this. Check %s or open the pin again.	Yeniden denenemiyor. %s klasörüne bak veya pini yeniden aç.
+Download started, but history wasn't saved. Check Downloads.	İndirme başladı ama geçmiş kaydedilmedi. İndirilenler'e bak.
+Download started, but history wasn't saved. Check %s.	İndirme başladı ama geçmiş kaydedilmedi. %s klasörüne bak.
 History removed. Files and active downloads were kept.	Geçmiş kaldırıldı. Dosyalar ve etkin indirmeler korundu.
 Couldn't remove this history entry. Try again.	Bu geçmiş kaydı kaldırılamadı. Yeniden deneyin.
 Couldn't open Downloads.	İndirilenler açılamadı.
@@ -290,14 +290,14 @@ Link type: %s	Bağlantı türü: %s
 %d pixels	%d piksel
 Unknown	Bilinmiyor
 Close	Kapat
-Couldn't show the supplied media details. Open the pin again, then retry.	Sağlanan medya ayrıntıları gösterilemedi. Pin'i yeniden aç, sonra tekrar dene.
-Pinterest only offered a streaming video for this pin, not a file that can be downloaded.	Pinterest bu pin için yalnızca akış videosu sundu, indirilebilir bir dosya sunmadı.
+Couldn't show the media details. Open the pin again and retry.	Medya ayrıntıları gösterilemedi. Pin'i yeniden aç, sonra tekrar dene.
+Pinterest only streams this video. There's no file to download.	Pinterest bu videoyu yalnızca akışla sunuyor. İndirilecek dosya yok.
 Pinterest didn't offer a downloadable video file for this pin.	Pinterest bu pin için indirilebilir bir video dosyası sunmadı.
 Pinterest hasn't supplied an image to download.	Pinterest indirilecek bir görsel sağlamadı.
 HushPinterest can't download this type of image.	HushPinterest bu tür bir görseli indiremiyor.
-This media link isn't a public Pinterest link HushPinterest can use.	Bu medya bağlantısı, HushPinterest'in kullanabileceği herkese açık bir Pinterest bağlantısı değil.
+This media link isn't a public Pinterest link.	Bu medya bağlantısı herkese açık bir Pinterest bağlantısı değil.
 Couldn't start the download. Check Downloads and try again.	İndirme başlatılamadı. İndirilenleri kontrol edip tekrar deneyin.
-Couldn't prepare this pin for download. Open the pin again, then retry.	Bu Pin indirmeye hazırlanamadı. Pin'i yeniden aç, sonra tekrar dene.
+Couldn't prepare this pin. Open it again, then retry.	Bu Pin hazırlanamadı. Yeniden aç, sonra tekrar dene.
 %1$s (%2$s to %3$s)	%1$s (%2$s yerine %3$s)
 Your choice is saved, but this build doesn't include the patch for it.	Seçimin kaydedildi ama bu sürüm onun yamasını içermiyor.
 Undoing import	İçe aktarma geri alınıyor
@@ -305,7 +305,7 @@ Import undone. Your earlier switches are back.	İçe aktarma geri alındı. Önc
 Undo ended because a saved switch changed.	Kayıtlı bir anahtar değiştiği için geri alma sona erdi.
 There's no import to undo.	Geri alınacak içe aktarma yok.
 Couldn't undo the import. Your imported switches are unchanged.	İçe aktarma geri alınamadı. İçe aktarılan anahtarlarınız değişmedi.
-Couldn't undo the import or restore the imported switches. Check the switches on this screen.	İçe aktarma geri alınamadı ve içe aktarılan anahtarlar geri yüklenemedi. Bu ekrandaki anahtarları kontrol edin.
+Couldn't undo the import or restore it. Check the switches here.	İçe aktarma geri alınamadı ya da geri yüklenemedi. Anahtarları kontrol et.
 Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Son içe aktarmadan önceki anahtarları geri yükleyin. Bir anahtarı düzenlemek veya Pinterest'i yeniden başlatmak geri almayı sona erdirir.
 Undo import	İçe aktarmayı geri al
 Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Bir ayar dosyası seçin. İçe aktarmadan önce her anahtarın adını, eski ve yeni değerlerini inceleyin. Seçimleriniz bu Pinterest uygulamasındaki tüm hesaplara uygulanır.
@@ -359,7 +359,7 @@ Pinterest data export help	Pinterest veri dışa aktarım yardımı
 Couldn't open the setup guide. Try again.	Kurulum rehberi açılamadı. Tekrar deneyin.
 Download visible pins	Görünen Pinleri indir
 A pin selection is still being saved.	Bir Pin seçimi hâlâ kaydediliyor.
-No visible pins are available. Open a pin menu from the grid and try again.	Görünür Pin bulunamadı. Izgaradan bir Pin menüsü açıp tekrar deneyin.
+No visible pins. Open a pin menu in the grid and try again.	Görünür Pin yok. Izgaradan bir Pin menüsü açıp tekrar dene.
 Select visible pins (up to %d)	Görünen Pinleri seç (en fazla %d)
 Queue selected	Seçilenleri sıraya al
 Couldn't open the pin selection. Try again from the grid.	Pin seçimi açılamadı. Izgaradan tekrar deneyin.
@@ -372,7 +372,7 @@ Couldn't save history for one result. Check %2$s.	Bir sonuç için geçmiş kayd
 Couldn't save history for %1$d results. Check %2$s.	%1$d sonuç için geçmiş kaydedilemedi. %2$s klasörünü kontrol edin.
 Skipped	Atlandı
 Unsupported	Desteklenmiyor
-No download was queued. The selection was stopped, canceled or unavailable.	İndirme sıraya alınmadı. Seçim durduruldu, iptal edildi veya kullanılamıyordu.
+Nothing was queued. The selection stopped or wasn't available.	Sıraya bir şey alınmadı. Seçim durduruldu veya kullanılamıyordu.
 Pinterest didn't supply supported media for this pin.	Pinterest bu Pin için desteklenen bir medya sağlamadı.
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Bir pini indir veya ızgaradan birkaç pin seç. Videoları ve orijinal görselleri, yoksa Pinterest'in sunduğu en büyük boyutu kaydeder.
 Save in Pinterest's folder	Pinterest klasörüne kaydet
@@ -387,9 +387,9 @@ Download board	Panoyu indir
 Adds Download board to a board's menu. It saves the pins Pinterest has loaded for that board so far and skips any already in Download history. Download pins has to be on too.	Bir panonun menüsüne Panoyu indir seçeneğini ekler. Pinterest'in o pano için şimdiye kadar yüklediği Pinleri kaydeder ve İndirme geçmişinde olanları atlar. Pinleri indir de açık olmalıdır.
 Skipped because they're already in Download history: %d	İndirme geçmişinde olduğu için atlananlar: %d
 Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.	Yalnızca Pinterest'in bu pano için şimdiye kadar yüklediği Pinler dahil edilir, en fazla %d. Daha fazlasını eklemek için önce panoda daha aşağı kaydır.
-No pins from this board have loaded yet. Scroll through the board, then try again.	Bu panodan henüz Pin yüklenmedi. Panoda biraz kaydır, sonra tekrar dene.
+This board's pins haven't loaded yet. Scroll it and try again.	Bu panonun Pinleri henüz yüklenmedi. Biraz kaydır ve tekrar dene.
 Every pin loaded from this board is already in Download history.	Bu panodan yüklenen her Pin zaten İndirme geçmişinde.
-Couldn't start the board download. Open the board menu and try again.	Pano indirmesi başlatılamadı. Pano menüsünü açıp tekrar dene.
+Couldn't start the board download. Try again from its menu.	Pano indirmesi başlatılamadı. Menüsünden tekrar dene.
 board menus	pano menüleri
 loaded board pins	yüklenen pano Pinleri
 # context: Long-press download, a button added to the round menu a held pin opens, and its switch on the Pin actions page.
@@ -429,16 +429,16 @@ Saves downloads in a folder you pick inside Pictures, DCIM, Download or Document
 %1$s is picked, but Save in Pinterest's folder is on, so downloads go to %2$s.	%1$s seçili, ancak Pinterest klasörüne kaydet açık olduğu için indirmeler %2$s klasörüne gider.
 Saving downloads in %s. Tap to pick another folder or go back to the Download folder.	İndirmeler %s içine kaydediliyor. Başka bir klasör seçmek veya Download klasörüne dönmek için dokun.
 Pick another folder	Başka klasör seç
-This phone has no folder picker, so there's no way to choose a folder here.	Bu telefonda klasör seçici yok, bu yüzden burada klasör seçmenin bir yolu yok.
+This phone has no folder picker, so a folder can't be chosen.	Bu telefonda klasör seçici yok, bu yüzden klasör seçilemiyor.
 Couldn't open the folder picker. Try again.	Klasör seçici açılamadı. Tekrar dene.
-Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Telefonun kendi depolama alanında Pictures, DCIM, Download veya Documents içinde bir klasör seç.
+Pick a folder in Pictures, DCIM, Download or Documents.	Pictures, DCIM, Download veya Documents içinde bir klasör seç.
 Downloads will be saved in %s.	İndirmeler %s içine kaydedilecek.
 Downloads will be saved in the Download folder.	İndirmeler Download klasörüne kaydedilecek.
 Android notification settings	Android bildirim ayarları
 Android lets this app show notifications. That only means they can show, not that push notifications reach this phone. Tap to change them in Android's settings.	Android bu uygulamanın bildirim göstermesine izin veriyor. Bu yalnızca bildirimlerin görünebileceği anlamına gelir, anlık bildirimlerin bu telefona ulaştığı anlamına gelmez. Android ayarlarında değiştirmek için dokunun.
 Notifications are off for this app in Android's settings, so none can show. Tap to turn them on there.	Bu uygulamanın bildirimleri Android ayarlarında kapalı, bu yüzden hiçbiri görünemez. Orada açmak için dokunun.
 Android didn't say whether this app can show notifications. Tap to check in Android's settings.	Android bu uygulamanın bildirim gösterip gösteremeyeceğini bildirmedi. Android ayarlarında kontrol etmek için dokunun.
-Android's notification settings didn't open. Open App info from Pinterest's icon, then Notifications.	Android bildirim ayarları açılamadı. Pinterest simgesinden Uygulama bilgileri'ni, ardından Bildirimler'i açın.
+Couldn't show Notifications. It's in Pinterest's App info.	Bildirimler açılamadı. Pinterest'in Uygulama bilgileri'nde.
 All (%d)	Tümü (%d)
 Images (%d)	Görseller (%d)
 Videos (%d)	Videolar (%d)
@@ -449,16 +449,16 @@ Unsupported video	Desteklenmeyen video
 Selected: %1$d (unsupported: %2$d)	Seçilen: %1$d (desteklenmeyen: %2$d)
 Unsupported: %d	Desteklenmeyen: %d
 Queue pins	Pinleri sıraya al
-Download history already has every pin you chose from this board.	İndirme geçmişinde bu panodan seçtiğin her Pin zaten var.
-Resume HushPinterest and turn on Download pins and Download board to use this.	Bunu kullanmak için HushPinterest'i sürdür, Pin indirmeyi ve Panoyu indirmeyi aç.
+Download history already has each pin chosen from this board.	İndirme geçmişinde bu panodan seçilen her Pin zaten var.
+Resume and turn on Download pins and Download board first.	Önce sürdür, sonra Pin indirmeyi ve Panoyu indirmeyi aç.
 Save list	Listeyi kaydet
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Bu liste yalnızca kaydedildiği sırada Pinterest'in panodan yüklediği, seçilen türdeki en fazla %d Pin'i içerir. Panonun daha aşağısındaki Pinler listede yok.
 This list has only the pins chosen from those on screen when it was saved.	Bu liste yalnızca kaydedildiği sırada ekrandakiler arasından seçilen Pinleri içerir.
 A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Pin'in kaynak bağlantısı yoksa bağlantı "missing", olduğu gibi saklanamadıysa "omitted" olarak yazılır. Örneğin izleme bilgisi taşıyan ya da özel bir ağa giden bağlantılar saklanmaz.
-HushPinterest closed while the picker was open. Choose the pins and save again.	Seçici açıkken HushPinterest kapandı. Pinleri seç ve yeniden kaydet.
+HushPinterest closed with the picker open. Pick and save again.	Seçici açıkken HushPinterest kapandı. Pinleri seç ve yeniden kaydet.
 Couldn't save the pin list. Try again.	Pin listesi kaydedilemedi. Tekrar dene.
-Saved the pin list, but the app holding it wouldn't let it be checked.	Pin listesi kaydedildi ama dosyayı tutan uygulama kontrole izin vermedi.
-The saved list doesn't read back as written. Save it again as a new file.	Kaydedilen liste yazıldığı gibi okunmuyor. Yeni bir dosya olarak tekrar kaydet.
+Pin list saved, but the app holding it blocked the check.	Pin listesi kaydedildi ama dosyayı tutan uygulama kontrolü engelledi.
+The saved list reads back wrong. Save it again as a new file.	Kaydedilen liste yanlış okunuyor. Yeni bir dosya olarak tekrar kaydet.
 Saved a list of one pin.	Bir Pin içeren liste kaydedildi.
 Saved a list of %d pins.	%d Pin içeren liste kaydedildi.
 Use Download again	Yeniden Download'u kullan
@@ -467,7 +467,7 @@ Width: %s	Genişlik: %s
 Height: %s	Yükseklik: %s
 Size: %s. Downloads look for the original first.	Boyut: %s. İndirmeler önce özgün görseli arar.
 Size: the original image	Boyut: özgün görsel
-Couldn't remove the empty file the picker made. Delete it in your files app.	Seçicinin oluşturduğu boş dosya kaldırılamadı. Dosyalar uygulamandan sil.
+Couldn't remove the empty file. Delete it in your files app.	Boş dosya kaldırılamadı. Dosyalar uygulamandan sil.
 Check the file	Dosyayı denetle
 Checking the file	Dosya denetleniyor
 These details were checked from the first part of the file. HushPinterest didn't download the whole file.	Bu ayrıntılar dosyanın ilk kısmından denetlendi. HushPinterest dosyanın tamamını indirmedi.
@@ -489,6 +489,6 @@ Hide lens button on pins	Pinlerde Lens düğmesini gizle
 Hide closeup buttons	Pinlerdeki düğmeleri gizle
 Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.	Açtığın bir pinin köşesindeki görsel arama düğmesini gizler. Pin menüsündeki Görüntü ara çalışmaya devam eder. Değişiklik açtığın bir sonraki pinde görünür.
 # context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
-The picked file was left alone. If it's empty, delete it in your files app.	Seçilen dosyaya dokunulmadı. Boşsa dosyalar uygulamandan sil.
+File left alone. If it's empty, delete it in your files app.	Dosyaya dokunulmadı. Boşsa dosyalar uygulamandan sil.
 # context: the toast at the end of a pin download selection when its progress dialog has closed. %1$s is the selection's title, Download visible pins or Download board
 %1$s: queued %2$d, skipped %3$d, unsupported %4$d, failed %5$d.	%1$s: sırada %2$d, atlanan %3$d, desteklenmeyen %4$d, başarısız %5$d.

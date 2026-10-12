@@ -231,7 +231,7 @@ public final class PinManifest {
             } catch (ActivityNotFoundException missing) {
                 PENDING.set(null);
                 picker.leave();
-                Utils.showToastLong(L10n.t("This phone has no file picker, so there's no way to choose a file here."));
+                Utils.showToastLong(L10n.t("This phone has no file picker, so a file can't be chosen."));
                 return false;
             }
         } catch (RuntimeException failure) {
@@ -272,7 +272,7 @@ public final class PinManifest {
             Uri uri = result == Activity.RESULT_OK && data != null ? data.getData() : null;
             if (uri == null) return; // Cancelled: nothing written and nothing to say.
             if (pending == null || app == null) {
-                discardThenSay(app, uri, L10n.t("HushPinterest closed while the picker was open. Choose the pins and save again."));
+                discardThenSay(app, uri, L10n.t("HushPinterest closed with the picker open. Pick and save again."));
                 return;
             }
             if (!PinDownloads.active()) {
@@ -329,7 +329,7 @@ public final class PinManifest {
         } catch (FileNotFoundException | RuntimeException refused) {
             gone = false;
         }
-        if (!gone) Utils.showToastLong(L10n.t("Couldn't remove the empty file the picker made. Delete it in your files app."));
+        if (!gone) Utils.showToastLong(L10n.t("Couldn't remove the empty file. Delete it in your files app."));
     }
 
     /** How many bytes the picked file holds, or -1 when the app holding it won't say. */
@@ -344,7 +344,7 @@ public final class PinManifest {
 
     /** For a file whose size couldn't be read, which might be one the user picked to write over. */
     private static String leftAlone() {
-        return L10n.t("The picked file was left alone. If it's empty, delete it in your files app.");
+        return L10n.t("File left alone. If it's empty, delete it in your files app.");
     }
 
     /**
@@ -371,10 +371,10 @@ public final class PinManifest {
             for (int n; (n = in.read(buffer)) != -1 && read.size() <= bytes.length; ) read.write(buffer, 0, n);
             back = read.toByteArray();
         } catch (IOException | RuntimeException unreadable) {
-            return L10n.t("Saved the pin list, but the app holding it wouldn't let it be checked.");
+            return L10n.t("Pin list saved, but the app holding it blocked the check.");
         }
         if (!Arrays.equals(bytes, back)) {
-            return L10n.t("The saved list doesn't read back as written. Save it again as a new file.");
+            return L10n.t("The saved list reads back wrong. Save it again as a new file.");
         }
         return L10n.quantity(count, "Saved a list of one pin.", "Saved a list of %d pins.", count);
     }

@@ -318,7 +318,7 @@ public class PinActionsTest {
         // A saved value that no longer reads as a folder keeps Download.
         DownloadFolder.PICKED.save("Music/Pins");
         assertNull(DownloadFolder.current());
-        assertEquals("Download started, but its history couldn't be saved. Check DCIM.", PinDownloads.startedMessage(false, "DCIM"));
+        assertEquals("Download started, but history wasn't saved. Check DCIM.", PinDownloads.startedMessage(false, "DCIM"));
     }
 
     /**
@@ -421,7 +421,7 @@ public class PinActionsTest {
         assertFalse(PinDownloads.start(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
                 "hls", Map.of("url", "https://v.pinimg.com/master.m3u8")))), activity));
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        assertEquals("Pinterest only offered a streaming video for this pin, not a file that can be downloaded.", ShadowToast.getTextOfLatestToast());
+        assertEquals("Pinterest only streams this video. There's no file to download.", ShadowToast.getTextOfLatestToast());
         ShadowToast.reset();
         assertFalse(PinDownloads.start(Map.of("id", "123"), activity));
         Shadows.shadowOf(Looper.getMainLooper()).idle();

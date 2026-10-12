@@ -139,7 +139,7 @@ public final class DownloadLedger {
         }
 
         public String reasonText() {
-            if (state == State.SKIPPED) return L10n.t("No download was queued. The selection was stopped, canceled or unavailable.");
+            if (state == State.SKIPPED) return L10n.t("Nothing was queued. The selection stopped or wasn't available.");
             if (state == State.UNSUPPORTED) return L10n.t("Pinterest didn't supply supported media for this pin.");
             if (state == State.PAUSED) {
                 // Waiting for a network isn't a failure: Android resumes the download itself. Android
@@ -150,7 +150,7 @@ public final class DownloadLedger {
                     case DownloadManager.PAUSED_WAITING_FOR_NETWORK:
                         return L10n.t("Waiting for a network connection this download can use.");
                     case DownloadManager.PAUSED_QUEUED_FOR_WIFI:
-                        return L10n.t("Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.");
+                        return L10n.t("Waiting for Wi-Fi that isn't metered. A hotspot doesn't count.");
                     default: return L10n.t("Paused by Android.");
                 }
             }
@@ -176,8 +176,8 @@ public final class DownloadLedger {
                 return folder != null ? L10n.f("Saved in %s.", folder) : L10n.t("Check Downloads for the saved file.");
             }
             if (state == State.MISSING) {
-                return folder != null ? L10n.f("Android no longer has this request. Check %s before saving again.", folder)
-                        : L10n.t("Android no longer has this request. Check Downloads before saving again.");
+                return folder != null ? L10n.f("Android dropped this request. Check %s before retrying.", folder)
+                        : L10n.t("Android dropped this request. Check Downloads before retrying.");
             }
             if (state == State.UNAVAILABLE) return L10n.t("Couldn't check Downloads. Try again.");
             return "";
@@ -490,8 +490,8 @@ public final class DownloadLedger {
             if (!current.canRetry()) {
                 Utils.showToastLong(current.state == State.MISSING || current.state == State.FAILED
                         ? L10n.t("Open the pin again to get a fresh download link.")
-                        : current.folder != null ? L10n.f("This request can't be retried. Check %s or open the pin again.", current.folder)
-                        : L10n.t("This request can't be retried. Check Downloads or open the pin again."));
+                        : current.folder != null ? L10n.f("Can't retry this. Check %s or open the pin again.", current.folder)
+                        : L10n.t("Can't retry this. Check Downloads or open the pin again."));
                 return;
             }
             if (!PinDownloads.active()) {

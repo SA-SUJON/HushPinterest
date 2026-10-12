@@ -389,7 +389,7 @@ public class DownloadLedgerTest {
         long id = owned("123", DownloadManager.STATUS_PAUSED);
         int[] paused = {DownloadManager.PAUSED_WAITING_FOR_NETWORK, DownloadManager.PAUSED_QUEUED_FOR_WIFI, DownloadManager.PAUSED_UNKNOWN};
         String[] pauseText = {"Waiting for a network connection this download can use.",
-                "Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.",
+                "Waiting for Wi-Fi that isn't metered. A hotspot doesn't count.",
                 "Paused by Android."};
         for (int i = 0; i < paused.length; i++) {
             nativeJobs.reasons.put(id, paused[i]);
@@ -433,7 +433,7 @@ public class DownloadLedgerTest {
                 assertTrue(DownloadLedger.retry(app, waiting, null));
                 settle();
                 assertEquals(1, nativeJobs.getRequestCount());
-                assertEquals("This request can't be retried. Check Downloads or open the pin again.", ShadowToast.getTextOfLatestToast());
+                assertEquals("Can't retry this. Check Downloads or open the pin again.", ShadowToast.getTextOfLatestToast());
             }
 
             status(waiting, DownloadManager.STATUS_FAILED);
@@ -514,7 +514,7 @@ public class DownloadLedgerTest {
         DownloadLedger.Job job = new DownloadLedger(app).reconcile().get(0);
         assertEquals(DownloadLedger.State.MISSING, job.state);
         assertFalse(job.canRetry());
-        assertEquals("Android no longer has this request. Check Downloads before saving again.", job.reasonText());
+        assertEquals("Android dropped this request. Check Downloads before retrying.", job.reasonText());
         assertTrue(DownloadLedger.retry(app, id, null));
         settle();
         assertEquals(0, nativeJobs.getRequestCount());
@@ -533,7 +533,7 @@ public class DownloadLedgerTest {
         nativeJobs.removes = 0;
         DownloadLedger.Job job = new DownloadLedger(app).reconcile().get(0);
         assertEquals(DownloadLedger.State.MISSING, job.state);
-        assertEquals("Android no longer has this request. Check Pictures/100PINT/Pins before saving again.", job.reasonText());
+        assertEquals("Android dropped this request. Check Pictures/100PINT/Pins before retrying.", job.reasonText());
         // A Download request keeps the old line shape, so history written before the flag reads the same.
         long plain = owned("301", DownloadManager.STATUS_SUCCESSFUL);
         String first = preferences().getString(DownloadLedger.RECORDS, "").split("\n")[0];
@@ -554,7 +554,7 @@ public class DownloadLedgerTest {
         nativeJobs.removes = 0;
         DownloadLedger.Job job = new DownloadLedger(app).reconcile().get(0);
         assertEquals(DownloadLedger.State.MISSING, job.state);
-        assertEquals("Android no longer has this request. Check " + folder + " before saving again.", job.reasonText());
+        assertEquals("Android dropped this request. Check " + folder + " before retrying.", job.reasonText());
         // A full history of the longest folders, every character escaped, still reads back whole.
         String longest = "Documents/" + ",".repeat(DownloadFolder.MAX_LENGTH - "Documents/".length());
         assertEquals(DownloadFolder.MAX_LENGTH, longest.length());
@@ -565,7 +565,7 @@ public class DownloadLedgerTest {
         assertTrue(full.length() + " <= " + DownloadLedger.RECORDS_LENGTH, full.length() <= DownloadLedger.RECORDS_LENGTH);
         List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();
         assertEquals(DownloadLedger.LIMIT, jobs.size());
-        assertEquals("Android no longer has this request. Check " + longest + " before saving again.", jobs.get(0).reasonText());
+        assertEquals("Android dropped this request. Check " + longest + " before retrying.", jobs.get(0).reasonText());
         assertEquals(0, nativeJobs.removes);
     }
 
@@ -729,7 +729,7 @@ public class DownloadLedgerTest {
             assertTrue(DownloadLedger.retry(app, id, null));
             settle();
             assertEquals(1, nativeJobs.getRequestCount());
-            assertEquals("This request can't be retried. Check Downloads or open the pin again.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Can't retry this. Check Downloads or open the pin again.", ShadowToast.getTextOfLatestToast());
         }
         nativeJobs.nullCursor = true;
         assertTrue(DownloadLedger.retry(app, id, null));
@@ -973,7 +973,7 @@ public class DownloadLedgerTest {
         settle();
         assertEquals(2, nativeJobs.getRequestCount());
         assertEquals(0, nativeJobs.removes);
-        assertEquals("Download started, but its history couldn't be saved. Check Downloads.", ShadowToast.getTextOfLatestToast());
+        assertEquals("Download started, but history wasn't saved. Check Downloads.", ShadowToast.getTextOfLatestToast());
         assertTrue(real.getString(DownloadLedger.RECORDS, "").startsWith(id + ",123,"));
     }
 

@@ -129,7 +129,7 @@ public final class DownloadFolderPreference extends Preference {
             page.startActivityForResult(intent, PICK);
         } catch (ActivityNotFoundException missing) {
             Logger.printInfo(() -> "No folder picker");
-            Utils.showToastLong(L10n.t("This phone has no folder picker, so there's no way to choose a folder here."));
+            Utils.showToastLong(L10n.t("This phone has no folder picker, so a folder can't be chosen."));
         } catch (RuntimeException error) {
             Logger.printInfo(() -> "Could not open the folder picker: " + error.getClass().getSimpleName());
             Utils.showToastLong(L10n.t("Couldn't open the folder picker. Try again."));
@@ -147,7 +147,7 @@ public final class DownloadFolderPreference extends Preference {
         if (tree == null) return true; // Cancelled: nothing changes.
         String folder = DownloadFolder.fromTree(tree);
         if (folder == null) {
-            Utils.showToastLong(L10n.t("Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage."));
+            Utils.showToastLong(L10n.t("Pick a folder in Pictures, DCIM, Download or Documents."));
             return true;
         }
         if (folder.equals(DownloadFolder.DOWNLOAD)) {

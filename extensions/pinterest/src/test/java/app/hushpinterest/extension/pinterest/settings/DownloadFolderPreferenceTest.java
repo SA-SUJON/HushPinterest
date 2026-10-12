@@ -110,7 +110,7 @@ public class DownloadFolderPreferenceTest {
             ShadowActivity.IntentForResult started = pickAnother(activity, row);
             answer(activity, started, Activity.RESULT_OK, tree("primary:Music/Pins"));
             assertEquals("DCIM/Pins", DownloadFolder.PICKED.get());
-            assertEquals("Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.",
+            assertEquals("Pick a folder in Pictures, DCIM, Download or Documents.",
                     ShadowToast.getTextOfLatestToast());
             ShadowToast.reset();
             answer(activity, pickAnother(activity, row), Activity.RESULT_CANCELED, null);

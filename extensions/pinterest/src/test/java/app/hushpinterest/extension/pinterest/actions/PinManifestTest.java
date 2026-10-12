@@ -312,7 +312,7 @@ public class PinManifestTest {
         // Android 12 and later cut a toast at two lines, so the note is a toast of its own.
         assertEquals(2, ShadowToast.shownToastCount());
         assertTrue(ShadowToast.showedToast("Couldn't save the pin list. Try again."));
-        assertEquals("Couldn't remove the empty file the picker made. Delete it in your files app.",
+        assertEquals("Couldn't remove the empty file. Delete it in your files app.",
                 ShadowToast.getTextOfLatestToast());
         assertEquals(0, PinListProvider.get(file).length);
     }
@@ -347,7 +347,7 @@ public class PinManifestTest {
         Uri file = PinListProvider.put("unknown.json", new byte[0]);
         answer(exportOne(), file);
         assertTrue(ShadowToast.showedToast("Couldn't save the pin list. Try again."));
-        assertEquals("The picked file was left alone. If it's empty, delete it in your files app.",
+        assertEquals("File left alone. If it's empty, delete it in your files app.",
                 ShadowToast.getTextOfLatestToast());
         assertNotNull("the file stays", PinListProvider.get(file));
     }
@@ -356,7 +356,7 @@ public class PinManifestTest {
         PinListProvider.refusesRead = true;
         Uri file = PinListProvider.put("unreadable.json", null);
         answer(exportOne(), file);
-        assertEquals("Saved the pin list, but the app holding it wouldn't let it be checked.",
+        assertEquals("Pin list saved, but the app holding it blocked the check.",
                 ShadowToast.getTextOfLatestToast());
         assertEquals("101", read(file).getJSONArray("pins").getJSONObject(0).getString("id"));
     }
@@ -366,7 +366,7 @@ public class PinManifestTest {
         PinListProvider.refusesTruncate = true;
         Uri file = PinListProvider.put("longer.json", "x".repeat(20_000).getBytes(StandardCharsets.UTF_8));
         answer(exportOne(), file);
-        assertEquals("The saved list doesn't read back as written. Save it again as a new file.",
+        assertEquals("The saved list reads back wrong. Save it again as a new file.",
                 ShadowToast.getTextOfLatestToast());
     }
 
@@ -383,7 +383,7 @@ public class PinManifestTest {
         pending().set(null);
         Uri file = PinListProvider.put("late.json", new byte[0]);
         answer(started, file);
-        assertEquals("HushPinterest closed while the picker was open. Choose the pins and save again.",
+        assertEquals("HushPinterest closed with the picker open. Pick and save again.",
                 ShadowToast.getTextOfLatestToast());
         assertNull("the picker's empty file is gone", PinListProvider.get(file));
     }
@@ -406,7 +406,7 @@ public class PinManifestTest {
             shadowOf(activity.getApplication()).checkActivities(false);
         }
         settle();
-        assertEquals("This phone has no file picker, so there's no way to choose a file here.", ShadowToast.getTextOfLatestToast());
+        assertEquals("This phone has no file picker, so a file can't be chosen.", ShadowToast.getTextOfLatestToast());
         assertNull(pending().get());
         assertNull(activity.getFragmentManager().findFragmentByTag(PICKER));
         assertFalse("an empty list opens nothing", PinManifest.export(activity, new ArrayList<>(), false));

@@ -470,8 +470,7 @@ public class SettingsBackupTest {
                 shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
                 settle();
             }
-            assertEquals("Couldn't import the settings, and couldn't put back the ones you had. "
-                    + "Check the switches on this screen.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Couldn't import or put back your old switches. Check them here.", ShadowToast.getTextOfLatestToast());
             assertEquals(false, store().get(Settings.HIDE_ADS.key));
             assertFalse(Settings.HIDE_ADS.savedValue());
             assertFalse("the screen shows a switch the store doesn't hold", row.isChecked());
@@ -1353,7 +1352,7 @@ public class SettingsBackupTest {
                 ShadowToast.reset();
                 click(page.findPreference(row));
                 ShadowLooper.idleMainLooper();
-                assertEquals(row, "This phone has no file picker, so there's no way to choose a file here.",
+                assertEquals(row, "This phone has no file picker, so a file can't be chosen.",
                         ShadowToast.getTextOfLatestToast());
                 assertTrue(row + " stayed out of reach", page.findPreference(row).isEnabled());
             }
@@ -1695,11 +1694,10 @@ public class SettingsBackupTest {
             + "stopped waiting. That app may still finish saving it, so check the file before you rely on it.";
     private static final String IMPORT_TIMEOUT =
             "The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.";
-    private static final String STALLED = "The app holding the last settings file still hasn't answered. Try again later.";
+    private static final String STALLED = "The app with the last settings file hasn't answered. Try later.";
     private static final String MISMATCH =
-            "The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.";
-    private static final String UNCHECKED = "Settings exported. The app holding the file wouldn't let HushPinterest "
-            + "read it back, so it wasn't checked.";
+            "Settings file saved but reads back wrong. Save it as a new file.";
+    private static final String UNCHECKED = "Settings exported, but the app holding it blocked the check.";
 
     /**
      * An app that turns "wt" down gets "w", which here keeps the old file's longer tail. The file is

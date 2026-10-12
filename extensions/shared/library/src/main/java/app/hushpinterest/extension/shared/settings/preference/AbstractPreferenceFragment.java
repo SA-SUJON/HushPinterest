@@ -650,7 +650,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     }
 
     protected CharSequence preferenceChangeRecoveryFailedMessage(@Nullable Context context) {
-        return L10n.t(context, "Settings couldn't refresh completely. Reopen settings and try again.");
+        return L10n.t(context, "Settings didn't fully refresh. Reopen them and try again.");
     }
 
     public static void showRestartDialog(Context context) {

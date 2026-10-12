@@ -265,7 +265,7 @@ public class SupportedLinksTest {
         assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
         ShadowLooper.idleMainLooper();
         assertNull(shadowOf(controller.get()).getNextStartedActivity());
-        assertEquals("Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.",
+        assertEquals("Couldn't show Open by default. It's in Pinterest's App info.",
                 ShadowToast.getTextOfLatestToast());
     }
 

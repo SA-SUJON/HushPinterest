@@ -307,7 +307,7 @@ public class BoardDownloadsTest {
         BoardDownloads.record(page("77", 200, 2));
         choice.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         settle();
-        assertEquals("Resume HushPinterest and turn on Download pins and Download board to use this.",
+        assertEquals("Resume and turn on Download pins and Download board first.",
                 ShadowToast.getTextOfLatestToast());
         assertEquals(0, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
         assertFalse(GridDownloads.running());
@@ -349,7 +349,7 @@ public class BoardDownloadsTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         assertEquals(Arrays.asList(1), chosen);
         assertEquals(1, screen.dismissed);
-        assertEquals("No pins from this board have loaded yet. Scroll through the board, then try again.",
+        assertEquals("This board's pins haven't loaded yet. Scroll it and try again.",
                 ShadowToast.getTextOfLatestToast());
     }
 

@@ -322,7 +322,7 @@ public final class BoardDownloads {
             }
             List<Object> pins = loaded(board);
             if (pins.isEmpty()) {
-                Utils.showToastLong(L10n.t("No pins from this board have loaded yet. Scroll through the board, then try again."));
+                Utils.showToastLong(L10n.t("This board's pins haven't loaded yet. Scroll it and try again."));
                 return false;
             }
             Context app = activity.getApplicationContext();
@@ -426,18 +426,18 @@ public final class BoardDownloads {
     private static void queue(Activity activity, List<Object> pins, Set<String> history, GridDownloads.Filter filter) {
         try {
             if (!active()) {
-                Utils.showToastLong(L10n.t("Resume HushPinterest and turn on Download pins and Download board to use this."));
+                Utils.showToastLong(L10n.t("Resume and turn on Download pins and Download board first."));
                 return;
             }
             if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
             if (pins.isEmpty()) {
-                Utils.showToastLong(L10n.t("No pins from this board have loaded yet. Scroll through the board, then try again."));
+                Utils.showToastLong(L10n.t("This board's pins haven't loaded yet. Scroll it and try again."));
                 return;
             }
             List<Object> fresh = new ArrayList<>();
             int known = split(pins, history, filter, fresh);
             if (fresh.isEmpty()) {
-                Utils.showToastLong(L10n.t("Download history already has every pin you chose from this board."));
+                Utils.showToastLong(L10n.t("Download history already has each pin chosen from this board."));
                 return;
             }
             if (GridDownloads.queue(activity, fresh, L10n.t("Download board"), note(), known, false)) {
@@ -452,6 +452,6 @@ public final class BoardDownloads {
 
     private static void failed(Throwable failure) {
         HookStatus.threw(FamilyNames.DOWNLOAD_BOARD, "start board download", failure);
-        Utils.showToastLong(L10n.t("Couldn't start the board download. Open the board menu and try again."));
+        Utils.showToastLong(L10n.t("Couldn't start the board download. Try again from its menu."));
     }
 }

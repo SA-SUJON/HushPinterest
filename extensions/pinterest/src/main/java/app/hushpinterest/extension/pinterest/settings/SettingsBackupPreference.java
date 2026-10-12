@@ -228,7 +228,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             page.startActivityForResult(intent, action);
         } catch (ActivityNotFoundException missing) {
             Logger.printInfo(() -> "No file picker for the settings file");
-            Utils.showToastLong(L10n.t("This phone has no file picker, so there's no way to choose a file here."));
+            Utils.showToastLong(L10n.t("This phone has no file picker, so a file can't be chosen."));
         } catch (RuntimeException error) {
             Logger.printInfo(() -> "Could not open the file picker: " + error.getClass().getSimpleName());
             Utils.showToastLong(L10n.t("Couldn't open the file picker. Try again."));
@@ -291,15 +291,13 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             back = read(resolver, uri, run);
         } catch (SettingsBackup.Rejected refused) {
             if (refused.reason == SettingsBackup.Reason.UNREADABLE) {
-                return L10n.t("Settings exported. The app holding the file wouldn't let HushPinterest read it back, "
-                        + "so it wasn't checked.");
+                return L10n.t("Settings exported, but the app holding it blocked the check.");
             }
             back = null;
         }
         if (new String(bytes, StandardCharsets.UTF_8).equals(back)) return L10n.t("Settings exported.");
         Logger.printInfo(() -> "Settings export read back differently");
-        return L10n.t("The settings file was saved, but it doesn't read back as what was written. "
-                + "Save it again as a new file.");
+        return L10n.t("Settings file saved but reads back wrong. Save it as a new file.");
     }
 
     private static void readForPreview(HushPinterestPreferenceFragment page, Uri uri) {
@@ -341,19 +339,19 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
     static String refusal(SettingsBackup.Reason reason) {
         switch (reason) {
             case SIZE:
-                return L10n.t("That file is too large to be a settings file. Nothing was changed.");
+                return L10n.t("That file is too large for a settings file. Nothing was changed.");
             case ENCODING:
-                return L10n.t("That file isn't readable text, so it may have been damaged on the way. Nothing was changed.");
+                return L10n.t("That file isn't readable text. Nothing was changed.");
             case DAMAGED:
-                return L10n.t("That settings file is damaged or only partly downloaded. Nothing was changed.");
+                return L10n.t("That file is damaged or partly downloaded. Nothing was changed.");
             case DUPLICATE:
-                return L10n.t("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.");
+                return L10n.t("That file lists a setting twice. Nothing was changed.");
             case FORMAT:
                 return L10n.t("That isn't a HushPinterest settings file. Nothing was changed.");
             case SCHEMA:
-                return L10n.t("That settings file was written by a newer HushPinterest than this one. Nothing was changed.");
+                return L10n.t("That file is from a newer HushPinterest. Nothing was changed.");
             case VALUE:
-                return L10n.t("That settings file holds a value HushPinterest can't read. Nothing was changed.");
+                return L10n.t("A value in that file can't be read. Nothing was changed.");
             default:
                 return L10n.t("Couldn't open that file. Nothing was changed.");
         }
@@ -569,8 +567,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
                             + (failure.rolledBack ? ", rolled back" : ", not rolled back"));
                     Utils.showToastLong(failure.rolledBack
                             ? L10n.t("Couldn't import the settings. Nothing was changed.")
-                            : L10n.t("Couldn't import the settings, and couldn't put back the ones you had. "
-                                    + "Check the switches on this screen."));
+                            : L10n.t("Couldn't import or put back your old switches. Check them here."));
                 } finally {
                     Utils.runOnMainThread(() -> {
                         AbstractPreferenceFragment.settingImportInProgress = false;
@@ -616,7 +613,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
                             + (failure.rolledBack ? ", rolled back" : ", not rolled back"));
                     Utils.showToastLong(failure.rolledBack
                             ? L10n.t("Couldn't undo the import. Your imported switches are unchanged.")
-                            : L10n.t("Couldn't undo the import or restore the imported switches. Check the switches on this screen."));
+                            : L10n.t("Couldn't undo the import or restore it. Check the switches here."));
                 } finally {
                     Utils.runOnMainThread(() -> {
                         AbstractPreferenceFragment.settingImportInProgress = false;
@@ -710,7 +707,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
     private static boolean stillStalled() {
         Run held = stalled;
         if (held == null || held.ended) return false;
-        Utils.showToastLong(L10n.t("The app holding the last settings file still hasn't answered. Try again later."));
+        Utils.showToastLong(L10n.t("The app with the last settings file hasn't answered. Try later."));
         return true;
     }
 

@@ -20,6 +20,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Toasts from a pin batch and Save list fit in the two lines Android 12 and later show. A batch whose dialog has closed gives its counts in one short sentence, and a note about pins already in Download history or a file left behind comes up as its own toast.
 
+* **Pinterest:** Every other HushPinterest toast now fits in those two lines too, in English and in German, Spanish, Indonesian, Portuguese and Turkish. Over 40 of them used to stop partway with "...", mostly around settings import and export, download retries and the file and folder pickers. They say the same thing in fewer words. When no app can open a link, the toast now just names the address, so more of it shows.
+
 * **Pinterest:** The Notifications page shows whether Android lets Pinterest show notifications, and one tap opens Android's notification settings for the patched app. It never changes a permission for you.
 
 * **Pinterest:** The update check gives up after 20 seconds even when GitHub answers slowly or a connection stalls, and Check now can be tapped again right away.

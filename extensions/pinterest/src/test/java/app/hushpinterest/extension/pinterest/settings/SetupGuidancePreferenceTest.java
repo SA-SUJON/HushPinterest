@@ -229,7 +229,7 @@ public class SetupGuidancePreferenceTest {
         GuideActivity.refused.add(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         button(guide, "Open link settings").performClick();
         ShadowLooper.idleMainLooper();
-        assertEquals("Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.", ShadowToast.getTextOfLatestToast());
+        assertEquals("Couldn't show Open by default. It's in Pinterest's App info.", ShadowToast.getTextOfLatestToast());
         assertTrue(guide.isShowing());
         assertNull(shadowOf(controller.get()).getNextStartedActivity());
     }

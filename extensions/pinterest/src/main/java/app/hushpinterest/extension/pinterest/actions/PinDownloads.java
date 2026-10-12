@@ -201,7 +201,7 @@ public final class PinDownloads {
             if (checkable) offerCheck(activity, details, media);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "show supplied media details", failure);
-            Utils.showToastLong(L10n.t("Couldn't show the supplied media details. Open the pin again, then retry."));
+            Utils.showToastLong(L10n.t("Couldn't show the media details. Open the pin again and retry."));
         }
     }
 
@@ -311,12 +311,11 @@ public final class PinDownloads {
 
     private static String refusalMessage(PinMedia.Refusal refusal) {
         switch (refusal) {
-            case ADAPTIVE_VIDEO: return L10n.t("Pinterest only offered a streaming video for this pin, not a file "
-                + "that can be downloaded.");
+            case ADAPTIVE_VIDEO: return L10n.t("Pinterest only streams this video. There's no file to download.");
             case MP4_MISSING: return L10n.t("Pinterest didn't offer a downloadable video file for this pin.");
             case IMAGE_MISSING: return L10n.t("Pinterest hasn't supplied an image to download.");
             case IMAGE_TYPE: return L10n.t("HushPinterest can't download this type of image.");
-            case PUBLIC_LINK: return L10n.t("This media link isn't a public Pinterest link HushPinterest can use.");
+            case PUBLIC_LINK: return L10n.t("This media link isn't a public Pinterest link.");
             default: throw new IllegalArgumentException("Unknown media refusal");
         }
     }
@@ -468,10 +467,10 @@ public final class PinDownloads {
     static String startedMessage(boolean tracked, String folder) {
         if (folder != null) {
             return tracked ? L10n.f("Download started. Check %s.", folder)
-                    : L10n.f("Download started, but its history couldn't be saved. Check %s.", folder);
+                    : L10n.f("Download started, but history wasn't saved. Check %s.", folder);
         }
         return tracked ? L10n.t("Download started. Check Downloads.")
-                : L10n.t("Download started, but its history couldn't be saved. Check Downloads.");
+                : L10n.t("Download started, but history wasn't saved. Check Downloads.");
     }
 
     /** The diagnostics name for a download Android wouldn't queue; its toast says to try again. */
@@ -486,6 +485,6 @@ public final class PinDownloads {
         if (!alone) return;
         Utils.showToastLong(action.equals(QUEUE_FAILED)
                 ? L10n.t("Couldn't start the download. Check Downloads and try again.")
-                : L10n.t("Couldn't prepare this pin for download. Open the pin again, then retry."));
+                : L10n.t("Couldn't prepare this pin. Open it again, then retry."));
     }
 }

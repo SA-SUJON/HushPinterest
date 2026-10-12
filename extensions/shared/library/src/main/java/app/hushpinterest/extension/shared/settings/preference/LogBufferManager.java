@@ -209,7 +209,7 @@ public final class LogBufferManager {
     public static void exportToFile() {
         Context context = Utils.getContext();
         if (context == null) {
-            Utils.showToastLong(say(noContextMessage, L10n.t("The diagnostic report couldn't be saved yet. Try again in a moment.")));
+            Utils.showToastLong(say(noContextMessage, L10n.t("The diagnostic report couldn't be saved yet. Try again soon.")));
             return;
         }
         Context application = context.getApplicationContext();

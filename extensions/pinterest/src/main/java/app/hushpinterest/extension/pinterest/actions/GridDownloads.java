@@ -128,7 +128,7 @@ final class GridDownloads {
             Map<String, View> cells = new HashMap<>();
             List<Object> pins = snapshot(grid(origin), cells);
             if (pins.isEmpty()) {
-                Utils.showToastLong(L10n.t("No visible pins are available. Open a pin menu from the grid and try again."));
+                Utils.showToastLong(L10n.t("No visible pins. Open a pin menu in the grid and try again."));
                 return false;
             }
             int box = dp(activity, THUMBNAIL_DP);
