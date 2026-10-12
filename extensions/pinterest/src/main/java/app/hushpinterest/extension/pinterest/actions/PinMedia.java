@@ -30,6 +30,8 @@ final class PinMedia {
     }
 
     static String id(Object pin) {
+        // Download board keeps a loaded pin as its resolved media, which only a verified pin has.
+        if (pin instanceof Resolution) return ((Resolution) pin).id;
         Object id = field(pin, "id");
         if (!(id instanceof String) || !((String) id).matches("[0-9]{1,30}")) return null;
         // Boards and people also have numeric ids. A pin declares both media model fields,
@@ -87,6 +89,7 @@ final class PinMedia {
 
     /** Null means the model isn't a verified pin; a known pin can carry a specific refusal. */
     static Resolution resolve(Object pin) {
+        if (pin instanceof Resolution) return (Resolution) pin;
         String id = id(pin);
         if (id == null) return null;
         Object videoList = field(field(pin, "videos"), "video_list");

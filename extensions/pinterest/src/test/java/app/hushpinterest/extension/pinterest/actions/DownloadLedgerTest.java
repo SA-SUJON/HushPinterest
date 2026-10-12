@@ -277,12 +277,46 @@ public class DownloadLedgerTest {
         assertEquals(DownloadLedger.State.MISSING, jobs.get(0).state);
         assertArrayEquals(new long[]{7}, nativeJobs.queries.get(0));
         nativeJobs.queries.clear();
+        // Oversized, it keeps only the whole lines within the bound, and still asks only about their IDs.
         preferences().edit().putString(DownloadLedger.RECORDS, "1,2,3\n".repeat(DownloadLedger.RECORDS_LENGTH / 6 + 1)).commit();
-        assertTrue(new DownloadLedger(app).reconcile().isEmpty());
-        assertTrue(nativeJobs.queries.isEmpty());
+        jobs = new DownloadLedger(app).reconcile();
+        assertEquals(1, jobs.size());
+        assertEquals(1, jobs.get(0).id);
+        assertArrayEquals(new long[]{1}, nativeJobs.queries.get(0));
+        nativeJobs.queries.clear();
         preferences().edit().putInt(DownloadLedger.RECORDS, 1).commit();
         assertTrue(new DownloadLedger(app).reconcile().isEmpty());
         assertTrue(nativeJobs.queries.isEmpty());
+    }
+
+    /**
+     * Only a damaged store holds a history longer than this class writes. Its newest whole lines are
+     * kept rather than none, so the next download doesn't replace the history with one line, and a
+     * line the bound cuts through is dropped rather than read short.
+     */
+    @Test public void anOversizedHistoryKeepsItsNewestWholeLinesAndTheNextWriteKeepsThemToo() {
+        long older = owned("201", DownloadManager.STATUS_SUCCESSFUL);
+        long newer = owned("202", DownloadManager.STATUS_SUCCESSFUL);
+        String saved = preferences().getString(DownloadLedger.RECORDS, "");
+        // Cut short at the bound, the last line would read as request 77 saved at time 17.
+        String junk = "#".repeat(DownloadLedger.RECORDS_LENGTH - saved.length() - 6);
+        String damaged = saved + junk + "\n77,777,1700000000000\n";
+        assertTrue(damaged.length() > DownloadLedger.RECORDS_LENGTH);
+        assertEquals(DownloadLedger.RECORDS_LENGTH - 5, damaged.indexOf("77,777"));
+        preferences().edit().putString(DownloadLedger.RECORDS, damaged).commit();
+
+        List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();
+        assertArrayEquals(new long[]{newer, older}, jobs.stream().mapToLong(job -> job.id).toArray());
+        assertEquals(DownloadLedger.State.COMPLETED, jobs.get(0).state);
+        assertArrayEquals(new long[]{newer, older}, nativeJobs.queries.get(0));
+
+        long next = owned("203", DownloadManager.STATUS_PENDING);
+        String rewritten = preferences().getString(DownloadLedger.RECORDS, "");
+        assertEquals(3, rewritten.lines().count());
+        assertTrue(rewritten, rewritten.startsWith(next + ",203,"));
+        assertTrue(rewritten, rewritten.endsWith(saved));
+        assertTrue(DownloadLedger.downloadedPinIds(app).containsAll(java.util.Arrays.asList("201", "202", "203")));
+        assertEquals(0, nativeJobs.removes);
     }
 
     @Test public void onlyOwnedIdsAreQueriedAndForeignReturnedRowsAreIgnored() {

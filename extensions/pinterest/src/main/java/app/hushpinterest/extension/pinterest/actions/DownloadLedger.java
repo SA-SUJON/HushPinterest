@@ -510,7 +510,11 @@ public final class DownloadLedger {
         String text;
         try { text = preferences.getString(RECORDS, ""); }
         catch (ClassCastException invalid) { return jobs; }
-        if (text == null || text.length() > RECORDS_LENGTH) return jobs;
+        if (text == null) return jobs;
+        // Only a damaged store holds more than this class writes. Its newest whole lines come first
+        // and are kept, so the next write doesn't replace the history with nothing. A line the bound
+        // cuts through is dropped whole: cut short, it could still read as a different valid line.
+        if (text.length() > RECORDS_LENGTH) text = text.substring(0, Math.max(0, text.lastIndexOf('\n', RECORDS_LENGTH)));
         for (String line : text.split("\n")) {
             String[] fields = line.split(",", -1);
             // A local outcome ends in its state. A native request saved outside Download ends in its

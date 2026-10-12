@@ -8,6 +8,8 @@ package app.hushpinterest.extension.pinterest.actions;
 
 import static org.junit.Assert.*;
 import android.app.Activity;
+import android.app.DownloadManager;
+import android.content.Context;
 import android.os.Looper;
 import org.junit.After;
 import org.junit.Before;
@@ -20,6 +22,8 @@ import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
+import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowDownloadManager;
 import org.robolectric.shadows.ShadowToast;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -138,6 +142,32 @@ public class BoardDownloadsTest {
         for (int board = 2; board <= BoardDownloads.BOARDS + 1; board++) BoardDownloads.record(page(String.valueOf(board), 10_000 * board, 3));
         assertTrue("the least recently used board goes first", BoardDownloads.loaded("1").isEmpty());
         for (int board = 2; board <= BoardDownloads.BOARDS + 1; board++) assertEquals(3, BoardDownloads.loaded(String.valueOf(board)).size());
+    }
+
+    /** A kept pin is its id and resolved media, never Pinterest's model, and a board batch still saves from it. */
+    @Test public void keptPinsHoldOnlyTheirResolvedMediaAndStillDownload() throws Exception {
+        List<Object> models = page("77", 100, 2);
+        assertTrue(BoardDownloads.record(models));
+        List<Object> kept = BoardDownloads.loaded("77");
+        assertEquals(Arrays.asList("100", "101"), ids(kept));
+        for (int i = 0; i < kept.size(); i++) {
+            assertNotSame(models.get(i), kept.get(i));
+            assertTrue(kept.get(i) instanceof PinMedia.Resolution);
+            assertEquals("https://i.pinimg.com/originals/" + (100 + i) + ".jpg", PinMedia.source(kept.get(i)).url);
+        }
+
+        assertTrue(BoardDownloads.start("77"));
+        for (int i = 0; i < 10; i++) {
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+        }
+        assertFalse(GridDownloads.running());
+        ShadowDownloadManager downloads = Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE));
+        assertEquals(2, downloads.getRequestCount());
+        for (long id = 0; id < 2; id++) {
+            assertEquals("https://i.pinimg.com/originals/" + (100 + id) + ".jpg",
+                    Shadow.<ShadowDownloadManager.ShadowRequest>extract(downloads.getRequest(id)).getUri().toString());
+        }
     }
 
     @Test public void switchedOffOrPausedItKeepsNothingAndForgetsWhatItHad() {

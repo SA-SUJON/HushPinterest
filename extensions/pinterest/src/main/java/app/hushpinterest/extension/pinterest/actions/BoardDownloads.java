@@ -34,7 +34,9 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
  *
  * <p>The pins come from the lists {@code FeedFilter} already sees. A list whose pins nearly all
  * name one board is a page of that board, so its pins are kept here under that board's id, in
- * memory only, for a few boards and a bounded number of pins each. Nothing asks Pinterest for more:
+ * memory only, for a few boards and a bounded number of pins each. A kept pin is only its id and
+ * the media resolved from it, never Pinterest's model, so a full set of boards doesn't hold every
+ * one of those models, and all they reach, in memory. Nothing asks Pinterest for more:
  * a board that wasn't scrolled to its end gives what loaded, and the result says so. Each pin goes
  * through {@link PinDownloads}, the path the grid selection uses, one batch at a time.
  */
@@ -50,10 +52,10 @@ public final class BoardDownloads {
     /** A list belongs to a board when at least this share of its pins, in tenths, names it. */
     private static final int SHARE_IN_TENTHS = 9;
 
-    private static final LinkedHashMap<String, LinkedHashMap<String, Object>> LOADED =
-            new LinkedHashMap<String, LinkedHashMap<String, Object>>(8, 0.75f, true) {
+    private static final LinkedHashMap<String, LinkedHashMap<String, PinMedia.Resolution>> LOADED =
+            new LinkedHashMap<String, LinkedHashMap<String, PinMedia.Resolution>>(8, 0.75f, true) {
                 @Override
-                protected boolean removeEldestEntry(Map.Entry<String, LinkedHashMap<String, Object>> eldest) {
+                protected boolean removeEldestEntry(Map.Entry<String, LinkedHashMap<String, PinMedia.Resolution>> eldest) {
                     return size() > BOARDS;
                 }
             };
@@ -155,7 +157,7 @@ public final class BoardDownloads {
             if (board == null) return false;
             boolean kept = false;
             synchronized (LOADED) {
-                LinkedHashMap<String, Object> loaded = LOADED.get(board);
+                LinkedHashMap<String, PinMedia.Resolution> loaded = LOADED.get(board);
                 if (loaded == null) {
                     loaded = new LinkedHashMap<>();
                     LOADED.put(board, loaded);
@@ -164,7 +166,10 @@ public final class BoardDownloads {
                     String id = PinMedia.id(item);
                     if (id == null || !board.equals(boardOf(item))) continue;
                     if (loaded.containsKey(id) || loaded.size() < PINS) {
-                        loaded.put(id, item);
+                        // PinDownloads takes the resolved media in place of the pin.
+                        PinMedia.Resolution media = PinMedia.resolve(item);
+                        if (media == null) continue;
+                        loaded.put(id, media);
                         kept = true;
                     }
                 }
@@ -176,11 +181,11 @@ public final class BoardDownloads {
         }
     }
 
-    /** The pins kept for [board], oldest first. */
+    /** The pins kept for [board], oldest first, as their resolved media. */
     static List<Object> loaded(String board) {
         synchronized (LOADED) {
-            LinkedHashMap<String, Object> loaded = board == null ? null : LOADED.get(board);
-            return loaded == null ? new ArrayList<>() : new ArrayList<>(loaded.values());
+            LinkedHashMap<String, PinMedia.Resolution> loaded = board == null ? null : LOADED.get(board);
+            return loaded == null ? new ArrayList<>() : new ArrayList<Object>(loaded.values());
         }
     }
 
