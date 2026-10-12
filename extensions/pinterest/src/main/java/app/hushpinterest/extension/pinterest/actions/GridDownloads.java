@@ -216,19 +216,25 @@ final class GridDownloads {
             try {
                 step();
             } catch (Throwable failure) {
-                HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "continue batch", failure);
-                RUNNING.set(false);
-                AlertDialog shown = progress;
-                progress = null;
-                try {
-                    if (shown != null) shown.dismiss();
-                } catch (RuntimeException gone) {
-                    // Its window already went with the screen.
-                }
+                end("continue batch", failure);
+            }
+        }
+
+        /** Ends the batch after a failure: clears the running flag and closes the progress dialog. */
+        private void end(String what, Throwable failure) {
+            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, what, failure);
+            RUNNING.set(false);
+            AlertDialog shown = progress;
+            progress = null;
+            try {
+                if (shown != null) shown.dismiss();
+            } catch (RuntimeException gone) {
+                // Its window already went with the screen.
             }
         }
 
         private void step() {
+            if (progress != null && progress.isShowing()) progress.setMessage(summary());
             Activity host = activity.get();
             if ((host == null || host.isFinishing() || host.isDestroyed()) && progress != null) {
                 progress.dismiss();
@@ -251,29 +257,31 @@ final class GridDownloads {
         }
 
         void result(String id, PinDownloads.Result outcome, boolean record) {
-            switch (outcome) {
-                case QUEUED: queued++; break;
-                case QUEUED_UNTRACKED: queued++; untracked++; break;
-                case SKIPPED: skipped++; break;
-                case UNSUPPORTED: unsupported++; break;
-                default: failed++;
-            }
-            pins.set(position++, null);
-            Runnable advance = () -> {
-                if (progress != null && progress.isShowing()) progress.setMessage(summary());
-                next();
-            };
-            if (!record || outcome == PinDownloads.Result.QUEUED || outcome == PinDownloads.Result.QUEUED_UNTRACKED) {
-                Utils.runOnMainThread(advance);
-            } else {
-                boolean scheduled = Utils.runOnBackgroundThread(() -> {
-                    boolean recorded = DownloadLedger.recordResult(app, id, DownloadLedger.State.valueOf(outcome.name()));
-                    Utils.runOnMainThread(() -> { if (!recorded) untracked++; advance.run(); });
-                });
-                if (!scheduled) {
-                    untracked++;
-                    Utils.runOnMainThread(advance);
+            try {
+                switch (outcome) {
+                    case QUEUED: queued++; break;
+                    case QUEUED_UNTRACKED: queued++; untracked++; break;
+                    case SKIPPED: skipped++; break;
+                    case UNSUPPORTED: unsupported++; break;
+                    default: failed++;
                 }
+                pins.set(position++, null);
+                // next() refreshes the summary inside its own guard.
+                Runnable advance = this::next;
+                if (!record || outcome == PinDownloads.Result.QUEUED || outcome == PinDownloads.Result.QUEUED_UNTRACKED) {
+                    Utils.runOnMainThread(advance);
+                } else {
+                    boolean scheduled = Utils.runOnBackgroundThread(() -> {
+                        boolean recorded = DownloadLedger.recordResult(app, id, DownloadLedger.State.valueOf(outcome.name()));
+                        Utils.runOnMainThread(() -> { if (!recorded) untracked++; advance.run(); });
+                    });
+                    if (!scheduled) {
+                        untracked++;
+                        Utils.runOnMainThread(advance);
+                    }
+                }
+            } catch (Throwable failure) {
+                end("record batch result", failure);
             }
         }
     }
