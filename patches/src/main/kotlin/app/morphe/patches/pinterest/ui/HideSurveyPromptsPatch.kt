@@ -277,7 +277,7 @@ internal fun sponsoredPollSmali(found: SponsoredPoll) = """
 val hideSurveyPromptsPatch = bytecodePatch(
     name = PATCH,
     description = "Turns down Pinterest's \"Got a minute?\" survey invite before it pops up, the same way tapping Maybe later does, " +
-        "so the same survey doesn't come back. Advertiser sponsored polls don't pop up either. " +
+        "so the same survey doesn't come back. Advertiser-sponsored polls don't pop up either. " +
         "Starts off. Turn it on in HushPinterest settings > Interface.",
 ) {
     category("Interface")

@@ -112,8 +112,8 @@ internal class BoardMenu(
 @Suppress("unused")
 val downloadBoardPatch = bytecodePatch(
     name = PATCH,
-    description = "Adds Download board to a board's menu. It saves every pin Pinterest has loaded for that board and " +
-        "skips ones already in Download history, so you can keep a board without picking pins one at a time. " +
+    description = "Adds Download board to a board's menu. It saves every pin Pinterest has loaded for that board, up to 500, " +
+        "and skips ones already in Download history, so you can keep a board without picking pins one at a time. " +
         "Needs Download pins on too. Starts off. Turn it on in HushPinterest settings > Pin actions.",
 ) {
     category("Downloads")

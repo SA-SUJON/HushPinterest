@@ -22,6 +22,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Clearer wording in settings. Hide AI-labeled pins names the places it filters instead of "the same places", Strip link tracking mentions Plain pin links only when that switch exists, the Check now row names the switch it works around, download messages say "the Download folder" for the folder and "Downloads" for the app, the batch summary reads "Couldn't save history for one result" with a real singular, "in parentheses" replaces "in brackets", and Autoplay's note says cellular data like its title. The five translations follow.
 
+* **Docs:** The 14.39.0 audit page records 0.0.7 and drops two work items that were done. The README and the patch descriptions Morphe Manager shows now both say Download board stops at 500 pins, Hide advertising ID works like deleting your advertising ID, and Advertiser-sponsored polls stay hidden. The README also names the Search switch under Hide navigation buttons.
+
 * **Tooling:** An interrupted release can resume after a commit repairs its publication checks. It keeps the prepared source, published tag, signed assets and index unchanged, including the original test counts when local results are missing or come from a focused run. It pushes only when needed and checks the index Morphe Manager receives. Changed release files or unrelated source commits stop recovery. Refs #3
 
 * **Pinterest:** The diagnostic report's pin menu counts now say they were taken when the menu was built, before Pinterest decided what to show, so a row counted as visible isn't read as one that was on screen.

@@ -68,7 +68,7 @@ private const val OBJECT = "Ljava/lang/Object;"
 val hideAdvertisingIdPatch = bytecodePatch(
     name = PATCH,
     description = "Pinterest sees an empty advertising ID with ad tracking limited, the same as if you deleted your" +
-        " ad ID in Android. Pinterest also stops keeping its browser ID in Google's Block Store, so a reinstall" +
+        " advertising ID in Android. Pinterest also stops keeping its browser ID in Google's Block Store, so a reinstall" +
         " doesn't bring the old one back. Good for keeping ads from following you. On by default. Turn it off in " +
         "HushPinterest settings > Privacy.",
     default = true,

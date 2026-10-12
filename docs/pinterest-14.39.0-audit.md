@@ -15,7 +15,7 @@ The survey ran on October 9, 2026 with Pinterest 14.38.0 (version code 14388010)
 | [Patch coverage and customization](pinterest-14.39.0-patch-reference.md) | All 27 patches, native alternatives, concrete additions and a maintenance checklist |
 | This page | Live screen observations, evidence boundaries, key decisions and the next investigation priorities |
 
-The strongest immediate leads are a typed shopping-story mismatch, incomplete reporting of partial ad-hook coverage, GMA initialization and request-header boundaries, and the difference between visible filtering and network suppression. Native settings also cover more ground than the patch list alone suggests. Pinterest already offers theme, comment, notification, personalization and AI-content controls.
+The strongest immediate leads are GMA initialization and request-header boundaries, and the difference between visible filtering and network suppression. The typed shopping-story mismatch and the partial ad-hook coverage report found here have since been handled: Ads reads the typed story field and the settings page says "N of M parts" when only some targets matched. Native settings also cover more ground than the patch list alone suggests. Pinterest already offers theme, comment, notification, personalization and AI-content controls.
 
 No patch behavior was changed for this audit. The reference distinguishes a code fact from a screen observation and from a proposal. It does not claim complete ad or tracking suppression.
 
@@ -27,8 +27,8 @@ No patch behavior was changed for this audit. The reference distinguishes a code
 | Surveyed APK | 14.38.0, version code 14388010, SHA-256 `af6b383adb445cebee1ca43f14ac409f91475c1d62e0e11ef52ef52e29fb0553` |
 | Current target APK | 14.39.0, version code 14398020, SHA-256 `4ecc7f9a34c89fd98d0e2133c294517772857b935969847bfd92b3e25b13e78d`. Static checks only |
 | Original signing certificate SHA-256 | `341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa` |
-| Hush source reviewed | `932f0c5` for the survey, with 23 catalog entries. The references were refreshed at `6383001`, which has 26 |
-| Published bundle at inspection | v0.0.5. v0.0.6 followed on October 10 and still targets 14.38.0. Later source changes are not assumed to be in either release |
+| Hush source reviewed | `932f0c5` for the survey, with 23 catalog entries. The references were refreshed at `6383001`, which had 26. The patch reference covers the 27 that ship in 0.0.7 |
+| Published bundle at inspection | v0.0.5. v0.0.6 followed on October 10 and still targets 14.38.0. v0.0.7 followed on October 11 and targets 14.39.0 only. Later source changes are not assumed to be in any of them |
 | Live environment | Android 13/API 33 emulator, x86_64, 1080 by 2400 pixels, English (United States), Wi-Fi |
 | App installation | Original signed APK. No Hush extension or selected patches |
 | Account | Signed in manually. Credentials were not part of the audit |
@@ -178,8 +178,6 @@ These are proposed work items, not completed features. The linked chapters conta
 
 | Priority | Work | Why it comes first |
 |---|---|---|
-| P1 | Handle typed `SHOPPING_SPOTLIGHT` consistently | One native story model is an enum, while Ads compares that field to a String. The separate Shopping filter already handles typed values. Confirm which paid placements use the typed model before claiming live leakage |
-| P1 | Report exact ad-hook coverage | Current capability booleans can remain true when only some holder/view targets match. Preserve hard refusal on unsafe targets and show partial support honestly |
 | P1 | Verify nested shopping modules in search and closeups | Both were directly observed. Check wrapper/headline removal, preserved organic content and list pagination |
 | P1 | Trace GMA headers and lifecycle after toggles | Startup suppression does not tear down an already initialized SDK. Measure cold/warm starts and preserve native header cleanup before guarding additions |
 | P1 | Compare patches against the measured factory network baseline | Guest capture now records app traffic and Android UID counters. Repeat equivalent workloads with patched configurations before claiming suppression or savings |

@@ -79,7 +79,7 @@
     },
     {
       "name": "Download board",
-      "description": "Adds Download board to a board's menu. It saves every pin Pinterest has loaded for that board and skips ones already in Download history, so you can keep a board without picking pins one at a time. Needs Download pins on too. Starts off. Turn it on in HushPinterest settings > Pin actions.",
+      "description": "Adds Download board to a board's menu. It saves every pin Pinterest has loaded for that board, up to 500, and skips ones already in Download history, so you can keep a board without picking pins one at a time. Needs Download pins on too. Starts off. Turn it on in HushPinterest settings > Pin actions.",
       "category": "Downloads",
       "use": true,
       "dependencies": [
@@ -295,7 +295,7 @@
     },
     {
       "name": "Hide advertising ID",
-      "description": "Pinterest sees an empty advertising ID with ad tracking limited, the same as if you deleted your ad ID in Android. Pinterest also stops keeping its browser ID in Google's Block Store, so a reinstall doesn't bring the old one back. Good for keeping ads from following you. On by default. Turn it off in HushPinterest settings > Privacy.",
+      "description": "Pinterest sees an empty advertising ID with ad tracking limited, the same as if you deleted your advertising ID in Android. Pinterest also stops keeping its browser ID in Google's Block Store, so a reinstall doesn't bring the old one back. Good for keeping ads from following you. On by default. Turn it off in HushPinterest settings > Privacy.",
       "category": "Privacy",
       "use": true,
       "dependencies": [
@@ -547,7 +547,7 @@
     },
     {
       "name": "Hide survey prompts",
-      "description": "Turns down Pinterest's \"Got a minute?\" survey invite before it pops up, the same way tapping Maybe later does, so the same survey doesn't come back. Advertiser sponsored polls don't pop up either. Starts off. Turn it on in HushPinterest settings > Interface.",
+      "description": "Turns down Pinterest's \"Got a minute?\" survey invite before it pops up, the same way tapping Maybe later does, so the same survey doesn't come back. Advertiser-sponsored polls don't pop up either. Starts off. Turn it on in HushPinterest settings > Interface.",
       "category": "Interface",
       "use": true,
       "dependencies": [
