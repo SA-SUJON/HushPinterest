@@ -158,7 +158,7 @@ Hide AI-labeled pins	Ocultar pins com selo de IA
 Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.	Remove do seu feed inicial, da busca, dos pins relacionados e das pastas os pins que o Pinterest marca como criados ou alterados com IA. Imagens de IA sem essa marca continuam aparecendo.
 Promoted and AI-labeled pins	Pins promovidos e com selo de IA
 Promoted pins	Pins promovidos
-Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Remove os pins promovidos do seu feed inicial, da busca, dos pins relacionados e dos quadros, e esconde os painéis que só têm anúncios.
+Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Remove os pins promovidos do seu feed inicial, da busca, dos pins relacionados e das pastas, e esconde os painéis que só têm anúncios.
 ad-only views	telas só de anúncios
 Google ad SDK start	início do SDK de anúncios do Google
 promoted pins in lists	pins promovidos nas listas
@@ -166,7 +166,7 @@ Privacy	Privacidade
 Pin actions	Ações do Pin
 Interface	Interface
 Hide shopping and product pins	Ocultar compras e Pins de produtos
-Hides shoppable pins, shopping stories and featured boards.	Oculta pins de compra, stories de compras e quadros em destaque.
+Hides shoppable pins, shopping stories and featured boards.	Oculta pins de compra, stories de compras e pastas em destaque.
 Disable analytics	Desativar análises
 Stops Pinterest from sending usage reports and running its analytics tasks. Google's analytics collection stays off until you patch again without Disable analytics.	Impede o Pinterest de enviar relatórios de uso e executar suas tarefas de análise. A coleta de análise do Google continua desligada até você aplicar os patches de novo sem o Disable analytics.
 Firebase and Google Analytics collection is turned off	A coleta do Firebase e do Google Analytics está desativada
@@ -200,7 +200,7 @@ Hide Search button	Ocultar botão Pesquisar
 Hide header buttons	Ocultar botões do cabeçalho
 Filter pin menu	Filtrar menu do Pin
 Hide collage menu items	Ocultar opções de colagem
-Hide Search image menu item	Ocultar opção Buscar imagem
+Hide Search image menu item	Ocultar opção Pesquisar imagem
 Hide Promote pin menu item	Ocultar opção Promover Pin
 Hide comments	Ocultar comentários
 Hide topic suggestions	Ocultar sugestões de temas
@@ -298,14 +298,14 @@ Couldn't prepare this pin. Open it again, then retry.	Não foi possível prepara
 %1$s (%2$s to %3$s)	%1$s (de %2$s para %3$s)
 Your choice is saved, but this build doesn't include the patch for it.	Sua escolha está salva, mas esta versão não inclui o patch para ela.
 Undoing import	Desfazendo importação
-Import undone. Your earlier switches are back.	Importação desfeita. Seus ajustes anteriores foram restaurados.
-Undo ended because a saved switch changed.	Não é mais possível desfazer porque um ajuste salvo mudou.
+Import undone. Your earlier switches are back.	Importação desfeita. Suas opções anteriores foram restauradas.
+Undo ended because a saved switch changed.	Não é mais possível desfazer porque uma opção salva mudou.
 There's no import to undo.	Não há importação para desfazer.
-Couldn't undo the import. Your imported switches are unchanged.	Não foi possível desfazer a importação. Seus ajustes importados não mudaram.
+Couldn't undo the import. Your imported switches are unchanged.	Não foi possível desfazer a importação. Suas opções importadas não mudaram.
 Couldn't undo the import or restore it. Check the switches here.	Não foi possível desfazer nem restaurar a importação. Confira aqui.
-Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Restaure os ajustes anteriores à última importação. Alterar um ajuste ou reiniciar o Pinterest encerra a opção de desfazer.
+Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Restaure as opções anteriores à última importação. Alterar uma opção ou reiniciar o Pinterest encerra a opção de desfazer.
 Undo import	Desfazer importação
-Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Escolha um arquivo de configurações. Confira o nome e os valores antigos e novos de cada ajuste antes de importar. Suas escolhas valem para todas as contas neste app do Pinterest.
+Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Escolha um arquivo de configurações. Confira o nome e os valores antigos e novos de cada opção antes de importar. Suas escolhas valem para todas as contas neste app do Pinterest.
 On	Ativado
 Off	Desativado
 Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copie um relatório rápido ou salve o completo em %1$s. Links, IDs, cookies e tokens de login são omitidos. Confira outros textos privados antes de compartilhar.
@@ -317,7 +317,7 @@ Stops Pinterest from suggesting you share a screenshot. Screenshots still work. 
 Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.	Oculta suas buscas recentes. Não apaga o histórico de busca da sua conta. A mudança aparece na próxima vez que a tela for atualizada.
 Hides Create in the bottom bar. The change shows the next time the bar updates.	Oculta Criar na barra inferior. A mudança aparece na próxima vez que a barra for atualizada.
 Hides Notifications in the bottom bar. The change shows the next time the bar updates.	Oculta Notificações na barra inferior. A mudança aparece na próxima vez que a barra for atualizada.
-Hides Search in the bottom bar. The change shows the next time the bar updates.	Oculta Buscar na barra inferior. A mudança aparece na próxima vez que a barra for atualizada.
+Hides Search in the bottom bar. The change shows the next time the bar updates.	Oculta Pesquisar na barra inferior. A mudança aparece na próxima vez que a barra for atualizada.
 Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.	Oculta os botões de ícone pequenos no fim da barra superior. Voltar, botões de texto e controles da conta continuam. A mudança aparece na próxima vez que a barra for atualizada.
 Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.	Oculta Adicionar à colagem e Remixar colagem nos menus de pin que você abrir a partir de agora. Um menu já aberto não muda.
 Hides Search image in pin menus you open from now on. A menu that's already open won't change.	Oculta Pesquisar imagem nos menus de pin que você abrir a partir de agora. Um menu já aberto não muda.

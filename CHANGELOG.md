@@ -18,6 +18,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Dialogs that only show something now close with Close, and ones that leave a choice untaken say Cancel. Save in Download again is now Use Download again, and the pin menu's Media details lines read Width, Height and Size. Card edges stand out more against the dark background, the overview card's color follows a right-to-left language, and a finished batch no longer repeats its whole summary in a toast while its dialog still shows it.
 
+* **Pinterest:** A review of all five translations fixed 87 lines. Turkish now talks to you the same informal way everywhere, puts the right ending on HushPinterest, and shows an import change as old → new where it used to say "instead of". German no longer runs the Download pins and Download board names together. Spanish and Brazilian Portuguese stick to one word for switches, Portuguese calls boards "pastas" everywhere like Pinterest does, and Indonesian points to the Downloads folder by its Indonesian name.
+
 * **Pinterest:** At large text sizes, when a dialog's buttons stack, all of them show now. Download visible pins used to show Queue selected and a sliver of Cancel, with Save list hidden until you scrolled the buttons. The list or message above scrolls instead, and the buttons never take more than half the screen.
 
 * **Pinterest:** Toasts from a pin batch and Save list fit in the two lines Android 12 and later show. A batch whose dialog has closed gives its counts in one short sentence, and a note about pins already in Download history or a file left behind comes up as its own toast.

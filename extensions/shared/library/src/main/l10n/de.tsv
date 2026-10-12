@@ -187,7 +187,7 @@ Remove ad tracking permissions	Werbe-Tracking-Berechtigungen entfernen
 Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Pinterest kann die Werbe-ID-Berechtigung von Google und die Werbedienste von Android nicht mehr nutzen. Das wurde beim Patchen festgelegt. Patche erneut ohne diesen Patch, um sie zurückzubekommen.
 Pinterest's access to the ad ID and Android's ad services is removed	Pinterests Zugriff auf die Werbe-ID und die Werbedienste von Android ist entfernt
 Spoof signature for Google sign-in	Signatur für Google-Anmeldung vortäuschen
-Tells Android this is the original Pinterest, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched. Patch again without it to take it out.	Sagt Android, dass dies das originale Pinterest ist, damit die Google-Anmeldung mit microG-RE oder dem XSpoofSignatures-Modul funktionieren kann. Das normale Google Play Services ignoriert es. Das wurde beim Patchen festgelegt. Patche erneut ohne diesen Patch, um es zu entfernen.
+Tells Android this is the original Pinterest, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched. Patch again without it to take it out.	Sagt Android, dass dies das originale Pinterest ist, damit die Google-Anmeldung mit microG-RE oder dem XSpoofSignatures-Modul funktionieren kann. Die normalen Google Play-Dienste ignorieren es. Das wurde beim Patchen festgelegt. Patche erneut ohne diesen Patch, um es zu entfernen.
 Pinterest's original signature is added to the app	Die originale Signatur von Pinterest wurde der App hinzugefügt
 Download pins	Pins herunterladen
 Open links in your browser	Links im Browser öffnen
@@ -334,7 +334,7 @@ Saving a pin no longer shows the "Saved to" message or a suggestion to follow it
 Original-quality images	Bilder in Originalqualität
 collage images	Collagenbilder
 pin closeups	Pin-Detailansichten
-Shows the original image instead of the large size in pin closeups and collages, when Pinterest has one. Uses more data. Pins already loaded change the next time they load.	Zeigt in Pin-Nahansichten und Collagen das Originalbild statt der großen Größe, wenn Pinterest eins hat. Braucht mehr Daten. Bereits geladene Pins ändern sich, wenn sie das nächste Mal laden.
+Shows the original image instead of the large size in pin closeups and collages, when Pinterest has one. Uses more data. Pins already loaded change the next time they load.	Zeigt in Pin-Detailansichten und Collagen das Originalbild statt der großen Größe, wenn Pinterest eins hat. Braucht mehr Daten. Bereits geladene Pins ändern sich, wenn sie das nächste Mal laden.
 Save media	Medien speichern
 Recent searches autocomplete	Autovervollständigung der letzten Suchen
 Activity alerts	Aktivitätsmeldungen
@@ -450,7 +450,7 @@ Selected: %1$d (unsupported: %2$d)	Ausgewählt: %1$d (nicht unterstützt: %2$d)
 Unsupported: %d	Nicht unterstützt: %d
 Queue pins	Pins einreihen
 Download history already has each pin chosen from this board.	Der Download-Verlauf hat schon jeden gewählten Pin dieser Pinnwand.
-Resume HushPinterest, turn on Download pins and Download board.	Setze HushPinterest fort, schalte Pins und Pinnwand herunterladen ein.
+Resume HushPinterest, turn on Download pins and Download board.	Fortsetzen, dann „Pins herunterladen“ und „Pinnwand herunterladen“ einschalten.
 Save list	Liste speichern
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Diese Liste enthält nur die Pins der gewählten Art, die Pinterest beim Speichern für die Pinnwand geladen hatte, bis zu %d. Pins weiter unten auf der Pinnwand sind nicht enthalten.
 This list has only the pins chosen from those on screen when it was saved.	Diese Liste enthält nur die Pins, die beim Speichern aus den Pins auf dem Bildschirm gewählt wurden.

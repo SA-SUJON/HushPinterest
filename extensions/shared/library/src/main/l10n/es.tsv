@@ -14,7 +14,7 @@ Back	Atrás
 Cancel	Cancelar
 Clear diagnostic data	Borrar datos de diagnóstico
 Copy quick report	Copiar informe rápido
-Couldn't import or put back your old switches. Check them here.	No se pudo importar ni restaurar tus ajustes. Revísalos aquí.
+Couldn't import or put back your old switches. Check them here.	No se pudieron importar ni restaurar tus ajustes anteriores. Revísalos aquí.
 Couldn't import the settings. Nothing was changed.	No se pudo importar la configuración. No se cambió nada.
 Couldn't open that file. Nothing was changed.	No se pudo abrir ese archivo. No se cambió nada.
 Couldn't open the file picker. Try again.	No se pudo abrir el selector de archivos. Inténtalo de nuevo.
@@ -35,12 +35,12 @@ Turns off every HushPinterest switch except Debug logging the next time Pinteres
 Hide ads	Ocultar anuncios
 Links, updates, backup and more	Enlaces, actualizaciones, copia de seguridad y más
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Guarda tus interruptores en un archivo. Cubren todas las cuentas de esta app de Pinterest. La pausa y el Registro de depuración no se incluyen, y la búsqueda de nuevas versiones tampoco.
-Settings exported, but the app holding it blocked the check.	Ajustes exportados, pero la app del archivo impidió comprobarlo.
+Settings exported, but the app holding it blocked the check.	Configuración exportada, pero la app del archivo impidió comprobarlo.
 The file's app is too slow. Nothing was changed.	La app del archivo tarda demasiado. No se cambió nada.
-The app with the last settings file hasn't answered. Try later.	La app del último archivo de ajustes no responde. Inténtalo luego.
+The app with the last settings file hasn't answered. Try later.	La app del último archivo de configuración no responde. Inténtalo luego.
 The file's app is too slow. Check the file before you use it.	La app del archivo tarda demasiado. Revisa el archivo antes de usarlo.
 Delete %1$s from %2$s, then tap Resume again.	Borra %1$s de %2$s y luego vuelve a tocar Reanudar.
-Settings file saved but reads back wrong. Save it as a new file.	Ajustes guardados, pero el archivo no se lee bien. Guárdalo como nuevo.
+Settings file saved but reads back wrong. Save it as a new file.	Configuración guardada, pero el archivo no se lee bien. Guárdalo como nuevo.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Hasta que reanudes, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene.
 Full report saved to %1$s	Informe completo guardado en %1$s
 GPL-3.0, with the notices of the projects this is built on	GPL-3.0, con los avisos de los proyectos en los que se basa
@@ -295,20 +295,20 @@ Pinterest only streams this video. There's no file to download.	Pinterest solo t
 Pinterest didn't offer a downloadable video file for this pin.	Pinterest no ofreció un archivo de video descargable para este pin.
 Pinterest hasn't supplied an image to download.	Pinterest no ha proporcionado una imagen para descargar.
 HushPinterest can't download this type of image.	HushPinterest no puede descargar este tipo de imagen.
-This media link isn't a public Pinterest link.	Este enlace de medios no es un enlace público de Pinterest.
+This media link isn't a public Pinterest link.	Este enlace del archivo no es un enlace público de Pinterest.
 Couldn't start the download. Check Downloads and try again.	No se pudo iniciar la descarga. Revisa Descargas e inténtalo de nuevo.
 Couldn't prepare this pin. Open it again, then retry.	No se pudo preparar este Pin. Vuelve a abrirlo y reinténtalo.
 %1$s (%2$s to %3$s)	%1$s (de %2$s a %3$s)
 Your choice is saved, but this build doesn't include the patch for it.	Tu elección está guardada, pero esta versión no incluye el parche para ella.
 Undoing import	Deshaciendo importación
-Import undone. Your earlier switches are back.	Importación deshecha. Se restauraron tus ajustes anteriores.
-Undo ended because a saved switch changed.	Ya no se puede deshacer porque cambió un ajuste guardado.
+Import undone. Your earlier switches are back.	Importación deshecha. Se restauraron tus interruptores anteriores.
+Undo ended because a saved switch changed.	Ya no se puede deshacer porque cambió un interruptor guardado.
 There's no import to undo.	No hay ninguna importación que deshacer.
-Couldn't undo the import. Your imported switches are unchanged.	No se pudo deshacer la importación. Tus ajustes importados no cambiaron.
-Couldn't undo the import or restore it. Check the switches here.	No se pudo deshacer ni restaurar la importación. Revisa los ajustes aquí.
-Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Restaura los ajustes anteriores a la última importación. Cambiar un ajuste o reiniciar Pinterest termina la opción de deshacer.
+Couldn't undo the import. Your imported switches are unchanged.	No se pudo deshacer la importación. Tus interruptores importados no cambiaron.
+Couldn't undo the import or restore it. Check the switches here.	No se pudo deshacer ni restaurar la importación. Revisa los interruptores aquí.
+Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Restaura los interruptores anteriores a la última importación. Cambiar un interruptor o reiniciar Pinterest termina la opción de deshacer.
 Undo import	Deshacer importación
-Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Elige un archivo de ajustes. Revisa el nombre y los valores anteriores y nuevos de cada ajuste antes de importar. Tus elecciones se aplican a todas las cuentas de esta app de Pinterest.
+Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Elige un archivo de configuración. Revisa el nombre y los valores anteriores y nuevos de cada interruptor antes de importar. Tus elecciones se aplican a todas las cuentas de esta app de Pinterest.
 On	Activado
 Off	Desactivado
 Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido o guarda el completo en %1$s. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa si contiene otros datos privados antes de compartirlo.
