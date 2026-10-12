@@ -260,6 +260,16 @@ Add-PublishEvent 'verify-index'
         [void][IO.Directory]::CreateDirectory((Split-Path -Parent $path))
         Copy-Item -LiteralPath (Join-Path $repositoryRoot $name) -Destination $path
     }
+    # During a release hold main can list patches the published description and README's latest
+    # release sentence don't count yet. The fixture publishes these files as a release, so both
+    # count what its list holds.
+    $listed = @((Get-Content -LiteralPath (Join-Path $global:PublishContract.FactsRoot 'patches-list.json') -Raw |
+        ConvertFrom-Json).patches).Count
+    $factsBundle = Join-Path $global:PublishContract.FactsRoot 'patches-bundle.json'
+    [IO.File]::WriteAllText($factsBundle, ([IO.File]::ReadAllText($factsBundle) -replace '(?<![\d.])\d+ patches\b', "$listed patches"))
+    $factsReadme = Join-Path $global:PublishContract.FactsRoot 'README.md'
+    [IO.File]::WriteAllText($factsReadme, ([IO.File]::ReadAllText($factsReadme) -replace
+        '(?i)(\blatest (?:published )?release is [^\r\n]*?, with )\d+( patches)', "`${1}$listed`$2"))
     function Assert-RealFactsRefused([string]$Pattern, [switch]$SkipCount) {
         $problem = $null
         try {
