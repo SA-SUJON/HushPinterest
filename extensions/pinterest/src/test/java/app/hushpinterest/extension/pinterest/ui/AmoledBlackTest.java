@@ -85,6 +85,21 @@ public class AmoledBlackTest {
         assertEquals(0xFF222226, ((ColorDrawable) strip.getBackground()).getColor());
     }
 
+    @Test public void aStripAddedAfterTheBarsFirstDrawStillTurnsBlack() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.gestureStrip = View.generateViewId();
+        LinearLayout bar = bar(true);
+        FrameLayout window = new FrameLayout(bar.getContext());
+        window.addView(bar);
+        AmoledBlack.bottomBar(bar);
+        View strip = new View(bar.getContext());
+        strip.setId(AmoledBlack.gestureStrip);
+        strip.setBackgroundColor(0xFF222226);
+        window.addView(strip);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(Color.BLACK, ((ColorDrawable) strip.getBackground()).getColor());
+    }
+
     @Test public void offByDefaultTheBarKeepsPinterestsGray() {
         LinearLayout bar = bar(true);
         GradientDrawable row = rowFill(bar);

@@ -40,8 +40,12 @@ public final class AmoledBlack {
     private static final Map<GradientDrawable, ColorStateList> shapes = new WeakHashMap<>();
     private static final Map<ColorDrawable, Integer> colors = new WeakHashMap<>();
     private static final Map<View, ColorStateList> tints = new WeakHashMap<>();
-    /** The gesture strip found under each window's root view, or a null reference when it has none. */
+    /** The gesture strip found under each window's root view. */
     private static final Map<View, WeakReference<View>> strips = new WeakHashMap<>();
+    /** How many bar draws found no strip under each root view so far. */
+    private static final Map<View, Integer> misses = new WeakHashMap<>();
+    /** Bar draws that look for a strip Pinterest may add after the bar's first draw, before a window counts as having none. */
+    private static final int SEARCHES = 8;
 
     // Pinterest's ids, read by name the first time: -1 before that, 0 when this build has none.
     static int tabRoot = -1;
@@ -83,14 +87,25 @@ public final class AmoledBlack {
         }
     }
 
-    /** The strip Pinterest draws behind the gesture handle, looked up once per window. */
+    /**
+     * The strip Pinterest draws behind the gesture handle, kept once found. A window that shows none
+     * on the bar's first draws is searched again on its next few, then counts as having none.
+     */
     private static View gestureStrip(View bar) {
         View root = bar.getRootView();
         WeakReference<View> found = strips.get(root);
-        if (found != null) return found.get();
+        View known = found == null ? null : found.get();
+        if (known != null) return known;
+        Integer missed = misses.get(root);
+        if (missed != null && missed >= SEARCHES) return null;
         if (gestureStrip < 0) gestureStrip = id(bar, "navigation_bar_background");
         View strip = gestureStrip == 0 ? null : root.findViewById(gestureStrip);
-        strips.put(root, new WeakReference<>(strip));
+        if (strip != null) {
+            strips.put(root, new WeakReference<>(strip));
+            misses.remove(root);
+        } else {
+            misses.put(root, missed == null ? 1 : missed + 1);
+        }
         return strip;
     }
 
