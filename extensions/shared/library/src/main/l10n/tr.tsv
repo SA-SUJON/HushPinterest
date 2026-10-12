@@ -467,3 +467,4 @@ Width: %s	Genişlik: %s
 Height: %s	Yükseklik: %s
 Size: %s. Downloads look for the original first.	Boyut: %s. İndirmeler önce özgün görseli arar.
 Size: the original image	Boyut: özgün görsel
+The file the picker made for the list couldn't be removed. Delete it in your files app.	Seçicinin liste için oluşturduğu dosya kaldırılamadı. Dosyalar uygulamandan sil.

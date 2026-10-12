@@ -467,3 +467,4 @@ Width: %s	Ancho: %s
 Height: %s	Alto: %s
 Size: %s. Downloads look for the original first.	Tamaño: %s. Las descargas buscan primero el original.
 Size: the original image	Tamaño: la imagen original
+The file the picker made for the list couldn't be removed. Delete it in your files app.	No se pudo quitar el archivo que el selector creó para la lista. Bórralo en tu app de archivos.

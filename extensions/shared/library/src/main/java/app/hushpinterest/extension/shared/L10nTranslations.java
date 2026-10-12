@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(912);
+        Map<String, String> table = new HashMap<>(914);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -852,6 +852,8 @@ public final class L10nTranslations {
                 "Die Datei %1$s lie\u00df sich nicht entfernen. L\u00f6sche sie aus %2$s und tippe dann noch einmal auf Fortsetzen.");
         table.put("The file already exists.",
                 "Die Datei existiert bereits.");
+        table.put("The file the picker made for the list couldn't be removed. Delete it in your files app.",
+                "Die Datei, die die Dateiauswahl f\u00fcr die Liste angelegt hat, konnte nicht entfernt werden. L\u00f6sche sie in deiner Dateien-App.");
         table.put("The newest HushPinterest release is %1$s.",
                 "Die neueste Version von HushPinterest ist %1$s.");
         table.put("The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.",
@@ -916,11 +918,11 @@ public final class L10nTranslations {
                 "R\u00fcckg\u00e4ngig ist nicht mehr m\u00f6glich, weil ein gespeicherter Schalter ge\u00e4ndert wurde.");
         table.put("Undo import",
                 "Import r\u00fcckg\u00e4ngig machen");
-        table.put("Undoing import",
-                "Import wird r\u00fcckg\u00e4ngig gemacht");
     }
 
     private static void fillDe7(Map<String, String> table) {
+        table.put("Undoing import",
+                "Import wird r\u00fcckg\u00e4ngig gemacht");
         table.put("Unknown",
                 "Unbekannt");
         table.put("Unsupported",
@@ -996,7 +998,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(912);
+        Map<String, String> table = new HashMap<>(914);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1801,6 +1803,8 @@ public final class L10nTranslations {
                 "No se pudo eliminar el archivo %1$s. B\u00f3rralo de %2$s y luego vuelve a tocar Reanudar.");
         table.put("The file already exists.",
                 "El archivo ya existe.");
+        table.put("The file the picker made for the list couldn't be removed. Delete it in your files app.",
+                "No se pudo quitar el archivo que el selector cre\u00f3 para la lista. B\u00f3rralo en tu app de archivos.");
         table.put("The newest HushPinterest release is %1$s.",
                 "La versi\u00f3n m\u00e1s reciente de HushPinterest es la %1$s.");
         table.put("The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.",
@@ -1865,11 +1869,11 @@ public final class L10nTranslations {
                 "Ya no se puede deshacer porque cambi\u00f3 un ajuste guardado.");
         table.put("Undo import",
                 "Deshacer importaci\u00f3n");
-        table.put("Undoing import",
-                "Deshaciendo importaci\u00f3n");
     }
 
     private static void fillEs7(Map<String, String> table) {
+        table.put("Undoing import",
+                "Deshaciendo importaci\u00f3n");
         table.put("Unknown",
                 "Desconocido");
         table.put("Unsupported",
@@ -1945,7 +1949,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(912);
+        Map<String, String> table = new HashMap<>(914);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -2750,6 +2754,8 @@ public final class L10nTranslations {
                 "File %1$s tidak dapat dihapus. Hapus file itu dari %2$s, lalu ketuk Lanjutkan lagi.");
         table.put("The file already exists.",
                 "File sudah ada.");
+        table.put("The file the picker made for the list couldn't be removed. Delete it in your files app.",
+                "File yang dibuat pemilih file untuk daftar ini tidak dapat dihapus. Hapus file itu di aplikasi file.");
         table.put("The newest HushPinterest release is %1$s.",
                 "Rilis HushPinterest terbaru adalah %1$s.");
         table.put("The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.",
@@ -2814,11 +2820,11 @@ public final class L10nTranslations {
                 "Urungkan tidak lagi tersedia karena sakelar tersimpan berubah.");
         table.put("Undo import",
                 "Urungkan impor");
-        table.put("Undoing import",
-                "Mengurungkan impor");
     }
 
     private static void fillIn7(Map<String, String> table) {
+        table.put("Undoing import",
+                "Mengurungkan impor");
         table.put("Unknown",
                 "Tidak diketahui");
         table.put("Unsupported",
@@ -2894,7 +2900,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(912);
+        Map<String, String> table = new HashMap<>(914);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -3699,6 +3705,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel remover o arquivo %1$s. Exclua-o de %2$s e toque em Retomar de novo.");
         table.put("The file already exists.",
                 "O arquivo j\u00e1 existe.");
+        table.put("The file the picker made for the list couldn't be removed. Delete it in your files app.",
+                "N\u00e3o foi poss\u00edvel remover o arquivo que o seletor criou para a lista. Apague-o no seu app de arquivos.");
         table.put("The newest HushPinterest release is %1$s.",
                 "A vers\u00e3o mais nova do HushPinterest \u00e9 %1$s.");
         table.put("The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.",
@@ -3763,11 +3771,11 @@ public final class L10nTranslations {
                 "N\u00e3o \u00e9 mais poss\u00edvel desfazer porque um ajuste salvo mudou.");
         table.put("Undo import",
                 "Desfazer importa\u00e7\u00e3o");
-        table.put("Undoing import",
-                "Desfazendo importa\u00e7\u00e3o");
     }
 
     private static void fillPt_rBR7(Map<String, String> table) {
+        table.put("Undoing import",
+                "Desfazendo importa\u00e7\u00e3o");
         table.put("Unknown",
                 "Desconhecido");
         table.put("Unsupported",
@@ -3843,7 +3851,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(912);
+        Map<String, String> table = new HashMap<>(914);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -4648,6 +4656,8 @@ public final class L10nTranslations {
                 "%1$s dosyas\u0131 kald\u0131r\u0131lamad\u0131. Onu %2$s i\u00e7inden sil, sonra yeniden Devam et'e dokun.");
         table.put("The file already exists.",
                 "Dosya zaten var.");
+        table.put("The file the picker made for the list couldn't be removed. Delete it in your files app.",
+                "Se\u00e7icinin liste i\u00e7in olu\u015fturdu\u011fu dosya kald\u0131r\u0131lamad\u0131. Dosyalar uygulamandan sil.");
         table.put("The newest HushPinterest release is %1$s.",
                 "En yeni HushPinterest s\u00fcr\u00fcm\u00fc %1$s.");
         table.put("The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.",
@@ -4712,11 +4722,11 @@ public final class L10nTranslations {
                 "Kay\u0131tl\u0131 bir anahtar de\u011fi\u015fti\u011fi i\u00e7in geri alma sona erdi.");
         table.put("Undo import",
                 "\u0130\u00e7e aktarmay\u0131 geri al");
-        table.put("Undoing import",
-                "\u0130\u00e7e aktarma geri al\u0131n\u0131yor");
     }
 
     private static void fillTr7(Map<String, String> table) {
+        table.put("Undoing import",
+                "\u0130\u00e7e aktarma geri al\u0131n\u0131yor");
         table.put("Unknown",
                 "Bilinmiyor");
         table.put("Unsupported",

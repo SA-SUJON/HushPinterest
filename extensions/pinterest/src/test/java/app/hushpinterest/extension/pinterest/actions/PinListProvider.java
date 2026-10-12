@@ -10,6 +10,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 
 import org.robolectric.Robolectric;
@@ -31,6 +32,8 @@ public final class PinListProvider extends ContentProvider {
     static volatile boolean refusesWrite;
     /** Refuses every open for reading. */
     static volatile boolean refusesRead;
+    /** Turns down DocumentsContract.deleteDocument, as a provider without delete support does. */
+    static volatile boolean refusesDelete;
 
     private static File folder;
 
@@ -39,6 +42,7 @@ public final class PinListProvider extends ContentProvider {
         refusesTruncate = false;
         refusesWrite = false;
         refusesRead = false;
+        refusesDelete = false;
         folder = new File(RuntimeEnvironment.getApplication().getCacheDir(), "pin-lists-" + System.nanoTime());
         if (!folder.mkdirs()) throw new IllegalStateException("No folder for the test files");
         Robolectric.setupContentProvider(PinListProvider.class, AUTHORITY);
@@ -72,6 +76,17 @@ public final class PinListProvider extends ContentProvider {
         int flags = ParcelFileDescriptor.MODE_WRITE_ONLY | ParcelFileDescriptor.MODE_CREATE;
         if ("wt".equals(mode)) flags |= ParcelFileDescriptor.MODE_TRUNCATE;
         return ParcelFileDescriptor.open(file, flags);
+    }
+
+    /** DocumentsContract.deleteDocument arrives here as its "android:deleteDocument" call. */
+    @Override
+    public Bundle call(String method, String arg, Bundle extras) {
+        if (!"android:deleteDocument".equals(method)) return null;
+        if (refusesDelete) throw new UnsupportedOperationException("Delete not supported");
+        Uri uri = extras.getParcelable("uri");
+        File file = new File(folder, uri.getLastPathSegment());
+        if (file.exists() && !file.delete()) throw new IllegalStateException("The file stayed");
+        return null;
     }
 
     @Override public boolean onCreate() { return true; }

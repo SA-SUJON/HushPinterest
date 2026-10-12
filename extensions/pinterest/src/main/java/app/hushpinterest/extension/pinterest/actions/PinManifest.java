@@ -15,6 +15,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -205,13 +206,14 @@ public final class PinManifest {
      */
     static boolean export(Activity activity, List<Entry> entries, boolean board) {
         if (activity == null || activity.isFinishing() || activity.isDestroyed() || entries.isEmpty()) return false;
+        Picker picker = null;
         try {
             byte[] bytes = json(entries, board, System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8);
             String token = UUID.randomUUID().toString();
             PENDING.set(new Pending(token, bytes, entries.size()));
             FragmentManager fragments = activity.getFragmentManager();
             Fragment old = fragments.findFragmentByTag(TAG);
-            Picker picker = new Picker();
+            picker = new Picker();
             Bundle arguments = new Bundle();
             arguments.putString(TOKEN, token);
             picker.setArguments(arguments);
@@ -231,6 +233,8 @@ public final class PinManifest {
             }
         } catch (RuntimeException failure) {
             PENDING.set(null);
+            // A picker the system turned down, such as with a SecurityException, mustn't stay behind.
+            if (picker != null) picker.leave();
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "open the pin list picker", failure);
             Utils.showToastLong(L10n.t("Couldn't open the file picker. Try again."));
             return false;
@@ -265,12 +269,12 @@ public final class PinManifest {
             Uri uri = result == Activity.RESULT_OK && data != null ? data.getData() : null;
             if (uri == null) return; // Cancelled: nothing written and nothing to say.
             if (pending == null || app == null) {
-                Utils.showToastLong(L10n.t("Couldn't save the pin list because HushPinterest closed while the file picker "
+                discardThenSay(app, uri, L10n.t("Couldn't save the pin list because HushPinterest closed while the file picker "
                         + "was open. Choose the pins again and save the list."));
                 return;
             }
             if (!PinDownloads.active()) {
-                Utils.showToastLong(L10n.t("Resume HushPinterest and turn on Download pins to use this."));
+                discardThenSay(app, uri, L10n.t("Resume HushPinterest and turn on Download pins to use this."));
                 return;
             }
             Pending list = pending;
@@ -280,12 +284,41 @@ public final class PinManifest {
                     said = save(app.getContentResolver(), uri, list.bytes, list.count);
                 } catch (IOException | RuntimeException failure) {
                     HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "save the pin list", failure);
-                    said = L10n.t("Couldn't save the pin list. Try again.");
+                    said = discarded(app.getContentResolver(), uri, L10n.t("Couldn't save the pin list. Try again."));
                 }
                 Utils.showToastLong(said);
             });
-            if (!started) Utils.showToastLong(L10n.t("Couldn't save the pin list. Try again."));
+            if (!started) discardThenSay(app, uri, L10n.t("Couldn't save the pin list. Try again."));
         }
+    }
+
+    /**
+     * The picker made the file before the list had a chance to fill it, so a list that isn't written
+     * takes its file away again, off the main thread when a worker is free, and says [said].
+     */
+    private static void discardThenSay(Context app, Uri uri, String said) {
+        if (app == null) {
+            Utils.showToastLong(said + "\n\n" + leftBehind());
+            return;
+        }
+        ContentResolver resolver = app.getContentResolver();
+        Runnable work = () -> Utils.showToastLong(discarded(resolver, uri, said));
+        if (!Utils.runOnBackgroundThread(work)) work.run();
+    }
+
+    /** [said], with a note when the picked file couldn't be removed. */
+    static String discarded(ContentResolver resolver, Uri uri, String said) {
+        boolean gone;
+        try {
+            gone = DocumentsContract.deleteDocument(resolver, uri);
+        } catch (FileNotFoundException | RuntimeException refused) {
+            gone = false;
+        }
+        return gone ? said : said + "\n\n" + leftBehind();
+    }
+
+    private static String leftBehind() {
+        return L10n.t("The file the picker made for the list couldn't be removed. Delete it in your files app.");
     }
 
     /**

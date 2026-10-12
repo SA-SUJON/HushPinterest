@@ -291,12 +291,24 @@ public class PinManifestTest {
         assertNull(activity.getFragmentManager().findFragmentByTag(PICKER));
     }
 
+    /** The picker makes an empty file before the list is written; a list that isn't written takes it away. */
     @Test public void aFileTheAppWontWriteIsAFailureNotASave() throws Exception {
         PinListProvider.refusesWrite = true;
-        Uri file = PinListProvider.put("refused.json", null);
+        Uri file = PinListProvider.put("refused.json", new byte[0]);
         answer(exportOne(), file);
         assertEquals("Couldn't save the pin list. Try again.", ShadowToast.getTextOfLatestToast());
-        assertNull(PinListProvider.get(file));
+        assertNull("the picker's empty file is gone", PinListProvider.get(file));
+    }
+
+    @Test public void anEmptyFileThatCantBeRemovedIsNamedInTheFailure() throws Exception {
+        PinListProvider.refusesWrite = true;
+        PinListProvider.refusesDelete = true;
+        Uri file = PinListProvider.put("stuck.json", new byte[0]);
+        answer(exportOne(), file);
+        assertEquals("Couldn't save the pin list. Try again.\n\n"
+                + "The file the picker made for the list couldn't be removed. Delete it in your files app.",
+                ShadowToast.getTextOfLatestToast());
+        assertEquals(0, PinListProvider.get(file).length);
     }
 
     @Test public void aFileThatCantBeReadBackIsSavedButNotCalledChecked() throws Exception {
@@ -328,20 +340,20 @@ public class PinManifestTest {
     @Test public void aListLostWhileThePickerWasOpenIsNotSaved() throws Exception {
         ShadowActivity.IntentForResult started = exportOne();
         pending().set(null);
-        Uri file = PinListProvider.put("late.json", null);
+        Uri file = PinListProvider.put("late.json", new byte[0]);
         answer(started, file);
         assertEquals("Couldn't save the pin list because HushPinterest closed while the file picker was open. "
                 + "Choose the pins again and save the list.", ShadowToast.getTextOfLatestToast());
-        assertNull(PinListProvider.get(file));
+        assertNull("the picker's empty file is gone", PinListProvider.get(file));
     }
 
     @Test public void switchedOffWhileThePickerWasOpenNothingIsWritten() throws Exception {
         ShadowActivity.IntentForResult started = exportOne();
         Settings.DOWNLOAD_PINS.save(false);
-        Uri file = PinListProvider.put("off.json", null);
+        Uri file = PinListProvider.put("off.json", new byte[0]);
         answer(started, file);
         assertEquals("Resume HushPinterest and turn on Download pins to use this.", ShadowToast.getTextOfLatestToast());
-        assertNull(PinListProvider.get(file));
+        assertNull("the picker's empty file is gone", PinListProvider.get(file));
         assertNull(pending().get());
     }
 
@@ -358,5 +370,23 @@ public class PinManifestTest {
         assertNull(activity.getFragmentManager().findFragmentByTag(PICKER));
         assertFalse("an empty list opens nothing", PinManifest.export(activity, new ArrayList<>(), false));
         assertNull(shadowOf(activity).getNextStartedActivityForResult());
+    }
+
+    /** A screen the system won't open the picker from, as a SecurityException does. */
+    public static final class Refusing extends Activity {
+        @Override
+        public void startActivityFromFragment(android.app.Fragment fragment, Intent intent, int requestCode,
+                                              android.os.Bundle options) {
+            throw new SecurityException("Not allowed to start the picker");
+        }
+    }
+
+    @Test public void aPickerTheSystemRefusesIsntLeftBehind() throws Exception {
+        Activity refusing = Robolectric.buildActivity(Refusing.class).setup().visible().get();
+        assertFalse(PinManifest.export(refusing, PinManifest.entries(List.of(pin("101", null, null))), false));
+        settle();
+        assertEquals("Couldn't open the file picker. Try again.", ShadowToast.getTextOfLatestToast());
+        assertNull(pending().get());
+        assertNull(refusing.getFragmentManager().findFragmentByTag(PICKER));
     }
 }
