@@ -134,6 +134,18 @@ public class LinkTrackingTest {
                 LinkTracking.cleanText("https://a.example/p?utm_source=x見てOKhttps://b.example/q?gclid=2"));
     }
 
+    /** A link written into a query value, with the outer query going on after it, is one link: its & is the outer one's. */
+    @Test public void aLinkInsideAQueryValueLeavesTheQuerysTagsToBeStripped() {
+        String shared = "https://x.com/intent/tweet?text=見てhttps://pin.it/abc&utm_source=pinterest";
+        assertEquals(Collections.singletonList(shared), LinkTracking.urls(shared));
+        assertEquals("https://x.com/intent/tweet?text=見てhttps://pin.it/abc", LinkTracking.cleanText(shared));
+        assertEquals("https://x.com/intent/tweet?text=x見てOKhttps://pin.it/abc",
+                LinkTracking.cleanText("https://x.com/intent/tweet?text=x見てOKhttps://pin.it/abc&utm_medium=social"));
+        // Without an outer query the glued link is still its own.
+        assertEquals(Arrays.asList("https://a.example/p", "https://b.example/q&x=1"),
+                LinkTracking.urls("https://a.example/p見てhttps://b.example/q&x=1"));
+    }
+
     @Test public void aHashtagAfterGluedTextIsntAFragment() {
         assertEquals("https://example.org/a見て#ピン", LinkTracking.cleanText("https://example.org/a?utm_source=x見て#ピン"));
         // A fragment in ASCII after a value still belongs to the link.

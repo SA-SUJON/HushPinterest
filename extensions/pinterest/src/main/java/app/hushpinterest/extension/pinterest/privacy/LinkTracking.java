@@ -128,10 +128,26 @@ public final class LinkTracking {
             int glued = at;
             boolean letters = true;
             for (; at < end && url.charAt(at) >= 0x80; at++) letters &= wordLetter(url.charAt(at));
-            if (!linkStarts(url, at) && (letters || url.charAt(glued - 1) == '=' || carriesOn(url, at, end, query))) continue;
+            if (linkStarts(url, at) ? insideQuery(url, at, end, query)
+                    : letters || url.charAt(glued - 1) == '=' || carriesOn(url, at, end, query)) continue;
             return withoutPunctuation(url, glued);
         }
         return end;
+    }
+
+    /**
+     * Whether the link starting at [at] is a value in the query at [query] rather than a link of its
+     * own: the query began before it, and an & comes before any ? or # in it, as in
+     * "tweet?text=見てhttps://pin.it/abc&utm_source=x", where the & is the first link's.
+     */
+    private static boolean insideQuery(String url, int at, int end, int query) {
+        if (query < 0 || query > at) return false;
+        for (int next = at; next < end; next++) {
+            char c = url.charAt(next);
+            if (c == '&') return true;
+            if (c == '?' || c == '#') return false;
+        }
+        return false;
     }
 
     /**
@@ -140,7 +156,8 @@ public final class LinkTracking {
      * runs in the path. Past a later run in the query only an & counts, so a date or a tag in glued
      * text, as in "x見てAI画像10/12", isn't swallowed into the value. An = past a later run is
      * text, as in "x見てAI画像=最高", and so is a ? once the query at [query] has begun, a # with
-     * text outside ASCII right after it, as in "見て#ピン", and anything after a new link begins.
+     * text outside ASCII right after it, as in "見て#ピン", and anything after a new link begins,
+     * unless that link is a value in the query ({@link #insideQuery}).
      */
     private static boolean carriesOn(String url, int from, int end, int query) {
         if (from < end && "+%".indexOf(url.charAt(from)) >= 0) return true;
@@ -150,7 +167,7 @@ public final class LinkTracking {
             if (c >= 0x80) {
                 separators = query >= 0 && next > query ? "&" : "/?#&";
             } else if (linkStarts(url, next)) {
-                return false;
+                return insideQuery(url, next, end, query);
             } else if (separators.indexOf(c) >= 0 && (c != '?' || next == query)
                     && (c != '#' || next + 1 >= end || url.charAt(next + 1) < 0x80)) {
                 return true;
