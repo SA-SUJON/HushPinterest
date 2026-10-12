@@ -637,22 +637,34 @@ public class GridDownloadsTest {
         assertEquals(2, history.size());
         assertEquals("2", history.get(0).pinId);
         assertEquals(DownloadLedger.State.SKIPPED, history.get(0).state);
-        // Stop closed the dialog, so a short toast says how it ended, and only that.
+        // Stop closed the dialog, so one toast says how it ended, short enough for Android's two lines.
         String said = ShadowToast.getTextOfLatestToast();
-        assertEquals("Queued: 1\nSkipped: 1\nUnsupported: 0\nFailed: 0", said);
-        assertEquals(android.widget.Toast.LENGTH_SHORT, ShadowToast.getLatestToast().getDuration());
+        assertEquals("Download visible pins: queued 1, skipped 1, unsupported 0, failed 0.", said);
+        assertEquals(android.widget.Toast.LENGTH_LONG, ShadowToast.getLatestToast().getDuration());
     }
 
-    @Test public void withTheDialogGoneTheToastStillNamesWhatWasSkippedFirst() throws Exception {
+    @Test public void withTheDialogGoneTheToastsStillNameWhatWasSkippedFirst() throws Exception {
+        ShadowToast.reset();
         activity.finish();
         assertTrue(GridDownloads.queue(activity, new ArrayList<>(List.of(pin("5"))), "Download board",
                 "Only the pins loaded so far.", 2, false));
         settle();
-        assertEquals(L10n.f("Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d", 0, 3, 0, 0)
-                        + "\n\n" + L10n.f("Skipped because they're already in Download history: %d", 2)
-                        + "\n\nOnly the pins loaded so far.",
-                ShadowToast.getTextOfLatestToast());
-        assertEquals(android.widget.Toast.LENGTH_LONG, ShadowToast.getLatestToast().getDuration());
+        String counts = "Download board: queued 0, skipped 3, unsupported 0, failed 0.";
+        String known = "Skipped because they're already in Download history: 2";
+        assertEquals(2, ShadowToast.shownToastCount());
+        assertTrue(ShadowToast.showedToast(counts));
+        assertEquals("the reason follows the counts", known, ShadowToast.getTextOfLatestToast());
+    }
+
+    /** The dialog closed some other way than Stop, such as the screen dropping its window, so the pin still goes. */
+    @Test public void withTheDialogGoneACleanRunIsOneShortToast() throws Exception {
+        ShadowToast.reset();
+        assertTrue(GridDownloads.queue(activity, new ArrayList<>(List.of(pin("6"))), "Download visible pins", null, 0, true));
+        ShadowAlertDialog.getLatestAlertDialog().dismiss();
+        settle();
+        assertEquals(1, ShadowToast.shownToastCount());
+        assertEquals("Download visible pins: queued 1, skipped 0, unsupported 0, failed 0.", ShadowToast.getTextOfLatestToast());
+        assertEquals(android.widget.Toast.LENGTH_SHORT, ShadowToast.getLatestToast().getDuration());
     }
 
     @Test public void aBatchThatFailsToContinueEndsSoTheNextSelectionCanStart() throws Exception {

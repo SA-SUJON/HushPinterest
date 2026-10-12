@@ -455,10 +455,10 @@ Save list	Listeyi kaydet
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Bu liste yalnızca kaydedildiği sırada Pinterest'in panodan yüklediği, seçilen türdeki en fazla %d Pin'i içerir. Panonun daha aşağısındaki Pinler listede yok.
 This list has only the pins chosen from those on screen when it was saved.	Bu liste yalnızca kaydedildiği sırada ekrandakiler arasından seçilen Pinleri içerir.
 A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Pin'in kaynak bağlantısı yoksa bağlantı "missing", olduğu gibi saklanamadıysa "omitted" olarak yazılır. Örneğin izleme bilgisi taşıyan ya da özel bir ağa giden bağlantılar saklanmaz.
-Couldn't save the pin list because HushPinterest closed while the file picker was open. Choose the pins again and save the list.	Dosya seçici açıkken HushPinterest kapandığı için Pin listesi kaydedilemedi. Pinleri yeniden seç ve listeyi kaydet.
+HushPinterest closed while the picker was open. Choose the pins and save again.	Seçici açıkken HushPinterest kapandı. Pinleri seç ve yeniden kaydet.
 Couldn't save the pin list. Try again.	Pin listesi kaydedilemedi. Tekrar dene.
-Saved the pin list. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.	Pin listesi kaydedildi. Dosyayı tutan uygulama HushPinterest'in onu geri okumasına izin vermedi, bu yüzden kontrol edilmedi.
-The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.	Pin listesi kaydedildi ama geri okunduğunda yazılanla aynı değil. Yeni bir dosya olarak tekrar kaydet.
+Saved the pin list, but the app holding it wouldn't let it be checked.	Pin listesi kaydedildi ama dosyayı tutan uygulama kontrole izin vermedi.
+The saved list doesn't read back as written. Save it again as a new file.	Kaydedilen liste yazıldığı gibi okunmuyor. Yeni bir dosya olarak tekrar kaydet.
 Saved a list of one pin.	Bir Pin içeren liste kaydedildi.
 Saved a list of %d pins.	%d Pin içeren liste kaydedildi.
 Use Download again	Yeniden Download'u kullan
@@ -467,7 +467,7 @@ Width: %s	Genişlik: %s
 Height: %s	Yükseklik: %s
 Size: %s. Downloads look for the original first.	Boyut: %s. İndirmeler önce özgün görseli arar.
 Size: the original image	Boyut: özgün görsel
-The file the picker made for the list couldn't be removed. Delete it in your files app.	Seçicinin liste için oluşturduğu dosya kaldırılamadı. Dosyalar uygulamandan sil.
+Couldn't remove the empty file the picker made. Delete it in your files app.	Seçicinin oluşturduğu boş dosya kaldırılamadı. Dosyalar uygulamandan sil.
 Check the file	Dosyayı denetle
 Checking the file	Dosya denetleniyor
 These details were checked from the first part of the file. HushPinterest didn't download the whole file.	Bu ayrıntılar dosyanın ilk kısmından denetlendi. HushPinterest dosyanın tamamını indirmedi.
@@ -484,3 +484,5 @@ In dark mode, paints the bottom bar pure black to match the page, which also sav
 AMOLED dark theme	AMOLED karanlık tema
 # context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
 The picked file was left alone. If it's empty, delete it in your files app.	Seçilen dosyaya dokunulmadı. Boşsa dosyalar uygulamandan sil.
+# context: the toast at the end of a pin download selection when its progress dialog has closed. %1$s is the selection's title, Download visible pins or Download board
+%1$s: queued %2$d, skipped %3$d, unsupported %4$d, failed %5$d.	%1$s: sırada %2$d, atlanan %3$d, desteklenmeyen %4$d, başarısız %5$d.

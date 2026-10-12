@@ -272,8 +272,7 @@ public final class PinManifest {
             Uri uri = result == Activity.RESULT_OK && data != null ? data.getData() : null;
             if (uri == null) return; // Cancelled: nothing written and nothing to say.
             if (pending == null || app == null) {
-                discardThenSay(app, uri, L10n.t("Couldn't save the pin list because HushPinterest closed while the file picker "
-                        + "was open. Choose the pins again and save the list."));
+                discardThenSay(app, uri, L10n.t("HushPinterest closed while the picker was open. Choose the pins and save again."));
                 return;
             }
             if (!PinDownloads.active()) {
@@ -282,14 +281,12 @@ public final class PinManifest {
             }
             Pending list = pending;
             boolean started = Utils.runOnBackgroundThread(() -> {
-                String said;
                 try {
-                    said = save(app.getContentResolver(), uri, list.bytes, list.count);
+                    Utils.showToastLong(save(app.getContentResolver(), uri, list.bytes, list.count));
                 } catch (IOException | RuntimeException failure) {
                     HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "save the pin list", failure);
-                    said = discarded(app.getContentResolver(), uri, L10n.t("Couldn't save the pin list. Try again."));
+                    discard(app.getContentResolver(), uri, L10n.t("Couldn't save the pin list. Try again."));
                 }
-                Utils.showToastLong(said);
             });
             if (!started) discardThenSay(app, uri, L10n.t("Couldn't save the pin list. Try again."));
         }
@@ -301,29 +298,35 @@ public final class PinManifest {
      */
     private static void discardThenSay(Context app, Uri uri, String said) {
         if (app == null) {
-            Utils.showToastLong(said + "\n\n" + leftAlone());
+            Utils.showToastLong(said);
+            Utils.showToastLong(leftAlone());
             return;
         }
         ContentResolver resolver = app.getContentResolver();
-        Runnable work = () -> Utils.showToastLong(discarded(resolver, uri, said));
+        Runnable work = () -> discard(resolver, uri, said);
         if (!Utils.runOnBackgroundThread(work)) work.run();
     }
 
     /**
-     * [said], with a note when the picked file stays behind. Only an empty file is taken away: one
-     * that already holds something was picked to be written over and is the user's own.
+     * Says [said], then a second toast when the picked file stays behind, since Android 12 and later
+     * cut a toast at two lines. Only an empty file is taken away: one that already holds something
+     * was picked to be written over and is the user's own.
      */
-    static String discarded(ContentResolver resolver, Uri uri, String said) {
+    static void discard(ContentResolver resolver, Uri uri, String said) {
+        Utils.showToastLong(said);
         long size = size(resolver, uri);
-        if (size > 0) return said;
-        if (size < 0) return said + "\n\n" + leftAlone();
+        if (size > 0) return;
+        if (size < 0) {
+            Utils.showToastLong(leftAlone());
+            return;
+        }
         boolean gone;
         try {
             gone = DocumentsContract.deleteDocument(resolver, uri);
         } catch (FileNotFoundException | RuntimeException refused) {
             gone = false;
         }
-        return gone ? said : said + "\n\n" + leftBehind();
+        if (!gone) Utils.showToastLong(L10n.t("Couldn't remove the empty file the picker made. Delete it in your files app."));
     }
 
     /** How many bytes the picked file holds, or -1 when the app holding it won't say. */
@@ -334,10 +337,6 @@ public final class PinManifest {
             // Treated as unknown, so the file stays.
         }
         return -1;
-    }
-
-    private static String leftBehind() {
-        return L10n.t("The file the picker made for the list couldn't be removed. Delete it in your files app.");
     }
 
     /** For a file whose size couldn't be read, which might be one the user picked to write over. */
@@ -369,11 +368,10 @@ public final class PinManifest {
             for (int n; (n = in.read(buffer)) != -1 && read.size() <= bytes.length; ) read.write(buffer, 0, n);
             back = read.toByteArray();
         } catch (IOException | RuntimeException unreadable) {
-            return L10n.t("Saved the pin list. The app holding the file wouldn't let HushPinterest read it back, "
-                    + "so it wasn't checked.");
+            return L10n.t("Saved the pin list, but the app holding it wouldn't let it be checked.");
         }
         if (!Arrays.equals(bytes, back)) {
-            return L10n.t("The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.");
+            return L10n.t("The saved list doesn't read back as written. Save it again as a new file.");
         }
         return L10n.quantity(count, "Saved a list of one pin.", "Saved a list of %d pins.", count);
     }

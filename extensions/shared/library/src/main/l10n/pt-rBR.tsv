@@ -452,10 +452,10 @@ Save list	Salvar lista
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Esta lista tem só os Pins do tipo escolhido que o Pinterest tinha carregado da pasta quando ela foi salva, até %d. Pins mais abaixo na pasta não estão nela.
 This list has only the pins chosen from those on screen when it was saved.	Esta lista tem só os Pins escolhidos entre os que estavam na tela quando ela foi salva.
 A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Um link de origem é "missing" quando o Pin não tinha nenhum, e "omitted" quando não pôde ser mantido exatamente como veio, como um link com dados de rastreamento ou um para uma rede privada.
-Couldn't save the pin list because HushPinterest closed while the file picker was open. Choose the pins again and save the list.	Não foi possível salvar a lista de Pins porque o HushPinterest fechou enquanto o seletor de arquivos estava aberto. Escolha os Pins de novo e salve a lista.
+HushPinterest closed while the picker was open. Choose the pins and save again.	O HushPinterest fechou com o seletor aberto. Escolha os Pins e salve de novo.
 Couldn't save the pin list. Try again.	Não foi possível salvar a lista de Pins. Tente de novo.
-Saved the pin list. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.	A lista de Pins foi salva. O app que guarda o arquivo não deixou o HushPinterest ler de volta, então ele não foi conferido.
-The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.	A lista de Pins foi salva, mas não lê de volta igual ao que foi escrito. Salve de novo como um arquivo novo.
+Saved the pin list, but the app holding it wouldn't let it be checked.	A lista de Pins foi salva, mas o app que guarda o arquivo não deixou conferir.
+The saved list doesn't read back as written. Save it again as a new file.	A lista salva não lê de volta igual. Salve de novo como um arquivo novo.
 Saved a list of one pin.	Foi salva uma lista com um Pin.
 Saved a list of %d pins.	Foi salva uma lista com %d Pins.
 Use Download again	Voltar a usar Download
@@ -464,7 +464,7 @@ Width: %s	Largura: %s
 Height: %s	Altura: %s
 Size: %s. Downloads look for the original first.	Tamanho: %s. Os downloads procuram o original primeiro.
 Size: the original image	Tamanho: a imagem original
-The file the picker made for the list couldn't be removed. Delete it in your files app.	Não foi possível remover o arquivo que o seletor criou para a lista. Apague-o no seu app de arquivos.
+Couldn't remove the empty file the picker made. Delete it in your files app.	Não foi possível remover o arquivo vazio que o seletor criou. Apague-o no seu app de arquivos.
 Check the file	Verificar o arquivo
 Checking the file	Verificando o arquivo
 These details were checked from the first part of the file. HushPinterest didn't download the whole file.	Estes detalhes foram conferidos na primeira parte do arquivo. O HushPinterest não baixou o arquivo inteiro.
@@ -481,3 +481,5 @@ In dark mode, paints the bottom bar pure black to match the page, which also sav
 AMOLED dark theme	Tema escuro AMOLED
 # context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
 The picked file was left alone. If it's empty, delete it in your files app.	O arquivo escolhido ficou como estava. Se estiver vazio, apague-o no seu app de arquivos.
+# context: the toast at the end of a pin download selection when its progress dialog has closed. %1$s is the selection's title, Download visible pins or Download board
+%1$s: queued %2$d, skipped %3$d, unsupported %4$d, failed %5$d.	%1$s: na fila %2$d, ignorados %3$d, não compatíveis %4$d, falhas %5$d.

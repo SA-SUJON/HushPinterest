@@ -530,10 +530,15 @@ final class GridDownloads {
                     progress.setMessage(summary());
                     progress.getButton(AlertDialog.BUTTON_NEGATIVE).setText(L10n.t("Close"));
                 } else {
-                    // With the dialog gone, the toast is all that says what the batch skipped.
-                    String said = counts() + details() + (untracked == 0 ? "" : "\n\n" + untrackedNote());
-                    if (said.equals(counts())) Utils.showToastShort(said);
+                    // With the dialog gone, toasts are all that say how the batch went. Android 12 and
+                    // later cut a toast at two lines, so the counts are one short sentence and each
+                    // note gets its own toast.
+                    String said = L10n.f("%1$s: queued %2$d, skipped %3$d, unsupported %4$d, failed %5$d.",
+                            title, queued, skipped, unsupported, failed);
+                    if (skipped + unsupported + failed == 0) Utils.showToastShort(said);
                     else Utils.showToastLong(said);
+                    if (known > 0) Utils.showToastLong(L10n.f("Skipped because they're already in Download history: %d", known));
+                    if (untracked > 0) Utils.showToastLong(untrackedNote());
                 }
                 return;
             }
