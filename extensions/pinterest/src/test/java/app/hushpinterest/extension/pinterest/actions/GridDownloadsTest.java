@@ -643,6 +643,18 @@ public class GridDownloadsTest {
         assertEquals(android.widget.Toast.LENGTH_SHORT, ShadowToast.getLatestToast().getDuration());
     }
 
+    @Test public void withTheDialogGoneTheToastStillNamesWhatWasSkippedFirst() throws Exception {
+        activity.finish();
+        assertTrue(GridDownloads.queue(activity, new ArrayList<>(List.of(pin("5"))), "Download board",
+                "Only the pins loaded so far.", 2, false));
+        settle();
+        assertEquals(L10n.f("Queued: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d", 0, 3, 0, 0)
+                        + "\n\n" + L10n.f("Skipped because they're already in Download history: %d", 2)
+                        + "\n\nOnly the pins loaded so far.",
+                ShadowToast.getTextOfLatestToast());
+        assertEquals(android.widget.Toast.LENGTH_LONG, ShadowToast.getLatestToast().getDuration());
+    }
+
     @Test public void aBatchThatFailsToContinueEndsSoTheNextSelectionCanStart() throws Exception {
         List<Object> broken = new AbstractList<Object>() {
             @Override public Object get(int index) {

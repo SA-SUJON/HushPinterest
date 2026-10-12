@@ -470,11 +470,15 @@ final class GridDownloads {
         }
 
         String summary() {
-            return counts()
-                    + (known == 0 ? "" : "\n\n" + L10n.f("Skipped because they're already in Download history: %d", known))
-                    + (note == null ? "" : "\n\n" + note)
+            return counts() + details()
                     + "\n\n" + L10n.t("Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.")
                     + (untracked == 0 ? "" : "\n\n" + untrackedNote());
+        }
+
+        /** What the batch says beside its counts: pins it skipped up front, and its [note]. */
+        private String details() {
+            return (known == 0 ? "" : "\n\n" + L10n.f("Skipped because they're already in Download history: %d", known))
+                    + (note == null ? "" : "\n\n" + note);
         }
 
         private String counts() {
@@ -525,10 +529,11 @@ final class GridDownloads {
                     // The dialog keeps the result until it's closed, so nothing repeats it.
                     progress.setMessage(summary());
                     progress.getButton(AlertDialog.BUTTON_NEGATIVE).setText(L10n.t("Close"));
-                } else if (untracked == 0) {
-                    Utils.showToastShort(counts());
                 } else {
-                    Utils.showToastLong(counts() + "\n\n" + untrackedNote());
+                    // With the dialog gone, the toast is all that says what the batch skipped.
+                    String said = counts() + details() + (untracked == 0 ? "" : "\n\n" + untrackedNote());
+                    if (said.equals(counts())) Utils.showToastShort(said);
+                    else Utils.showToastLong(said);
                 }
                 return;
             }
