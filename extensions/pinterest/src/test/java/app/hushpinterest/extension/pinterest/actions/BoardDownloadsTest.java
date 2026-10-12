@@ -8,6 +8,7 @@ package app.hushpinterest.extension.pinterest.actions;
 
 import static org.junit.Assert.*;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.os.Looper;
@@ -23,6 +24,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowDownloadManager;
 import org.robolectric.shadows.ShadowToast;
 import java.lang.reflect.Method;
@@ -157,10 +159,12 @@ public class BoardDownloadsTest {
         }
 
         assertTrue(BoardDownloads.start("77"));
-        for (int i = 0; i < 10; i++) {
-            Utils.awaitBackgroundTasksForTests();
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
-        }
+        settle();
+        // The board asks which kind to queue, every pin to begin with.
+        AlertDialog choice = ShadowAlertDialog.getLatestAlertDialog();
+        assertEquals(0, choice.getListView().getCheckedItemPosition());
+        choice.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        settle();
         assertFalse(GridDownloads.running());
         ShadowDownloadManager downloads = Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE));
         assertEquals(2, downloads.getRequestCount());
@@ -168,6 +172,81 @@ public class BoardDownloadsTest {
             assertEquals("https://i.pinimg.com/originals/" + (100 + id) + ".jpg",
                     Shadow.<ShadowDownloadManager.ShadowRequest>extract(downloads.getRequest(id)).getUri().toString());
         }
+    }
+
+    private static void settle() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+        }
+    }
+
+    private static Map<String, Object> video(String id, String file, String board) {
+        return Map.of("id", id, "images", Map.of(), "board", Map.of("id", board),
+                "videos", Map.of("video_list", Map.of("V_720P", Map.of("url", "https://v1.pinimg.com/videos/mc/" + file))));
+    }
+
+    /** What the board chooser offers, from the media each kept pin was resolved to. */
+    private AlertDialog openChooser(List<Object> pins) throws Exception {
+        assertTrue(BoardDownloads.record(pins));
+        assertTrue(BoardDownloads.start("77"));
+        settle();
+        return ShadowAlertDialog.getLatestAlertDialog();
+    }
+
+    /**
+     * Videos only: the image pins stay out, and Download history is read again on Queue pins, so a
+     * video that finished while the choice was open is skipped rather than saved twice.
+     */
+    @Test public void theBoardOffersEachKindAndRereadsHistoryWhenItQueues() throws Exception {
+        List<Object> pins = page("77", 100, 2);
+        pins.add(video("102", "102.mp4", "77"));
+        pins.add(video("103", "hls/103.m3u8", "77"));
+        AlertDialog choice = openChooser(pins);
+        android.widget.ListView kinds = choice.getListView();
+        assertEquals(Arrays.asList("All (4)\nUnsupported: 1", "Images (2)\nUnsupported: 0", "Videos (2)\nUnsupported: 1"),
+                Arrays.asList(kinds.getAdapter().getItem(0).toString(), kinds.getAdapter().getItem(1).toString(),
+                        kinds.getAdapter().getItem(2).toString()));
+        assertEquals(0, kinds.getCheckedItemPosition());
+        assertTrue(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        kinds.performItemClick(kinds.getChildAt(2), 2, 2);
+        assertEquals(2, kinds.getCheckedItemPosition());
+
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        long finished = manager.enqueue(new DownloadManager.Request(android.net.Uri.parse("https://v1.pinimg.com/videos/mc/102.mp4")));
+        assertTrue(DownloadLedger.record(activity, finished, "102"));
+        choice.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        settle();
+
+        assertEquals("only the request made before Queue pins", 1, Shadows.shadowOf(manager).getRequestCount());
+        String summary = Shadows.shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage().toString();
+        assertTrue(summary, summary.contains("Unsupported: 1"));
+        assertTrue(summary, summary.contains("Skipped because they're already in Download history: 1"));
+        List<DownloadLedger.Job> history = new DownloadLedger(activity).reconcile();
+        assertEquals(Arrays.asList("103", "102"), history.stream().map(job -> job.pinId).collect(java.util.stream.Collectors.toList()));
+    }
+
+    @Test public void aKindWithNoNewPinsCantBeQueued() throws Exception {
+        AlertDialog choice = openChooser(page("77", 100, 2));
+        android.widget.ListView kinds = choice.getListView();
+        assertEquals("Videos (0)\nUnsupported: 0", kinds.getAdapter().getItem(2).toString());
+        kinds.performItemClick(kinds.getChildAt(2), 2, 2);
+        assertFalse(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        kinds.performItemClick(kinds.getChildAt(1), 1, 1);
+        assertTrue(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+    }
+
+    /** Switched off while the choice is open, the board forgets its pins and Queue pins says why nothing starts. */
+    @Test public void queueingAfterTheSwitchWentOffStartsNothing() throws Exception {
+        AlertDialog choice = openChooser(page("77", 100, 2));
+        Settings.DOWNLOAD_BOARD.save(false);
+        BoardDownloads.record(page("77", 200, 2));
+        choice.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        settle();
+        assertEquals("Resume HushPinterest and turn on Download pins and Download board to use this.",
+                ShadowToast.getTextOfLatestToast());
+        assertEquals(0, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+        assertFalse(GridDownloads.running());
     }
 
     @Test public void switchedOffOrPausedItKeepsNothingAndForgetsWhatItHad() {

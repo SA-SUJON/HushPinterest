@@ -9,15 +9,34 @@ package app.hushpinterest.extension.pinterest.actions;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.CheckedTextView;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.HushDialogs;
@@ -79,6 +98,11 @@ final class GridDownloads {
     }
 
     static List<Object> snapshot(ViewGroup grid) {
+        return snapshot(grid, null);
+    }
+
+    /** The visible pins, and into [cells] when it's given, the cell each one was read from. */
+    static List<Object> snapshot(ViewGroup grid, Map<String, View> cells) {
         LinkedHashMap<String, Object> pins = new LinkedHashMap<>();
         Rect bounds = new Rect(), visible = new Rect();
         if (grid == null || !grid.isAttachedToWindow() || !grid.isShown() || !grid.getGlobalVisibleRect(bounds)) return new ArrayList<>();
@@ -87,7 +111,7 @@ final class GridDownloads {
             if (!cell.isAttachedToWindow() || !cell.isShown() || !cell.getGlobalVisibleRect(visible) || !visible.intersect(bounds)) continue;
             Object pin = PinDownloads.cellPin(cell);
             String id = PinMedia.id(pin);
-            if (id != null) pins.putIfAbsent(id, pin);
+            if (id != null && pins.putIfAbsent(id, pin) == null && cells != null) cells.put(id, cell);
         }
         return new ArrayList<>(pins.values());
     }
@@ -101,34 +125,74 @@ final class GridDownloads {
                 Utils.showToastLong(L10n.t("A pin selection is still being saved."));
                 return false;
             }
-            List<Object> pins = snapshot(grid(origin));
+            Map<String, View> cells = new HashMap<>();
+            List<Object> pins = snapshot(grid(origin), cells);
             if (pins.isEmpty()) {
                 Utils.showToastLong(L10n.t("No visible pins are available. Open a pin menu from the grid and try again."));
                 return false;
             }
-            CharSequence[] labels = new CharSequence[pins.size()];
-            for (int i = 0; i < pins.size(); i++) {
-                Object title = PinMedia.field(pins.get(i), "title");
-                String text = title instanceof String ? ((String) title).replaceAll("[\\p{Cntrl}]", " ").trim() : "";
-                if (text.length() > 120) text = text.substring(0, 120);
-                labels[i] = (text.isEmpty() ? "" : L10n.isolate(text) + "\n") + L10n.f("Pin %s", L10n.isolate(PinMedia.id(pins.get(i))));
+            int box = dp(activity, THUMBNAIL_DP);
+            PinChoices choices = new PinChoices();
+            for (Object pin : pins) choices.add(pin, thumbnail(cells.get(PinMedia.id(pin)), box));
+            choices.show(Filter.ALL);
+            AlertDialog.Builder builder = HushDialogs.builder(activity);
+            Context themed = builder.getContext();
+            LinearLayout controls = new LinearLayout(themed);
+            controls.setOrientation(LinearLayout.VERTICAL);
+            controls.setPaddingRelative(dp(activity, 24), dp(activity, 8), dp(activity, 24), 0);
+            RadioGroup filters = new RadioGroup(themed);
+            filters.setOrientation(LinearLayout.HORIZONTAL);
+            for (Filter filter : Filter.values()) {
+                RadioButton option = new RadioButton(themed);
+                option.setId(View.generateViewId());
+                option.setTag(filter);
+                int count = choices.count(filter);
+                option.setText(filter.label(count));
+                option.setEnabled(filter == Filter.ALL || count > 0);
+                filters.addView(option);
+                if (filter == Filter.ALL) filters.check(option.getId());
             }
-            boolean[] selected = new boolean[pins.size()];
-            AlertDialog picker = HushDialogs.builder(activity)
+            // A row of filters scrolls rather than cutting off at large text sizes.
+            HorizontalScrollView row = new HorizontalScrollView(themed);
+            row.addView(filters);
+            controls.addView(row);
+            TextView count = new TextView(themed);
+            count.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+            controls.addView(count);
+            AlertDialog picker = builder
                     .setTitle(L10n.f("Select visible pins (up to %d)", DownloadLedger.LIMIT))
-                    .setMultiChoiceItems(labels, selected, (dialog, which, checked) -> {
-                        selected[which] = checked;
-                        boolean any = false;
-                        for (boolean value : selected) any |= value;
-                        ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(any);
-                    })
+                    .setAdapter(choices, null)
+                    .setView(controls)
                     .setPositiveButton(L10n.t("Queue selected"), (dialog, which) -> {
-                        List<Object> chosen = new ArrayList<>();
-                        for (int i = 0; i < pins.size(); i++) if (selected[i]) chosen.add(pins.get(i));
+                        List<Object> chosen = choices.chosen();
                         if (!chosen.isEmpty()) queue(activity, chosen, L10n.t("Download visible pins"), null, 0, true);
                     })
                     .setNegativeButton(L10n.t("Cancel"), null).create();
+            ListView list = picker.getListView();
+            list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+            Runnable counted = () -> {
+                count.setText(L10n.f("Selected: %1$d (unsupported: %2$d)", choices.selected(false), choices.selected(true)));
+                Button queue = picker.getButton(AlertDialog.BUTTON_POSITIVE);
+                if (queue != null) queue.setEnabled(choices.selected(false) > 0);
+            };
+            list.setOnItemClickListener((parent, view, position, id) -> {
+                choices.select(position, list.isItemChecked(position));
+                counted.run();
+            });
+            filters.setOnCheckedChangeListener((group, checked) -> {
+                View option = group.findViewById(checked);
+                if (option == null || !(option.getTag() instanceof Filter)) return;
+                choices.show((Filter) option.getTag());
+                // The rows changed, so their checks are set again from each pin's own choice.
+                list.clearChoices();
+                for (int position = 0; position < choices.getCount(); position++) {
+                    list.setItemChecked(position, choices.selected(position));
+                }
+                counted.run();
+            });
+            counted.run();
             HushDialogs.prepareChoices(picker);
+            HushDialogs.paintControls(controls);
             picker.show();
             HushDialogs.paint(picker);
             picker.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
@@ -137,6 +201,198 @@ final class GridDownloads {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "select visible pins", failure);
             Utils.showToastLong(L10n.t("Couldn't open the pin selection. Try again from the grid."));
             return false;
+        }
+    }
+
+    /** How big a row's picture is at most, on its longer side. */
+    private static final int THUMBNAIL_DP = 48;
+
+    private static int dp(Context context, int value) {
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value,
+                context.getResources().getDisplayMetrics()));
+    }
+
+    /** Which pins a batch chooser shows: all of them, or only those Pinterest supplied as images or as videos. */
+    enum Filter {
+        ALL, IMAGES, VIDEOS;
+
+        boolean shows(PinMedia.Kind kind) {
+            return this == ALL || kind == (this == IMAGES ? PinMedia.Kind.IMAGE : PinMedia.Kind.VIDEO);
+        }
+
+        String label(int count) {
+            switch (this) {
+                case IMAGES: return L10n.f("Images (%d)", count);
+                case VIDEOS: return L10n.f("Videos (%d)", count);
+                default: return L10n.f("All (%d)", count);
+            }
+        }
+    }
+
+    /**
+     * A small copy of the largest picture an attached cell already shows, or null when it shows
+     * none. Nothing is fetched, so a cell that draws its picture itself gets a row of text. The
+     * copy is the chooser's own, so the grid can reuse or release its bitmap while the chooser is open.
+     */
+    static Bitmap thumbnail(View cell, int box) {
+        if (cell == null || box <= 0) return null;
+        Drawable shown = null;
+        int largest = 0, examined = 0;
+        ArrayDeque<View> pending = new ArrayDeque<>();
+        pending.add(cell);
+        while (!pending.isEmpty() && ++examined <= 64) {
+            View view = pending.removeFirst();
+            if (!view.isShown()) continue;
+            Drawable picture = view instanceof ImageView ? ((ImageView) view).getDrawable() : null;
+            int area = view.getWidth() * view.getHeight();
+            if (picture != null && picture.getIntrinsicWidth() > 0 && picture.getIntrinsicHeight() > 0 && area > largest) {
+                shown = picture;
+                largest = area;
+            }
+            if (view instanceof ViewGroup) {
+                ViewGroup group = (ViewGroup) view;
+                for (int i = 0; i < group.getChildCount(); i++) pending.addLast(group.getChildAt(i));
+            }
+        }
+        if (shown == null) return null;
+        try {
+            if (shown instanceof BitmapDrawable) {
+                Bitmap source = ((BitmapDrawable) shown).getBitmap();
+                if (source == null || source.isRecycled()) return null;
+                float scale = Math.min(1f, (float) box / Math.max(source.getWidth(), source.getHeight()));
+                // Scaling copies a hardware bitmap too, which a software canvas can't draw. At its
+                // own size Android hands back the same bitmap, so that one is copied.
+                Bitmap small = Bitmap.createScaledBitmap(source, Math.max(1, Math.round(source.getWidth() * scale)),
+                        Math.max(1, Math.round(source.getHeight() * scale)), true);
+                return small == source ? source.copy(source.getConfig(), false) : small;
+            }
+            Drawable.ConstantState state = shown.getConstantState();
+            if (state == null) return null;
+            float scale = Math.min(1f, (float) box / Math.max(shown.getIntrinsicWidth(), shown.getIntrinsicHeight()));
+            int width = Math.max(1, Math.round(shown.getIntrinsicWidth() * scale));
+            int height = Math.max(1, Math.round(shown.getIntrinsicHeight() * scale));
+            Drawable copy = state.newDrawable(cell.getResources()).mutate();
+            Bitmap small = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            copy.setBounds(0, 0, width, height);
+            copy.draw(new Canvas(small));
+            return small;
+        } catch (RuntimeException unreadable) {
+            // A released bitmap, or one only the GPU can draw: the row keeps its text.
+            return null;
+        }
+    }
+
+    /** A row's text: the pin's title when it has one, its id, and what kind of media it is. */
+    private static CharSequence label(Object pin, String id, PinMedia.Resolution media) {
+        Object title = PinMedia.field(pin, "title");
+        String text = title instanceof String ? ((String) title).replaceAll("[\\p{Cntrl}]", " ").trim() : "";
+        if (text.length() > 120) text = text.substring(0, 120);
+        boolean video = PinMedia.kind(media) == PinMedia.Kind.VIDEO;
+        String kind = media != null && media.source != null ? (video ? L10n.t("Video") : L10n.t("Image"))
+                : (video ? L10n.t("Unsupported video") : L10n.t("Unsupported image"));
+        return (text.isEmpty() ? "" : L10n.isolate(text) + "\n") + L10n.f("Pin %s", L10n.isolate(id)) + "\n" + kind;
+    }
+
+    /**
+     * The visible pins as checkable rows, filtered by kind. A row's id is its pin's place in the
+     * snapshot, so a choice stays with its pin while the filter changes which rows show.
+     */
+    static final class PinChoices extends BaseAdapter {
+        private static final class Choice {
+            final int index;
+            final Object pin;
+            final String id;
+            final PinMedia.Kind kind;
+            final boolean supported;
+            final CharSequence label;
+            final Bitmap thumbnail;
+            boolean selected;
+
+            Choice(int index, Object pin, Bitmap thumbnail) {
+                this.index = index;
+                this.pin = pin;
+                id = PinMedia.id(pin);
+                PinMedia.Resolution media = PinMedia.resolve(pin);
+                kind = PinMedia.kind(media);
+                supported = media != null && media.source != null;
+                label = label(pin, id, media);
+                this.thumbnail = thumbnail;
+            }
+        }
+
+        private final List<Choice> all = new ArrayList<>();
+        private final List<Choice> shown = new ArrayList<>();
+
+        void add(Object pin, Bitmap thumbnail) {
+            all.add(new Choice(all.size(), pin, thumbnail));
+        }
+
+        void show(Filter filter) {
+            shown.clear();
+            for (Choice choice : all) if (filter.shows(choice.kind)) shown.add(choice);
+            notifyDataSetChanged();
+        }
+
+        int count(Filter filter) {
+            int count = 0;
+            for (Choice choice : all) if (filter.shows(choice.kind)) count++;
+            return count;
+        }
+
+        /** How many pins are chosen, whatever the filter shows, or only those that can't be saved. */
+        int selected(boolean unsupported) {
+            int count = 0;
+            for (Choice choice : all) if (choice.selected && !(unsupported && choice.supported)) count++;
+            return count;
+        }
+
+        boolean selected(int position) {
+            return shown.get(position).selected;
+        }
+
+        void select(int position, boolean selected) {
+            shown.get(position).selected = selected;
+        }
+
+        /** The chosen pins in grid order, each still the pin its row named. */
+        List<Object> chosen() {
+            List<Object> pins = new ArrayList<>();
+            for (Choice choice : all) if (choice.selected && choice.id.equals(PinMedia.id(choice.pin))) pins.add(choice.pin);
+            return pins;
+        }
+
+        @Override public int getCount() { return shown.size(); }
+        @Override public CharSequence getItem(int position) { return shown.get(position).label; }
+        @Override public long getItemId(int position) { return shown.get(position).index; }
+        @Override public boolean hasStableIds() { return true; }
+
+        /** Android's own checkbox row with the checkbox at its start and the pin's picture, if any, at its end. */
+        @Override public View getView(int position, View recycled, ViewGroup parent) {
+            Choice choice = shown.get(position);
+            CheckedTextView row;
+            if (recycled instanceof CheckedTextView) {
+                row = (CheckedTextView) recycled;
+            } else {
+                row = new CheckedTextView(parent.getContext());
+                row.setId(android.R.id.text1);
+                row.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+                TypedArray theme = parent.getContext().obtainStyledAttributes(new int[]{android.R.attr.listChoiceIndicatorMultiple});
+                try {
+                    Drawable box = theme.getDrawable(0);
+                    if (box != null) box.setBounds(0, 0, box.getIntrinsicWidth(), box.getIntrinsicHeight());
+                    row.setCompoundDrawablesRelative(box, null, null, null);
+                } finally {
+                    theme.recycle();
+                }
+            }
+            row.setText(choice.label);
+            Drawable picture = null;
+            if (choice.thumbnail != null) {
+                picture = new BitmapDrawable(row.getResources(), choice.thumbnail);
+                picture.setBounds(0, 0, choice.thumbnail.getWidth(), choice.thumbnail.getHeight());
+            }
+            row.setCompoundDrawablesRelative(row.getCompoundDrawablesRelative()[0], null, picture, null);
+            return row;
         }
     }
 

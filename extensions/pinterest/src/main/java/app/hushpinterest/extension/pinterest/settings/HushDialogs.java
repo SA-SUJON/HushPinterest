@@ -9,6 +9,7 @@ package app.hushpinterest.extension.pinterest.settings;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.view.ContextThemeWrapper;
+import android.view.View;
 
 /** The shared dialog theme for HushPinterest actions outside the settings package. */
 public final class HushDialogs {
@@ -26,6 +27,11 @@ public final class HushDialogs {
     public static void prepareChoices(AlertDialog dialog) {
         dialog.create();
         ScreenColors.choices(dialog);
+    }
+
+    /** Styles a dialog's own controls, such as a filter under its choices, before it's shown. */
+    public static void paintControls(View controls) {
+        ScreenColors.controls(controls);
     }
 
     /** Paints a shown dialog without changing its listeners or actions. */

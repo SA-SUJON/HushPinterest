@@ -445,3 +445,15 @@ Android lets this app show notifications. That only means they can show, not tha
 Notifications are off for this app in Android's settings, so none can show. Tap to turn them on there.	Las notificaciones están desactivadas para esta app en los ajustes de Android, así que no puede mostrarse ninguna. Toca para activarlas allí.
 Android didn't say whether this app can show notifications. Tap to check in Android's settings.	Android no indicó si esta app puede mostrar notificaciones. Toca para comprobarlo en los ajustes de Android.
 Android's notification settings didn't open. Open App info from Pinterest's icon, then Notifications.	No se abrieron los ajustes de notificaciones de Android. Abre Información de la app desde el icono de Pinterest y luego Notificaciones.
+All (%d)	Todos (%d)
+Images (%d)	Imágenes (%d)
+Videos (%d)	Videos (%d)
+Image	Imagen
+Video	Video
+Unsupported image	Imagen no compatible
+Unsupported video	Video no compatible
+Selected: %1$d (unsupported: %2$d)	Seleccionados: %1$d (no compatibles: %2$d)
+Unsupported: %d	No compatibles: %d
+Queue pins	Poner pines en cola
+Download history already has every pin you chose from this board.	El Historial de descargas ya tiene todos los pines que elegiste de este tablero.
+Resume HushPinterest and turn on Download pins and Download board to use this.	Reanuda HushPinterest y activa Descargar Pines y Descargar tablero para usar esto.

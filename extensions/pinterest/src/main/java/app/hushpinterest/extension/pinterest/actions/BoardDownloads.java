@@ -7,7 +7,9 @@
 package app.hushpinterest.extension.pinterest.actions;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
@@ -22,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
+import app.hushpinterest.extension.pinterest.settings.HushDialogs;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.L10n;
@@ -280,7 +283,7 @@ public final class BoardDownloads {
         start(board);
     }
 
-    /** Queues every pin kept for [board] that Download history doesn't already have. */
+    /** Offers every pin kept for [board] that Download history doesn't already have, by kind, then queues the choice. */
     static boolean start(String board) {
         if (!active()) return false;
         try {
@@ -300,7 +303,7 @@ public final class BoardDownloads {
             // Download history is read from disk, so it's read off the main thread.
             boolean scheduled = Utils.runOnBackgroundThread(() -> {
                 Set<String> history = DownloadLedger.downloadedPinIds(app);
-                Utils.runOnMainThread(() -> queue(host.get(), pins, history));
+                Utils.runOnMainThread(() -> offer(host.get(), board, pins, history));
             });
             if (!scheduled) failed(new IllegalStateException("Worker unavailable"));
             return scheduled;
@@ -310,22 +313,103 @@ public final class BoardDownloads {
         }
     }
 
-    private static void queue(Activity activity, List<Object> pins, Set<String> history) {
+    private static String note() {
+        return L10n.f("Only the pins Pinterest has loaded for this board so far are included, up to %d. "
+                + "To include more, scroll further down the board first.", PINS);
+    }
+
+    /** Moves the [pins] [filter] shows that Download history doesn't have into [fresh], and answers how many it has. */
+    private static int split(List<Object> pins, Set<String> history, GridDownloads.Filter filter, List<Object> fresh) {
+        int known = 0;
+        for (Object pin : pins) {
+            if (!filter.shows(PinMedia.kind(PinMedia.resolve(pin)))) continue;
+            if (history.contains(PinMedia.id(pin))) known++;
+            else fresh.add(pin);
+        }
+        return known;
+    }
+
+    /**
+     * Asks whether to queue every new pin, or only the images or only the videos, with how many
+     * of each can't be saved. All is chosen to begin with, which is what the board saved before
+     * there was a choice.
+     */
+    private static void offer(Activity activity, String board, List<Object> pins, Set<String> history) {
         try {
             if (!active() || activity == null || activity.isFinishing() || activity.isDestroyed()) return;
             List<Object> fresh = new ArrayList<>();
-            int known = 0;
-            for (Object pin : pins) {
-                if (history.contains(PinMedia.id(pin))) known++;
-                else fresh.add(pin);
-            }
-            String note = L10n.f("Only the pins Pinterest has loaded for this board so far are included, up to %d. "
-                + "To include more, scroll further down the board first.", PINS);
+            int known = split(pins, history, GridDownloads.Filter.ALL, fresh);
             if (fresh.isEmpty()) {
-                Utils.showToastLong(L10n.t("Every pin loaded from this board is already in Download history.") + "\n\n" + note);
+                Utils.showToastLong(L10n.t("Every pin loaded from this board is already in Download history.") + "\n\n" + note());
                 return;
             }
-            if (GridDownloads.queue(activity, fresh, L10n.t("Download board"), note, known, false)) {
+            GridDownloads.Filter[] filters = GridDownloads.Filter.values();
+            int[] counts = new int[filters.length];
+            CharSequence[] names = new CharSequence[filters.length];
+            for (GridDownloads.Filter filter : filters) {
+                int unsupported = 0;
+                for (Object pin : fresh) {
+                    PinMedia.Resolution media = PinMedia.resolve(pin);
+                    if (!filter.shows(PinMedia.kind(media))) continue;
+                    counts[filter.ordinal()]++;
+                    if (media == null || media.source == null) unsupported++;
+                }
+                names[filter.ordinal()] = filter.label(counts[filter.ordinal()]) + "\n" + L10n.f("Unsupported: %d", unsupported);
+            }
+            AlertDialog.Builder builder = HushDialogs.builder(activity);
+            TextView details = new TextView(builder.getContext());
+            int side = Math.round(24 * activity.getResources().getDisplayMetrics().density);
+            details.setPaddingRelative(side, side / 3, side, 0);
+            details.setText((known == 0 ? "" : L10n.f("Skipped because they're already in Download history: %d", known) + "\n\n") + note());
+            int[] chosen = {GridDownloads.Filter.ALL.ordinal()};
+            AlertDialog picker = builder
+                    .setTitle(L10n.t("Download board"))
+                    .setSingleChoiceItems(names, chosen[0], (dialog, which) -> {
+                        chosen[0] = which;
+                        ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(counts[which] > 0);
+                    })
+                    .setView(details)
+                    .setPositiveButton(L10n.t("Queue pins"), (dialog, which) -> confirm(activity, board, filters[chosen[0]]))
+                    .setNegativeButton(L10n.t("Cancel"), null).create();
+            HushDialogs.prepareChoices(picker);
+            HushDialogs.paintControls(details);
+            picker.show();
+            HushDialogs.paint(picker);
+        } catch (Throwable failure) {
+            failed(failure);
+        }
+    }
+
+    /** The board's kept pins and Download history are read again, since either can change while the choice is open. */
+    private static void confirm(Activity activity, String board, GridDownloads.Filter filter) {
+        Context app = activity.getApplicationContext();
+        WeakReference<Activity> host = new WeakReference<>(activity);
+        boolean scheduled = Utils.runOnBackgroundThread(() -> {
+            Set<String> history = DownloadLedger.downloadedPinIds(app);
+            List<Object> pins = loaded(board);
+            Utils.runOnMainThread(() -> queue(host.get(), pins, history, filter));
+        });
+        if (!scheduled) failed(new IllegalStateException("Worker unavailable"));
+    }
+
+    private static void queue(Activity activity, List<Object> pins, Set<String> history, GridDownloads.Filter filter) {
+        try {
+            if (!active()) {
+                Utils.showToastLong(L10n.t("Resume HushPinterest and turn on Download pins and Download board to use this."));
+                return;
+            }
+            if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+            if (pins.isEmpty()) {
+                Utils.showToastLong(L10n.t("No pins from this board have loaded yet. Scroll through the board, then try again."));
+                return;
+            }
+            List<Object> fresh = new ArrayList<>();
+            int known = split(pins, history, filter, fresh);
+            if (fresh.isEmpty()) {
+                Utils.showToastLong(L10n.t("Download history already has every pin you chose from this board."));
+                return;
+            }
+            if (GridDownloads.queue(activity, fresh, L10n.t("Download board"), note(), known, false)) {
                 HookStatus.counted(FamilyNames.DOWNLOAD_BOARD, "board download started");
             } else {
                 Utils.showToastLong(L10n.t("A pin selection is still being saved."));

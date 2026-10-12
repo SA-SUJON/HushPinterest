@@ -11,10 +11,14 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Looper;
 import android.view.View;
 import android.widget.Checkable;
+import android.widget.CheckedTextView;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 import org.junit.After;
@@ -24,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
@@ -47,6 +52,7 @@ import app.hushpinterest.extension.pinterest.NativeDialogCapture;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.PatchFamilyForTests;
 import app.hushpinterest.extension.pinterest.settings.Settings;
+import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.SettingsContextRule;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.WorkerPoolForTests;
@@ -83,6 +89,7 @@ public class GridDownloadsTest {
         running.setAccessible(true);
         ((AtomicBoolean) running.get(null)).set(false);
         settle();
+        RuntimeEnvironment.setFontScale(1f);
         Settings.DOWNLOAD_PINS.save(false);
         PatchFamilyForTests.capabilities(null);
         PauseForTests.resume();
@@ -208,6 +215,185 @@ public class GridDownloadsTest {
     private Object previewPin(String id, String title) {
         return Map.of("id", id, "title", title, "images", Map.of("orig", Map.of(
                 "url", "https://example.invalid/public-reference-" + id + ".jpg")));
+    }
+
+    private static Object video(String id, String file) {
+        return Map.of("id", id, "title", "Clip " + id, "images", Map.of(),
+                "videos", Map.of("video_list", Map.of("V_720P", Map.of("url", "https://v1.pinimg.com/videos/mc/" + file,
+                        "width", 720, "height", 1280))));
+    }
+
+    private static <T extends View> List<T> views(View root, Class<T> type) {
+        List<T> found = new ArrayList<>();
+        if (type.isInstance(root)) found.add(type.cast(root));
+        if (root instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) found.addAll(views(group.getChildAt(i), type));
+        }
+        return found;
+    }
+
+    private static List<RadioButton> filters(AlertDialog picker) {
+        return views(picker.getWindow().getDecorView(), RadioButton.class);
+    }
+
+    /** The selection count under the filters: the one text the dialog says aloud as it changes. */
+    private static TextView count(AlertDialog picker) {
+        return views(picker.getWindow().getDecorView(), TextView.class).stream()
+                .filter(view -> view.getAccessibilityLiveRegion() == View.ACCESSIBILITY_LIVE_REGION_POLITE)
+                .findFirst().orElseThrow();
+    }
+
+    private static String row(ListView list, int position) {
+        return list.getAdapter().getItem(position).toString();
+    }
+
+    /** A row's id line, the id isolated from the text around it as the row writes it. */
+    private static String pinLine(String id) {
+        return L10n.f("Pin %s", L10n.isolate(id));
+    }
+
+    /**
+     * Images and videos come from the media Pinterest supplied, unsupported ones are named, and a
+     * choice belongs to its pin, not its row, so it survives the filter changing what's shown.
+     */
+    @Test public void filtersShowImagesOrVideosAndAChoiceStaysWithItsPin() throws Exception {
+        View origin = cell(pin("1"), 0);
+        cell(video("2", "2.mp4"), 100);
+        cell(video("3", "hls/3.m3u8"), 200);
+        cell(Map.of("id", "4", "images", Map.of()), 300);
+        AlertDialog picker = choose(origin);
+        ListView list = picker.getListView();
+        List<RadioButton> filters = filters(picker);
+        assertEquals(List.of("All (4)", "Images (2)", "Videos (2)"),
+                filters.stream().map(option -> option.getText().toString()).toList());
+        assertTrue(filters.get(0).isChecked());
+        assertTrue(row(list, 0), row(list, 0).endsWith(pinLine("1") + "\nImage"));
+        assertTrue(row(list, 1), row(list, 1).endsWith(pinLine("2") + "\nVideo"));
+        assertTrue(row(list, 2), row(list, 2).endsWith(pinLine("3") + "\nUnsupported video"));
+        assertTrue(row(list, 3), row(list, 3).endsWith(pinLine("4") + "\nUnsupported image"));
+        assertEquals("Selected: 0 (unsupported: 0)", count(picker).getText().toString());
+
+        list.performItemClick(list.getChildAt(0), 0, list.getItemIdAtPosition(0));
+        filters.get(2).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(2, list.getAdapter().getCount());
+        assertTrue(row(list, 0).contains(pinLine("2")));
+        assertEquals("ids follow the pin, not the row", 1, list.getItemIdAtPosition(0));
+        assertEquals(0, list.getCheckedItemCount());
+        assertTrue("a pin chosen under All stays chosen", picker.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        list.performItemClick(list.getChildAt(1), 1, list.getItemIdAtPosition(1));
+        assertEquals("Selected: 2 (unsupported: 1)", count(picker).getText().toString());
+
+        filters.get(1).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(2, list.getAdapter().getCount());
+        assertTrue(list.isItemChecked(0));
+        assertFalse(list.isItemChecked(1));
+        filters.get(0).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(4, list.getAdapter().getCount());
+        assertTrue(list.isItemChecked(0));
+        assertTrue(list.isItemChecked(2));
+        assertEquals(2, list.getCheckedItemCount());
+
+        picker.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        settle();
+        var downloads = Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE));
+        assertEquals(1, downloads.getRequestCount());
+        List<DownloadLedger.Job> history = new DownloadLedger(activity).reconcile();
+        assertEquals(List.of("3", "1"), history.stream().map(job -> job.pinId).toList());
+        assertEquals(DownloadLedger.State.UNSUPPORTED, history.get(0).state);
+    }
+
+    @Test public void aFilterWithNoPinsCantBeChosen() {
+        View origin = cell(pin("1"), 0);
+        List<RadioButton> filters = filters(choose(origin));
+        assertTrue(filters.get(1).isEnabled());
+        assertEquals("Videos (0)", filters.get(2).getText().toString());
+        assertFalse(filters.get(2).isEnabled());
+    }
+
+    /** A cell's own picture becomes a small copy. A cell without one keeps a row of text, and nothing is fetched. */
+    @Test public void rowsShowASmallCopyOfThePictureACellAlreadyShows() {
+        PinTransfer.Connection previous = OriginalLookup.connection;
+        List<Object> asked = new ArrayList<>();
+        OriginalLookup.connection = uri -> {
+            asked.add(uri);
+            throw new IOException("the chooser must not fetch anything");
+        };
+        try {
+            android.graphics.Bitmap source = android.graphics.Bitmap.createBitmap(200, 300, android.graphics.Bitmap.Config.ARGB_8888);
+            android.widget.FrameLayout pictured = new android.widget.FrameLayout(activity);
+            pictured.setTag(pin("1"));
+            ImageView picture = new ImageView(activity);
+            picture.setImageDrawable(new BitmapDrawable(activity.getResources(), source));
+            pictured.addView(picture);
+            grid.addView(pictured);
+            pictured.layout(0, 0, 200, 300);
+            picture.layout(0, 0, 200, 300);
+            cell(pin("2"), 300);
+
+            ListView list = choose(pictured).getListView();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            CheckedTextView first = (CheckedTextView) list.getChildAt(0);
+            assertTrue("the checkbox leads the row", first.getCompoundDrawablesRelative()[0].isStateful());
+            BitmapDrawable thumbnail = (BitmapDrawable) first.getCompoundDrawablesRelative()[2];
+            assertNotSame("the chooser keeps its own copy", source, thumbnail.getBitmap());
+            int box = Math.round(48 * activity.getResources().getDisplayMetrics().density);
+            assertEquals(box, thumbnail.getBitmap().getHeight());
+            assertEquals(Math.round(box * 2 / 3f), thumbnail.getBitmap().getWidth());
+            assertNull("no picture, no stand-in", ((CheckedTextView) list.getChildAt(1)).getCompoundDrawablesRelative()[2]);
+            assertTrue(asked.isEmpty());
+        } finally {
+            OriginalLookup.connection = previous;
+        }
+    }
+
+    /** TalkBack hears each row's kind and checked state and the count as it changes; rows mirror and grow with the text. */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "ar-rXB-ldrtl-w390dp-h844dp-night-xhdpi")
+    public void choicesReadAloudMirrorAndShowWholeAtTwiceTheTextSize() {
+        RuntimeEnvironment.setFontScale(2f);
+        prepare();
+        assertEquals(2f, activity.getResources().getConfiguration().fontScale, 0f);
+        android.widget.FrameLayout pictured = new android.widget.FrameLayout(activity);
+        pictured.setTag(Map.of("id", "1", "title", "A landscape study with warm evening light and a detailed foreground",
+                "images", Map.of("orig", Map.of("url", "https://i.pinimg.com/originals/1.jpg"))));
+        ImageView picture = new ImageView(activity);
+        picture.setImageDrawable(new BitmapDrawable(activity.getResources(),
+                android.graphics.Bitmap.createBitmap(120, 90, android.graphics.Bitmap.Config.ARGB_8888)));
+        pictured.addView(picture);
+        grid.addView(pictured);
+        pictured.layout(0, 0, 200, 150);
+        picture.layout(0, 0, 200, 150);
+        cell(video("2", "2.mp4"), 150);
+
+        AlertDialog picker = choose(pictured);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        ListView list = picker.getListView();
+        assertEquals(View.LAYOUT_DIRECTION_RTL, list.getLayoutDirection());
+        CheckedTextView first = (CheckedTextView) list.getChildAt(0);
+        assertTrue("the picture sits at the row's end, on the left", first.getCompoundDrawables()[0] instanceof BitmapDrawable);
+        assertTrue("the checkbox sits at the row's start, on the right", first.getCompoundDrawables()[2].isStateful());
+        for (int position = 0; position < list.getChildCount(); position++) {
+            CheckedTextView row = (CheckedTextView) list.getChildAt(position);
+            assertTrue("row " + position + " was cut off", row.getLayout().getHeight()
+                    <= row.getHeight() - row.getCompoundPaddingTop() - row.getCompoundPaddingBottom());
+            android.view.accessibility.AccessibilityNodeInfo node = row.createAccessibilityNodeInfo();
+            assertTrue(node.isCheckable());
+            assertFalse(node.isChecked());
+            assertTrue(node.getText().toString().contains(position == 0 ? "Image" : "Video"));
+        }
+        assertTrue("nothing wrapped at twice the text size, so this proves little", first.getLineCount() > 3);
+        for (RadioButton option : filters(picker)) {
+            assertTrue(option.getText() + " was cut off", option.getLayout().getHeight()
+                    <= option.getHeight() - option.getCompoundPaddingTop() - option.getCompoundPaddingBottom());
+            assertTrue(option.getHeight() >= Math.round(48 * activity.getResources().getDisplayMetrics().density));
+        }
+        list.performItemClick(list.getChildAt(0), 0, list.getItemIdAtPosition(0));
+        assertTrue(list.getChildAt(0).createAccessibilityNodeInfo().isChecked());
+        assertEquals(L10n.f("Selected: %1$d (unsupported: %2$d)", 1, 0), count(picker).getText().toString());
     }
 
     @Test public void snapshotIncludesOnlyVisibleAttachedPinCellsAndDeduplicatesIds() {

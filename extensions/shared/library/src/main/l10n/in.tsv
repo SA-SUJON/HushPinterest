@@ -445,3 +445,15 @@ Android lets this app show notifications. That only means they can show, not tha
 Notifications are off for this app in Android's settings, so none can show. Tap to turn them on there.	Notifikasi nonaktif untuk aplikasi ini di pengaturan Android, jadi tidak ada yang bisa muncul. Ketuk untuk mengaktifkannya di sana.
 Android didn't say whether this app can show notifications. Tap to check in Android's settings.	Android tidak memberi tahu apakah aplikasi ini bisa menampilkan notifikasi. Ketuk untuk memeriksanya di pengaturan Android.
 Android's notification settings didn't open. Open App info from Pinterest's icon, then Notifications.	Pengaturan notifikasi Android tidak terbuka. Buka Info aplikasi dari ikon Pinterest, lalu Notifikasi.
+All (%d)	Semua (%d)
+Images (%d)	Gambar (%d)
+Videos (%d)	Video (%d)
+Image	Gambar
+Video	Video
+Unsupported image	Gambar tidak didukung
+Unsupported video	Video tidak didukung
+Selected: %1$d (unsupported: %2$d)	Dipilih: %1$d (tidak didukung: %2$d)
+Unsupported: %d	Tidak didukung: %d
+Queue pins	Antrekan Pin
+Download history already has every pin you chose from this board.	Riwayat unduhan sudah memiliki semua Pin yang kamu pilih dari papan ini.
+Resume HushPinterest and turn on Download pins and Download board to use this.	Lanjutkan HushPinterest dan aktifkan Unduh Pin dan Unduh papan untuk memakai ini.

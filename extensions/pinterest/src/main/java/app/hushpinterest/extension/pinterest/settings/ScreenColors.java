@@ -39,6 +39,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -537,6 +538,30 @@ final class ScreenColors {
         paintCursorAndHandles(field);
     }
 
+    /**
+     * A dialog's own controls beside its choices, such as a filter and a count. Radio buttons take
+     * the rows' text and indicator colours with a 48 dp target, other text the message colour.
+     */
+    void paintControls(View view) {
+        if (view instanceof RadioButton) {
+            RadioButton option = (RadioButton) view;
+            option.setTextColor(dimmedWhenDisabled(title));
+            option.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            option.setButtonTintList(new ColorStateList(new int[][]{
+                    {-android.R.attr.state_enabled, android.R.attr.state_checked},
+                    {-android.R.attr.state_enabled}, {android.R.attr.state_checked}, {}},
+                    new int[]{half(accent), half(summary), accent, summary}));
+            option.setMinHeight(dp(option, 48));
+        } else if (view instanceof TextView) {
+            ((TextView) view).setTextColor(summary);
+            ((TextView) view).setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) paintControls(group.getChildAt(index));
+        }
+    }
+
     private GradientDrawable fieldSurface(View field, int stroke, int width) {
         GradientDrawable surface = new GradientDrawable();
         surface.setColor(card);
@@ -618,6 +643,11 @@ final class ScreenColors {
     /** Styles native radio and checkbox choices after create(), before show() measures them. */
     static void choices(@Nullable AlertDialog dialog) {
         if (dialog != null) DEFAULT.paintChoices(dialog);
+    }
+
+    /** Paints a dialog's own controls in the screen's colours. */
+    static void controls(@Nullable View view) {
+        if (view != null) DEFAULT.paintControls(view);
     }
 
     private static void startMargin(View view, int margin) {

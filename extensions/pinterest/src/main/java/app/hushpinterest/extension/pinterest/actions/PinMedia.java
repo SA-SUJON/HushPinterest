@@ -217,6 +217,19 @@ final class PinMedia {
 
     enum Refusal { IMAGE_MISSING, IMAGE_TYPE, PUBLIC_LINK, MP4_MISSING, ADAPTIVE_VIDEO }
 
+    /** What a batch chooser filters by. */
+    enum Kind { IMAGE, VIDEO }
+
+    /**
+     * A video when Pinterest supplied one or said the pin is one, otherwise an image, read from the
+     * same supplied fields a download uses and never from a file or a thumbnail. Null for no pin.
+     */
+    static Kind kind(Resolution media) {
+        if (media == null) return null;
+        if (media.source != null) return media.source.mime.startsWith("video/") ? Kind.VIDEO : Kind.IMAGE;
+        return media.refusal == Refusal.MP4_MISSING || media.refusal == Refusal.ADAPTIVE_VIDEO ? Kind.VIDEO : Kind.IMAGE;
+    }
+
     static final class Resolution {
         final String id;
         final Source source;

@@ -65,9 +65,10 @@ final class DialogChoices extends BaseAdapter {
                     new int[]{ScreenColors.half(colors.accent), ScreenColors.half(colors.summary),
                             colors.accent, colors.summary});
             choice.setCheckMarkTintList(indicator);
-            // Material's framework layout uses a start drawable for its radio indicator.
+            // Material's framework layout uses a start drawable for its radio indicator. Only a
+            // drawable with states is an indicator: a row's picture keeps its own colours.
             for (android.graphics.drawable.Drawable drawable : choice.getCompoundDrawablesRelative()) {
-                if (drawable != null) drawable.mutate().setTintList(indicator);
+                if (drawable != null && drawable.isStateful()) drawable.mutate().setTintList(indicator);
             }
             choice.setCompoundDrawablePadding(Math.round(ScreenColors.CONTENT_DP * density));
             StateListDrawable background = new StateListDrawable();

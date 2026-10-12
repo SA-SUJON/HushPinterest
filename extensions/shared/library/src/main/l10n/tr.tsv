@@ -445,3 +445,15 @@ Android lets this app show notifications. That only means they can show, not tha
 Notifications are off for this app in Android's settings, so none can show. Tap to turn them on there.	Bu uygulamanın bildirimleri Android ayarlarında kapalı, bu yüzden hiçbiri görünemez. Orada açmak için dokunun.
 Android didn't say whether this app can show notifications. Tap to check in Android's settings.	Android bu uygulamanın bildirim gösterip gösteremeyeceğini bildirmedi. Android ayarlarında kontrol etmek için dokunun.
 Android's notification settings didn't open. Open App info from Pinterest's icon, then Notifications.	Android bildirim ayarları açılamadı. Pinterest simgesinden Uygulama bilgileri'ni, ardından Bildirimler'i açın.
+All (%d)	Tümü (%d)
+Images (%d)	Görseller (%d)
+Videos (%d)	Videolar (%d)
+Image	Görsel
+Video	Video
+Unsupported image	Desteklenmeyen görsel
+Unsupported video	Desteklenmeyen video
+Selected: %1$d (unsupported: %2$d)	Seçilen: %1$d (desteklenmeyen: %2$d)
+Unsupported: %d	Desteklenmeyen: %d
+Queue pins	Pinleri sıraya al
+Download history already has every pin you chose from this board.	İndirme geçmişinde bu panodan seçtiğin her Pin zaten var.
+Resume HushPinterest and turn on Download pins and Download board to use this.	Bunu kullanmak için HushPinterest'i sürdür, Pin indirmeyi ve Panoyu indirmeyi aç.
