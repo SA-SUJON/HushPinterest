@@ -14,6 +14,7 @@
 package app.hushpinterest.extension.pinterest.settings;
 
 import android.app.AlertDialog;
+import android.content.pm.ApplicationInfo;
 import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -239,14 +240,24 @@ final class ScreenColors {
         int top = row.getPaddingTop();
         int end = row.getPaddingEnd();
         int bottom = row.getPaddingBottom();
-        boolean rightToLeft = row.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
-        GradientDrawable surface = new GradientDrawable(rightToLeft
+        GradientDrawable surface = new GradientDrawable(rightToLeft(row)
                 ? GradientDrawable.Orientation.RIGHT_LEFT : GradientDrawable.Orientation.LEFT_RIGHT,
                 new int[]{card, 0xFF172B4A});
         surface.setCornerRadius(dp(row, RADIUS_DP));
         surface.setStroke(dp(row, 1), outline);
         row.setBackground(cardInset(row, surface));
         row.setPaddingRelative(start, top, end, bottom);
+    }
+
+    /**
+     * Whether [row]'s text runs right to left: its own direction once it's resolved, so a row kept
+     * left to right stays so, and before that the language's, only when the app lays out right to
+     * left at all.
+     */
+    static boolean rightToLeft(View row) {
+        if (row.isLayoutDirectionResolved()) return row.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+        boolean supported = (row.getContext().getApplicationInfo().flags & ApplicationInfo.FLAG_SUPPORTS_RTL) != 0;
+        return supported && row.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
     }
 
     private static Drawable cardInset(View row, Drawable surface) {

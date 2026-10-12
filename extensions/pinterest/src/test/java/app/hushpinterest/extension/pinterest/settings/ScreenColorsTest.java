@@ -179,8 +179,21 @@ public class ScreenColorsTest {
         assertEquals(GradientDrawable.Orientation.RIGHT_LEFT, statusGradient().getOrientation());
     }
 
-    private static GradientDrawable statusGradient() {
+    @Test
+    @Config(qualifiers = "ar-rXB-ldrtl")
+    public void aRowKeptLeftToRightKeepsItsBlueOnTheRight() {
         View row = new View(RuntimeEnvironment.getApplication());
+        row.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+        row.measure(0, 0);
+        assertTrue("the control: the row's direction is resolved", row.isLayoutDirectionResolved());
+        assertEquals(GradientDrawable.Orientation.LEFT_RIGHT, statusGradient(row).getOrientation());
+    }
+
+    private static GradientDrawable statusGradient() {
+        return statusGradient(new View(RuntimeEnvironment.getApplication()));
+    }
+
+    private static GradientDrawable statusGradient(View row) {
         ScreenColors.DEFAULT.paintStatusSurface(row);
         return (GradientDrawable) ((InsetDrawable) row.getBackground()).getDrawable();
     }
