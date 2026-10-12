@@ -259,7 +259,31 @@ switch ($Stage) {
             return
         }
         Invoke-ReleaseQuiet { & gh release view $tag -R $Repository --json tagName } | Out-Null
-        if ($LASTEXITCODE -eq 0) { throw "$tag is already on GitHub, and the assets here don't match it ($built). Nothing was rebuilt." }
+        if ($LASTEXITCODE -eq 0) {
+            $names = @(Get-ReleaseUploadNames $Version) + @('SHA256SUMS.txt', 'SHA256SUMS.txt.asc')
+            $present = @($names | Where-Object { Test-Path -LiteralPath (Join-Path $assets $_) -PathType Leaf })
+            if ($present.Count -gt 0) { throw "$tag is already on GitHub, and the assets here don't match it ($built). Nothing was rebuilt." }
+            # A fresh checkout or a cleaned build folder after the upload: a rebuild would sign new bytes,
+            # so take back what GitHub holds and check it the same way.
+            Write-ReleaseStep "$tag is already on GitHub and $assets is empty, so its signed assets come back from there"
+            $download = Join-Path ([IO.Path]::GetTempPath()) ('hushpinterest-assets-' + [guid]::NewGuid().ToString('N'))
+            try {
+                $patterns = @($names | ForEach-Object { '-p'; $_ })
+                Invoke-ReleaseNative 'gh release download' { & gh release download $tag -R $Repository -D $download @patterns }
+                New-Item -ItemType Directory -Force -Path $assets | Out-Null
+                foreach ($name in $names) { Copy-Item -LiteralPath (Join-Path $download $name) -Destination $assets }
+            } finally {
+                if (Test-Path -LiteralPath $download) { Remove-Item -LiteralPath $download -Recurse -Force -ErrorAction SilentlyContinue }
+            }
+            $built = Test-ReleaseAssets -Root $Root -Version $Version -Commit $commit -TrustedPublicKeyPath $signing.PublicKey `
+                -TrustedFingerprint $signing.Fingerprint -Gpg $Gpg
+            if ($built -ne $true) {
+                Remove-Item -LiteralPath $assets -Recurse -Force -ErrorAction SilentlyContinue
+                throw "$tag's assets on GitHub don't verify for $commit ($built). Nothing was rebuilt."
+            }
+            Write-ReleaseStep "$tag's signed assets from GitHub verify for $commit. Run -Stage publish next."
+            return
+        }
 
         Invoke-ReleaseGradle -Root $Root -Tasks @(':patches:buildAndroid') -Job 'release bundle'
         $bundle = Get-ReleaseBundlePath -Root $Root -Version $Version

@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Tooling:** Picking a release back up after something went wrong got easier. The build stage takes the signed files back from GitHub when the release is already up there and the local copies are gone, instead of stopping. The gate stage notices a gate that passed right before the network dropped. A failed publication puts the old GitHub description back, and a repair note under a fresh Unreleased heading no longer reads as an edit to released notes. Pushes also keep going in Windows PowerShell when a release's output goes to a log file.
+
 * **Pinterest:** Disable update nag checks that the spot it guards still comes before Pinterest's call to the Play Store update prompt. A future Pinterest build that asks Play Store first now stops patching with a clear message, rather than getting a guard that would run too late to stop the pop-up.
 
 * **Pinterest:** New patch, AMOLED black. Its Black bottom bar switch paints the bottom bar pure black in dark mode, so it no longer sits as a gray strip under Pinterest's black pages. It works whether Pinterest shows the bar as one rounded piece or each tab as its own rounded button, and the strip behind the gesture handle turns black with it. Menus and buttons that share the bar's gray keep it, and light mode stays as it is. It starts off and lives on the Interface page.

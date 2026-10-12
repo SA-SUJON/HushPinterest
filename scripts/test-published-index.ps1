@@ -188,7 +188,7 @@ try {
     Invoke-PublishGit @('config', '--local', 'core.autocrlf', 'true') | Out-Null
     Invoke-PublishGit @('init', '--bare', '--quiet') -Bare | Out-Null
     Invoke-PublishGit @('remote', 'add', 'origin', $global:PublishContract.Origin) | Out-Null
-    foreach ($name in @('common.ps1', 'release/release-common.ps1', 'release/publish-release.ps1')) {
+    foreach ($name in @('common.ps1', 'release/release-common.ps1', 'release/publish-release.ps1', 'release/release.ps1')) {
         Set-PublishFile "scripts/$name" ([IO.File]::ReadAllText((Join-Path $PSScriptRoot $name)))
     }
     $publisher = Join-Path $global:PublishContract.Root 'scripts/release/publish-release.ps1'
@@ -253,6 +253,43 @@ Add-PublishEvent 'verify-index'
     Set-PublishFile 'build/release-assets/0.0.7/SHA256SUMS.txt.asc' 'recorded signature'
     [void][IO.Directory]::CreateDirectory((Join-Path $global:PublishContract.Root 'build/hosted'))
     Get-ChildItem -LiteralPath $assets -File | Copy-Item -Destination (Join-Path $global:PublishContract.Root 'build/hosted')
+
+    # -Stage build after the upload, in a checkout that lost build/release-assets: a rebuild would sign
+    # new bytes, so the signed assets come back from GitHub and are checked like local ones.
+    $stager = Join-Path $global:PublishContract.Root 'scripts/release/release.ps1'
+    function Invoke-BuildStageCase {
+        Set-PublishFile 'build/events.txt' ''
+        $problem = $null
+        try {
+            & $stager -Stage build -Version '0.0.7' -Root $global:PublishContract.Root -GpgHome (Join-Path $global:PublishContract.Root 'build') `
+                -SigningFingerprint ('A' * 40) -TrustedPublicKeyPath (Join-Path $global:PublishContract.Root 'build/pinned-key.asc') 6> $null
+        } catch { $problem = $_.Exception.Message }
+        return [pscustomobject]@{ Problem = $problem; Events = @(Get-Content -LiteralPath (Join-Path $global:PublishContract.Root 'build/events.txt')) }
+    }
+    Invoke-PublishGit @('checkout', '--quiet', '--detach', $prepared) | Out-Null
+    Set-PublishFile 'build/release-stages/0.0.7/gate.json' ('{"stage":"gate","version":"0.0.7","commit":"' + $prepared + '"}')
+    $kept = "$assets-kept"
+    Move-Item -LiteralPath $assets -Destination $kept
+    $restored = Invoke-BuildStageCase
+    Assert-IndexContract (-not $restored.Problem -and ($restored.Events -join ',') -ceq 'release-view,download') `
+        "-Stage build didn't take the published assets back: $($restored.Problem); $($restored.Events -join ',')."
+    foreach ($name in Get-ReleaseAssetNames '0.0.7') {
+        Assert-IndexContract ((Get-FileHash -LiteralPath (Join-Path $assets $name)).Hash -ceq (Get-FileHash -LiteralPath (Join-Path $kept $name)).Hash) `
+            "-Stage build restored a $name that isn't the published one."
+    }
+    Remove-Item -LiteralPath (Join-Path $assets 'SHA256SUMS.txt.asc')
+    $partial = Invoke-BuildStageCase
+    Assert-IndexContract ($partial.Problem -like "*already on GitHub, and the assets here don't match it*" -and
+        ($partial.Events -join ',') -ceq 'release-view') "-Stage build replaced assets it had only part of: $($partial.Problem); $($partial.Events -join ',')."
+    Remove-Item -LiteralPath $assets -Recurse -Force
+    Set-PublishFile 'build/hosted/SHA256SUMS.txt.asc' 'another signature'
+    $forged = Invoke-BuildStageCase
+    Assert-IndexContract ($forged.Problem -like "*assets on GitHub don't verify*" -and -not (Test-Path -LiteralPath $assets)) `
+        "-Stage build kept published assets that don't verify: $($forged.Problem)."
+    Set-PublishFile 'build/hosted/SHA256SUMS.txt.asc' 'recorded signature'
+    Move-Item -LiteralPath $kept -Destination $assets
+    Remove-Item -LiteralPath (Join-Path $global:PublishContract.Root 'build/release-stages') -Recurse -Force
+    Invoke-PublishGit @('checkout', '--quiet', 'main') | Out-Null
 
     $repositoryRoot = Split-Path -Parent $PSScriptRoot
     foreach ($name in @('patches-list.json', 'patches-bundle.json', 'gradle.properties', 'README.md', 'CHANGELOG.md',
