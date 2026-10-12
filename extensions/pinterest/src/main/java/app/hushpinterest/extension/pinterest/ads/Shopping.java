@@ -22,11 +22,13 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 public final class Shopping {
     private Shopping() {}
 
-    // These values are present in both supported builds' story_type enum. Editorial idea,
-    // recipe and creator stories are deliberately absent.
+    // Shopping story types, as the String a feed story carries or the typed enum's constant name.
+    // Editorial idea, recipe and creator stories are deliberately absent. shop_the_look is the
+    // Shop the look section under a pin closeup (#6): Pinterest builds that section only for a
+    // story of this type (ShopTheLookFixtureTest).
     private static final Set<String> STORIES = new HashSet<>(Arrays.asList(
             "shopping_spotlight", "search_product_collage_story", "product_category",
-            "shop_brand_story", "shop_brand_affinity_story", "board_shop_the_look",
+            "shop_brand_story", "shop_brand_affinity_story", "board_shop_the_look", "shop_the_look",
             "board_ideas_shopping_card_compact", "board_shop_your_board_story_type",
             "board_shop_your_board_empty_state_story_type", "related_products_button_footer",
             "related_products_feed_header", "related_products_collage",

@@ -58,6 +58,11 @@ public class ShoppingTest {
         assertTrue(Shopping.isShopping(model));
         model.story = "board_shop_the_look";
         assertTrue(Shopping.isShopping(model));
+        // The Shop the look section under a pin closeup (#6).
+        model.story = "shop_the_look";
+        assertTrue(Shopping.isShopping(model));
+        model.story = "partner_curated_pins";
+        assertFalse(Shopping.isShopping(model));
         model.story = Kind.RELATED_RECIPES_COLLAGE;
         model.eligible = true;
         assertFalse(Shopping.isShopping(model));
