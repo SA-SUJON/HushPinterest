@@ -131,7 +131,7 @@ Most features have two parts:
 
 Manifest-only changes have no runtime switch and remain in the installed APK until it is patched again. Runtime switches and Pause cannot undo manifest edits. `SettingsBackup.ALLOWLIST` is the authority for which settings can be imported or exported; account data, credentials, logs, and signing keys are not settings-backup content.
 
-The 26 source catalog entries are grouped here by the code that owns them:
+The 27 source catalog entries are grouped here by the code that owns them:
 
 | Patch area | Patch names | Main source |
 |---|---|---|
@@ -139,6 +139,7 @@ The 26 source catalog entries are grouped here by the code that owns them:
 | Privacy | Disable analytics; Strip link tracking; Hide advertising ID; Remove ad tracking permissions; Spoof signature for Google sign-in | `patches/.../privacy/`; runtime hooks in `extensions/pinterest/.../privacy/` |
 | Pin actions | Download pins; Download board; Long-press download; Open links in your browser; System share sheet | `patches/.../actions/`; runtime transfer and routing under `extensions/pinterest/.../actions/` |
 | Interface | Filter pin menu; Hide comments; Hide header buttons; Hide navigation buttons; Hide save toasts; Hide search history; Hide survey prompts; Hide topic suggestions; No screenshot share menu; Original-quality images; Quiet email reminders; Disable update nag | `patches/.../ui/`; runtime UI controls under `extensions/pinterest/.../ui/` |
+| Notifications | Fix push notifications | `patches/.../notifications/`; the certificate answer in `extensions/pinterest/.../notifications/` and the readiness report in `extensions/pinterest/.../settings/PushReadiness.java` |
 | Settings wiring | HushPinterest settings | `patches/.../misc/settings/` and `extensions/pinterest/.../settings/` |
 
 The inventory is the current `patches-list.json` source catalog. The README is the user-facing feature list. Read the specific patch source and fixture test before relying on a table summary; those files are the implementation authority.

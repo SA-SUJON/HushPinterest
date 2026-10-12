@@ -242,11 +242,12 @@ Run on October 10, 2026 against the 14.39.0 APK (version code 14398020, SHA-256 
 
 ### Concrete privacy opportunities
 
+Canonical pin links have shipped as Strip link tracking's Plain pin links switch, so that row is gone.
+
 | Priority | Candidate | Required proof and acceptance |
 | --- | --- | --- |
 | High | Run `scripts/app-inventory.ps1 -BaseApk` on every APK update and classify what it adds | The tool records the endpoints, startup tasks, hosts, transports and identifier readers. Classifying a new path or reader is still a person's job. A successful patch must not imply that new telemetry was inventoried |
 | High | Compare stock and patched network behavior using controlled actions | Same app build and comparable account/consent state; welcome, feed, search, closeup, share, background and restart. Preserve TLS and account data. Store sanitized counts and destinations rather than secrets or raw account payloads |
-| High | Offer canonical pin links using a typed pin ID | Separate opt-in control; preserve non-pin invites and signed links. Check image/video copy/share, unknown pin.it links, direct-to-app shares, cancellation and absence of UI-thread networking |
 | Medium | Extend regional-host and known attribution-key cleaning | Exact trusted domains; `mweb_unauth_id` and `amp_client_id` only after destination checks. Cover deceptive suffixes, encoding, uppercase keys and unrelated sites with legitimate `sender` values |
 | Medium | Reduce install attribution without removing first-open navigation | Trace referrer fields individually. Check Play installs and sideloads, organic attribution, campaign links, `af_dp`, `utm_content`, sign-in and error handling |
 | Medium | Audit collection before settings readiness | Inspect provider initialization and other early entry points. Preserve safe mode, secondary processes and cold-start behavior. Prefer targeted controls over premature settings reads |

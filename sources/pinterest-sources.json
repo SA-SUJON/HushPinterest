@@ -552,7 +552,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "A multi-app Morphe bundle created 2026-10-11, release v1.14.0, GPL-3.0. Its three Pinterest patches say they're a rewrite of Binarymend Patches 1.3.1 (GPL-3.0): the originals pin obfuscated 14.11.0 names, and this version finds the pin model and telemetry tasks by annotations and SDK strings instead, targeting 14.11.0, 14.38.0 and 14.39.0. Promoted pins and general telemetry overlap Hide ads and Disable analytics. Disable Bugsnag Telemetry is the idea to check, since HushPinterest's analytics patch doesn't name Bugsnag. Nothing ported.",
+      "reason": "A multi-app Morphe bundle created 2026-10-11, release v1.14.0, GPL-3.0. Its three Pinterest patches say they're a rewrite of Binarymend Patches 1.3.1 (GPL-3.0): the originals pin obfuscated 14.11.0 names, and this version finds the pin model and telemetry tasks by annotations and SDK strings instead, targeting 14.11.0, 14.38.0 and 14.39.0. All three overlap what Hide ads and Disable analytics already do, Bugsnag transport included, so it is a reference for anchoring rather than for features. Nothing ported.",
       "archived": false,
       "forks": [],
       "contentHashes": [],

@@ -22,7 +22,7 @@ Other versions may patch, but each patch looks for code by what it does in 14.39
 
 ## Install
 
-1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.34.0 or newer.
+1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.34.0 or newer. Version 1.35.0 is the current release, so get that one if you're installing fresh.
 2. Add HushPinterest as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushPinterest
 3. Pick the Pinterest 14.39.0 APK, keep the default patch selection and patch. It holds every feature, so you don't need Expert mode. Ad blocking, privacy and Fix push notifications start on, and everything else waits until you turn on its switch in HushPinterest settings.
 4. Only Spoof signature for Google sign-in is left out. If you need it, turn on **Settings > Advanced > Expert mode** in Morphe Manager and pick it before you patch.
