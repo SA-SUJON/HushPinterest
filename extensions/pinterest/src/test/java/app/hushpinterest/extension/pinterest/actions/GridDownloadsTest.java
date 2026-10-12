@@ -244,6 +244,48 @@ public class GridDownloadsTest {
         NativeDialogCapture.capture("visible-picker-full", grid, picker);
     }
 
+    /** The README's chooser: cells that paint their own pictures, as Pinterest's do, with two pins chosen. */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "en-rUS-w390dp-h844dp-night-xhdpi")
+    public void nativePickerShowsThePictureEachCellPaints() throws Exception {
+        View origin = painted(Map.of("id", "401", "title", "Watercolor tulips in a glass jar", "images",
+                Map.of("orig", Map.of("url", "https://i.pinimg.com/originals/401.jpg"))), 0, 0, 0xFFE8A0B4, 0xFF5B7DB1);
+        painted(Map.of("id", "402", "title", "Lemon pasta in fifteen minutes", "images", Map.of(),
+                "videos", Map.of("video_list", Map.of("V_720P", Map.of("url", "https://v1.pinimg.com/videos/mc/402.mp4",
+                        "width", 720, "height", 1280)))), 200, 0, 0xFFF2D06B, 0xFF7A9E5A);
+        painted(Map.of("id", "403", "title", "Reading nook under a round window", "images",
+                Map.of("orig", Map.of("url", "https://i.pinimg.com/originals/403.jpg"))), 0, 300, 0xFF8C6E5D, 0xFF2F3E46);
+        painted(Map.of("id", "404", "title", "Hand-lettered birthday card", "images",
+                Map.of("orig", Map.of("url", "https://i.pinimg.com/originals/404.jpg"))), 200, 300, 0xFFB8E0D2, 0xFF6A4C93);
+        AlertDialog picker = choose(origin, 0, 2);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        ListView list = picker.getListView();
+        for (int position = 0; position < list.getChildCount(); position++) {
+            assertTrue("row " + position + " has no picture",
+                    ((CheckedTextView) list.getChildAt(position)).getCompoundDrawablesRelative()[2] instanceof BitmapDrawable);
+        }
+        assertEquals("Selected: 2 (unsupported: 0)", count(picker).getText().toString());
+        NativeDialogCapture.capture("visible-picker-pictures", grid, picker);
+    }
+
+    private View painted(Object pin, int left, int top, int from, int to) {
+        android.widget.FrameLayout cell = new android.widget.FrameLayout(activity);
+        cell.setTag(pin);
+        View picture = new View(activity) {
+            @Override protected void onDraw(android.graphics.Canvas canvas) {
+                android.graphics.Paint paint = new android.graphics.Paint();
+                paint.setShader(new android.graphics.LinearGradient(0, 0, getWidth(), getHeight(), from, to,
+                        android.graphics.Shader.TileMode.CLAMP));
+                canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
+            }
+        };
+        cell.addView(picture);
+        grid.addView(cell);
+        cell.layout(left, top, left + 200, top + 290);
+        picture.layout(0, 0, 200, 290);
+        return cell;
+    }
+
     private Object previewPin(String id, String title) {
         return Map.of("id", id, "title", title, "images", Map.of("orig", Map.of(
                 "url", "https://example.invalid/public-reference-" + id + ".jpg")));

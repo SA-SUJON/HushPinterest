@@ -120,10 +120,10 @@ Download pins adds a Download row when Pinterest supplies an image or a direct M
 
 Two more switches under Pin actions set where downloads may run, and both start off. Download on unmetered networks only makes new downloads wait for a network Android counts as unmetered, like most home Wi-Fi (a phone's hotspot usually counts as metered). No downloads while roaming keeps them off mobile data while you roam. They apply to every way HushPinterest downloads, and a download that's already queued keeps the rule it started with.
 
-From a pin menu in a feed, search or board grid, Download visible pins lets you select up to 32 pins already on screen. Nothing is selected automatically. All, Images and Videos filters above the list narrow it and count each kind, and a row shows the picture its cell already has, so nothing extra is downloaded for it. A cell without a picture of its own keeps a text row. It uses each pin's supplied media and shows queued, saved, skipped, unsupported and failed counts. Stop selection leaves started downloads alone. Unstarted selections end when Pinterest closes.
+From a pin menu in a feed, search or board grid, Download visible pins lets you select up to 32 pins already on screen. Nothing is selected automatically. All, Images and Videos filters above the list narrow it and count each kind, and a row shows the picture its cell already has, so nothing extra is downloaded for it. A cell without a picture of its own keeps a text row. It uses each pin's supplied media and shows queued, skipped, unsupported and failed counts. Stop selection leaves started downloads alone. Unstarted selections end when Pinterest closes.
 
 <p>
-  <img src="assets/screenshots/download-visible-pins.png" width="240" alt="Native visible-pin picker fixture with every checkbox initially empty">
+  <img src="assets/screenshots/download-visible-pins.png" width="240" alt="Visible-pin picker with All, Images and Videos filters, each row showing its pin's picture, and two pins chosen">
   <img src="assets/screenshots/download-selection-history.png" width="240" alt="Native history fixture with unsupported and failed pins, and a completed entry below">
 </p>
 
@@ -140,7 +140,7 @@ Download history also records results from visible-pin selections, including ski
 Media details shows dimensions, a type and the size they belong to, from Pinterest's metadata and media address, and says that Pinterest supplied them. For an image, Check the file reads the first 64 KB of the file a download would save, the original when there is one, and shows the real width, height, type and file size. It only asks when you tap it, never downloads the whole file, and a result stays for 15 minutes. Missing values stay unknown. A recognized pin without a downloadable image or MP4 shows Download unavailable with a reason. Adaptive streams don't become thumbnail downloads.
 
 <p>
-  <img src="assets/screenshots/settings-download-history.png" width="240" alt="Empty download history with Refresh, Back and Open Downloads">
+  <img src="assets/screenshots/settings-download-history.png" width="240" alt="Empty download history with Refresh, Close and Open Downloads">
 </p>
 
 Exports and import previews use the choices saved on this device. Import settings shows each switch's name and its old and new values before applying the file. Undo import restores the previous switches once. Editing a saved switch or restarting Pinterest ends Undo, even if you change the switch back. Failed writes keep Undo after rollback. The file contains allowed settings, including choices whose patches aren't installed. It doesn't contain accounts, media, signing keys, logs or temporary state.
