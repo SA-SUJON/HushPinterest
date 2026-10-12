@@ -13,6 +13,7 @@ import static org.junit.Assert.assertSame;
 import android.content.ClipData;
 import android.content.Intent;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.After;
@@ -120,6 +121,35 @@ public class LinkTrackingTest {
         assertEquals("https://example.com/p", LinkTracking.cleanText("https://example.com/p?utm_campaign=夏セール"));
         assertEquals("https://example.com/p", LinkTracking.cleanText("https://example.com/p?utm_campaign=soldes_été"));
         assertEquals("https://example.com/p?q=x", LinkTracking.cleanText("https://example.com/p?q=x&utm_campaign=Tōkyō"));
+    }
+
+    @Test public void aSecondLinkGluedOnAfterTextIsCleanedOnItsOwn() {
+        String shared = "https://a.example/p?utm_source=x見て、https://b.example/q?fbclid=1";
+        assertEquals("https://a.example/p見て、https://b.example/q", LinkTracking.cleanText(shared));
+        assertEquals(Arrays.asList("https://a.example/p?utm_source=x", "https://b.example/q?fbclid=1"), LinkTracking.urls(shared));
+        // Straight after an = it's still a new link, not the tag's value.
+        assertEquals("https://a.example/p見てhttps://b.example/q",
+                LinkTracking.cleanText("https://a.example/p?utm_source=見てhttps://b.example/q?fbclid=1"));
+        assertEquals("https://a.example/p見てOKhttps://b.example/q",
+                LinkTracking.cleanText("https://a.example/p?utm_source=x見てOKhttps://b.example/q?gclid=2"));
+    }
+
+    @Test public void aHashtagAfterGluedTextIsntAFragment() {
+        assertEquals("https://example.org/a見て#ピン", LinkTracking.cleanText("https://example.org/a?utm_source=x見て#ピン"));
+        // A fragment in ASCII after a value still belongs to the link.
+        assertEquals("https://example.org/a?q=東京#top", LinkTracking.cleanText("https://example.org/a?q=東京&fbclid=1#top"));
+    }
+
+    @Test public void aDateOrTagLaterInGluedTextStaysText() {
+        assertEquals("https://example.org/a見てAI画像10/12", LinkTracking.cleanText("https://example.org/a?utm_source=x見てAI画像10/12"));
+        assertEquals("https://example.org/a見てAI画像#tag", LinkTracking.cleanText("https://example.org/a?utm_source=x見てAI画像#tag"));
+        // In the path, a / past a later run still carries the link on.
+        assertEquals("https://example.org/タグ/夏2024年/b", LinkTracking.cleanText("https://example.org/タグ/夏2024年/b?utm_source=x"));
+    }
+
+    @Test public void greekPunctuationIsntPartOfTheLink() {
+        assertEquals("https://example.org/a;", LinkTracking.cleanText("https://example.org/a?utm_source=x;"));
+        assertEquals("https://example.org/a?q=Αθήνα", LinkTracking.cleanText("https://example.org/a?q=Αθήνα&utm_source=x"));
     }
 
     @Test public void gluedTextWithAnEqualsSignOrQuestionStaysOutOfTheLink() {

@@ -68,33 +68,41 @@ public final class LinkTracking {
         }
     }
 
-    /** [text] itself when no URL changes, else the rewritten string. */
+    /**
+     * [text] itself when no URL changes, else the rewritten string. Matching goes on from where each
+     * link ends, so a second link glued on after text, as in "見て、https://...", is cleaned too.
+     */
     static CharSequence rewrite(CharSequence text, boolean strip, boolean plain) {
         Matcher matcher = URL.matcher(text);
-        StringBuffer result = null;
-        while (matcher.find()) {
-            String original = matcher.group();
-            int end = trimmedEnd(original);
-            String core = strip ? cleanUrl(original.substring(0, end)) : original.substring(0, end);
+        StringBuilder result = null;
+        int copied = 0;
+        int from = 0;
+        while (from < text.length() && matcher.find(from)) {
+            String link = matcher.group().substring(0, trimmedEnd(matcher.group()));
+            String core = strip ? cleanUrl(link) : link;
             String pin = plain ? PlainPinLinks.plainLink(core) : null;
-            String cleaned = (pin != null ? pin : core) + original.substring(end);
-            if (result != null || !cleaned.equals(original)) {
-                if (result == null) result = new StringBuffer();
-                matcher.appendReplacement(result, Matcher.quoteReplacement(cleaned));
+            String cleaned = pin != null ? pin : core;
+            int stop = matcher.start() + link.length();
+            if (!cleaned.equals(link)) {
+                if (result == null) result = new StringBuilder(text.length());
+                result.append(text, copied, matcher.start()).append(cleaned);
+                copied = stop;
             }
+            from = Math.max(stop, matcher.start() + 1);
         }
         if (result == null) return text;
-        matcher.appendTail(result);
-        return result.toString();
+        return result.append(text, copied, text.length()).toString();
     }
 
     /** The URLs in [text], each without the punctuation that ends a sentence around it. */
     static List<String> urls(CharSequence text) {
         List<String> found = new ArrayList<>();
         Matcher matcher = URL.matcher(text);
-        while (matcher.find()) {
-            String original = matcher.group();
-            found.add(original.substring(0, trimmedEnd(original)));
+        int from = 0;
+        while (from < text.length() && matcher.find(from)) {
+            String link = matcher.group().substring(0, trimmedEnd(matcher.group()));
+            found.add(link);
+            from = Math.max(matcher.start() + link.length(), matcher.start() + 1);
         }
         return found;
     }
@@ -105,9 +113,10 @@ public final class LinkTracking {
      * ASCII stays in the link when it's Latin, Greek or Cyrillic letters, as in "/wiki/São_Tomé" or
      * "?q=Tōkyō", when it starts a value right after an =, as in "?utm_campaign=夏セール", or when the
      * link carries on after it, as in "?q=見て&utm_source=x" or "?q=2024年10月&utm_source=x".
-     * Otherwise the run is text after the link. Punctuation that ends a sentence doesn't count, so a
-     * closing "?" is no separator. A host name has no value to swallow text into, so an international
-     * one stays whole. Plain char checks, since ICU and the JVM read \s differently.
+     * Otherwise the run is text after the link, and so is one a new link starts right after, as in
+     * "見て、https://...". Punctuation that ends a sentence doesn't count, so a closing "?" is no
+     * separator. A host name has no value to swallow text into, so an international one stays
+     * whole. Plain char checks, since ICU and the JVM read \s differently.
      */
     private static int trimmedEnd(String url) {
         int end = withoutPunctuation(url, url.length());
@@ -119,7 +128,7 @@ public final class LinkTracking {
             int glued = at;
             boolean letters = true;
             for (; at < end && url.charAt(at) >= 0x80; at++) letters &= wordLetter(url.charAt(at));
-            if (letters || url.charAt(glued - 1) == '=' || carriesOn(url, at, end, query)) continue;
+            if (!linkStarts(url, at) && (letters || url.charAt(glued - 1) == '=' || carriesOn(url, at, end, query))) continue;
             return withoutPunctuation(url, glued);
         }
         return end;
@@ -128,8 +137,10 @@ public final class LinkTracking {
     /**
      * Whether the link goes on after a run outside ASCII that ends at [from]: a + or a percent escape
      * straight after it, a separator in the ASCII before the next run, or a / ? # or & after later
-     * runs. An = past a later run is text, as in "x見てAI画像=最高", and so is a ? once the query
-     * at [query] has begun.
+     * runs in the path. Past a later run in the query only an & counts, so a date or a tag in glued
+     * text, as in "x見てAI画像10/12", isn't swallowed into the value. An = past a later run is
+     * text, as in "x見てAI画像=最高", and so is a ? once the query at [query] has begun, a # with
+     * text outside ASCII right after it, as in "見て#ピン", and anything after a new link begins.
      */
     private static boolean carriesOn(String url, int from, int end, int query) {
         if (from < end && "+%".indexOf(url.charAt(from)) >= 0) return true;
@@ -137,20 +148,33 @@ public final class LinkTracking {
         for (int next = from; next < end; next++) {
             char c = url.charAt(next);
             if (c >= 0x80) {
-                separators = "/?#&";
-            } else if (separators.indexOf(c) >= 0 && (c != '?' || next == query)) {
+                separators = query >= 0 && next > query ? "&" : "/?#&";
+            } else if (linkStarts(url, next)) {
+                return false;
+            } else if (separators.indexOf(c) >= 0 && (c != '?' || next == query)
+                    && (c != '#' || next + 1 >= end || url.charAt(next + 1) < 0x80)) {
                 return true;
             }
         }
         return false;
     }
 
+    /** True when an http or https link starts at [at]. */
+    private static boolean linkStarts(String url, int at) {
+        return url.regionMatches(true, at, "http://", 0, 7) || url.regionMatches(true, at, "https://", 0, 8);
+    }
+
     /**
      * A Latin, Greek or Cyrillic letter or accent. Those scripts put spaces between words, so a run of
-     * them is part of the link it sits in, never text glued onto it.
+     * them is part of the link it sits in, never text glued onto it. Greek punctuation in the same
+     * blocks, such as the Greek question mark, isn't a letter.
      */
     private static boolean wordLetter(char c) {
-        return (c >= 0xC0 && c <= 0x24F && c != 0xD7 && c != 0xF7) || (c >= 0x300 && c <= 0x52F) || (c >= 0x1E00 && c <= 0x1FFF);
+        boolean block = (c >= 0xC0 && c <= 0x24F) || (c >= 0x300 && c <= 0x52F) || (c >= 0x1E00 && c <= 0x1FFF);
+        if (!block) return false;
+        int type = Character.getType(c);
+        return Character.isLetter(c) || type == Character.NON_SPACING_MARK || type == Character.COMBINING_SPACING_MARK
+                || type == Character.ENCLOSING_MARK;
     }
 
     private static int withoutPunctuation(String url, int end) {
