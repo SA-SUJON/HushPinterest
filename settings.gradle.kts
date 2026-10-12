@@ -38,7 +38,7 @@ pluginManagement {
 // deserialisation flaw in the Kotlin build cache. 2.4.20 is the first release outside it.
 // Nothing in this tree requests a Kotlin plugin by id, so pluginManagement's eachPlugin has
 // nothing to rewrite: the version has to be forced on the settings classpath itself. Take this
-// out when the plugin moves past 2.4.20 on its own; gradle/verification-metadata.xml is what
+// out when the plugin moves past 2.4.21 on its own; gradle/verification-metadata.xml is what
 // says which version actually resolved. It does not reach :patches:patcherProvidedClasspath,
 // where the patcher's own kotlin-stdlib and kotlin-reflect stay at 2.4.10.
 //
@@ -56,7 +56,7 @@ buildscript {
     configurations.all {
         resolutionStrategy.eachDependency {
             if (requested.group == "org.jetbrains.kotlin") {
-                useVersion("2.4.20")
+                useVersion("2.4.21")
             }
             if (requested.group == "org.bouncycastle") {
                 useVersion("1.86")
@@ -67,7 +67,7 @@ buildscript {
                 useVersion("33.7.2-jre")
             }
             if (requested.group == "org.apache.commons" && requested.name == "commons-lang3") {
-                useVersion("3.18.0")
+                useVersion("3.21.0")
             }
             if (requested.group == "org.apache.httpcomponents" && requested.name == "httpclient") {
                 useVersion("4.5.14")

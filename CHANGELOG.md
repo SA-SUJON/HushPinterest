@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Tooling:** The build moved to Kotlin 2.4.21, Commons Lang 3.21.0 and androidx.annotation 1.11.0, with their hashes added to the dependency verification file. The advisory check finds nothing in the 286 libraries the build resolves.
+
 * **Pinterest:** Media details has Check the file for image pins. One tap reads the first 64 KB of the file a download would save and shows its real width, height, type and file size, since Pinterest's numbers can describe a smaller display copy. Nothing is fetched until you tap it, and every value says whether Pinterest supplied it or the file showed it.
 
 * **Pinterest:** Download visible pins has All, Images and Videos filters with counts above the list, so they and the buttons stay on screen however many pins you can pick from, and each row shows the picture its cell already has, so pins are easier to tell apart. Nothing extra is downloaded for those pictures. Download board now asks whether to queue all of a board's loaded pins, only the images or only the videos.
