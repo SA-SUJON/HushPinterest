@@ -138,6 +138,24 @@ public class SettingsNavigationTest {
         assertEquals(before, savedValues());
     }
 
+    /** The Notifications page leads to Android's page for this app's notifications, and a search finds the way. */
+    @Test public void theNotificationsPageOpensAndroidsNotificationSettingsAndChangesNothing() {
+        Map<String, Object> before = savedValues();
+        page.navigation.navigate("Notifications");
+        assertTrue(contains(Settings.FIX_PUSH_NOTIFICATIONS.key));
+        tap(HushPinterestPreferenceFragment.NOTIFICATION_SETTINGS);
+        Intent started = org.robolectric.Shadows.shadowOf(controller.get()).getNextStartedActivity();
+        assertNotNull("nothing opened", started);
+        assertEquals(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS, started.getAction());
+        assertEquals(controller.get().getPackageName(), started.getStringExtra(android.provider.Settings.EXTRA_APP_PACKAGE));
+        assertEquals(before, savedValues());
+
+        while (page.navigation.back()) { }
+        findSearch(dialog.getView()).setText("notification settings");
+        ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
+        assertTrue(contains(HushPinterestPreferenceFragment.NOTIFICATION_SETTINGS));
+    }
+
     @Test public void categoryClickChangesOnlyTheSettingWhoseRowWasTapped() {
         assertTrue(page.navigation.open(page.findPreference(Settings.HIDE_AI_PINS.key)));
         // It joined Manager's default selection with its switch off.

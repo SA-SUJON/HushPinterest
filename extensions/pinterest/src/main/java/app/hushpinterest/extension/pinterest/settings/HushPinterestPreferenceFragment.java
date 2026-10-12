@@ -102,6 +102,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
     static final String UPDATE_INSTRUCTIONS_URL = SOURCE_URL + "#install";
     /** The Supported links row's key. It stores nothing either. */
     static final String SUPPORTED_LINKS = "action_supported_links";
+    /** The Android notification settings row's key, under Notifications. It stores nothing. */
+    static final String NOTIFICATION_SETTINGS = "action_notification_settings";
 
     /** Thrown by the next initialize() and then cleared: how a test reaches the recovery page. */
     static volatile RuntimeException failNextInitialization;
@@ -175,6 +177,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         super.onResume();
         SettingsBackupPreference.onPageResumed(this);
         showSupportedLinks();
+        showNotificationReadiness();
     }
 
     @Override
@@ -439,6 +442,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Fix push notifications"),
                     L10n.t("Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A "
                         + "change applies the next time Pinterest starts."), SettingsIcons.BELL);
+            notifications.addPreference(mark(notificationSettingsRow(context), SettingsIcons.BELL));
         }
 
         // In every build: where Pinterest keeps its own controls for what no switch here covers. The
@@ -795,6 +799,44 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         Logger.printInfo(() -> "No settings page opened for supported links");
         Utils.showToastLong(L10n.t("Android's settings for this app didn't open. Open App info from Pinterest's icon, "
                 + "then Open by default."));
+    }
+
+    /**
+     * What Android lets this app show, and the way to its notification page (PushReadiness), so
+     * nobody has to find it by hand. The page opens over Pinterest, so the row reads the answer again
+     * on the way back. The tap changes no permission or setting itself.
+     */
+    private Preference notificationSettingsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(NOTIFICATION_SETTINGS);
+        row.setTitle(L10n.t("Android notification settings"));
+        row.setPersistent(false);
+        row.setSummary(PushReadiness.summary(PushReadiness.notificationsEnabled(context)));
+        row.setOnPreferenceClickListener(p -> {
+            openNotificationSettings(context);
+            return true;
+        });
+        return row;
+    }
+
+    private void showNotificationReadiness() {
+        if (getPreferenceScreen() == null) return;
+        Preference row = findPreference(NOTIFICATION_SETTINGS);
+        if (row != null) row.setSummary(PushReadiness.summary(PushReadiness.notificationsEnabled(row.getContext())));
+    }
+
+    private void openNotificationSettings(Context context) {
+        for (Intent page : PushReadiness.settingsIntents(context)) {
+            try {
+                startActivity(page);
+                return;
+            } catch (ActivityNotFoundException | SecurityException missing) {
+                // A phone without the notification page still has App info, which leads there.
+            }
+        }
+        Logger.printInfo(() -> "No settings page opened for notifications");
+        Utils.showToastLong(L10n.t("Android's notification settings didn't open. Open App info from Pinterest's icon, "
+                + "then Notifications."));
     }
 
     /** A switch whose change waits for a restart: the card says what the next start brings. */

@@ -440,3 +440,8 @@ Couldn't open the folder picker. Try again.	No se pudo abrir el selector de carp
 Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Elige una carpeta dentro de Pictures, DCIM, Download o Documents en el almacenamiento interno del teléfono.
 Downloads will be saved in %s.	Las descargas se guardarán en %s.
 Downloads will be saved in the Download folder.	Las descargas se guardarán en la carpeta Download.
+Android notification settings	Ajustes de notificaciones de Android
+Android lets this app show notifications. That only means they can show, not that push notifications reach this phone. Tap to change them in Android's settings.	Android permite que esta app muestre notificaciones. Eso solo significa que pueden mostrarse, no que las notificaciones push lleguen a este teléfono. Toca para cambiarlas en los ajustes de Android.
+Notifications are off for this app in Android's settings, so none can show. Tap to turn them on there.	Las notificaciones están desactivadas para esta app en los ajustes de Android, así que no puede mostrarse ninguna. Toca para activarlas allí.
+Android didn't say whether this app can show notifications. Tap to check in Android's settings.	Android no indicó si esta app puede mostrar notificaciones. Toca para comprobarlo en los ajustes de Android.
+Android's notification settings didn't open. Open App info from Pinterest's icon, then Notifications.	No se abrieron los ajustes de notificaciones de Android. Abre Información de la app desde el icono de Pinterest y luego Notificaciones.

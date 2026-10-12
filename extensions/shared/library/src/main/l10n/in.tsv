@@ -440,3 +440,8 @@ Couldn't open the folder picker. Try again.	Pemilih folder tidak dapat dibuka. C
 Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Pilih folder di dalam Pictures, DCIM, Download, atau Documents di penyimpanan internal ponsel.
 Downloads will be saved in %s.	Unduhan akan disimpan di %s.
 Downloads will be saved in the Download folder.	Unduhan akan disimpan di folder Download.
+Android notification settings	Pengaturan notifikasi Android
+Android lets this app show notifications. That only means they can show, not that push notifications reach this phone. Tap to change them in Android's settings.	Android mengizinkan aplikasi ini menampilkan notifikasi. Itu hanya berarti notifikasi bisa muncul, bukan berarti notifikasi push sampai ke ponsel ini. Ketuk untuk mengubahnya di pengaturan Android.
+Notifications are off for this app in Android's settings, so none can show. Tap to turn them on there.	Notifikasi nonaktif untuk aplikasi ini di pengaturan Android, jadi tidak ada yang bisa muncul. Ketuk untuk mengaktifkannya di sana.
+Android didn't say whether this app can show notifications. Tap to check in Android's settings.	Android tidak memberi tahu apakah aplikasi ini bisa menampilkan notifikasi. Ketuk untuk memeriksanya di pengaturan Android.
+Android's notification settings didn't open. Open App info from Pinterest's icon, then Notifications.	Pengaturan notifikasi Android tidak terbuka. Buka Info aplikasi dari ikon Pinterest, lalu Notifikasi.

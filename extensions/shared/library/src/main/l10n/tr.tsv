@@ -440,3 +440,8 @@ Couldn't open the folder picker. Try again.	Klasör seçici açılamadı. Tekrar
 Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Telefonun kendi depolama alanında Pictures, DCIM, Download veya Documents içinde bir klasör seç.
 Downloads will be saved in %s.	İndirmeler %s içine kaydedilecek.
 Downloads will be saved in the Download folder.	İndirmeler Download klasörüne kaydedilecek.
+Android notification settings	Android bildirim ayarları
+Android lets this app show notifications. That only means they can show, not that push notifications reach this phone. Tap to change them in Android's settings.	Android bu uygulamanın bildirim göstermesine izin veriyor. Bu yalnızca bildirimlerin görünebileceği anlamına gelir, anlık bildirimlerin bu telefona ulaştığı anlamına gelmez. Android ayarlarında değiştirmek için dokunun.
+Notifications are off for this app in Android's settings, so none can show. Tap to turn them on there.	Bu uygulamanın bildirimleri Android ayarlarında kapalı, bu yüzden hiçbiri görünemez. Orada açmak için dokunun.
+Android didn't say whether this app can show notifications. Tap to check in Android's settings.	Android bu uygulamanın bildirim gösterip gösteremeyeceğini bildirmedi. Android ayarlarında kontrol etmek için dokunun.
+Android's notification settings didn't open. Open App info from Pinterest's icon, then Notifications.	Android bildirim ayarları açılamadı. Pinterest simgesinden Uygulama bilgileri'ni, ardından Bildirimler'i açın.

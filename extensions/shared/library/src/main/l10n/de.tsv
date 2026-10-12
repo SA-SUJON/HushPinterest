@@ -440,3 +440,8 @@ Couldn't open the folder picker. Try again.	Die Ordnerauswahl ließ sich nicht �
 Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.	Wähle einen Ordner in Pictures, DCIM, Download oder Documents im internen Speicher des Handys.
 Downloads will be saved in %s.	Downloads werden in %s gespeichert.
 Downloads will be saved in the Download folder.	Downloads werden im Ordner Download gespeichert.
+Android notification settings	Android-Benachrichtigungseinstellungen
+Android lets this app show notifications. That only means they can show, not that push notifications reach this phone. Tap to change them in Android's settings.	Android erlaubt dieser App, Benachrichtigungen anzuzeigen. Das heißt nur, dass sie erscheinen können, nicht dass Push-Benachrichtigungen dieses Handy erreichen. Tippe, um sie in den Android-Einstellungen zu ändern.
+Notifications are off for this app in Android's settings, so none can show. Tap to turn them on there.	Benachrichtigungen sind für diese App in den Android-Einstellungen aus, deshalb kann keine erscheinen. Tippe, um sie dort einzuschalten.
+Android didn't say whether this app can show notifications. Tap to check in Android's settings.	Android hat nicht gemeldet, ob diese App Benachrichtigungen anzeigen darf. Tippe, um in den Android-Einstellungen nachzusehen.
+Android's notification settings didn't open. Open App info from Pinterest's icon, then Notifications.	Die Android-Benachrichtigungseinstellungen ließen sich nicht öffnen. Öffne die App-Info über das Pinterest-Symbol, dann „Benachrichtigungen“.

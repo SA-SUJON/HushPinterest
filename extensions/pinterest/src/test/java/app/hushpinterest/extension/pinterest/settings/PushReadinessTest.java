@@ -6,33 +6,53 @@
  */
 package app.hushpinterest.extension.pinterest.settings;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageInfo;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.Preference;
+import android.preference.PreferenceGroup;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
+import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowPackageManager;
+import org.robolectric.shadows.ShadowToast;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 import app.hushpinterest.extension.shared.SettingsContextRule;
 import app.hushpinterest.extension.shared.settings.preference.LogBufferManager;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 33)
+@SuppressWarnings("deprecation")
 public class PushReadinessTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
     private Context context;
@@ -110,5 +130,130 @@ public class PushReadinessTest {
         String report = String.join("\n", PushReadiness.REPORT.lines());
         assertTrue(report, report.contains("notification_delegate: other package (redacted)"));
         assertFalse(report, report.contains("account123"));
+    }
+
+    // ---- The Android notification settings row --------------------------------------------------
+
+    private static final String KEY = HushPinterestPreferenceFragment.NOTIFICATION_SETTINGS;
+    private static final String ON = "Android lets this app show notifications. That only means they can show, not that "
+            + "push notifications reach this phone. Tap to change them in Android's settings.";
+    private static final String OFF = "Notifications are off for this app in Android's settings, so none can show. "
+            + "Tap to turn them on there.";
+
+    private ActivityController<Activity> controller;
+
+    @After public void restore() {
+        if (controller != null) controller.close();
+        PatchFamily.inBuildForTests = null;
+        Settings.FIX_PUSH_NOTIFICATIONS.resetToDefault();
+        ShadowToast.reset();
+    }
+
+    /** The settings screen of a build with [build]. */
+    private HushPinterestPreferenceFragment show(Set<PatchFamily> build) {
+        PatchFamily.inBuildForTests = build;
+        controller = Robolectric.buildActivity(Activity.class).setup();
+        HushPinterestPreferenceFragment page = new HushPinterestPreferenceFragment();
+        controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+        return page;
+    }
+
+    private Preference row() {
+        Preference row = show(EnumSet.of(PatchFamily.FIX_PUSH_NOTIFICATIONS)).findPreference(KEY);
+        assertNotNull("no Android notification settings row", row);
+        return row;
+    }
+
+    private static void notifications(boolean enabled) {
+        Shadows.shadowOf(RuntimeEnvironment.getApplication().getSystemService(NotificationManager.class))
+                .setNotificationsEnabled(enabled);
+    }
+
+    /**
+     * A tap opens the notification page of the package this runs as, which a patched build can
+     * rename, and grants, switches and saves nothing itself.
+     */
+    @Test @Config(sdk = {29, 33, 36})
+    public void aTapOpensThisPackagesNotificationSettingsAndChangesNothing() {
+        Shadows.shadowOf(RuntimeEnvironment.getApplication()).denyPermissions(Manifest.permission.POST_NOTIFICATIONS);
+        notifications(false);
+        boolean fix = Settings.FIX_PUSH_NOTIFICATIONS.savedValue();
+        Preference row = row();
+        assertEquals("Notifications", String.valueOf(row.getParent().getTitle()));
+        assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+
+        Intent started = Shadows.shadowOf(controller.get()).getNextStartedActivity();
+        assertNotNull("nothing opened", started);
+        assertEquals(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS, started.getAction());
+        String running = context.getPackageName();
+        assertNotEquals("the control: the test app runs under a name of its own", "com.pinterest", running);
+        assertEquals(running, started.getStringExtra(android.provider.Settings.EXTRA_APP_PACKAGE));
+        assertEquals(PackageManager.PERMISSION_DENIED, context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS));
+        assertFalse(context.getSystemService(NotificationManager.class).areNotificationsEnabled());
+        assertEquals(fix, Settings.FIX_PUSH_NOTIFICATIONS.savedValue());
+    }
+
+    /** A phone without that page gets App info for this app, which leads to the same switches. */
+    @Test public void withoutTheNotificationPageAppInfoOpens() {
+        Preference row = row();
+        Shadows.shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true);
+        Intent details = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", context.getPackageName(), null));
+        ResolveInfo settings = new ResolveInfo();
+        settings.activityInfo = new ActivityInfo();
+        settings.activityInfo.packageName = "com.android.settings";
+        settings.activityInfo.name = "com.android.settings.AppInfo";
+        Shadows.shadowOf(context.getPackageManager()).addResolveInfoForIntent(details, settings);
+        assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+
+        Intent started = Shadows.shadowOf(controller.get()).getNextStartedActivity();
+        assertNotNull("nothing opened", started);
+        assertEquals(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, started.getAction());
+        assertEquals("package:" + context.getPackageName(), started.getDataString());
+    }
+
+    /** With neither page, a tap says so instead of closing Pinterest. */
+    @Test public void withNoSettingsPageATapSaysSo() {
+        Preference row = row();
+        Shadows.shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true);
+        assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+        ShadowLooper.idleMainLooper();
+        assertNull(Shadows.shadowOf(controller.get()).getNextStartedActivity());
+        assertEquals("Android's notification settings didn't open. Open App info from Pinterest's icon, then Notifications.",
+                ShadowToast.getTextOfLatestToast());
+        assertFalse(controller.get().isFinishing());
+    }
+
+    /** The row says what Android allows now, says it again on the way back, and never that a push arrives. */
+    @Test public void theRowReadsAndroidsAnswerAgainOnTheWayBack() {
+        notifications(false);
+        Preference row = row();
+        assertEquals(OFF, String.valueOf(row.getSummary()));
+        notifications(true);
+        controller.pause().resume();
+        assertEquals(ON, String.valueOf(row.getSummary()));
+        // An answer Android couldn't give is its own line, not a denial.
+        assertEquals("Android didn't say whether this app can show notifications. Tap to check in Android's settings.",
+                PushReadiness.summary(null));
+    }
+
+    /**
+     * Only a build with Fix push notifications has the Notifications page and the row. Pinterest's own
+     * controls stay lines of text that name a path and open nothing.
+     */
+    @Test public void onlyWithThePatchAndPinterestsOwnRowsStayText() {
+        HushPinterestPreferenceFragment page = show(EnumSet.noneOf(PatchFamily.class));
+        assertNull(page.findPreference(KEY));
+        PreferenceGroup pinterest = null;
+        for (Preference section : page.sections()) {
+            if ("Pinterest's own settings".contentEquals(section.getTitle())) pinterest = (PreferenceGroup) section;
+        }
+        assertNotNull(pinterest);
+        assertEquals(NativeControls.controls().size() + 1, pinterest.getPreferenceCount());
+        for (int i = 0; i < pinterest.getPreferenceCount(); i++) {
+            Preference control = pinterest.getPreference(i);
+            assertFalse(control.getTitle() + " can be tapped", control.isSelectable());
+            assertNull(control.getTitle() + " opens something", control.getOnPreferenceClickListener());
+        }
     }
 }
