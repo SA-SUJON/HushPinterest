@@ -287,6 +287,19 @@ Add-PublishEvent 'verify-index'
     Assert-IndexContract ($forged.Problem -like "*assets on GitHub don't verify*" -and -not (Test-Path -LiteralPath $assets)) `
         "-Stage build kept published assets that don't verify: $($forged.Problem)."
     Set-PublishFile 'build/hosted/SHA256SUMS.txt.asc' 'recorded signature'
+    # gh only fails when no pattern matches, and a broken receipt throws inside the check: neither
+    # may leave part of the assets behind, which every later run would refuse.
+    $hostedSbom = Join-Path $global:PublishContract.Root 'build/hosted/patches-0.0.7.cdx.json'
+    Move-Item -LiteralPath $hostedSbom -Destination "$kept.cdx.json"
+    $short = Invoke-BuildStageCase
+    Assert-IndexContract ($short.Problem -like '*has no patches-0.0.7.cdx.json*' -and -not (Test-Path -LiteralPath $assets)) `
+        "-Stage build took a release missing an asset: $($short.Problem)."
+    Move-Item -LiteralPath "$kept.cdx.json" -Destination $hostedSbom
+    Set-PublishFile 'build/hosted/release-receipt-0.0.7.json' 'not a receipt'
+    $broken = Invoke-BuildStageCase
+    Assert-IndexContract ($broken.Problem -and -not (Test-Path -LiteralPath $assets)) `
+        "-Stage build left assets behind after a receipt it couldn't read: $($broken.Problem)."
+    Set-PublishFile 'build/hosted/release-receipt-0.0.7.json' $receiptText
     Move-Item -LiteralPath $kept -Destination $assets
     Remove-Item -LiteralPath (Join-Path $global:PublishContract.Root 'build/release-stages') -Recurse -Force
     Invoke-PublishGit @('checkout', '--quiet', 'main') | Out-Null

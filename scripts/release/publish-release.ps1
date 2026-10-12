@@ -175,7 +175,8 @@ if ($indexed) {
             Write-ReleaseStep "putting the GitHub description back: $previousDescription"
             Invoke-ReleaseQuiet { & gh repo edit $Repository --description $previousDescription } | Out-Null
             if ($LASTEXITCODE -ne 0) {
-                Write-ReleaseStep "gh couldn't put the description back. Set it by hand: gh repo edit $Repository --description `"$previousDescription`""
+                $quoted = "'" + ($previousDescription -replace "'", "''") + "'"
+                Write-ReleaseStep "gh couldn't put the description back. Set it by hand: gh repo edit $Repository --description $quoted"
             }
         }
         throw

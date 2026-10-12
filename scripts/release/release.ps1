@@ -232,8 +232,9 @@ switch ($Stage) {
             Invoke-ReleasePush -Root $Root -ReleaseGate
         } catch {
             if (Test-Path -LiteralPath $hookRecord -PathType Leaf) {
-                throw ("The release gate passed $commit, but the push itself failed. Check the network, then run " +
-                    '-Stage gate again. If origin took it after all, that run goes straight on.')
+                throw ("The release gate passed $commit, but the push itself failed: the network dropped, or origin " +
+                    "rejected it. Read git's output above. Once the cause is fixed, run -Stage gate again. If origin took " +
+                    'it after all, that run goes straight on.')
             }
             throw ("The release gate refused $commit. Read its output above. Fix the cause in a commit of its own: " +
                 'undo the prepare commit with git reset --keep HEAD~1, commit the fix, then prepare again.')
@@ -267,19 +268,24 @@ switch ($Stage) {
             # so take back what GitHub holds and check it the same way.
             Write-ReleaseStep "$tag is already on GitHub and $assets is empty, so its signed assets come back from there"
             $download = Join-Path ([IO.Path]::GetTempPath()) ('hushpinterest-assets-' + [guid]::NewGuid().ToString('N'))
+            # The folder was empty, so whatever goes wrong below leaves it empty again: a partial copy
+            # would read as local assets that don't match and refuse every later run.
             try {
                 $patterns = @($names | ForEach-Object { '-p'; $_ })
                 Invoke-ReleaseNative 'gh release download' { & gh release download $tag -R $Repository -D $download @patterns }
+                # gh only fails when no pattern matches, so a release missing one asset still gets here.
+                $missing = @($names | Where-Object { -not (Test-Path -LiteralPath (Join-Path $download $_) -PathType Leaf) })
+                if ($missing.Count -gt 0) { throw "$tag on GitHub has no $($missing -join ', '). Nothing was rebuilt." }
                 New-Item -ItemType Directory -Force -Path $assets | Out-Null
                 foreach ($name in $names) { Copy-Item -LiteralPath (Join-Path $download $name) -Destination $assets }
+                $built = Test-ReleaseAssets -Root $Root -Version $Version -Commit $commit -TrustedPublicKeyPath $signing.PublicKey `
+                    -TrustedFingerprint $signing.Fingerprint -Gpg $Gpg
+                if ($built -ne $true) { throw "$tag's assets on GitHub don't verify for $commit ($built). Nothing was rebuilt." }
+            } catch {
+                Remove-Item -LiteralPath $assets -Recurse -Force -ErrorAction SilentlyContinue
+                throw
             } finally {
                 if (Test-Path -LiteralPath $download) { Remove-Item -LiteralPath $download -Recurse -Force -ErrorAction SilentlyContinue }
-            }
-            $built = Test-ReleaseAssets -Root $Root -Version $Version -Commit $commit -TrustedPublicKeyPath $signing.PublicKey `
-                -TrustedFingerprint $signing.Fingerprint -Gpg $Gpg
-            if ($built -ne $true) {
-                Remove-Item -LiteralPath $assets -Recurse -Force -ErrorAction SilentlyContinue
-                throw "$tag's assets on GitHub don't verify for $commit ($built). Nothing was rebuilt."
             }
             Write-ReleaseStep "$tag's signed assets from GitHub verify for $commit. Run -Stage publish next."
             return
