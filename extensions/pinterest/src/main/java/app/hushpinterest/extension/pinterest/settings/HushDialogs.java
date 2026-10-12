@@ -34,6 +34,11 @@ public final class HushDialogs {
         ScreenColors.controls(controls);
     }
 
+    /** Styles a title a dialog draws itself, as its own title would be. */
+    public static void paintTitle(android.widget.TextView title) {
+        ScreenColors.title(title);
+    }
+
     /** Paints a shown dialog without changing its listeners or actions. */
     public static void paint(AlertDialog dialog) {
         ScreenColors.dialog(dialog);

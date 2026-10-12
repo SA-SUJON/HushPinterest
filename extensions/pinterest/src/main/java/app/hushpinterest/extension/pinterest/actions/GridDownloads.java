@@ -137,9 +137,17 @@ final class GridDownloads {
             choices.show(Filter.ALL);
             AlertDialog.Builder builder = HushDialogs.builder(activity);
             Context themed = builder.getContext();
+            String heading = L10n.f("Select visible pins (up to %d)", DownloadLedger.LIMIT);
+            // The filters and the count go above the list as the dialog's title. A list and a view of
+            // its own both in the middle make AlertDialogLayout measure them one after the other, so
+            // a long list pushed them and the buttons off the bottom. Up top they always show.
             LinearLayout controls = new LinearLayout(themed);
             controls.setOrientation(LinearLayout.VERTICAL);
-            controls.setPaddingRelative(dp(activity, 24), dp(activity, 8), dp(activity, 24), 0);
+            controls.setPaddingRelative(dp(activity, 24), dp(activity, 18), dp(activity, 24), 0);
+            TextView title = new TextView(themed);
+            title.setText(heading);
+            title.setAccessibilityHeading(true);
+            controls.addView(title);
             RadioGroup filters = new RadioGroup(themed);
             filters.setOrientation(LinearLayout.HORIZONTAL);
             for (Filter filter : Filter.values()) {
@@ -160,9 +168,8 @@ final class GridDownloads {
             count.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
             controls.addView(count);
             AlertDialog picker = builder
-                    .setTitle(L10n.f("Select visible pins (up to %d)", DownloadLedger.LIMIT))
+                    .setCustomTitle(controls)
                     .setAdapter(choices, null)
-                    .setView(controls)
                     .setPositiveButton(L10n.t("Queue selected"), (dialog, which) -> {
                         List<Object> chosen = choices.chosen();
                         if (!chosen.isEmpty()) queue(activity, chosen, L10n.t("Download visible pins"), null, 0, true);
@@ -196,7 +203,10 @@ final class GridDownloads {
             });
             counted.run();
             HushDialogs.prepareChoices(picker);
+            // The window's title, which TalkBack reads; the shown one is the custom title.
+            picker.setTitle(heading);
             HushDialogs.paintControls(controls);
+            HushDialogs.paintTitle(title);
             picker.show();
             HushDialogs.paint(picker);
             picker.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);

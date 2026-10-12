@@ -485,13 +485,7 @@ final class ScreenColors {
         @SuppressWarnings("DiscouragedApi")
         int titleId = dialog.getContext().getResources().getIdentifier("alertTitle", "id", "android");
         TextView title = titleId == 0 ? null : dialog.findViewById(titleId);
-        if (title != null) {
-            title.setTextColor(this.title);
-            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
-            title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-            title.setSingleLine(false);
-            title.setMaxLines(Integer.MAX_VALUE);
-        }
+        if (title != null) paintTitle(title);
         // AlertDialog's own message, and the one a preference's dialog layout brings, which is the
         // one on show there: AlertDialog's own sits GONE above it, and findViewById finds that first.
         if (window != null) paintMessages(window.getDecorView());
@@ -521,6 +515,15 @@ final class ScreenColors {
         }
         View field = dialog.findViewById(android.R.id.edit);
         if (field instanceof EditText) paintField((EditText) field);
+    }
+
+    /** A dialog's title, the framework's own or one the dialog draws itself. */
+    void paintTitle(TextView title) {
+        title.setTextColor(this.title);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        title.setSingleLine(false);
+        title.setMaxLines(Integer.MAX_VALUE);
     }
 
     /**
@@ -653,6 +656,11 @@ final class ScreenColors {
     /** Paints a dialog's own controls in the screen's colours. */
     static void controls(@Nullable View view) {
         if (view != null) DEFAULT.paintControls(view);
+    }
+
+    /** Paints a title a dialog draws itself in the screen's colours. */
+    static void title(@Nullable TextView title) {
+        if (title != null) DEFAULT.paintTitle(title);
     }
 
     private static void startMargin(View view, int margin) {

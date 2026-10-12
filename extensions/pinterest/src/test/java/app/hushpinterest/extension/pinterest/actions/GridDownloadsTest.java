@@ -212,6 +212,38 @@ public class GridDownloadsTest {
         NativeDialogCapture.capture("batch-progress-complete", grid, progress);
     }
 
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "en-rUS-w390dp-h844dp-night-xhdpi")
+    public void aFullPickerKeepsItsFiltersAndButtonsOnScreen() throws Exception {
+        View origin = null;
+        for (int i = 0; i < DownloadLedger.LIMIT; i++) {
+            View cell = cell(previewPin(String.valueOf(300 + i),
+                    "A landscape study with warm evening light and a detailed foreground"), i * 15);
+            if (origin == null) origin = cell;
+        }
+        AlertDialog picker = choose(origin);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(DownloadLedger.LIMIT, picker.getListView().getAdapter().getCount());
+        View decor = picker.getWindow().getDecorView();
+        decor.measure(View.MeasureSpec.makeMeasureSpec(780, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(1688, View.MeasureSpec.AT_MOST));
+        decor.layout(0, 0, decor.getMeasuredWidth(), decor.getMeasuredHeight());
+        List<View> kept = new ArrayList<>(filters(picker));
+        kept.add(count(picker));
+        for (int action : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEUTRAL, AlertDialog.BUTTON_NEGATIVE}) {
+            kept.add(picker.getButton(action));
+        }
+        int[] at = new int[2];
+        for (View shown : kept) {
+            shown.getLocationInWindow(at);
+            assertTrue(shown + " has no height", shown.getHeight() > 0);
+            assertTrue(shown + " is below the dialog", at[1] + shown.getHeight() <= decor.getHeight());
+        }
+        ListView list = picker.getListView();
+        assertTrue("the control: the rows are taller than the dialog", list.getCount() > list.getChildCount());
+        NativeDialogCapture.capture("visible-picker-full", grid, picker);
+    }
+
     private Object previewPin(String id, String title) {
         return Map.of("id", id, "title", title, "images", Map.of("orig", Map.of(
                 "url", "https://example.invalid/public-reference-" + id + ".jpg")));
