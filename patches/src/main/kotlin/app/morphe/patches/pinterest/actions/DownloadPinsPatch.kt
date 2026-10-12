@@ -11,6 +11,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.enableCapability
@@ -31,12 +32,47 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import org.w3c.dom.Element
 
 private const val PATCH = "Download pins"
 private const val DOWNLOADS = "$EXTENSION_PACKAGE/actions/PinDownloads;"
 
 /** Title resource of Pinterest's own Download image row in the pin menu. */
 internal const val NATIVE_DOWNLOAD_TITLE = "save_to_device"
+
+/** The provider Share file hands a saved video out through, so Android's share sheet can show a frame of it. */
+internal const val SHARE_PREVIEW_PROVIDER = "app.hushpinterest.extension.pinterest.actions.SharePreviewProvider"
+
+/** Its authority, after the package name, the way the manifest declares it and the release receipt expects it. */
+internal const val SHARE_PREVIEW_AUTHORITY = ".hushpinterest.share"
+
+/**
+ * Declares [SHARE_PREVIEW_PROVIDER]. It isn't exported, so another app reads an address there only
+ * through the read grant a share hands it.
+ */
+internal val sharePreviewProviderPatch = resourcePatch {
+    execute {
+        document("AndroidManifest.xml").use { document ->
+            val application = document.getElementsByTagName("application").item(0) as? Element
+                ?: throw PatchException("$PATCH: AndroidManifest.xml has no application element")
+            val packageName = document.documentElement.getAttribute("package")
+            if (packageName.isEmpty()) throw PatchException("$PATCH: AndroidManifest.xml names no package")
+            val authority = packageName + SHARE_PREVIEW_AUTHORITY
+            val providers = document.getElementsByTagName("provider")
+            val declared = (0 until providers.length).map { providers.item(it) as Element }
+            if (declared.any { it.getAttribute("android:name") == SHARE_PREVIEW_PROVIDER }) return@use
+            if (declared.any { provider -> provider.getAttribute("android:authorities").split(';').any { it.trim() == authority } }) {
+                throw PatchException("$PATCH: another provider already claims $authority")
+            }
+            application.appendChild(document.createElement("provider").apply {
+                setAttribute("android:name", SHARE_PREVIEW_PROVIDER)
+                setAttribute("android:authorities", authority)
+                setAttribute("android:exported", "false")
+                setAttribute("android:grantUriPermissions", "true")
+            })
+        }
+    }
+}
 
 @Suppress("unused")
 val downloadPinsPatch = bytecodePatch(
@@ -49,11 +85,15 @@ val downloadPinsPatch = bytecodePatch(
         "Turn it on in HushPinterest settings > Pin actions.",
 ) {
     category("Downloads")
-    dependsOn(settingsPatch, pinterestExtensionPatch)
+    dependsOn(settingsPatch, pinterestExtensionPatch, sharePreviewProviderPatch)
     compatibleWith(*AppCompatibilities.pinterest())
     execute {
         requireStatusMethod("downloadPins")
         requireStatusMethod("pinDownloads")
+        val previewType = "L" + SHARE_PREVIEW_PROVIDER.replace('.', '/') + ";"
+        if (classDefByOrNull(previewType)?.superclass != "Landroid/content/ContentProvider;") {
+            throw PatchException("$PATCH: the manifest declares a share preview provider the extension doesn't have")
+        }
         val menu = pinMenu()
         val pin = pinType()
         val viewField = menu.fields.singleOrNull { it.name == "modalView" }

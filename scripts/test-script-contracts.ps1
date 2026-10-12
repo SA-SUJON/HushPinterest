@@ -4404,6 +4404,13 @@ try {
                 '            E: category (line=63)',
                 "              A: $androidName`"android.intent.category.DEFAULT`" (Raw: `"android.intent.category.DEFAULT`")")
         }
+        if ($Patched -and $releaseNames -ccontains 'Download pins') {
+            $provider = 'app.hushpinterest.extension.pinterest.actions.SharePreviewProvider'
+            $lines += @('        E: provider (line=70)', "          A: $androidName`"$provider`" (Raw: `"$provider`")",
+                '          A: http://schemas.android.com/apk/res/android:exported(0x01010010)=false',
+                "          A: http://schemas.android.com/apk/res/android:authorities(0x01010018)=`"$Package.hushpinterest.share`" (Raw: `"$Package.hushpinterest.share`")",
+                '          A: http://schemas.android.com/apk/res/android:grantUriPermissions(0x0101001b)=true')
+        }
         return ($lines -join "`n") + "`n"
     }
     $releaseSelectedAllowlist = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') `

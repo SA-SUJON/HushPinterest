@@ -903,6 +903,46 @@ public class DownloadLedgerTest {
     }
 
     /**
+     * With the share preview provider in the manifest, Share file sends a video's MediaStore entry
+     * through it, grant and clip included, so the share sheet can show a frame. An image's entry
+     * already previews and goes out as it is, and Open keeps the plain address.
+     */
+    @Test public void aSharedVideoGoesThroughTheSharePreviewProvider() throws Exception {
+        android.content.pm.ProviderInfo info = new android.content.pm.ProviderInfo();
+        info.authority = app.getPackageName() + ".hushpinterest.share";
+        info.name = SharePreviewProvider.class.getName();
+        info.packageName = app.getPackageName();
+        Shadows.shadowOf(app.getPackageManager()).addOrUpdateProvider(info);
+        long video = owned("456", DownloadManager.STATUS_SUCCESSFUL);
+        long image = owned("123", DownloadManager.STATUS_SUCCESSFUL);
+        nativeJobs.mimes.put(video, "video/mp4");
+        nativeJobs.filed.put(video, "content://media/external_primary/downloads/248");
+        nativeJobs.filed.put(image, "content://media/external_primary/downloads/249");
+        List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();
+        DownloadLedger.Job clip = jobs.stream().filter(job -> job.id == video).findFirst().get();
+        DownloadLedger.Job picture = jobs.stream().filter(job -> job.id == image).findFirst().get();
+
+        assertTrue(DownloadLedger.shareFile(app, clip));
+        settle();
+        Intent chooser = Shadows.shadowOf(app).getNextStartedActivity();
+        Intent send = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        Uri stream = send.getParcelableExtra(Intent.EXTRA_STREAM);
+        assertEquals("content://" + info.authority + "/media/external_primary/downloads/248", String.valueOf(stream));
+        assertEquals("video/mp4", send.getType());
+        assertEquals(stream, chooser.getClipData().getItemAt(0).getUri());
+        assertEquals(Intent.FLAG_GRANT_READ_URI_PERMISSION, chooser.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        assertTrue(DownloadLedger.shareFile(app, picture));
+        settle();
+        send = Shadows.shadowOf(app).getNextStartedActivity().getParcelableExtra(Intent.EXTRA_INTENT);
+        assertEquals("content://media/external_primary/downloads/249", String.valueOf(send.getParcelableExtra(Intent.EXTRA_STREAM)));
+
+        assertTrue(DownloadLedger.openFile(app, clip));
+        settle();
+        assertEquals("content://media/external_primary/downloads/248", Shadows.shadowOf(app).getNextStartedActivity().getDataString());
+    }
+
+    /**
      * A stale row never hands a file on: not when the file was deleted, the request failed, changed
      * type, left Android or left this history, and never for a local result.
      */

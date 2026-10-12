@@ -375,10 +375,12 @@ public final class DownloadLedger {
     public static boolean shareFile(Context context, Job job) {
         if (context == null || job == null || !job.canOpen()) return false;
         return handOver(context, job, false, (file, mime) -> {
-                    Intent send = new Intent(Intent.ACTION_SEND).setType(mime).putExtra(Intent.EXTRA_STREAM, file)
+                    // A video goes out through HushPinterest's own address so the share sheet can show a frame.
+                    Uri shared = SharePreviewProvider.wrap(context, file, mime);
+                    Intent send = new Intent(Intent.ACTION_SEND).setType(mime).putExtra(Intent.EXTRA_STREAM, shared)
                             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     // The chooser passes the read grant on only for a URI it finds in the clip.
-                    send.setClipData(ClipData.newRawUri("", file));
+                    send.setClipData(ClipData.newRawUri("", shared));
                     return Intent.createChooser(send, L10n.t("Share file"));
                 },
                 job.folder != null ? L10n.f("Couldn't share this file. Check %s for the saved file.", job.folder)
@@ -445,9 +447,10 @@ public final class DownloadLedger {
 
     /**
      * Where another app reads the file. DownloadManager's own address names the file after the
-     * request's title, so apps saw every download as "Download pin", and the share sheet can't
-     * preview a video there. The MediaStore entry Android filed for the download has the file's own
-     * name and a preview, and from Android 11 the app that owns it can grant it to another app.
+     * request's title, so apps saw every download as "Download pin". The MediaStore entry Android
+     * filed for the download has the file's own name and an image's preview, and from Android 11
+     * the app that owns it can grant it to another app. Share file wraps a video's entry in
+     * [SharePreviewProvider], since MediaStore gives the share sheet no frame of a video.
      */
     private static Uri address(DownloadManager manager, long id, String filed) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && filed != null && filed.startsWith("content://media/")) {

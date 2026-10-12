@@ -156,7 +156,8 @@
       "use": true,
       "dependencies": [
         "BytecodePatch",
-        "HushPinterest settings"
+        "HushPinterest settings",
+        "ResourcePatch"
       ],
       "compatiblePackages": {
         "com.pinterest": [

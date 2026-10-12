@@ -683,7 +683,8 @@ function Test-ManifestDelta {
         Analytics may change only its application metadata values and remove their resources, and
         Remove ad tracking permissions may drop only its three permissions and the application's
         ad services configuration property. Spoof signature for Google sign-in may add only its two
-        application metadata entries, and only to a manifest that has neither.
+        application metadata entries, and only to a manifest that has neither. Download pins may add
+        only its unexported share preview provider, under the package's own authority.
         All other declarations, including duplicates and separate vendor query blocks, survive.
     #>
     param(
@@ -725,7 +726,10 @@ function Test-ManifestDelta {
     $browser = $selected.Contains('Open links in your browser')
     $adTracking = $selected.Contains('Remove ad tracking permissions')
     $signature = $selected.Contains('Spoof signature for Google sign-in')
-    if (($analytics -or $browser -or $adTracking -or $signature) -and -not $settings) { return Fail 'The selection omits the HushPinterest settings dependency.' }
+    $downloads = $selected.Contains('Download pins')
+    if (($analytics -or $browser -or $adTracking -or $signature -or $downloads) -and -not $settings) {
+        return Fail 'The selection omits the HushPinterest settings dependency.'
+    }
     if ($settings) {
         $floor = Test-PatchedMinSdk -StockMinSdk $Stock.minSdk -PatchedMinSdk $Patched.minSdk
         if (-not $floor.Valid) { return Fail $floor.Reason }
@@ -823,6 +827,18 @@ function Test-ManifestDelta {
             $policies.Add("metadata-added $template")
             $expected.metadata.Add($template)
         }
+    }
+    if ($downloads) {
+        # Share file hands a saved video out through this provider so the share sheet can show a
+        # frame. It isn't exported, and its authority follows the package.
+        $provider = 'app.hushpinterest.extension.pinterest.actions.SharePreviewProvider'
+        if (@($Stock.components | Where-Object { ($_ | ConvertFrom-Json).attributes.'android:name' -ceq $provider }).Count -gt 0) {
+            return Fail 'The stock manifest already declares the share preview provider.'
+        }
+        $component = ConvertTo-ManifestDeclaration -Node (Node 'provider' @{
+            'android:name' = $provider; 'android:authorities' = "$($Stock.package).hushpinterest.share"
+            'android:exported' = 'false'; 'android:grantUriPermissions' = 'true' })
+        $policies.Add("component-added $component"); $expected.components.Add($component)
     }
     if ($browser) {
         $container = ConvertTo-ManifestDeclaration -Owner 'queries#0' -Node (Node 'queries' @{})

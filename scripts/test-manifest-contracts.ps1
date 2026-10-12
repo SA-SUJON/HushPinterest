@@ -233,6 +233,26 @@ Assert-Manifest (($historical -join '; ') -ceq ((@('exported-added activity-alia
 $withoutQueries = Check-Manifest (Fixture-Facts -NoQueries) (Fixture-Facts -NoQueries -features @('settings', 'browser')) @($settings, $browser)
 Assert-Manifest $withoutQueries.Valid "A new browser query container was refused: $($withoutQueries.Reason)"
 
+# Download pins adds its share preview provider and nothing else: unexported, granting reads, under
+# the package's own authority. Exported, missing, or there without the patch, it's refused.
+$downloads = 'Download pins'
+$providerTemplate = @(Read-ManifestDeltaAllowlist -Path $allowlist -SelectedPatchNames @($downloads))
+Assert-Manifest ($providerTemplate.Count -eq 1 -and $providerTemplate[0] -clike 'component-added *"android:authorities":"com.pinterest.hushpinterest.share"*"android:exported":"false"*SharePreviewProvider*') `
+    "The allowlist's share preview provider isn't the unexported one: $($providerTemplate -join '; ')"
+$provider = $providerTemplate[0].Substring('component-added '.Length)
+$sharing = Fixture-Facts -features @('settings'); $sharing.components += $provider
+$shared = Check-Manifest $stock $sharing @($settings, $downloads)
+Assert-Manifest ($shared.Valid -and @($shared.Delta.componentsAdded | Where-Object { $_ -clike '*SharePreviewProvider*' }).Count -eq 1 -and
+    $shared.Delta.exportedComponentsAdded.Count -eq 1) "The share preview provider was refused or exported: $($shared.Reason)"
+$exportedProvider = Fixture-Facts -features @('settings'); $exportedProvider.components += ($provider -creplace '"android:exported":"false"', '"android:exported":"true"')
+foreach ($case in @(
+        @{ Label = 'an exported provider'; Patched = $exportedProvider; Names = @($settings, $downloads) },
+        @{ Label = 'a missing provider'; Patched = (Fixture-Facts -features @('settings')); Names = @($settings, $downloads) },
+        @{ Label = 'a provider without Download pins'; Patched = $sharing; Names = @($settings) })) {
+    $refused = Check-Manifest $stock $case.Patched $case.Names
+    Assert-Manifest (-not $refused.Valid) "The manifest check accepted $($case.Label)."
+}
+
 # Matching browser intents in a later vendor block are retained without adding duplicate intents.
 $existing = Copy-Manifest $stock
 $existingPatched = Fixture-Facts -features @('settings', 'analytics', 'adtracking', 'signature')
