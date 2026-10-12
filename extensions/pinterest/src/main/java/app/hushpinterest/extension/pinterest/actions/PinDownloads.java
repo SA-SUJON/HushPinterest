@@ -344,10 +344,14 @@ public final class PinDownloads {
         // as an escape, so a folder named "Art #2" or "100%" lost the download. Encoding everything
         // but the slashes makes the round trip give back the folder as picked.
         String subPath = Uri.encode(DownloadFolder.subPath(folder, fileName), "/");
+        // Every download, retry and batch pin is built here, so each takes the network limits that
+        // are on when it's queued. Android waits for a network they allow; nothing here retries.
         return new DownloadManager.Request(Uri.parse(source.url))
                 .setMimeType(source.mime)
                 .setTitle(L10n.t("Download pin"))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setAllowedOverMetered(!Settings.DOWNLOAD_UNMETERED_ONLY.get())
+                .setAllowedOverRoaming(!Settings.DOWNLOAD_NO_ROAMING.get())
                 .setDestinationInExternalPublicDir(DownloadFolder.directory(folder), subPath);
     }
 

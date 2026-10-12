@@ -221,8 +221,8 @@ Completed	Concluído
 Missing	Não encontrado
 Unavailable	Indisponível
 Android will retry the download.	O Android tentará baixar novamente.
-Waiting for a network connection.	Aguardando conexão de rede.
-Waiting for Wi-Fi.	Aguardando Wi-Fi.
+Waiting for a network connection this download can use.	Aguardando uma conexão de rede que este download possa usar.
+Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.	Aguardando uma rede ilimitada. Um Wi-Fi marcado como limitado, como o ponto de acesso de um celular, não conta.
 Paused by Android.	Pausado pelo Android.
 Not enough storage.	Espaço de armazenamento insuficiente.
 Download storage is unavailable.	O armazenamento de downloads está indisponível.
@@ -369,6 +369,10 @@ Pinterest didn't supply supported media for this pin.	O Pinterest não forneceu 
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Baixe um pin ou selecione vários em uma grade. Salva vídeos e imagens originais, ou o maior tamanho que o Pinterest tiver.
 Save in Pinterest's folder	Salvar na pasta do Pinterest
 Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.	Salva os downloads em Pictures/100PINT/Pins, a pasta que o próprio Pinterest usa para salvar imagens, em vez de Download.
+Download on unmetered networks only	Baixar só em redes ilimitadas
+New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.	Os downloads novos esperam nos Downloads do Android por uma rede que o Android trate como ilimitada, como a maioria dos Wi-Fi de casa. Dados móveis costumam contar como limitados, assim como um Wi-Fi marcado como limitado, por exemplo o ponto de acesso de um celular. Downloads que já estão na fila mantêm a própria regra.
+No downloads while roaming	Sem downloads em roaming
+New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.	Os downloads novos não usam dados móveis enquanto seu celular está em roaming. Eles esperam o Wi-Fi ou sua rede de origem. Downloads que já estão na fila mantêm a própria regra.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Apenas os 32 downloads e resultados de seleção mais recentes são listados. Os arquivos salvos são mantidos.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Baixar pasta

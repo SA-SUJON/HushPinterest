@@ -333,6 +333,17 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                         L10n.t("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of "
                             + "Download.")), SettingsIcons.DOWNLOADS));
                 actions.addPreference(mark(new DownloadFolderPreference(this, context), SettingsIcons.DOWNLOADS));
+                // Android holds each download to the limits it was queued with, so the summaries say "new".
+                actions.addPreference(mark(toggle(context, Settings.DOWNLOAD_UNMETERED_ONLY,
+                        L10n.t("Download on unmetered networks only"),
+                        L10n.t("New downloads wait in Android's Downloads for a network Android counts as unmetered, "
+                            + "like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked "
+                            + "as metered, such as a phone's hotspot. Downloads already queued keep their own rule.")),
+                        SettingsIcons.DOWNLOADS));
+                actions.addPreference(mark(toggle(context, Settings.DOWNLOAD_NO_ROAMING, L10n.t("No downloads while roaming"),
+                        L10n.t("New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi "
+                            + "or your home network. Downloads already queued keep their own rule.")),
+                        SettingsIcons.DOWNLOADS));
                 actions.addPreference(mark(new DownloadHistoryPreference(context), SettingsIcons.DOWNLOADS));
             }
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_BOARD, Settings.DOWNLOAD_BOARD,

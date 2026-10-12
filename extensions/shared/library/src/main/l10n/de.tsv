@@ -224,8 +224,8 @@ Completed	Abgeschlossen
 Missing	Nicht vorhanden
 Unavailable	Nicht verfügbar
 Android will retry the download.	Android versucht den Download erneut.
-Waiting for a network connection.	Wartet auf eine Netzwerkverbindung.
-Waiting for Wi-Fi.	Wartet auf WLAN.
+Waiting for a network connection this download can use.	Wartet auf eine Netzwerkverbindung, die dieser Download nutzen darf.
+Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.	Wartet auf ein nicht getaktetes Netzwerk. Ein als getaktet markiertes WLAN, etwa der Hotspot eines Handys, zählt nicht.
 Paused by Android.	Von Android pausiert.
 Not enough storage.	Nicht genug Speicherplatz.
 Download storage is unavailable.	Der Download-Speicher ist nicht verfügbar.
@@ -372,6 +372,10 @@ Pinterest didn't supply supported media for this pin.	Pinterest hat für diesen 
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Lade einen Pin herunter oder wähle mehrere Pins in einem Raster aus. Speichert Videos und Originalbilder oder die größte Größe, die Pinterest hat.
 Save in Pinterest's folder	Im Pinterest-Ordner speichern
 Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.	Speichert Downloads in Pictures/100PINT/Pins, dem Ordner, den Pinterest selbst für gespeicherte Bilder nutzt, statt in Download.
+Download on unmetered networks only	Nur über nicht getaktete Netzwerke herunterladen
+New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.	Neue Downloads warten in den Android-Downloads auf ein Netzwerk, das Android als nicht getaktet einstuft, wie die meisten WLANs zu Hause. Mobile Daten gelten meist als getaktet, ebenso ein als getaktet markiertes WLAN wie der Hotspot eines Handys. Bereits eingereihte Downloads behalten ihre eigene Regel.
+No downloads while roaming	Keine Downloads beim Roaming
+New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.	Neue Downloads nutzen beim Roaming keine mobilen Daten. Sie warten auf WLAN oder dein Heimnetz. Bereits eingereihte Downloads behalten ihre eigene Regel.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Nur die 32 neuesten Downloads und Auswahlergebnisse werden angezeigt. Gespeicherte Dateien bleiben erhalten.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Pinnwand herunterladen

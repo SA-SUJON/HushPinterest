@@ -224,8 +224,8 @@ Completed	Selesai
 Missing	Tidak ditemukan
 Unavailable	Tidak tersedia
 Android will retry the download.	Android akan mencoba mengunduh lagi.
-Waiting for a network connection.	Menunggu koneksi jaringan.
-Waiting for Wi-Fi.	Menunggu Wi-Fi.
+Waiting for a network connection this download can use.	Menunggu koneksi jaringan yang boleh dipakai unduhan ini.
+Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.	Menunggu jaringan tidak terukur. Wi-Fi yang ditandai terukur, seperti hotspot ponsel, tidak dihitung.
 Paused by Android.	Dijeda oleh Android.
 Not enough storage.	Ruang penyimpanan tidak cukup.
 Download storage is unavailable.	Penyimpanan unduhan tidak tersedia.
@@ -372,6 +372,10 @@ Pinterest didn't supply supported media for this pin.	Pinterest tidak menyediaka
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Unduh satu pin, atau pilih beberapa pin dalam kisi. Menyimpan video dan gambar asli, atau ukuran terbesar yang dimiliki Pinterest.
 Save in Pinterest's folder	Simpan di folder Pinterest
 Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.	Menyimpan unduhan di Pictures/100PINT/Pins, folder yang dipakai Pinterest untuk gambar yang disimpannya sendiri, bukan di Download.
+Download on unmetered networks only	Unduh hanya di jaringan tidak terukur
+New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.	Unduhan baru menunggu di Unduhan Android hingga ada jaringan yang dianggap Android tidak terukur, seperti kebanyakan Wi-Fi rumah. Data seluler biasanya dianggap terukur, begitu juga Wi-Fi yang ditandai terukur, seperti hotspot ponsel. Unduhan yang sudah dalam antrean tetap memakai aturannya sendiri.
+No downloads while roaming	Jangan mengunduh saat roaming
+New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.	Unduhan baru tidak memakai data seluler saat ponsel Anda sedang roaming. Unduhan menunggu Wi-Fi atau jaringan asal Anda. Unduhan yang sudah dalam antrean tetap memakai aturannya sendiri.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Hanya 32 unduhan dan hasil pilihan terbaru yang ditampilkan. File yang tersimpan tetap disimpan.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Unduh papan

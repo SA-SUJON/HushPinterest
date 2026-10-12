@@ -347,7 +347,9 @@ public class DownloadLedgerTest {
     @Test public void pausedAndFailedReasonCodesHaveNonsecretFallbacks() {
         long id = owned("123", DownloadManager.STATUS_PAUSED);
         int[] paused = {DownloadManager.PAUSED_WAITING_FOR_NETWORK, DownloadManager.PAUSED_QUEUED_FOR_WIFI, DownloadManager.PAUSED_UNKNOWN};
-        String[] pauseText = {"Waiting for a network connection.", "Waiting for Wi-Fi.", "Paused by Android."};
+        String[] pauseText = {"Waiting for a network connection this download can use.",
+                "Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.",
+                "Paused by Android."};
         for (int i = 0; i < paused.length; i++) {
             nativeJobs.reasons.put(id, paused[i]);
             assertEquals(pauseText[i], new DownloadLedger(app).reconcile().get(0).reasonText());
@@ -363,6 +365,50 @@ public class DownloadLedgerTest {
         for (int i = 0; i < failed.length; i++) {
             nativeJobs.reasons.put(id, failed[i]);
             assertEquals(failureText[i], new DownloadLedger(app).reconcile().get(0).reasonText());
+        }
+    }
+
+    /**
+     * A download a network limit holds back is waiting, not failed: it can't be retried, and it still
+     * counts for Download board, so nothing queues it twice. A failed one takes the limits that are
+     * on when it's retried, and the request already queued stays as it was.
+     */
+    @Test public void waitingForAnAllowedNetworkIsNotAFailureAndARetryTakesTheLimitsOnNow() throws Exception {
+        Settings.DOWNLOAD_UNMETERED_ONLY.save(true);
+        Settings.DOWNLOAD_NO_ROAMING.save(true);
+        try {
+            long waiting = owned("123", DownloadManager.STATUS_PAUSED);
+            ShadowDownloadManager.ShadowRequest queued = Shadow.extract(nativeJobs.getRequest(waiting));
+            assertFalse(queued.getAllowedOverMetered());
+            assertFalse(queued.getAllowedOverRoaming());
+            for (int reason : new int[]{DownloadManager.PAUSED_QUEUED_FOR_WIFI, DownloadManager.PAUSED_WAITING_FOR_NETWORK}) {
+                nativeJobs.reasons.put(waiting, reason);
+                DownloadLedger.Job job = new DownloadLedger(app).reconcile().get(0);
+                assertEquals(DownloadLedger.State.PAUSED, job.state);
+                assertEquals("Paused", job.statusText());
+                assertTrue(job.reasonText(), job.reasonText().startsWith("Waiting for"));
+                assertFalse(job.canRetry());
+                assertTrue(DownloadLedger.downloadedPinIds(app).contains("123"));
+                assertTrue(DownloadLedger.retry(app, waiting, null));
+                settle();
+                assertEquals(1, nativeJobs.getRequestCount());
+                assertEquals("This request can't be retried. Check Downloads or open the pin again.", ShadowToast.getTextOfLatestToast());
+            }
+
+            status(waiting, DownloadManager.STATUS_FAILED);
+            Settings.DOWNLOAD_UNMETERED_ONLY.save(false);
+            assertTrue(DownloadLedger.retry(app, waiting, null));
+            settle();
+            assertEquals(2, nativeJobs.getRequestCount());
+            ShadowDownloadManager.ShadowRequest retried = Shadow.extract(nativeJobs.getRequest(waiting + 1));
+            assertTrue(retried.getAllowedOverMetered());
+            assertFalse(retried.getAllowedOverRoaming());
+            assertNotNull(nativeJobs.getRequest(waiting));
+            assertFalse(queued.getAllowedOverMetered());
+            assertEquals(0, nativeJobs.removes);
+        } finally {
+            Settings.DOWNLOAD_UNMETERED_ONLY.save(false);
+            Settings.DOWNLOAD_NO_ROAMING.save(false);
         }
     }
 

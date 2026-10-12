@@ -430,6 +430,29 @@ public class HushPinterestPreferenceFragmentTest {
                 "HushPinterest NOTICE", "Morphe: Project Name Restriction", "Trademarks", "Material Design icons")));
     }
 
+    /** Download pins' network limits sit between its folder and history rows and start off. */
+    @Test
+    public void downloadNetworkLimitsFollowTheFolderRowAndStartOff() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            int folder = indexOfKey(rows, "action_download_folder");
+            assertTrue(folder >= 0);
+            assertEquals(folder + 1, indexOfKey(rows, Settings.DOWNLOAD_UNMETERED_ONLY.key));
+            assertEquals(folder + 2, indexOfKey(rows, Settings.DOWNLOAD_NO_ROAMING.key));
+            assertEquals(folder + 3, indexOfKey(rows, "action_download_history"));
+            SwitchPreference unmetered = (SwitchPreference) page.findPreference(Settings.DOWNLOAD_UNMETERED_ONLY.key);
+            SwitchPreference roaming = (SwitchPreference) page.findPreference(Settings.DOWNLOAD_NO_ROAMING.key);
+            assertFalse(unmetered.isChecked());
+            assertFalse(roaming.isChecked());
+            // Unmetered isn't the same as Wi-Fi, and the summary says so.
+            assertTrue(String.valueOf(unmetered.getSummary()).contains("Wi-Fi marked as metered"));
+        }
+    }
+
     private static int indexOfKey(List<Preference> rows, String key) {
         for (int i = 0; i < rows.size(); i++) {
             if (key.equals(rows.get(i).getKey())) return i;

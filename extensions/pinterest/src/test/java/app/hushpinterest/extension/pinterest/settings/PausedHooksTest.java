@@ -245,6 +245,10 @@ public class PausedHooksTest {
                 () -> AdvertisingId.skipBrowserId("pid")));
         probes.put(Settings.DOWNLOAD_PINS, Collections.singletonList(PausedHooksTest::queuesPinDownload));
         probes.put(Settings.SAVE_IN_PINTEREST_FOLDER, Collections.singletonList(PausedHooksTest::savesInPinterestsFolder));
+        probes.put(Settings.DOWNLOAD_UNMETERED_ONLY, Collections.singletonList(
+                () -> queuesWithDownloadPins(request -> !request.getAllowedOverMetered())));
+        probes.put(Settings.DOWNLOAD_NO_ROAMING, Collections.singletonList(
+                () -> queuesWithDownloadPins(request -> !request.getAllowedOverRoaming())));
         probes.put(Settings.DOWNLOAD_BOARD, Collections.singletonList(() -> BoardDownloads.record(Collections.singletonList(BOARD_PIN))));
         probes.put(Settings.LONG_PRESS_DOWNLOAD, Collections.singletonList(PausedHooksTest::addsLongPressDownload));
         probes.put(Settings.EXTERNAL_BROWSER, Collections.singletonList(() -> withActivity(activity -> {
@@ -354,6 +358,23 @@ public class PausedHooksTest {
                 return destination != null && destination.equals(Uri.withAppendedPath(Uri.fromFile(
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)),
                         "100PINT/Pins/" + destination.getLastPathSegment()));
+            });
+        } finally {
+            if (!pins) Settings.DOWNLOAD_PINS.save(false);
+        }
+    }
+
+    /**
+     * A network limit only narrows what Download pins queues, so its probe turns that switch on for its
+     * own run, like the folder's. It answers whether a download was queued and [limited] says it took the limit.
+     */
+    private static boolean queuesWithDownloadPins(Function<ShadowDownloadManager.ShadowRequest, Boolean> limited) {
+        boolean pins = Settings.DOWNLOAD_PINS.savedValue();
+        if (!pins) Settings.DOWNLOAD_PINS.save(true);
+        try {
+            return withActivity(activity -> {
+                ShadowDownloadManager.ShadowRequest request = queuedDownload(activity);
+                return request != null && limited.apply(request);
             });
         } finally {
             if (!pins) Settings.DOWNLOAD_PINS.save(false);

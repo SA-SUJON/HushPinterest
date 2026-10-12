@@ -70,6 +70,8 @@ public class PinActionsTest {
         Settings.EXTERNAL_BROWSER.save(false);
         Settings.DOWNLOAD_PINS.save(false);
         Settings.SAVE_IN_PINTEREST_FOLDER.resetToDefault();
+        Settings.DOWNLOAD_UNMETERED_ONLY.resetToDefault();
+        Settings.DOWNLOAD_NO_ROAMING.resetToDefault();
         DownloadFolder.PICKED.resetToDefault();
         PatchFamilyForTests.capabilities(null);
         PauseForTests.resume();
@@ -221,7 +223,30 @@ public class PinActionsTest {
         assertEquals("Downloads destination", expected, request.getDestination());
         assertEquals(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED, request.getNotificationVisibility());
         assertTrue(request.getRequestHeaders().isEmpty());
+        // With both network limits off, Android's own defaults apply, as they did before the limits.
+        assertTrue(request.getAllowedOverMetered());
+        assertTrue(request.getAllowedOverRoaming());
         assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
+    }
+
+    /** Each network limit reaches the request on its own, and both start off. */
+    @Test public void networkLimitsReachASinglePinsRequest() throws Exception {
+        assertFalse(Settings.DOWNLOAD_UNMETERED_ONLY.savedValue());
+        assertFalse(Settings.DOWNLOAD_NO_ROAMING.savedValue());
+        Method await = Utils.class.getDeclaredMethod("awaitBackgroundTasksForTests");
+        await.setAccessible(true);
+        ShadowDownloadManager downloads = Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE));
+        boolean[][] limits = {{true, false}, {false, true}, {true, true}};
+        for (int i = 0; i < limits.length; i++) {
+            Settings.DOWNLOAD_UNMETERED_ONLY.save(limits[i][0]);
+            Settings.DOWNLOAD_NO_ROAMING.save(limits[i][1]);
+            assertTrue(PinDownloads.start(pin, activity));
+            await.invoke(null);
+            assertEquals(i + 1, downloads.getRequestCount());
+            ShadowDownloadManager.ShadowRequest request = Shadow.extract(downloads.getRequest(i));
+            assertEquals("metered allowed", !limits[i][0], request.getAllowedOverMetered());
+            assertEquals("roaming allowed", !limits[i][1], request.getAllowedOverRoaming());
+        }
     }
 
     /** #5: the folder switch sends the download to the folder Pinterest's own image save uses. */

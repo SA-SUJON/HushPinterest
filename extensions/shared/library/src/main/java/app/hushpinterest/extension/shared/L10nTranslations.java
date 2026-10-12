@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(830);
+        Map<String, String> table = new HashMap<>(838);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -278,6 +278,8 @@ public final class L10nTranslations {
                 "Download fehlgeschlagen.");
         table.put("Download history",
                 "Download-Verlauf");
+        table.put("Download on unmetered networks only",
+                "Nur \u00fcber nicht getaktete Netzwerke herunterladen");
         table.put("Download pin",
                 "Pin herunterladen");
         table.put("Download pins",
@@ -300,11 +302,11 @@ public final class L10nTranslations {
                 "Wird heruntergeladen");
         table.put("Downloads will be saved in %s.",
                 "Downloads werden in %s gespeichert.");
-        table.put("Downloads will be saved in the Download folder.",
-                "Downloads werden im Ordner Download gespeichert.");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("Downloads will be saved in the Download folder.",
+                "Downloads werden im Ordner Download gespeichert.");
         table.put("Every pin loaded from this board is already in Download history.",
                 "Jeder geladene Pin dieser Pinnwand ist schon im Download-Verlauf.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
@@ -423,11 +425,11 @@ public final class L10nTranslations {
                 "HushPinterest ist wieder aktiv, sobald Pinterest neu startet.");
         table.put("If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.",
                 "Wenn du dich \u00fcber Google registriert hast oder dein Pinterest-Passwort nicht kennst, w\u00e4hle auf der Anmeldeseite von Pinterest \u201ePasswort vergessen?\u201c. Gib die E-Mail-Adresse ein, die bereits mit diesem Konto verkn\u00fcpft ist. Lege dann \u00fcber den Link in der E-Mail ein Pinterest-Passwort fest. Es ist unabh\u00e4ngig von deinem Google-Passwort. Du musst die Google-Verkn\u00fcpfung nicht trennen.");
-        table.put("Import",
-                "Importieren");
     }
 
     private static void fillDe3(Map<String, String> table) {
+        table.put("Import",
+                "Importieren");
         table.put("Import settings",
                 "Einstellungen importieren");
         table.put("Import undone. Your earlier switches are back.",
@@ -464,6 +466,10 @@ public final class L10nTranslations {
                 "Nicht vorhanden");
         table.put("More settings",
                 "Weitere Einstellungen");
+        table.put("New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.",
+                "Neue Downloads nutzen beim Roaming keine mobilen Daten. Sie warten auf WLAN oder dein Heimnetz. Bereits eingereihte Downloads behalten ihre eigene Regel.");
+        table.put("New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.",
+                "Neue Downloads warten in den Android-Downloads auf ein Netzwerk, das Android als nicht getaktet einstuft, wie die meisten WLANs zu Hause. Mobile Daten gelten meist als getaktet, ebenso ein als getaktet markiertes WLAN wie der Hotspot eines Handys. Bereits eingereihte Downloads behalten ihre eigene Regel.");
         table.put("No HushPinterest downloads in this history.",
                 "Keine HushPinterest-Downloads in diesem Verlauf.");
         table.put("No HushPinterest release is out yet.",
@@ -472,6 +478,8 @@ public final class L10nTranslations {
                 "Keine App auf diesem Handy kann den Link \u00f6ffnen. Die Adresse ist %1$s.");
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "Kein Download eingereiht. Die Auswahl wurde gestoppt, abgebrochen oder war nicht verf\u00fcgbar.");
+        table.put("No downloads while roaming",
+                "Keine Downloads beim Roaming");
         table.put("No matching settings",
                 "Keine passenden Einstellungen");
         table.put("No pins from this board have loaded yet. Scroll through the board, then try again.",
@@ -540,6 +548,9 @@ public final class L10nTranslations {
                 "Von Android pausiert.");
         table.put("Pick a download folder",
                 "Download-Ordner ausw\u00e4hlen");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.",
                 "W\u00e4hle einen Ordner in Pictures, DCIM, Download oder Documents im internen Speicher des Handys.");
         table.put("Pick another folder",
@@ -548,9 +559,6 @@ public final class L10nTranslations {
                 "W\u00e4hle die Patches in Morphe Manager aus, wenn du die App patchst. Die Schalter hier steuern nur Patches, die in deinem Build enthalten sind. Ein Schalter f\u00fcgt keinen Patch hinzu und entfernt keinen. Pause beh\u00e4lt deine gespeicherte Auswahl, aber alles, was beim Patchen festgelegt wurde, bleibt in der App.");
         table.put("Pin %s",
                 "Pin %s");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Pin actions",
                 "Pin-Aktionen");
         table.put("Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.",
@@ -663,6 +671,9 @@ public final class L10nTranslations {
                 "Gespeichert. Starte Pinterest neu, um diese \u00c4nderung zu \u00fcbernehmen.");
         table.put("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.",
                 "Speichert Downloads in Pictures/100PINT/Pins, dem Ordner, den Pinterest selbst f\u00fcr gespeicherte Bilder nutzt, statt in Download.");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.",
                 "Speichert Downloads in einem Ordner deiner Wahl in Pictures, DCIM, Download oder Documents.");
         table.put("Saving a pin no longer shows the \"Saved to\" message or a suggestion to follow its creator. The pin is still saved.",
@@ -671,9 +682,6 @@ public final class L10nTranslations {
                 "Downloads werden in %s gespeichert. Tippe, um einen anderen Ordner zu w\u00e4hlen oder zum Ordner Download zur\u00fcckzukehren.");
         table.put("Saving the settings file",
                 "Einstellungsdatei wird gespeichert");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("Search settings",
                 "Einstellungen suchen");
         table.put("Select visible pins (up to %d)",
@@ -786,6 +794,9 @@ public final class L10nTranslations {
                 "Der Download-Server konnte die Anfrage nicht abschlie\u00dfen.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.",
                 "Die Datei %1$s lie\u00df sich nicht entfernen. L\u00f6sche sie aus %2$s, um HushPinterest wieder einzuschalten.");
+    }
+
+    private static void fillDe6(Map<String, String> table) {
         table.put("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.",
                 "Die Datei %1$s lie\u00df sich nicht entfernen. L\u00f6sche sie aus %2$s und tippe dann noch einmal auf Fortsetzen.");
         table.put("The file already exists.",
@@ -794,9 +805,6 @@ public final class L10nTranslations {
                 "Die neueste Version von HushPinterest ist %1$s.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
                 "Die Einstellung lie\u00df sich nicht vollst\u00e4ndig aktualisieren. Der gespeicherte Wert wird angezeigt.");
-    }
-
-    private static void fillDe6(Map<String, String> table) {
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "Die Einstellungsdatei wurde gespeichert, liest sich aber nicht so zur\u00fcck, wie sie geschrieben wurde. Speichere sie noch einmal als neue Datei.");
         table.put("There's no diagnostic data to clear.",
@@ -863,10 +871,10 @@ public final class L10nTranslations {
                 "Nutze die E-Mail-Adresse deines Pinterest-Kontos und ein Pinterest-Passwort. Die Google-Anmeldung funktioniert nicht mit den normalen Google Play-Diensten, weil diese gepatchte App mit einem anderen Schl\u00fcssel signiert ist. Pinterest bietet kein Facebook-Login mehr an. Der standardm\u00e4\u00dfig eingeschaltete Patch \u201ePush-Benachrichtigungen reparieren\u201c l\u00e4sst diese App sich f\u00fcr Push-Benachrichtigungen anmelden.");
         table.put("Version",
                 "Version");
-        table.put("Waiting for Wi-Fi.",
-                "Wartet auf WLAN.");
-        table.put("Waiting for a network connection.",
-                "Wartet auf eine Netzwerkverbindung.");
+        table.put("Waiting for a network connection this download can use.",
+                "Wartet auf eine Netzwerkverbindung, die dieser Download nutzen darf.");
+        table.put("Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.",
+                "Wartet auf ein nicht getaktetes Netzwerk. Ein als getaktet markiertes WLAN, etwa der Hotspot eines Handys, z\u00e4hlt nicht.");
         table.put("Which push, email and in-app notices Pinterest sends you.",
                 "Welche Push-, E-Mail- und In-App-Hinweise Pinterest dir schickt.");
         table.put("You have the newest HushPinterest release.",
@@ -910,7 +918,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(830);
+        Map<String, String> table = new HashMap<>(838);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1141,6 +1149,8 @@ public final class L10nTranslations {
                 "La descarga fall\u00f3.");
         table.put("Download history",
                 "Historial de descargas");
+        table.put("Download on unmetered networks only",
+                "Descargar solo en redes de uso no medido");
         table.put("Download pin",
                 "Descargar pin");
         table.put("Download pins",
@@ -1163,11 +1173,11 @@ public final class L10nTranslations {
                 "Descargando");
         table.put("Downloads will be saved in %s.",
                 "Las descargas se guardar\u00e1n en %s.");
-        table.put("Downloads will be saved in the Download folder.",
-                "Las descargas se guardar\u00e1n en la carpeta Download.");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("Downloads will be saved in the Download folder.",
+                "Las descargas se guardar\u00e1n en la carpeta Download.");
         table.put("Every pin loaded from this board is already in Download history.",
                 "Todos los pines cargados de este tablero ya est\u00e1n en el Historial de descargas.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
@@ -1286,11 +1296,11 @@ public final class L10nTranslations {
                 "HushPinterest vuelve a activarse cuando Pinterest se reinicie.");
         table.put("If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.",
                 "Si te registraste con Google o no sabes tu contrase\u00f1a de Pinterest, elige \u00bfOlvidaste tu contrase\u00f1a? en la p\u00e1gina de inicio de sesi\u00f3n de Pinterest. Introduce el correo ya vinculado a esa cuenta y usa el enlace enviado a tu correo para establecer una contrase\u00f1a de Pinterest. Es distinta de tu contrase\u00f1a de Google. No necesitas desvincular Google.");
-        table.put("Import",
-                "Importar");
     }
 
     private static void fillEs3(Map<String, String> table) {
+        table.put("Import",
+                "Importar");
         table.put("Import settings",
                 "Importar configuraci\u00f3n");
         table.put("Import undone. Your earlier switches are back.",
@@ -1327,6 +1337,10 @@ public final class L10nTranslations {
                 "No encontrado");
         table.put("More settings",
                 "M\u00e1s ajustes");
+        table.put("New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.",
+                "Las descargas nuevas no usan datos m\u00f3viles mientras tu tel\u00e9fono est\u00e1 en roaming. Esperan al Wi-Fi o a tu red habitual. Las descargas que ya est\u00e1n en cola mantienen su propia regla.");
+        table.put("New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.",
+                "Las descargas nuevas esperan en Descargas de Android a una red que Android considere de uso no medido, como la mayor\u00eda del Wi-Fi de casa. Los datos m\u00f3viles suelen contar como de uso medido, igual que el Wi-Fi marcado como de uso medido, como el punto de acceso de un tel\u00e9fono. Las descargas que ya est\u00e1n en cola mantienen su propia regla.");
         table.put("No HushPinterest downloads in this history.",
                 "No hay descargas de HushPinterest en este historial.");
         table.put("No HushPinterest release is out yet.",
@@ -1335,6 +1349,8 @@ public final class L10nTranslations {
                 "Ninguna app de este tel\u00e9fono puede abrir el enlace. La direcci\u00f3n es %1$s.");
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "No se puso ninguna descarga en cola. La selecci\u00f3n se detuvo, se cancel\u00f3 o no estaba disponible.");
+        table.put("No downloads while roaming",
+                "Sin descargas en roaming");
         table.put("No matching settings",
                 "No hay ajustes coincidentes");
         table.put("No pins from this board have loaded yet. Scroll through the board, then try again.",
@@ -1403,6 +1419,9 @@ public final class L10nTranslations {
                 "Android lo puso en pausa.");
         table.put("Pick a download folder",
                 "Elegir una carpeta de descargas");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.",
                 "Elige una carpeta dentro de Pictures, DCIM, Download o Documents en el almacenamiento interno del tel\u00e9fono.");
         table.put("Pick another folder",
@@ -1411,9 +1430,6 @@ public final class L10nTranslations {
                 "Elige los parches en Morphe Manager cuando parchees la app. Los interruptores de aqu\u00ed solo controlan los parches que est\u00e1n en tu versi\u00f3n. Cambiar un interruptor no a\u00f1ade ni quita ning\u00fan parche. Pausa conserva tus elecciones guardadas, pero lo que se defini\u00f3 al parchear se queda en la app.");
         table.put("Pin %s",
                 "Pin %s");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Pin actions",
                 "Acciones del pin");
         table.put("Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.",
@@ -1526,6 +1542,9 @@ public final class L10nTranslations {
                 "Guardado. Reinicia Pinterest para aplicar este cambio.");
         table.put("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.",
                 "Guarda las descargas en Pictures/100PINT/Pins, la carpeta que usa Pinterest para sus propias im\u00e1genes guardadas, en lugar de Download.");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.",
                 "Guarda las descargas en una carpeta que elijas dentro de Pictures, DCIM, Download o Documents.");
         table.put("Saving a pin no longer shows the \"Saved to\" message or a suggestion to follow its creator. The pin is still saved.",
@@ -1534,9 +1553,6 @@ public final class L10nTranslations {
                 "Las descargas se guardan en %s. Toca para elegir otra carpeta o volver a la carpeta Download.");
         table.put("Saving the settings file",
                 "Guardando el archivo de configuraci\u00f3n");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("Search settings",
                 "Buscar ajustes");
         table.put("Select visible pins (up to %d)",
@@ -1649,6 +1665,9 @@ public final class L10nTranslations {
                 "El servidor de descarga no pudo completar la solicitud.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.",
                 "No se pudo eliminar el archivo %1$s. B\u00f3rralo de %2$s para volver a activar HushPinterest.");
+    }
+
+    private static void fillEs6(Map<String, String> table) {
         table.put("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.",
                 "No se pudo eliminar el archivo %1$s. B\u00f3rralo de %2$s y luego vuelve a tocar Reanudar.");
         table.put("The file already exists.",
@@ -1657,9 +1676,6 @@ public final class L10nTranslations {
                 "La versi\u00f3n m\u00e1s reciente de HushPinterest es la %1$s.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
                 "No se pudo terminar de actualizar el ajuste. Se muestra su valor guardado.");
-    }
-
-    private static void fillEs6(Map<String, String> table) {
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "El archivo de configuraci\u00f3n se guard\u00f3, pero al volver a leerlo no coincide con lo que se escribi\u00f3. Gu\u00e1rdalo de nuevo como un archivo nuevo.");
         table.put("There's no diagnostic data to clear.",
@@ -1726,10 +1742,10 @@ public final class L10nTranslations {
                 "Usa el correo de tu cuenta de Pinterest y una contrase\u00f1a de Pinterest. El inicio de sesi\u00f3n con Google no funciona con los servicios de Google Play normales, porque esta app parcheada est\u00e1 firmada con otra clave. Pinterest ya no ofrece inicio de sesi\u00f3n con Facebook. El parche \u00abArreglar notificaciones push\u00bb, activado de forma predeterminada, permite que esta app se registre para recibir notificaciones push.");
         table.put("Version",
                 "Versi\u00f3n");
-        table.put("Waiting for Wi-Fi.",
-                "Esperando Wi-Fi.");
-        table.put("Waiting for a network connection.",
-                "Esperando una conexi\u00f3n de red.");
+        table.put("Waiting for a network connection this download can use.",
+                "Esperando una conexi\u00f3n de red que esta descarga pueda usar.");
+        table.put("Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.",
+                "Esperando una red de uso no medido. El Wi-Fi marcado como de uso medido, como el punto de acceso de un tel\u00e9fono, no cuenta.");
         table.put("Which push, email and in-app notices Pinterest sends you.",
                 "Qu\u00e9 avisos push, por correo y en la aplicaci\u00f3n te env\u00eda Pinterest.");
         table.put("You have the newest HushPinterest release.",
@@ -1773,7 +1789,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(830);
+        Map<String, String> table = new HashMap<>(838);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -2004,6 +2020,8 @@ public final class L10nTranslations {
                 "Unduhan gagal.");
         table.put("Download history",
                 "Riwayat unduhan");
+        table.put("Download on unmetered networks only",
+                "Unduh hanya di jaringan tidak terukur");
         table.put("Download pin",
                 "Unduh Pin");
         table.put("Download pins",
@@ -2026,11 +2044,11 @@ public final class L10nTranslations {
                 "Mengunduh");
         table.put("Downloads will be saved in %s.",
                 "Unduhan akan disimpan di %s.");
-        table.put("Downloads will be saved in the Download folder.",
-                "Unduhan akan disimpan di folder Download.");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("Downloads will be saved in the Download folder.",
+                "Unduhan akan disimpan di folder Download.");
         table.put("Every pin loaded from this board is already in Download history.",
                 "Semua Pin yang dimuat dari papan ini sudah ada di Riwayat unduhan.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
@@ -2149,11 +2167,11 @@ public final class L10nTranslations {
                 "HushPinterest aktif lagi saat Pinterest dimulai ulang.");
         table.put("If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.",
                 "Jika Anda mendaftar melalui Google atau tidak tahu kata sandi Pinterest Anda, pilih Lupa kata sandi di halaman login Pinterest. Masukkan email yang sudah terhubung ke akun tersebut, lalu gunakan tautan yang dikirim ke email Anda untuk menetapkan kata sandi Pinterest. Kata sandi ini berbeda dari kata sandi Google Anda. Anda tidak perlu memutuskan hubungan dengan Google.");
-        table.put("Import",
-                "Impor");
     }
 
     private static void fillIn3(Map<String, String> table) {
+        table.put("Import",
+                "Impor");
         table.put("Import settings",
                 "Impor pengaturan");
         table.put("Import undone. Your earlier switches are back.",
@@ -2190,6 +2208,10 @@ public final class L10nTranslations {
                 "Tidak ditemukan");
         table.put("More settings",
                 "Pengaturan lainnya");
+        table.put("New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.",
+                "Unduhan baru tidak memakai data seluler saat ponsel Anda sedang roaming. Unduhan menunggu Wi-Fi atau jaringan asal Anda. Unduhan yang sudah dalam antrean tetap memakai aturannya sendiri.");
+        table.put("New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.",
+                "Unduhan baru menunggu di Unduhan Android hingga ada jaringan yang dianggap Android tidak terukur, seperti kebanyakan Wi-Fi rumah. Data seluler biasanya dianggap terukur, begitu juga Wi-Fi yang ditandai terukur, seperti hotspot ponsel. Unduhan yang sudah dalam antrean tetap memakai aturannya sendiri.");
         table.put("No HushPinterest downloads in this history.",
                 "Tidak ada unduhan HushPinterest dalam riwayat ini.");
         table.put("No HushPinterest release is out yet.",
@@ -2198,6 +2220,8 @@ public final class L10nTranslations {
                 "Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.");
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "Tidak ada unduhan yang diantrekan. Pilihan dihentikan, dibatalkan, atau tidak tersedia.");
+        table.put("No downloads while roaming",
+                "Jangan mengunduh saat roaming");
         table.put("No matching settings",
                 "Tidak ada pengaturan yang cocok");
         table.put("No pins from this board have loaded yet. Scroll through the board, then try again.",
@@ -2266,6 +2290,9 @@ public final class L10nTranslations {
                 "Dijeda oleh Android.");
         table.put("Pick a download folder",
                 "Pilih folder unduhan");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.",
                 "Pilih folder di dalam Pictures, DCIM, Download, atau Documents di penyimpanan internal ponsel.");
         table.put("Pick another folder",
@@ -2274,9 +2301,6 @@ public final class L10nTranslations {
                 "Pilih patch di Morphe Manager saat Anda menambal aplikasi. Sakelar di sini hanya mengatur patch yang ada di build Anda. Mengubah sakelar tidak menambah atau menghapus patch. Jeda menyimpan pilihan Anda, tetapi apa pun yang diatur saat menambal tetap ada di aplikasi.");
         table.put("Pin %s",
                 "Pin %s");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Pin actions",
                 "Tindakan Pin");
         table.put("Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.",
@@ -2389,6 +2413,9 @@ public final class L10nTranslations {
                 "Tersimpan. Mulai ulang Pinterest untuk menerapkan perubahan ini.");
         table.put("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.",
                 "Menyimpan unduhan di Pictures/100PINT/Pins, folder yang dipakai Pinterest untuk gambar yang disimpannya sendiri, bukan di Download.");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.",
                 "Menyimpan unduhan di folder pilihanmu di dalam Pictures, DCIM, Download, atau Documents.");
         table.put("Saving a pin no longer shows the \"Saved to\" message or a suggestion to follow its creator. The pin is still saved.",
@@ -2397,9 +2424,6 @@ public final class L10nTranslations {
                 "Unduhan disimpan di %s. Ketuk untuk memilih folder lain atau kembali ke folder Download.");
         table.put("Saving the settings file",
                 "Menyimpan file pengaturan");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("Search settings",
                 "Cari pengaturan");
         table.put("Select visible pins (up to %d)",
@@ -2512,6 +2536,9 @@ public final class L10nTranslations {
                 "Server unduhan tidak dapat menyelesaikan permintaan.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.",
                 "File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushPinterest lagi.");
+    }
+
+    private static void fillIn6(Map<String, String> table) {
         table.put("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.",
                 "File %1$s tidak dapat dihapus. Hapus file itu dari %2$s, lalu ketuk Lanjutkan lagi.");
         table.put("The file already exists.",
@@ -2520,9 +2547,6 @@ public final class L10nTranslations {
                 "Rilis HushPinterest terbaru adalah %1$s.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
                 "Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.");
-    }
-
-    private static void fillIn6(Map<String, String> table) {
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.");
         table.put("There's no diagnostic data to clear.",
@@ -2589,10 +2613,10 @@ public final class L10nTranslations {
                 "Gunakan email akun Pinterest Anda dan kata sandi Pinterest. Masuk dengan Google tidak berfungsi dengan layanan Google Play biasa, karena aplikasi yang ditambal ini ditandatangani dengan kunci yang berbeda. Pinterest tidak lagi menawarkan login Facebook. Tambalan \"Perbaiki notifikasi push\", yang aktif secara default, memungkinkan aplikasi ini mendaftar untuk notifikasi push.");
         table.put("Version",
                 "Versi");
-        table.put("Waiting for Wi-Fi.",
-                "Menunggu Wi-Fi.");
-        table.put("Waiting for a network connection.",
-                "Menunggu koneksi jaringan.");
+        table.put("Waiting for a network connection this download can use.",
+                "Menunggu koneksi jaringan yang boleh dipakai unduhan ini.");
+        table.put("Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.",
+                "Menunggu jaringan tidak terukur. Wi-Fi yang ditandai terukur, seperti hotspot ponsel, tidak dihitung.");
         table.put("Which push, email and in-app notices Pinterest sends you.",
                 "Pemberitahuan push, email, dan dalam aplikasi mana yang dikirim Pinterest kepada Anda.");
         table.put("You have the newest HushPinterest release.",
@@ -2636,7 +2660,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(830);
+        Map<String, String> table = new HashMap<>(838);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2867,6 +2891,8 @@ public final class L10nTranslations {
                 "O download falhou.");
         table.put("Download history",
                 "Hist\u00f3rico de downloads");
+        table.put("Download on unmetered networks only",
+                "Baixar s\u00f3 em redes ilimitadas");
         table.put("Download pin",
                 "Baixar Pin");
         table.put("Download pins",
@@ -2889,11 +2915,11 @@ public final class L10nTranslations {
                 "Baixando");
         table.put("Downloads will be saved in %s.",
                 "Os downloads ser\u00e3o salvos em %s.");
-        table.put("Downloads will be saved in the Download folder.",
-                "Os downloads ser\u00e3o salvos na pasta Download.");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Downloads will be saved in the Download folder.",
+                "Os downloads ser\u00e3o salvos na pasta Download.");
         table.put("Every pin loaded from this board is already in Download history.",
                 "Todos os Pins carregados desta pasta j\u00e1 est\u00e3o no Hist\u00f3rico de downloads.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
@@ -3012,11 +3038,11 @@ public final class L10nTranslations {
                 "O HushPinterest ser\u00e1 reativado quando o Pinterest for reiniciado.");
         table.put("If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.",
                 "Se voc\u00ea se cadastrou pelo Google ou n\u00e3o sabe sua senha do Pinterest, escolha Esqueceu sua senha? na p\u00e1gina de login do Pinterest. Informe o e-mail j\u00e1 vinculado a essa conta e use o link enviado por e-mail para definir uma senha do Pinterest. Ela \u00e9 diferente da sua senha do Google. Voc\u00ea n\u00e3o precisa desvincular o Google.");
-        table.put("Import",
-                "Importar");
     }
 
     private static void fillPt_rBR3(Map<String, String> table) {
+        table.put("Import",
+                "Importar");
         table.put("Import settings",
                 "Importar configura\u00e7\u00f5es");
         table.put("Import undone. Your earlier switches are back.",
@@ -3053,6 +3079,10 @@ public final class L10nTranslations {
                 "N\u00e3o encontrado");
         table.put("More settings",
                 "Mais configura\u00e7\u00f5es");
+        table.put("New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.",
+                "Os downloads novos n\u00e3o usam dados m\u00f3veis enquanto seu celular est\u00e1 em roaming. Eles esperam o Wi-Fi ou sua rede de origem. Downloads que j\u00e1 est\u00e3o na fila mant\u00eam a pr\u00f3pria regra.");
+        table.put("New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.",
+                "Os downloads novos esperam nos Downloads do Android por uma rede que o Android trate como ilimitada, como a maioria dos Wi-Fi de casa. Dados m\u00f3veis costumam contar como limitados, assim como um Wi-Fi marcado como limitado, por exemplo o ponto de acesso de um celular. Downloads que j\u00e1 est\u00e3o na fila mant\u00eam a pr\u00f3pria regra.");
         table.put("No HushPinterest downloads in this history.",
                 "N\u00e3o h\u00e1 downloads do HushPinterest neste hist\u00f3rico.");
         table.put("No HushPinterest release is out yet.",
@@ -3061,6 +3091,8 @@ public final class L10nTranslations {
                 "Nenhum aplicativo neste dispositivo consegue abrir o link. O endere\u00e7o \u00e9 %1$s.");
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "Nenhum download foi adicionado \u00e0 fila. A sele\u00e7\u00e3o foi parada, cancelada ou estava indispon\u00edvel.");
+        table.put("No downloads while roaming",
+                "Sem downloads em roaming");
         table.put("No matching settings",
                 "Nenhuma configura\u00e7\u00e3o encontrada");
         table.put("No pins from this board have loaded yet. Scroll through the board, then try again.",
@@ -3129,6 +3161,9 @@ public final class L10nTranslations {
                 "Pausado pelo Android.");
         table.put("Pick a download folder",
                 "Escolher uma pasta de downloads");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.",
                 "Escolha uma pasta dentro de Pictures, DCIM, Download ou Documents no armazenamento interno do dispositivo.");
         table.put("Pick another folder",
@@ -3137,9 +3172,6 @@ public final class L10nTranslations {
                 "Escolha os patches no Morphe Manager ao aplicar os patches ao app. As op\u00e7\u00f5es daqui s\u00f3 controlam os patches que est\u00e3o na sua vers\u00e3o. Mudar uma op\u00e7\u00e3o n\u00e3o adiciona nem remove patches. Pausar mant\u00e9m suas escolhas salvas, mas o que foi definido ao aplicar os patches continua no app.");
         table.put("Pin %s",
                 "Pin %s");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Pin actions",
                 "A\u00e7\u00f5es do Pin");
         table.put("Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.",
@@ -3252,6 +3284,9 @@ public final class L10nTranslations {
                 "Salvo. Reinicie o Pinterest para aplicar esta altera\u00e7\u00e3o.");
         table.put("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.",
                 "Salva os downloads em Pictures/100PINT/Pins, a pasta que o pr\u00f3prio Pinterest usa para salvar imagens, em vez de Download.");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.",
                 "Salva os downloads em uma pasta que voc\u00ea escolher dentro de Pictures, DCIM, Download ou Documents.");
         table.put("Saving a pin no longer shows the \"Saved to\" message or a suggestion to follow its creator. The pin is still saved.",
@@ -3260,9 +3295,6 @@ public final class L10nTranslations {
                 "Os downloads s\u00e3o salvos em %s. Toque para escolher outra pasta ou voltar para a pasta Download.");
         table.put("Saving the settings file",
                 "Salvando o arquivo de configura\u00e7\u00f5es");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Search settings",
                 "Buscar configura\u00e7\u00f5es");
         table.put("Select visible pins (up to %d)",
@@ -3375,6 +3407,9 @@ public final class L10nTranslations {
                 "O servidor de download n\u00e3o conseguiu concluir a solicita\u00e7\u00e3o.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.",
                 "N\u00e3o foi poss\u00edvel remover o arquivo %1$s. Exclua-o de %2$s para reativar o HushPinterest.");
+    }
+
+    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.",
                 "N\u00e3o foi poss\u00edvel remover o arquivo %1$s. Exclua-o de %2$s e toque em Retomar de novo.");
         table.put("The file already exists.",
@@ -3383,9 +3418,6 @@ public final class L10nTranslations {
                 "A vers\u00e3o mais nova do HushPinterest \u00e9 %1$s.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
                 "N\u00e3o foi poss\u00edvel concluir a atualiza\u00e7\u00e3o da configura\u00e7\u00e3o. O valor salvo est\u00e1 sendo mostrado.");
-    }
-
-    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "O arquivo de configura\u00e7\u00f5es foi salvo, mas ao ser lido de volta n\u00e3o corresponde ao que foi gravado. Salve de novo como um arquivo novo.");
         table.put("There's no diagnostic data to clear.",
@@ -3452,10 +3484,10 @@ public final class L10nTranslations {
                 "Use o e-mail da sua conta do Pinterest e uma senha do Pinterest. O login com Google n\u00e3o funciona com os servi\u00e7os normais do Google Play, porque este app com patches \u00e9 assinado com outra chave. O Pinterest n\u00e3o oferece mais login com o Facebook. O patch \"Corrigir notifica\u00e7\u00f5es push\", ativado por padr\u00e3o, permite que este app se cadastre para receber notifica\u00e7\u00f5es push.");
         table.put("Version",
                 "Vers\u00e3o");
-        table.put("Waiting for Wi-Fi.",
-                "Aguardando Wi-Fi.");
-        table.put("Waiting for a network connection.",
-                "Aguardando conex\u00e3o de rede.");
+        table.put("Waiting for a network connection this download can use.",
+                "Aguardando uma conex\u00e3o de rede que este download possa usar.");
+        table.put("Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.",
+                "Aguardando uma rede ilimitada. Um Wi-Fi marcado como limitado, como o ponto de acesso de um celular, n\u00e3o conta.");
         table.put("Which push, email and in-app notices Pinterest sends you.",
                 "Quais avisos push, por e-mail e no app o Pinterest envia para voc\u00ea.");
         table.put("You have the newest HushPinterest release.",
@@ -3499,7 +3531,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(830);
+        Map<String, String> table = new HashMap<>(838);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3730,6 +3762,8 @@ public final class L10nTranslations {
                 "\u0130ndirme ba\u015far\u0131s\u0131z oldu.");
         table.put("Download history",
                 "\u0130ndirme ge\u00e7mi\u015fi");
+        table.put("Download on unmetered networks only",
+                "Yaln\u0131zca saya\u00e7s\u0131z a\u011flarda indir");
         table.put("Download pin",
                 "Pini indir");
         table.put("Download pins",
@@ -3752,11 +3786,11 @@ public final class L10nTranslations {
                 "\u0130ndiriliyor");
         table.put("Downloads will be saved in %s.",
                 "\u0130ndirmeler %s i\u00e7ine kaydedilecek.");
-        table.put("Downloads will be saved in the Download folder.",
-                "\u0130ndirmeler Download klas\u00f6r\u00fcne kaydedilecek.");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("Downloads will be saved in the Download folder.",
+                "\u0130ndirmeler Download klas\u00f6r\u00fcne kaydedilecek.");
         table.put("Every pin loaded from this board is already in Download history.",
                 "Bu panodan y\u00fcklenen her Pin zaten \u0130ndirme ge\u00e7mi\u015finde.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
@@ -3875,11 +3909,11 @@ public final class L10nTranslations {
                 "HushPinterest, Pinterest yeniden ba\u015flad\u0131\u011f\u0131nda tekrar a\u00e7\u0131l\u0131r.");
         table.put("If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.",
                 "Google \u00fczerinden kaydolduysan\u0131z veya Pinterest parolan\u0131z\u0131 bilmiyorsan\u0131z, Pinterest'in giri\u015f sayfas\u0131nda Parolan\u0131z\u0131 m\u0131 unuttunuz? se\u00e7ene\u011fini se\u00e7in. Bu hesaba zaten ba\u011fl\u0131 e-posta adresini girin, ard\u0131ndan e-postan\u0131za g\u00f6nderilen ba\u011flant\u0131yla bir Pinterest parolas\u0131 belirleyin. Bu parola Google parolan\u0131zdan ayr\u0131d\u0131r. Google ba\u011flant\u0131s\u0131n\u0131 kald\u0131rman\u0131z gerekmez.");
-        table.put("Import",
-                "\u0130\u00e7e aktar");
     }
 
     private static void fillTr3(Map<String, String> table) {
+        table.put("Import",
+                "\u0130\u00e7e aktar");
         table.put("Import settings",
                 "Ayarlar\u0131 i\u00e7e aktar");
         table.put("Import undone. Your earlier switches are back.",
@@ -3916,6 +3950,10 @@ public final class L10nTranslations {
                 "Bulunamad\u0131");
         table.put("More settings",
                 "Di\u011fer ayarlar");
+        table.put("New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.",
+                "Yeni indirmeler, telefonunuz dola\u015f\u0131mdayken mobil veri kullanmaz. Wi-Fi'\u0131 veya kendi a\u011f\u0131n\u0131z\u0131 bekler. Zaten s\u0131radaki indirmeler kendi kurallar\u0131n\u0131 korur.");
+        table.put("New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.",
+                "Yeni indirmeler, Android \u0130ndirilenler'de Android'in saya\u00e7s\u0131z sayd\u0131\u011f\u0131 bir a\u011f\u0131 bekler, evdeki \u00e7o\u011fu Wi-Fi gibi. Mobil veri genellikle saya\u00e7l\u0131 say\u0131l\u0131r, saya\u00e7l\u0131 olarak i\u015faretlenmi\u015f Wi-Fi da \u00f6yle, \u00f6rne\u011fin bir telefonun hotspot'u. Zaten s\u0131radaki indirmeler kendi kurallar\u0131n\u0131 korur.");
         table.put("No HushPinterest downloads in this history.",
                 "Bu ge\u00e7mi\u015fte HushPinterest indirmesi yok.");
         table.put("No HushPinterest release is out yet.",
@@ -3924,6 +3962,8 @@ public final class L10nTranslations {
                 "Bu telefondaki hi\u00e7bir uygulama ba\u011flant\u0131y\u0131 a\u00e7am\u0131yor. Adres: %1$s.");
         table.put("No download was queued. The selection was stopped, canceled or unavailable.",
                 "\u0130ndirme s\u0131raya al\u0131nmad\u0131. Se\u00e7im durduruldu, iptal edildi veya kullan\u0131lam\u0131yordu.");
+        table.put("No downloads while roaming",
+                "Dola\u015f\u0131mdayken indirme yapma");
         table.put("No matching settings",
                 "E\u015fle\u015fen ayar yok");
         table.put("No pins from this board have loaded yet. Scroll through the board, then try again.",
@@ -3992,6 +4032,9 @@ public final class L10nTranslations {
                 "Android taraf\u0131ndan duraklat\u0131ld\u0131.");
         table.put("Pick a download folder",
                 "\u0130ndirme klas\u00f6r\u00fc se\u00e7");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Pick a folder inside Pictures, DCIM, Download or Documents on the phone's own storage.",
                 "Telefonun kendi depolama alan\u0131nda Pictures, DCIM, Download veya Documents i\u00e7inde bir klas\u00f6r se\u00e7.");
         table.put("Pick another folder",
@@ -4000,9 +4043,6 @@ public final class L10nTranslations {
                 "Uygulamay\u0131 yamalarken yamalar\u0131 Morphe Manager'da se\u00e7. Buradaki anahtarlar yaln\u0131zca s\u00fcr\u00fcm\u00fcnde bulunan yamalar\u0131 kontrol eder. Bir anahtar\u0131 de\u011fi\u015ftirmek yama eklemez veya kald\u0131rmaz. Duraklat kay\u0131tl\u0131 se\u00e7imlerini korur, ama yamalarken ayarlanan her \u015fey uygulamada kal\u0131r.");
         table.put("Pin %s",
                 "Pin %s");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Pin actions",
                 "Pin i\u015flemleri");
         table.put("Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.",
@@ -4115,6 +4155,9 @@ public final class L10nTranslations {
                 "Kaydedildi. Bu de\u011fi\u015fikli\u011fi uygulamak i\u00e7in Pinterest'\u0131 yeniden ba\u015flat.");
         table.put("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.",
                 "\u0130ndirilenleri Download yerine Pinterest'in kendi kaydetti\u011fi g\u00f6rsellerin klas\u00f6r\u00fc olan Pictures/100PINT/Pins i\u00e7ine kaydeder.");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.",
                 "\u0130ndirmeleri Pictures, DCIM, Download veya Documents i\u00e7inde se\u00e7ti\u011fin bir klas\u00f6re kaydeder.");
         table.put("Saving a pin no longer shows the \"Saved to\" message or a suggestion to follow its creator. The pin is still saved.",
@@ -4123,9 +4166,6 @@ public final class L10nTranslations {
                 "\u0130ndirmeler %s i\u00e7ine kaydediliyor. Ba\u015fka bir klas\u00f6r se\u00e7mek veya Download klas\u00f6r\u00fcne d\u00f6nmek i\u00e7in dokun.");
         table.put("Saving the settings file",
                 "Ayar dosyas\u0131 kaydediliyor");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("Search settings",
                 "Ayarlarda ara");
         table.put("Select visible pins (up to %d)",
@@ -4238,6 +4278,9 @@ public final class L10nTranslations {
                 "\u0130ndirme sunucusu iste\u011fi tamamlayamad\u0131.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.",
                 "%1$s dosyas\u0131 kald\u0131r\u0131lamad\u0131. HushPinterest'u yeniden a\u00e7mak i\u00e7in onu %2$s i\u00e7inden sil.");
+    }
+
+    private static void fillTr6(Map<String, String> table) {
         table.put("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.",
                 "%1$s dosyas\u0131 kald\u0131r\u0131lamad\u0131. Onu %2$s i\u00e7inden sil, sonra yeniden Devam et'e dokun.");
         table.put("The file already exists.",
@@ -4246,9 +4289,6 @@ public final class L10nTranslations {
                 "En yeni HushPinterest s\u00fcr\u00fcm\u00fc %1$s.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
                 "Ayar\u0131n g\u00fcncellenmesi tamamlanamad\u0131. Kay\u0131tl\u0131 de\u011feri g\u00f6steriliyor.");
-    }
-
-    private static void fillTr6(Map<String, String> table) {
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "Ayar dosyas\u0131 kaydedildi, ancak geri okundu\u011funda yaz\u0131lanla ayn\u0131 de\u011fil. Yeni bir dosya olarak tekrar kaydet.");
         table.put("There's no diagnostic data to clear.",
@@ -4315,10 +4355,10 @@ public final class L10nTranslations {
                 "Pinterest hesab\u0131ndaki e-postay\u0131 ve bir Pinterest parolas\u0131n\u0131 kullan. Bu yamal\u0131 uygulama farkl\u0131 bir anahtarla imzaland\u0131\u011f\u0131 i\u00e7in Google ile giri\u015f normal Google Play hizmetleriyle \u00e7al\u0131\u015fmaz. Pinterest art\u0131k Facebook giri\u015fi sunmuyor. Varsay\u0131lan olarak a\u00e7\u0131k olan \"Anl\u0131k bildirimleri d\u00fczelt\" yamas\u0131 bu uygulaman\u0131n anl\u0131k bildirimlere kaydolmas\u0131n\u0131 sa\u011flar.");
         table.put("Version",
                 "S\u00fcr\u00fcm");
-        table.put("Waiting for Wi-Fi.",
-                "Wi-Fi bekleniyor.");
-        table.put("Waiting for a network connection.",
-                "A\u011f ba\u011flant\u0131s\u0131 bekleniyor.");
+        table.put("Waiting for a network connection this download can use.",
+                "Bu indirmenin kullanabilece\u011fi bir a\u011f ba\u011flant\u0131s\u0131 bekleniyor.");
+        table.put("Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.",
+                "Saya\u00e7s\u0131z bir a\u011f bekleniyor. Saya\u00e7l\u0131 olarak i\u015faretlenmi\u015f Wi-Fi, \u00f6rne\u011fin bir telefonun hotspot'u, say\u0131lmaz.");
         table.put("Which push, email and in-app notices Pinterest sends you.",
                 "Pinterest'in size hangi anl\u0131k, e-posta ve uygulama i\u00e7i bildirimleri g\u00f6nderdi\u011fi.");
         table.put("You have the newest HushPinterest release.",

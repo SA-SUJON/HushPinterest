@@ -224,8 +224,8 @@ Completed	Tamamlandı
 Missing	Bulunamadı
 Unavailable	Kullanılamıyor
 Android will retry the download.	Android indirmeyi yeniden deneyecek.
-Waiting for a network connection.	Ağ bağlantısı bekleniyor.
-Waiting for Wi-Fi.	Wi-Fi bekleniyor.
+Waiting for a network connection this download can use.	Bu indirmenin kullanabileceği bir ağ bağlantısı bekleniyor.
+Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.	Sayaçsız bir ağ bekleniyor. Sayaçlı olarak işaretlenmiş Wi-Fi, örneğin bir telefonun hotspot'u, sayılmaz.
 Paused by Android.	Android tarafından duraklatıldı.
 Not enough storage.	Yeterli depolama alanı yok.
 Download storage is unavailable.	İndirme depolaması kullanılamıyor.
@@ -372,6 +372,10 @@ Pinterest didn't supply supported media for this pin.	Pinterest bu Pin için des
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Bir pini indir veya ızgaradan birkaç pin seç. Videoları ve orijinal görselleri, yoksa Pinterest'in sunduğu en büyük boyutu kaydeder.
 Save in Pinterest's folder	Pinterest klasörüne kaydet
 Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.	İndirilenleri Download yerine Pinterest'in kendi kaydettiği görsellerin klasörü olan Pictures/100PINT/Pins içine kaydeder.
+Download on unmetered networks only	Yalnızca sayaçsız ağlarda indir
+New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.	Yeni indirmeler, Android İndirilenler'de Android'in sayaçsız saydığı bir ağı bekler, evdeki çoğu Wi-Fi gibi. Mobil veri genellikle sayaçlı sayılır, sayaçlı olarak işaretlenmiş Wi-Fi da öyle, örneğin bir telefonun hotspot'u. Zaten sıradaki indirmeler kendi kurallarını korur.
+No downloads while roaming	Dolaşımdayken indirme yapma
+New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.	Yeni indirmeler, telefonunuz dolaşımdayken mobil veri kullanmaz. Wi-Fi'ı veya kendi ağınızı bekler. Zaten sıradaki indirmeler kendi kurallarını korur.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Yalnızca en son 32 indirme ve seçim sonucu listelenir. Kaydedilen dosyalar korunur.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Panoyu indir

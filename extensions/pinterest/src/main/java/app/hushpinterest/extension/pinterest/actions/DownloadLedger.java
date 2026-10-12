@@ -135,10 +135,15 @@ public final class DownloadLedger {
             if (state == State.SKIPPED) return L10n.t("No download was queued. The selection was stopped, canceled or unavailable.");
             if (state == State.UNSUPPORTED) return L10n.t("Pinterest didn't supply supported media for this pin.");
             if (state == State.PAUSED) {
+                // Waiting for a network isn't a failure: Android resumes the download itself. Android
+                // also reports a roaming network a download may not use as waiting for a network, and
+                // one that must be unmetered as queued for Wi-Fi, though not every Wi-Fi is unmetered.
                 switch (reason) {
                     case DownloadManager.PAUSED_WAITING_TO_RETRY: return L10n.t("Android will retry the download.");
-                    case DownloadManager.PAUSED_WAITING_FOR_NETWORK: return L10n.t("Waiting for a network connection.");
-                    case DownloadManager.PAUSED_QUEUED_FOR_WIFI: return L10n.t("Waiting for Wi-Fi.");
+                    case DownloadManager.PAUSED_WAITING_FOR_NETWORK:
+                        return L10n.t("Waiting for a network connection this download can use.");
+                    case DownloadManager.PAUSED_QUEUED_FOR_WIFI:
+                        return L10n.t("Waiting for an unmetered network. Wi-Fi marked as metered, like a phone's hotspot, doesn't count.");
                     default: return L10n.t("Paused by Android.");
                 }
             }

@@ -430,6 +430,8 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_ad_id": return L10n.t("Hide advertising ID");
             case "hushpinterest_download_pins": return L10n.t("Download pins");
             case "hushpinterest_save_in_pinterest_folder": return L10n.t("Save in Pinterest's folder");
+            case "hushpinterest_download_unmetered_only": return L10n.t("Download on unmetered networks only");
+            case "hushpinterest_download_no_roaming": return L10n.t("No downloads while roaming");
             case "hushpinterest_download_board": return L10n.t("Download board");
             case "hushpinterest_long_press_download": return L10n.t("Long-press download");
             case "hushpinterest_external_browser": return L10n.t("Open links in your browser");

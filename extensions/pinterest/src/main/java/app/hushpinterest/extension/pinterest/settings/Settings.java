@@ -70,6 +70,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SAVE_IN_PINTEREST_FOLDER =
             new BooleanSetting("hushpinterest_save_in_pinterest_folder", FALSE);
+    /**
+     * Download pins' network limits: a download queued while one is on waits in Android's Downloads
+     * for a network Android counts as unmetered, or one that isn't roaming. Android keeps the limit
+     * a download was queued with, so switching one never changes a download already queued.
+     */
+    public static final BooleanSetting DOWNLOAD_UNMETERED_ONLY =
+            new BooleanSetting("hushpinterest_download_unmetered_only", FALSE);
+    public static final BooleanSetting DOWNLOAD_NO_ROAMING =
+            new BooleanSetting("hushpinterest_download_no_roaming", FALSE);
     public static final BooleanSetting DOWNLOAD_BOARD =
             new BooleanSetting("hushpinterest_download_board", FALSE);
     public static final BooleanSetting LONG_PRESS_DOWNLOAD =

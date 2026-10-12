@@ -271,6 +271,33 @@ public class GridDownloadsTest {
         assertTrue(ShadowToast.getTextOfLatestToast().contains("Queued: 1\nSkipped: 0\nUnsupported: 1\nFailed: 0"));
     }
 
+    /** A grid selection and a board's batch queue through the same request builder, network limits and all. */
+    @Test public void networkLimitsReachEveryPinOfAGridSelectionAndABoardBatch() throws Exception {
+        Settings.DOWNLOAD_UNMETERED_ONLY.save(true);
+        Settings.DOWNLOAD_NO_ROAMING.save(true);
+        try {
+            View origin = cell(pin("1"), 0);
+            cell(pin("2"), 100);
+            choose(origin, 0, 1).getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            // Download board hands its pins to the same batch.
+            assertTrue(GridDownloads.queue(activity, new ArrayList<>(List.of(pin("3"), pin("4"))), "Download board", null, 0, false));
+            settle();
+            var downloads = Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE));
+            assertEquals(4, downloads.getRequestCount());
+            for (long id = 0; id < 4; id++) {
+                org.robolectric.shadows.ShadowDownloadManager.ShadowRequest request =
+                        org.robolectric.shadow.api.Shadow.extract(downloads.getRequest(id));
+                assertEquals("https://i.pinimg.com/originals/" + (id + 1) + ".jpg", request.getUri().toString());
+                assertFalse(request.getAllowedOverMetered());
+                assertFalse(request.getAllowedOverRoaming());
+            }
+        } finally {
+            Settings.DOWNLOAD_UNMETERED_ONLY.save(false);
+            Settings.DOWNLOAD_NO_ROAMING.save(false);
+        }
+    }
+
     @Test public void pauseBetweenSelectionAndQueueSkipsEverySelectedPin() throws Exception {
         View origin = cell(pin("1"), 0);
         cell(pin("2"), 100);
