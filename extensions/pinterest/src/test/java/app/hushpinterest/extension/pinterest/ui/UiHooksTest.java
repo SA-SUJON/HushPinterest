@@ -52,22 +52,23 @@ public class UiHooksTest {
 
     private enum Tab { HOME, SEARCH, CREATE, NOTIFICATIONS, PROFILE, UNKNOWN }
 
-    private static final BooleanSetting[] SWITCHES = {
+    // SettingsContextRule must install the context before the registry is first read.
+    private static BooleanSetting[] switches() { return new BooleanSetting[] {
             Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SEARCH_HISTORY,
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST,
             Settings.HIDE_COMMENTS, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SURVEY_PROMPTS,
             Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.DISABLE_UPDATE_NAG
-    };
+    }; }
 
     @After public void restore() {
         PauseForTests.resume();
-        for (BooleanSetting setting : SWITCHES) setting.resetToDefault();
+        for (BooleanSetting setting : switches()) setting.resetToDefault();
         HookStatus.clear();
     }
 
     @Test public void everyOptionalControlStartsOffAndLeavesHostValuesAlone() {
-        for (BooleanSetting setting : SWITCHES) assertFalse(setting.key, setting.defaultValue);
+        for (BooleanSetting setting : switches()) assertFalse(setting.key, setting.defaultValue);
         assertFalse(UiHooks.hideScreenshotShare());
         assertFalse(UiHooks.quietEmailReminder());
         assertFalse(UiHooks.hideSurveyPrompts());
@@ -294,14 +295,16 @@ public class UiHooksTest {
         assertEquals(View.VISIBLE, row.getVisibility());
     }
 
-    @Test public void menuCensusRecordsFixedRowsAndPauseWithoutReadingTheirText() {
+    @Test public void menuCensusRecordsConstructionTimeStateAndPauseWithoutReadingText() {
         String[] keys = {"overflow_menu_add_to_collage", "overflow_menu_remix_collage",
                 "contextmenu_visual_search_image", "overflow_menu_pin_boost"};
         for (String key : keys) {
             TextView row = new TextView(RuntimeEnvironment.getApplication());
             row.setText("private-person pin_id=987654321 https://private.example/token");
+            assertFalse("a constructor row isn't displayed yet", row.isShown());
             InterfaceControls.pinMenuItem(row, key);
             assertEquals(View.VISIBLE, row.getVisibility());
+            row.setVisibility(View.GONE);
         }
         Settings.HIDE_PIN_MENU_COLLAGE.save(true);
         Settings.HIDE_PIN_MENU_VISUAL_SEARCH.save(true);
@@ -317,8 +320,9 @@ public class UiHooksTest {
         }
         String report = LogBufferManager.buildExportText();
         for (String key : keys) {
-            assertTrue(report, report.contains(key + " visible 2"));
-            assertTrue(report, report.contains(key + " hidden by fixed switch 1"));
+            assertTrue(report, report.contains(key + " visible at construction 2"));
+            assertTrue(report, report.contains(key + " hidden by fixed switch at construction 1"));
+            assertFalse(report, report.contains(key + " not visible at construction"));
         }
         assertFalse(report, report.contains("private-person"));
         assertFalse(report, report.contains("987654321"));
@@ -429,13 +433,13 @@ public class UiHooksTest {
         assertSame("orig comes first", orig, UiHooks.closeupImage(apex, large));
     }
 
-    @Test public void menuCensusDistinguishesNativeHiddenRowsFromFilterDecisions() {
+    @Test public void menuCensusDistinguishesConstructionTimeHiddenRowsFromFilterDecisions() {
         View row = new View(RuntimeEnvironment.getApplication());
         row.setVisibility(View.INVISIBLE);
         InterfaceControls.pinMenuItem(row, "overflow_menu_add_to_collage");
         String report = LogBufferManager.buildExportText();
-        assertTrue(report, report.contains("overflow_menu_add_to_collage not visible in native layout 1"));
-        assertFalse(report, report.contains("overflow_menu_add_to_collage visible"));
+        assertTrue(report, report.contains("overflow_menu_add_to_collage not visible at construction 1"));
+        assertFalse(report, report.contains("overflow_menu_add_to_collage visible at construction"));
         assertFalse(report, report.contains("hidden by fixed switch"));
         assertEquals(View.INVISIBLE, row.getVisibility());
     }

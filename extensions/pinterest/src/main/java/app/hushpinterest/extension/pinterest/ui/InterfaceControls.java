@@ -82,14 +82,15 @@ public final class InterfaceControls {
         try {
             boolean hide = hidePinMenuItem(resource);
             collapse(view, hide);
-            // Only these four patch-supplied constants can enter the census. Three possible
+            // This is construction-time visibility after collapse, before attachment and native
+            // menu gating. Only these four patch-supplied constants can enter the census; three
             // outcomes per key fit within HookStatus's fixed sixteen-counter family limit.
             if (view != null && ("overflow_menu_add_to_collage".equals(resource)
                     || "overflow_menu_remix_collage".equals(resource)
                     || "contextmenu_visual_search_image".equals(resource)
                     || "overflow_menu_pin_boost".equals(resource))) {
-                String state = hide ? "hidden by fixed switch"
-                        : view.getVisibility() == View.VISIBLE ? "visible" : "not visible in native layout";
+                String state = hide ? "hidden by fixed switch at construction"
+                        : view.getVisibility() == View.VISIBLE ? "visible at construction" : "not visible at construction";
                 HookStatus.counted(FamilyNames.HIDE_PIN_MENU_ITEMS, resource + " " + state);
             }
         } catch (Throwable failure) {

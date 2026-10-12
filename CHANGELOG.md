@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 * **Tooling:** An interrupted release can resume after a commit repairs its publication checks. It keeps the prepared source, published tag, signed assets and index unchanged, including the original test counts when local results are missing or come from a focused run. It pushes only when needed and checks the index Morphe Manager receives. Changed release files or unrelated source commits stop recovery. Refs #3
 
+* **Pinterest:** The diagnostic report's pin menu counts now say they were taken when the menu was built, before Pinterest decided what to show, so a row counted as visible isn't read as one that was on screen.
+
 * **Pinterest:** Redesigned HushPinterest settings with separate navy cards on black pages and blue icon badges. Pause sits below its status summary. Setup topics have their own cards, and dialog choices wrap. The existing Android controls and actions keep their behavior.
 
 * **Pinterest:** Pinterest's own Download image row is hidden when Download pin saves that pin's image, so the two don't sit side by side in a pin's menu. It stays for video pins, since Download pin saves the video there and not a still image, and for pins HushPinterest can't download. With Download pins off the menu is untouched. (#2)
