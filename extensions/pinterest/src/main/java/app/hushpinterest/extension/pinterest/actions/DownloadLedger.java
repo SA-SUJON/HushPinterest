@@ -8,6 +8,7 @@ package app.hushpinterest.extension.pinterest.actions;
 
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -15,7 +16,9 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.ParcelFileDescriptor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -25,6 +28,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -114,6 +118,9 @@ public final class DownloadLedger {
 
         /** A finished image download Android's Set as options can take. */
         public boolean canSetAs() { return state == State.COMPLETED && image != null; }
+
+        /** A finished download whose saved file can be opened or shared. Local results never are. */
+        public boolean canOpen() { return state == State.COMPLETED && id >= 0; }
 
         public String pinUrl() { return "https://www.pinterest.com/pin/" + pinId + "/"; }
 
@@ -333,53 +340,124 @@ public final class DownloadLedger {
         return mime != null && mime.toLowerCase(Locale.ROOT).startsWith("image/") ? mime : null;
     }
 
+    /** The type of a saved image or video, the only files a pin download saves. Null for anything else. */
+    private static String media(String mime) {
+        return image(mime) != null || (mime != null && mime.toLowerCase(Locale.ROOT).startsWith("video/")) ? mime : null;
+    }
+
     /**
      * Hands a finished image download to Android's own Set as options, where the system picker and
-     * its cropper set it as the wallpaper. Android is asked about the request again first, and only
-     * a finished image is handed over, by Android's own content address for that download with a
-     * read grant. Nothing is copied and no wallpaper permission is used.
+     * its cropper set it as the wallpaper. Nothing is copied and no wallpaper permission is used.
      */
     public static boolean setAs(Context context, Job job) {
         if (context == null || job == null || !job.canSetAs()) return false;
+        return handOver(context, job, true, (file, mime) -> Intent.createChooser(new Intent(Intent.ACTION_ATTACH_DATA)
+                        .setDataAndType(file, mime).putExtra("mimeType", mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),
+                        L10n.t("Set as")),
+                job.folder != null ? L10n.f("Couldn't open Set as. Check %s for the saved file.", job.folder)
+                        : L10n.t("Couldn't open Set as. Check Downloads for the saved file."),
+                job.folder != null ? L10n.f("This download isn't a finished image anymore. Check %s.", job.folder)
+                        : L10n.t("This download isn't a finished image anymore. Check Downloads."),
+                "finished image handed to Set as");
+    }
+
+    /** Opens a finished download in the app Android picks for its type, or lets the person pick one. */
+    public static boolean openFile(Context context, Job job) {
+        if (context == null || job == null || !job.canOpen()) return false;
+        return handOver(context, job, false, (file, mime) -> new Intent(Intent.ACTION_VIEW).setDataAndType(file, mime)
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),
+                job.folder != null ? L10n.f("Couldn't open this file. Check %s for the saved file.", job.folder)
+                        : L10n.t("Couldn't open this file. Check Downloads for the saved file."),
+                gone(job), "saved download opened");
+    }
+
+    /** Sends a finished download to an app picked in Android's share sheet. */
+    public static boolean shareFile(Context context, Job job) {
+        if (context == null || job == null || !job.canOpen()) return false;
+        return handOver(context, job, false, (file, mime) -> {
+                    Intent send = new Intent(Intent.ACTION_SEND).setType(mime).putExtra(Intent.EXTRA_STREAM, file)
+                            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    // The chooser passes the read grant on only for a URI it finds in the clip.
+                    send.setClipData(ClipData.newRawUri("", file));
+                    return Intent.createChooser(send, L10n.t("Share file"));
+                },
+                job.folder != null ? L10n.f("Couldn't share this file. Check %s for the saved file.", job.folder)
+                        : L10n.t("Couldn't share this file. Check Downloads for the saved file."),
+                gone(job), "saved download shared");
+    }
+
+    private static String gone(Job job) {
+        return job.folder != null ? L10n.f("This download isn't a saved file anymore. Check %s.", job.folder)
+                : L10n.t("This download isn't a saved file anymore. Check Downloads.");
+    }
+
+    /**
+     * Hands a saved download to another app by Android's own content address for it, with a read
+     * grant and nothing copied. A history row can be stale, so Android is asked again first: the
+     * request has to be one this history still holds, finished, of a type a pin download saves
+     * ([image] asks for an image), and its file still there to read. [error] is said when Android
+     * can't be asked or nothing takes the file, [gone] when the download no longer qualifies.
+     */
+    private static boolean handOver(Context context, Job job, boolean image, BiFunction<Uri, String, Intent> handoff,
+                                    String error, String gone, String handed) {
         Context app = application(context);
-        String error = job.folder != null ? L10n.f("Couldn't open Set as. Check %s for the saved file.", job.folder)
-                : L10n.t("Couldn't open Set as. Check Downloads for the saved file.");
         boolean scheduled = Utils.runOnBackgroundThread(() -> {
             try {
                 if (!PinDownloads.active()) {
                     Utils.showToastLong(L10n.t("Resume HushPinterest and turn on Download pins to use this."));
                     return;
                 }
-                DownloadManager manager = (DownloadManager) app.getSystemService(Context.DOWNLOAD_SERVICE);
-                if (manager == null) throw new IllegalStateException("Download service unavailable");
+                DownloadLedger ledger = new DownloadLedger(app);
+                if (!ledger.owns(job.id)) {
+                    Utils.showToastLong(gone);
+                    return;
+                }
+                DownloadManager manager = ledger.manager();
                 String mime = null;
                 try (Cursor cursor = manager.query(new DownloadManager.Query().setFilterById(job.id))) {
                     if (cursor != null && cursor.moveToFirst() && cursor.getInt(cursor.getColumnIndexOrThrow(
                             DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL) {
                         int type = cursor.getColumnIndex(DownloadManager.COLUMN_MEDIA_TYPE);
-                        mime = image(type < 0 ? null : cursor.getString(type));
+                        mime = type < 0 ? null : cursor.getString(type);
                     }
                 }
-                if (mime == null) {
-                    Utils.showToastLong(job.folder != null ? L10n.f("This download isn't a finished image anymore. Check %s.", job.folder)
-                            : L10n.t("This download isn't a finished image anymore. Check Downloads."));
+                mime = image ? image(mime) : media(mime);
+                if (mime == null || !readable(manager, job.id)) {
+                    Utils.showToastLong(gone);
                     return;
                 }
                 Uri file = manager.getUriForDownloadedFile(job.id);
-                if (file == null) throw new IllegalStateException("Finished image has no content URI");
-                Intent attach = new Intent(Intent.ACTION_ATTACH_DATA).setDataAndType(file, mime).putExtra("mimeType", mime)
-                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                Intent chooser = Intent.createChooser(attach, L10n.t("Set as"));
+                if (file == null) throw new IllegalStateException("Finished download has no content URI");
+                Intent intent = handoff.apply(file, mime);
                 Utils.runOnMainThread(() -> {
-                    if (open(app, chooser, error)) HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "finished image handed to Set as");
+                    if (open(app, intent, error)) HookStatus.counted(FamilyNames.DOWNLOAD_PINS, handed);
                 });
             } catch (RuntimeException failure) {
-                HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "set a finished image as", failure);
+                HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "hand a saved download to another app", failure);
                 Utils.showToastLong(error);
             }
         });
         if (!scheduled) Utils.showToastLong(error);
         return scheduled;
+    }
+
+    /** Whether [id] is a request this history holds, shown or earlier. Local results never are. */
+    private boolean owns(long id) {
+        if (id < 0) return false;
+        synchronized (LOCK) {
+            for (Job job : load()) if (job.id == id) return true;
+            for (Job job : earlier()) if (job.id == id) return true;
+        }
+        return false;
+    }
+
+    /** Android keeps a finished request whose file was deleted, so the file itself is opened to check. */
+    private static boolean readable(DownloadManager manager, long id) {
+        try (ParcelFileDescriptor file = manager.openDownloadedFile(id)) {
+            return file != null;
+        } catch (IOException missing) {
+            return false;
+        }
     }
 
     public static boolean reopenPin(Context context, Job job) {

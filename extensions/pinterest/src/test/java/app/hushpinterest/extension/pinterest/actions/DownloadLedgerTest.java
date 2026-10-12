@@ -18,6 +18,7 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Looper;
+import android.os.ParcelFileDescriptor;
 
 import org.junit.After;
 import org.junit.Before;
@@ -37,6 +38,10 @@ import org.robolectric.shadows.ShadowDownloadManager;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowToast;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
@@ -44,8 +49,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -829,6 +836,116 @@ public class DownloadLedgerTest {
         assertEquals("Resume HushPinterest and turn on Download pins to use this.", ShadowToast.getTextOfLatestToast());
     }
 
+    /** Open and Share hand over Android's own content address for a finished download, with a read grant and no copy. */
+    @Test public void aFinishedDownloadOpensAndSharesByItsContentAddressWithAReadGrant() throws Exception {
+        long image = owned("123", DownloadManager.STATUS_SUCCESSFUL);
+        long video = owned("456", DownloadManager.STATUS_SUCCESSFUL);
+        nativeJobs.mimes.put(video, "video/mp4");
+        List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();
+        DownloadLedger.Job picture = jobs.stream().filter(job -> job.id == image).findFirst().get();
+        DownloadLedger.Job clip = jobs.stream().filter(job -> job.id == video).findFirst().get();
+        assertTrue(picture.canOpen());
+        assertTrue(clip.canOpen());
+        int grants = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+
+        assertTrue(DownloadLedger.openFile(app, picture));
+        settle();
+        Intent view = Shadows.shadowOf(app).getNextStartedActivity();
+        assertEquals(Intent.ACTION_VIEW, view.getAction());
+        assertEquals("content://downloads/all_downloads/" + image, view.getDataString());
+        assertEquals("image/jpeg", view.getType());
+        assertEquals(Intent.FLAG_GRANT_READ_URI_PERMISSION, view.getFlags() & grants);
+
+        assertTrue(DownloadLedger.shareFile(app, clip));
+        settle();
+        Intent chooser = Shadows.shadowOf(app).getNextStartedActivity();
+        assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
+        Intent send = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertEquals(Intent.ACTION_SEND, send.getAction());
+        assertEquals("video/mp4", send.getType());
+        Uri stream = send.getParcelableExtra(Intent.EXTRA_STREAM);
+        assertEquals("content://downloads/all_downloads/" + video, String.valueOf(stream));
+        assertEquals(Intent.FLAG_GRANT_READ_URI_PERMISSION, send.getFlags() & grants);
+        // The chooser passes the read grant on for the URI in its clip.
+        assertEquals(Intent.FLAG_GRANT_READ_URI_PERMISSION, chooser.getFlags() & grants);
+        assertEquals(stream, chooser.getClipData().getItemAt(0).getUri());
+        assertEquals(2, nativeJobs.getRequestCount());
+        assertEquals(0, nativeJobs.removes);
+    }
+
+    /**
+     * A stale row never hands a file on: not when the file was deleted, the request failed, changed
+     * type, left Android or left this history, and never for a local result.
+     */
+    @Test public void deletedFailedForeignAndLocalRowsNeverHandOverAFile() throws Exception {
+        long id = owned("123", DownloadManager.STATUS_SUCCESSFUL);
+        DownloadLedger.Job finished = new DownloadLedger(app).reconcile().get(0);
+        java.util.function.BooleanSupplier open = () -> DownloadLedger.openFile(app, finished);
+        java.util.function.BooleanSupplier share = () -> DownloadLedger.shareFile(app, finished);
+        String gone = "This download isn't a saved file anymore. Check Downloads.";
+
+        // Deleted in a file manager: Android still calls the request finished.
+        nativeJobs.deletedFiles.add(id);
+        assertHandsNothing(open, gone);
+        assertHandsNothing(share, gone);
+        nativeJobs.deletedFiles.clear();
+        status(id, DownloadManager.STATUS_FAILED);
+        assertHandsNothing(open, gone);
+        status(id, DownloadManager.STATUS_SUCCESSFUL);
+        nativeJobs.mimes.put(id, "text/html");
+        assertHandsNothing(share, gone);
+        nativeJobs.mimes.remove(id);
+
+        // Removed from history, the request and its file stay, but they're no longer this history's.
+        assertTrue(DownloadLedger.removeHistory(app, id, null));
+        settle();
+        assertHandsNothing(open, gone);
+        assertHandsNothing(share, gone);
+        assertNotNull(nativeJobs.getRequest(id));
+
+        assertTrue(DownloadLedger.record(app, id, "123"));
+        manager.remove(id); // Simulates removal in system Downloads, not a ledger action.
+        nativeJobs.removes = 0;
+        assertHandsNothing(open, gone);
+
+        assertTrue(DownloadLedger.recordResult(app, "789", DownloadLedger.State.SKIPPED));
+        DownloadLedger.Job local = new DownloadLedger(app).reconcile().get(0);
+        assertTrue(local.id < 0);
+        assertFalse(local.canOpen());
+        assertFalse(DownloadLedger.openFile(app, local));
+        assertFalse(DownloadLedger.shareFile(app, local));
+        settle();
+        assertNull(Shadows.shadowOf(app).getNextStartedActivity());
+        assertEquals(0, nativeJobs.removes);
+    }
+
+    /** No app for the file, or Downloads that can't be asked, is said; paused, Android isn't asked at all. */
+    @Test public void noAppForTheFileAnUnavailableDownloadsOrPauseIsSaid() throws Exception {
+        owned("123", DownloadManager.STATUS_SUCCESSFUL);
+        DownloadLedger.Job finished = new DownloadLedger(app).reconcile().get(0);
+        Shadows.shadowOf(app).checkActivities(true);
+        assertTrue(DownloadLedger.openFile(app, finished));
+        settle();
+        assertEquals("Couldn't open this file. Check Downloads for the saved file.", ShadowToast.getTextOfLatestToast());
+        Shadows.shadowOf(app).checkActivities(false);
+
+        nativeJobs.denied = true;
+        assertHandsNothing(() -> DownloadLedger.shareFile(app, finished), "Couldn't share this file. Check Downloads for the saved file.");
+        nativeJobs.denied = false;
+
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        int queries = nativeJobs.queries.size();
+        assertHandsNothing(() -> DownloadLedger.openFile(app, finished), "Resume HushPinterest and turn on Download pins to use this.");
+        assertEquals(queries, nativeJobs.queries.size());
+    }
+
+    private void assertHandsNothing(java.util.function.BooleanSupplier handOver, String said) throws Exception {
+        assertTrue(handOver.getAsBoolean());
+        settle();
+        assertNull(Shadows.shadowOf(app).getNextStartedActivity());
+        assertEquals(said, ShadowToast.getTextOfLatestToast());
+    }
+
     @Test public void workerRejectionSettlesCallbacksAndDoesNotMutateOrEnqueue() throws Exception {
         long id = owned("123", DownloadManager.STATUS_FAILED);
         String before = preferences().getString(DownloadLedger.RECORDS, "");
@@ -983,6 +1100,7 @@ public class DownloadLedgerTest {
         final Map<Long, Integer> reasons = new HashMap<>();
         final Map<Long, String> sources = new HashMap<>();
         final Map<Long, String> mimes = new HashMap<>();
+        final Set<Long> deletedFiles = new HashSet<>();
         MatrixCursor cursor;
         boolean nullCursor;
         boolean denied;
@@ -1028,6 +1146,18 @@ public class DownloadLedgerTest {
                     sources.containsKey(id) ? sources.get(id) : request.getUri().toString(),
                     mimes.containsKey(id) ? mimes.get(id) : request.getMimeType(),
                     request.getDestination() == null ? null : request.getDestination().toString()});
+        }
+
+        /** Android keeps a finished request whose file was deleted elsewhere; opening its file then fails. */
+        @Implementation protected ParcelFileDescriptor openDownloadedFile(long id) throws FileNotFoundException {
+            if (getRequest(id) == null || deletedFiles.contains(id)) throw new FileNotFoundException("No file for download " + id);
+            File saved = new File(RuntimeEnvironment.getApplication().getCacheDir(), "native-download-" + id);
+            try (FileOutputStream out = new FileOutputStream(saved)) {
+                out.write(1);
+            } catch (IOException failure) {
+                throw new AssertionError(failure);
+            }
+            return ParcelFileDescriptor.open(saved, ParcelFileDescriptor.MODE_READ_ONLY);
         }
 
         @Implementation protected Uri getUriForDownloadedFile(long id) {

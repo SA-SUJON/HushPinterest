@@ -240,15 +240,51 @@ public class DownloadHistoryPreferenceTest {
         ShadowLooper.idleMainLooper();
         status(id, DownloadManager.STATUS_SUCCESSFUL);
         choice = chooseJob(dialog, 0);
-        assertEquals(3, choice.getListView().getAdapter().getCount());
+        // A finished image: Open file, Share file, Set as wallpaper, Open pin and Remove from history.
+        assertEquals(5, choice.getListView().getAdapter().getCount());
         assertTrue(message(choice).contains(text("Completed")));
         assertFalse(choice.getListView().getAdapter().getItem(0).toString().contains(text("Retry download")));
-        assertTrue(choice.getListView().getAdapter().getItem(0).toString().contains(text("Set as wallpaper")));
-        click(choice.getListView(), 0);
+        assertTrue(choice.getListView().getAdapter().getItem(2).toString().contains(text("Set as wallpaper")));
+        click(choice.getListView(), 2);
         settleTwice();
         Intent chooser = Shadows.shadowOf(app).getNextStartedActivity();
         assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
         assertEquals(Intent.ACTION_ATTACH_DATA, ((Intent) chooser.getParcelableExtra(Intent.EXTRA_INTENT)).getAction());
+    }
+
+    @Test public void aFinishedRequestOpensAndSharesItsSavedFileOnlyWhileDownloadPinsIsOn() throws Exception {
+        long id = owned("123", DownloadManager.STATUS_SUCCESSFUL);
+        AlertDialog history = open();
+        AlertDialog choice = chooseJob(history, 0);
+        ListAdapter choices = choice.getListView().getAdapter();
+        assertTrue(choices.getItem(0).toString().contains(text("Open file")));
+        assertTrue(choices.getItem(1).toString().contains(text("Share file")));
+        click(choice.getListView(), 0);
+        settleTwice();
+        Intent view = Shadows.shadowOf(app).getNextStartedActivity();
+        assertEquals(Intent.ACTION_VIEW, view.getAction());
+        assertEquals("content://downloads/all_downloads/" + id, view.getDataString());
+        assertEquals(Intent.FLAG_GRANT_READ_URI_PERMISSION, view.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        assertUsable(history);
+
+        click(chooseJob(history, 0).getListView(), 1);
+        settleTwice();
+        Intent chooser = Shadows.shadowOf(app).getNextStartedActivity();
+        assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
+        assertEquals(Intent.ACTION_SEND, ((Intent) chooser.getParcelableExtra(Intent.EXTRA_INTENT)).getAction());
+        assertUsable(history);
+
+        // Off or paused, a finished row keeps only Open pin and Remove from history.
+        Settings.DOWNLOAD_PINS.save(false);
+        choice = chooseJob(history, 0);
+        assertEquals(2, choice.getListView().getAdapter().getCount());
+        choice.dismiss();
+        ShadowLooper.idleMainLooper();
+        Settings.DOWNLOAD_PINS.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals(2, chooseJob(history, 0).getListView().getAdapter().getCount());
+        assertEquals(1, nativeJobs.getRequestCount());
+        assertEquals(0, removed());
     }
 
     @Test public void unsafeOrExpiredSourcesOfferReopeningWithoutRetry() throws Exception {

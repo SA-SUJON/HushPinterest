@@ -265,6 +265,16 @@ Couldn't open Set as. Check Downloads for the saved file.	No se pudo abrir Usar 
 Couldn't open Set as. Check %s for the saved file.	No se pudo abrir Usar como. Busca el archivo guardado en %s.
 This download isn't a finished image anymore. Check Downloads.	Esta descarga ya no es una imagen terminada. Revisa Descargas.
 This download isn't a finished image anymore. Check %s.	Esta descarga ya no es una imagen terminada. Revisa %s.
+Open file	Abrir archivo
+Opens the saved file in an app that can show it.	Abre el archivo guardado en una app que pueda mostrarlo.
+Share file	Compartir archivo
+Sends the saved file to another app.	Envía el archivo guardado a otra app.
+Couldn't open this file. Check Downloads for the saved file.	No se pudo abrir este archivo. Busca el archivo guardado en Descargas.
+Couldn't open this file. Check %s for the saved file.	No se pudo abrir este archivo. Busca el archivo guardado en %s.
+Couldn't share this file. Check Downloads for the saved file.	No se pudo compartir este archivo. Busca el archivo guardado en Descargas.
+Couldn't share this file. Check %s for the saved file.	No se pudo compartir este archivo. Busca el archivo guardado en %s.
+This download isn't a saved file anymore. Check Downloads.	Esta descarga ya no es un archivo guardado. Revisa Descargas.
+This download isn't a saved file anymore. Check %s.	Esta descarga ya no es un archivo guardado. Revisa %s.
 Resume HushPinterest and turn on Download pins to use this.	Reanuda HushPinterest y activa Descargar Pines para usar esto.
 Remove from history	Eliminar del historial
 Removes this history entry. Files and active downloads are kept.	Elimina esta entrada del historial. Se conservan los archivos y las descargas activas.

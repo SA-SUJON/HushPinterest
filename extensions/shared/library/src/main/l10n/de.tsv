@@ -265,6 +265,16 @@ Couldn't open Set as. Check Downloads for the saved file.	„Festlegen als“ ko
 Couldn't open Set as. Check %s for the saved file.	„Festlegen als“ konnte nicht geöffnet werden. Sieh in %s nach der gespeicherten Datei.
 This download isn't a finished image anymore. Check Downloads.	Dieser Download ist kein fertiges Bild mehr. Sieh in den Downloads nach.
 This download isn't a finished image anymore. Check %s.	Dieser Download ist kein fertiges Bild mehr. Sieh unter %s nach.
+Open file	Datei öffnen
+Opens the saved file in an app that can show it.	Öffnet die gespeicherte Datei in einer App, die sie anzeigen kann.
+Share file	Datei teilen
+Sends the saved file to another app.	Sendet die gespeicherte Datei an eine andere App.
+Couldn't open this file. Check Downloads for the saved file.	Diese Datei konnte nicht geöffnet werden. Sieh in den Downloads nach der gespeicherten Datei.
+Couldn't open this file. Check %s for the saved file.	Diese Datei konnte nicht geöffnet werden. Sieh in %s nach der gespeicherten Datei.
+Couldn't share this file. Check Downloads for the saved file.	Diese Datei konnte nicht geteilt werden. Sieh in den Downloads nach der gespeicherten Datei.
+Couldn't share this file. Check %s for the saved file.	Diese Datei konnte nicht geteilt werden. Sieh in %s nach der gespeicherten Datei.
+This download isn't a saved file anymore. Check Downloads.	Dieser Download ist keine gespeicherte Datei mehr. Sieh in den Downloads nach.
+This download isn't a saved file anymore. Check %s.	Dieser Download ist keine gespeicherte Datei mehr. Sieh unter %s nach.
 Resume HushPinterest and turn on Download pins to use this.	Setze HushPinterest fort und schalte Pins herunterladen ein, um das zu verwenden.
 Remove from history	Aus Verlauf entfernen
 Removes this history entry. Files and active downloads are kept.	Entfernt diesen Verlaufseintrag. Dateien und laufende Downloads bleiben erhalten.

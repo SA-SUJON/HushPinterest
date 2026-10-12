@@ -265,6 +265,16 @@ Couldn't open Set as. Check Downloads for the saved file.	Setel sebagai tidak da
 Couldn't open Set as. Check %s for the saved file.	Setel sebagai tidak dapat dibuka. Cari file tersimpan di %s.
 This download isn't a finished image anymore. Check Downloads.	Unduhan ini bukan lagi gambar yang selesai. Periksa Download.
 This download isn't a finished image anymore. Check %s.	Unduhan ini bukan lagi gambar yang selesai. Periksa %s.
+Open file	Buka file
+Opens the saved file in an app that can show it.	Membuka file tersimpan di aplikasi yang dapat menampilkannya.
+Share file	Bagikan file
+Sends the saved file to another app.	Mengirim file tersimpan ke aplikasi lain.
+Couldn't open this file. Check Downloads for the saved file.	File ini tidak dapat dibuka. Cari file tersimpan di Download.
+Couldn't open this file. Check %s for the saved file.	File ini tidak dapat dibuka. Cari file tersimpan di %s.
+Couldn't share this file. Check Downloads for the saved file.	File ini tidak dapat dibagikan. Cari file tersimpan di Download.
+Couldn't share this file. Check %s for the saved file.	File ini tidak dapat dibagikan. Cari file tersimpan di %s.
+This download isn't a saved file anymore. Check Downloads.	Unduhan ini bukan lagi file tersimpan. Periksa Download.
+This download isn't a saved file anymore. Check %s.	Unduhan ini bukan lagi file tersimpan. Periksa %s.
 Resume HushPinterest and turn on Download pins to use this.	Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk memakai ini.
 Remove from history	Hapus dari riwayat
 Removes this history entry. Files and active downloads are kept.	Menghapus entri riwayat ini. File dan unduhan aktif tetap disimpan.

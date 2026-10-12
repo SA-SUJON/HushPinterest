@@ -265,6 +265,16 @@ Couldn't open Set as. Check Downloads for the saved file.	Farklı ayarla açıla
 Couldn't open Set as. Check %s for the saved file.	Farklı ayarla açılamadı. Kayıtlı dosya için %s klasörüne bak.
 This download isn't a finished image anymore. Check Downloads.	Bu indirme artık tamamlanmış bir görsel değil. İndirilenler'e bak.
 This download isn't a finished image anymore. Check %s.	Bu indirme artık tamamlanmış bir görsel değil. %s klasörüne bak.
+Open file	Dosyayı aç
+Opens the saved file in an app that can show it.	Kayıtlı dosyayı onu gösterebilen bir uygulamada açar.
+Share file	Dosyayı paylaş
+Sends the saved file to another app.	Kayıtlı dosyayı başka bir uygulamaya gönderir.
+Couldn't open this file. Check Downloads for the saved file.	Bu dosya açılamadı. Kayıtlı dosya için İndirilenler'e bak.
+Couldn't open this file. Check %s for the saved file.	Bu dosya açılamadı. Kayıtlı dosya için %s klasörüne bak.
+Couldn't share this file. Check Downloads for the saved file.	Bu dosya paylaşılamadı. Kayıtlı dosya için İndirilenler'e bak.
+Couldn't share this file. Check %s for the saved file.	Bu dosya paylaşılamadı. Kayıtlı dosya için %s klasörüne bak.
+This download isn't a saved file anymore. Check Downloads.	Bu indirme artık kayıtlı bir dosya değil. İndirilenler'e bak.
+This download isn't a saved file anymore. Check %s.	Bu indirme artık kayıtlı bir dosya değil. %s klasörüne bak.
 Resume HushPinterest and turn on Download pins to use this.	Bunu kullanmak için HushPinterest'i sürdür ve Pin indirmeyi aç.
 Remove from history	Geçmişten kaldır
 Removes this history entry. Files and active downloads are kept.	Bu geçmiş kaydını kaldırır. Dosyalar ve etkin indirmeler korunur.

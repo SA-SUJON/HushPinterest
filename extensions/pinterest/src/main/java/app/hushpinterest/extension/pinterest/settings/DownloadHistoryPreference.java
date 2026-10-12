@@ -216,14 +216,24 @@ public final class DownloadHistoryPreference extends DialogPreference {
             List<CharSequence> names = new ArrayList<>();
             List<CharSequence> details = new ArrayList<>();
             List<Runnable> actions = new ArrayList<>();
-            // Which choices open something else (the chevron): Set as and Open pin do, the two
-            // that change the history act at once.
+            // Which choices open something else (the chevron): Open file, Share file, Set as and
+            // Open pin do, the two that change the history act at once.
             List<Boolean> opens = new ArrayList<>();
             if (retry) {
                 names.add(L10n.t(getContext(), "Retry download"));
                 details.add(L10n.t(getContext(), "Starts a new download. Android manages it."));
                 actions.add(() -> change(job.id, true));
                 opens.add(false);
+            }
+            if (job.canOpen() && retryEnabled()) {
+                names.add(L10n.t(getContext(), "Open file"));
+                details.add(L10n.t(getContext(), "Opens the saved file in an app that can show it."));
+                actions.add(() -> DownloadLedger.openFile(getContext(), job));
+                opens.add(true);
+                names.add(L10n.t(getContext(), "Share file"));
+                details.add(L10n.t(getContext(), "Sends the saved file to another app."));
+                actions.add(() -> DownloadLedger.shareFile(getContext(), job));
+                opens.add(true);
             }
             if (job.canSetAs() && retryEnabled()) {
                 names.add(L10n.t(getContext(), "Set as wallpaper"));
