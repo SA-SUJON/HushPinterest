@@ -4,6 +4,12 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** The Notifications page shows whether Android lets Pinterest show notifications, and one tap opens Android's notification settings for the patched app. It never changes a permission for you.
+
+* **Pinterest:** The update check gives up after 20 seconds even when GitHub answers slowly or a connection stalls, and Check now can be tapped again right away.
+
+* **Tooling:** The source census reads Jman's index at its new name and layout, and the Morphe Patch Tracker's list again now that two of its keys differ only in case. Its contract suite passes under Windows PowerShell 5.1 too.
+
 * **Pinterest:** With Debug logging on, a feed module's line now names each entry that isn't a pin by its type, never its content, so a report shows everything the module carried.
 
 * **Pinterest:** Download pins has two new switches, both off to start. One waits for an unmetered network and the other holds downloads while roaming. They cover single pins, visible pins, boards and retries, and changing them never cancels a download that's already queued. When Android holds a download back for a network, Download history now says what it's waiting for (Wi-Fi marked as metered doesn't count as unmetered).
