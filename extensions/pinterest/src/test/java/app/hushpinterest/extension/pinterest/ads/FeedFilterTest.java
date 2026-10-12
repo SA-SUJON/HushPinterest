@@ -127,6 +127,29 @@ public class FeedFilterTest {
         }
     }
 
+    /** A search filter chip like 14.39.0's q8: no JSON names, only text and lists. */
+    static final class Chip {
+        final String id = "chip";
+        final String label = "Curly";
+        final List<String> values = Arrays.asList("3a", "3b");
+    }
+
+    /** A dynamic story that also carries search chips (z5.V), which no renderer draws as the module's row. */
+    static final class ChipModule {
+        @Json("id") String id = "chips";
+        @Json("story_type") String storyType = "search_results";
+        List<Object> objects;
+        ArrayList<Chip> chips = new ArrayList<>(Arrays.asList(new Chip()));
+
+        ChipModule(Object... objects) {
+            this.objects = Arrays.asList(objects);
+        }
+
+        @Override public String toString() {
+            return id;
+        }
+    }
+
     /** The story model that names its list and wraps each entry, holding one model and no JSON names. */
     static final class Wrapper {
         final Pin pin;
@@ -381,6 +404,14 @@ public class FeedFilterTest {
         Module module = new Module("allAds", promoted, thirdParty);
         assertEquals("[plain, ideas]", FeedFilter.filter(new ArrayList<>(Arrays.asList(plain, module, ideas))).toString());
         assertEquals("[]", module.objects.toString());
+        assertTrue(report(), report().contains("module left empty removed"));
+    }
+
+    @Test
+    public void searchChipsDontKeepAModuleWhosePinsAreGone() {
+        ChipModule module = new ChipModule(promoted, thirdParty);
+        assertEquals("[plain, ideas]", FeedFilter.filter(new ArrayList<>(Arrays.asList(plain, module, ideas))).toString());
+        assertEquals(1, module.chips.size());
         assertTrue(report(), report().contains("module left empty removed"));
     }
 

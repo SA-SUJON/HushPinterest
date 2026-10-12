@@ -55,6 +55,10 @@ final class ModuleItems {
      * Returns the family of the first entry taken from a list that was left empty, since the module
      * has nothing left to show, or null to keep the module. Never throws: a failure is reported under
      * [owner] and leaves the rest of the module as it was.
+     *
+     * <p>Only the list a module draws as its row can be left empty here. In 14.39.0 the other lists hold
+     * no models: z5.O has preview image addresses, z5.V has search filter chips (q8, no JSON names) and
+     * ll's content_ids has ids. So a list left empty is the module's row, even while those keep entries.
      */
     @Nullable
     static String prune(Object module, Verdict verdict, String owner) {

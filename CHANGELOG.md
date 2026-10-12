@@ -8,6 +8,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** The update check gives up after 20 seconds even when GitHub answers slowly or a connection stalls, and Check now can be tapped again right away.
 
+* **Tooling:** A feed filter test covers a module that also carries search filter chips, which Pinterest 14.39.0 keeps in a list next to the module's pins. The ads reference explains why only the pin list can leave a module empty.
+
 * **Tooling:** The source census reads Jman's index at its new name and layout, and the Morphe Patch Tracker's list again now that two of its keys differ only in case. Its contract suite passes under Windows PowerShell 5.1 too.
 
 * **Pinterest:** With Debug logging on, a feed module's line now names each entry that isn't a pin by its type, never its content, so a report shows everything the module carried.
