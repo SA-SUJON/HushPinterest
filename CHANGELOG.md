@@ -4,6 +4,10 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** Hide shopping and product pins also hides the Shop the look section under a pin, the row of products picked to match the photo. The pin's own Visit button and its Paid link label stay.
+
+* **Tooling:** The fixture tests read Pinterest's manifests and resource tables with the same ARSCLib build the patcher uses, instead of a second copy whose classes could win or lose depending on classpath order. A check stops the tests if a patcher update moves it.
+
 * **Pinterest:** The setup guide's sign-in section now agrees with the rest of the settings. It says Google sign-in doesn't work with stock Google Play services (the Spoof signature patch is for phones with microG-RE or XSpoofSignatures), and that the Fix push notifications patch, on by default, signs the app up for push notifications, instead of calling push untested.
 
 * **Pinterest:** Settings search no longer lists every row without a summary when you type "null".
