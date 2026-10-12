@@ -102,28 +102,55 @@ public final class LinkTracking {
     /**
      * Where the link in a match ends. URL runs to the next space, so text glued onto a link, as in
      * "?utm_source=x見て", would go with the tag it follows. Past the host, a run of characters outside
-     * ASCII stays in the link only when the link carries on after it: a separator, a + or a percent
-     * escape straight after it, as in the IRI query "?q=見て&utm_source=x", or a separator further on
-     * in the ASCII before the next run outside ASCII, as in "?q=東京2024&utm_source=x". Otherwise the
-     * run is text after the link. Punctuation that ends a sentence doesn't count, so a closing "?" is
-     * no separator. A host name has no value to swallow text into, so an international one stays
-     * whole. Plain char checks, since ICU and the JVM read \s differently.
+     * ASCII stays in the link when it's Latin, Greek or Cyrillic letters, as in "/wiki/São_Tomé" or
+     * "?q=Tōkyō", when it starts a value right after an =, as in "?utm_campaign=夏セール", or when the
+     * link carries on after it, as in "?q=見て&utm_source=x" or "?q=2024年10月&utm_source=x".
+     * Otherwise the run is text after the link. Punctuation that ends a sentence doesn't count, so a
+     * closing "?" is no separator. A host name has no value to swallow text into, so an international
+     * one stays whole. Plain char checks, since ICU and the JVM read \s differently.
      */
     private static int trimmedEnd(String url) {
         int end = withoutPunctuation(url, url.length());
         int at = url.indexOf("://") + 3;
         while (at < end && "/?#".indexOf(url.charAt(at)) < 0) at++;
+        int query = url.indexOf('?', at);
         for (; at < end; at++) {
             if (url.charAt(at) < 0x80) continue;
             int glued = at;
-            while (at < end && url.charAt(at) >= 0x80) at++;
-            boolean carriesOn = at < end && "+%".indexOf(url.charAt(at)) >= 0;
-            for (int next = at; !carriesOn && next < end && url.charAt(next) < 0x80; next++) {
-                carriesOn = "/?#&=".indexOf(url.charAt(next)) >= 0;
-            }
-            if (!carriesOn) return withoutPunctuation(url, glued);
+            boolean letters = true;
+            for (; at < end && url.charAt(at) >= 0x80; at++) letters &= wordLetter(url.charAt(at));
+            if (letters || url.charAt(glued - 1) == '=' || carriesOn(url, at, end, query)) continue;
+            return withoutPunctuation(url, glued);
         }
         return end;
+    }
+
+    /**
+     * Whether the link goes on after a run outside ASCII that ends at [from]: a + or a percent escape
+     * straight after it, a separator in the ASCII before the next run, or a / ? # or & after later
+     * runs. An = past a later run is text, as in "x見てAI画像=最高", and so is a ? once the query
+     * at [query] has begun.
+     */
+    private static boolean carriesOn(String url, int from, int end, int query) {
+        if (from < end && "+%".indexOf(url.charAt(from)) >= 0) return true;
+        String separators = "/?#&=";
+        for (int next = from; next < end; next++) {
+            char c = url.charAt(next);
+            if (c >= 0x80) {
+                separators = "/?#&";
+            } else if (separators.indexOf(c) >= 0 && (c != '?' || next == query)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * A Latin, Greek or Cyrillic letter or accent. Those scripts put spaces between words, so a run of
+     * them is part of the link it sits in, never text glued onto it.
+     */
+    private static boolean wordLetter(char c) {
+        return (c >= 0xC0 && c <= 0x24F && c != 0xD7 && c != 0xF7) || (c >= 0x300 && c <= 0x52F) || (c >= 0x1E00 && c <= 0x1FFF);
     }
 
     private static int withoutPunctuation(String url, int end) {

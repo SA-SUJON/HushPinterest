@@ -106,6 +106,28 @@ public class LinkTrackingTest {
         assertEquals("https://example.org/a見て?", LinkTracking.cleanText("https://example.org/a?utm_source=x見て?"));
     }
 
+    /** Values with letters outside ASCII in more than one place, which 15165bf cut at the first one. */
+    @Test public void aValueWithSeveralRunsOutsideAsciiKeepsTheLinkWhole() {
+        String tokyo = "https://example.com/p?q=Tōkyō&utm_source=x";
+        assertEquals("https://example.com/p?q=Tōkyō", LinkTracking.cleanText(tokyo));
+        assertEquals(Collections.singletonList(tokyo), LinkTracking.urls(tokyo));
+        assertEquals("https://example.com/p?q=東京2024年", LinkTracking.cleanText("https://example.com/p?q=東京2024年&utm_source=x"));
+        assertEquals("https://example.com/p?q=2024年10月", LinkTracking.cleanText("https://example.com/p?q=2024年10月&utm_source=x"));
+        assertEquals("See https://en.wikipedia.org/wiki/São_Tomé now",
+                LinkTracking.cleanText("See https://en.wikipedia.org/wiki/São_Tomé?fbclid=1 now"));
+
+        // A tag whose value is outside ASCII goes with it, as it did before 15165bf.
+        assertEquals("https://example.com/p", LinkTracking.cleanText("https://example.com/p?utm_campaign=夏セール"));
+        assertEquals("https://example.com/p", LinkTracking.cleanText("https://example.com/p?utm_campaign=soldes_été"));
+        assertEquals("https://example.com/p?q=x", LinkTracking.cleanText("https://example.com/p?q=x&utm_campaign=Tōkyō"));
+    }
+
+    @Test public void gluedTextWithAnEqualsSignOrQuestionStaysOutOfTheLink() {
+        assertEquals("https://example.org/a見てAI画像=最高", LinkTracking.cleanText("https://example.org/a?utm_source=x見てAI画像=最高"));
+        assertEquals("https://example.org/a見て?次は", LinkTracking.cleanText("https://example.org/a?utm_source=x見て?次は"));
+        assertEquals("https://example.org/a見てOK", LinkTracking.cleanText("https://example.org/a?utm_source=x見てOK"));
+    }
+
     @Test public void onlySharedTextExtrasChangeAndCopyLabelsStayTheSame() {
         String original = "https://example.org/a?utm_source=pin";
         Intent intent = new Intent(Intent.ACTION_SEND);
