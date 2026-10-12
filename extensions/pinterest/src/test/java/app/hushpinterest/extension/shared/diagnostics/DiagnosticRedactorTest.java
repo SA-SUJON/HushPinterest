@@ -236,6 +236,19 @@ public class DiagnosticRedactorTest {
         for (String line : lines) assertEquals(line, DiagnosticRedactor.redact(line));
     }
 
+    /**
+     * A URL copied out of a JSON body spells its slashes {@code \/}, and one out of a query string
+     * {@code %2F}. Either way the path after the host goes with it, since that's where a name sits.
+     */
+    @Test public void anEscapedUrlGoesWithItsPath() {
+        assertEquals("opened [url omitted] in the browser",
+                DiagnosticRedactor.redact("opened https:\\/\\/www.pinterest.com\\/dana.q.1987\\/ in the browser"));
+        assertEquals("redirect to [url omitted] done",
+                DiagnosticRedactor.redact("redirect to https%3A%2F%2Fwww.pinterest.com%2Fdana.q.1987%2F done"));
+        assertEquals("[url omitted] then [host omitted]",
+                DiagnosticRedactor.redact("https:\\/\\/evil.example\\/dana.q then pinterest.com\\/dana.q\\/boards"));
+    }
+
     @Test public void aBareAccountIdGoesAndATimestampStays() {
         String line = DiagnosticRedactor.redact("Hidden 100012345678901 at 1790000000000");
 

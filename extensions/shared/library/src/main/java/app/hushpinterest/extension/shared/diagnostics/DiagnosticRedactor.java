@@ -265,13 +265,24 @@ public final class DiagnosticRedactor {
     private static final String NAMED_HANDLE = "(?<![A-Za-z0-9_.@/:])(?<![^\\x00-\\x7F])@(?=(?i:"
             + KNOWN_HANDLE_NAME + "))[A-Za-z0-9_.]{2,}";
     /**
+     * A slash as a URL carries it: plain, escaped for JSON ({@code \/}) or percent-encoded
+     * ({@code %2F}). A URL copied out of a JSON body or a query string keeps the path behind the
+     * host in one of the other two spellings, and the path is where the account name sits.
+     */
+    private static final String SLASH = "(?:/|\\\\/|%2f)";
+    /** A colon the same three ways. */
+    private static final String COLON = "(?::|%3a)";
+    /**
      * One of Pinterest's hosts without a scheme, with any port or path after it. The subdomain is
      * optional: the rule asked for one before, so {@code pin.it/abc} passed while
      * {@code www.pin.it/abc} didn't. A host has to end at a word edge, so a package name
      * ({@code com.pinterest}) and a longer name ({@code pin.items}) stay.
      */
     private static final String HOST =
-            "(?i)" + EDGE + "(?:[a-z0-9-]+\\.)*" + HOST_SUFFIXES + EDGE + "(?:[:/][^" + SPACE + "\"'<>]*)?";
+            "(?i)" + EDGE + "(?:[a-z0-9-]+\\.)*" + HOST_SUFFIXES + EDGE + "(?:(?:" + COLON + "|" + SLASH + ")[^" + SPACE + "\"'<>]*)?";
+    /** A scheme, a colon and two slashes, then everything up to a space or a quote. */
+    private static final String URL =
+            "(?i)" + EDGE + "[a-z][a-z0-9+.-]*" + COLON + SLASH + "{2}[^" + SPACE + "\"'<>]+";
 
     private DiagnosticRedactor() {
     }
@@ -288,7 +299,7 @@ public final class DiagnosticRedactor {
         String passed = text
                 .replaceAll(ISOLATED_NAME, "[name omitted]")
                 .replaceAll(HANDLE, "[handle omitted]")
-                .replaceAll("(?i)" + EDGE + "[a-z][a-z0-9+.-]*://[^" + SPACE + "\"'<>]+", "[url omitted]")
+                .replaceAll(URL, "[url omitted]")
                 .replaceAll(HOST, "[host omitted]")
                 .replaceAll(NAME_VALUE_PAIR, "$1[omitted]")
                 .replaceAll(HEADER, "$1=[omitted]")
