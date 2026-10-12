@@ -34,7 +34,7 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Download pins has two new switches, both off to start. One waits for an unmetered network and the other holds downloads while roaming. They cover single pins, visible pins, boards and retries, and changing them never cancels a download that's already queued. A download held back for its network shows as Queued in Download history, not as a failure, and starts by itself once an allowed network is back. Wi-Fi marked as metered doesn't count as unmetered.
 
-* **Pinterest:** A finished download can be opened or shared straight from its Download history row. History asks Android first, so a deleted file or a download removed from history won't open anything stale. Set as wallpaper makes the same check now.
+* **Pinterest:** A finished download can be opened or shared straight from its Download history row. History asks Android first, so a deleted file or a download removed from history won't open anything stale. Set as wallpaper makes the same check now. The other app gets the file under its own name, like `Pinterest_123_456.mp4`, where it used to see every download as "Download pin".
 
 * **Pinterest:** Download board keeps far less in memory while boards are loaded. Each pin is kept as its id and the media found for it instead of the whole pin. A Download history too long to read keeps its newest entries instead of starting over empty.
 

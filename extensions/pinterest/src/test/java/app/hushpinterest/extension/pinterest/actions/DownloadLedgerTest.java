@@ -874,6 +874,35 @@ public class DownloadLedgerTest {
     }
 
     /**
+     * Android files a finished download in MediaStore too, where other apps see the file's own name
+     * and get a preview, so that address goes out. Anything else in that column keeps DownloadManager's.
+     */
+    @Test public void theMediaStoreEntryIsHandedOverWhenAndroidFiledOne() throws Exception {
+        long video = owned("456", DownloadManager.STATUS_SUCCESSFUL);
+        long image = owned("123", DownloadManager.STATUS_SUCCESSFUL);
+        nativeJobs.mimes.put(video, "video/mp4");
+        nativeJobs.filed.put(video, "content://media/external_primary/downloads/248");
+        nativeJobs.filed.put(image, "file:///storage/emulated/0/Download/Pinterest_123.jpg");
+        List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();
+        DownloadLedger.Job clip = jobs.stream().filter(job -> job.id == video).findFirst().get();
+        DownloadLedger.Job picture = jobs.stream().filter(job -> job.id == image).findFirst().get();
+
+        assertTrue(DownloadLedger.shareFile(app, clip));
+        settle();
+        Intent chooser = Shadows.shadowOf(app).getNextStartedActivity();
+        Intent send = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        Uri stream = send.getParcelableExtra(Intent.EXTRA_STREAM);
+        assertEquals("content://media/external_primary/downloads/248", String.valueOf(stream));
+        assertEquals(stream, chooser.getClipData().getItemAt(0).getUri());
+        assertEquals(Intent.FLAG_GRANT_READ_URI_PERMISSION, send.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        assertTrue(DownloadLedger.openFile(app, picture));
+        settle();
+        assertEquals("content://downloads/all_downloads/" + image,
+                Shadows.shadowOf(app).getNextStartedActivity().getDataString());
+    }
+
+    /**
      * A stale row never hands a file on: not when the file was deleted, the request failed, changed
      * type, left Android or left this history, and never for a local result.
      */
@@ -1100,6 +1129,7 @@ public class DownloadLedgerTest {
         final Map<Long, Integer> reasons = new HashMap<>();
         final Map<Long, String> sources = new HashMap<>();
         final Map<Long, String> mimes = new HashMap<>();
+        final Map<Long, String> filed = new HashMap<>();
         final Set<Long> deletedFiles = new HashSet<>();
         MatrixCursor cursor;
         boolean nullCursor;
@@ -1120,7 +1150,7 @@ public class DownloadLedgerTest {
             if (nullCursor) return null;
             cursor = new MatrixCursor(new String[]{DownloadManager.COLUMN_ID, DownloadManager.COLUMN_STATUS,
                     DownloadManager.COLUMN_REASON, DownloadManager.COLUMN_URI, DownloadManager.COLUMN_MEDIA_TYPE,
-                    DownloadManager.COLUMN_LOCAL_URI}) {
+                    DownloadManager.COLUMN_LOCAL_URI, DownloadManager.COLUMN_MEDIAPROVIDER_URI}) {
                 private int statusReads;
                 @Override public int getInt(int column) {
                     if (column == 1 && failAfterReads >= 0 && statusReads++ == failAfterReads) {
@@ -1145,7 +1175,7 @@ public class DownloadLedgerTest {
             cursor.addRow(new Object[]{id, request.getStatus(), reasons.getOrDefault(id, 0),
                     sources.containsKey(id) ? sources.get(id) : request.getUri().toString(),
                     mimes.containsKey(id) ? mimes.get(id) : request.getMimeType(),
-                    request.getDestination() == null ? null : request.getDestination().toString()});
+                    request.getDestination() == null ? null : request.getDestination().toString(), filed.get(id)});
         }
 
         /** Android keeps a finished request whose file was deleted elsewhere; opening its file then fails. */

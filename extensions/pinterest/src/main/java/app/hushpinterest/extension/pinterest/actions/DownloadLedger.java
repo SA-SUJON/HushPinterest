@@ -413,12 +413,14 @@ public final class DownloadLedger {
                     return;
                 }
                 DownloadManager manager = ledger.manager();
-                String mime = null;
+                String mime = null, filed = null;
                 try (Cursor cursor = manager.query(new DownloadManager.Query().setFilterById(job.id))) {
                     if (cursor != null && cursor.moveToFirst() && cursor.getInt(cursor.getColumnIndexOrThrow(
                             DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL) {
                         int type = cursor.getColumnIndex(DownloadManager.COLUMN_MEDIA_TYPE);
                         mime = type < 0 ? null : cursor.getString(type);
+                        int media = cursor.getColumnIndex(DownloadManager.COLUMN_MEDIAPROVIDER_URI);
+                        filed = media < 0 ? null : cursor.getString(media);
                     }
                 }
                 mime = image ? image(mime) : media(mime);
@@ -426,7 +428,7 @@ public final class DownloadLedger {
                     Utils.showToastLong(gone);
                     return;
                 }
-                Uri file = manager.getUriForDownloadedFile(job.id);
+                Uri file = address(manager, job.id, filed);
                 if (file == null) throw new IllegalStateException("Finished download has no content URI");
                 Intent intent = handoff.apply(file, mime);
                 Utils.runOnMainThread(() -> {
@@ -439,6 +441,19 @@ public final class DownloadLedger {
         });
         if (!scheduled) Utils.showToastLong(error);
         return scheduled;
+    }
+
+    /**
+     * Where another app reads the file. DownloadManager's own address names the file after the
+     * request's title, so apps saw every download as "Download pin", and the share sheet can't
+     * preview a video there. The MediaStore entry Android filed for the download has the file's own
+     * name and a preview, and from Android 11 the app that owns it can grant it to another app.
+     */
+    private static Uri address(DownloadManager manager, long id, String filed) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && filed != null && filed.startsWith("content://media/")) {
+            return Uri.parse(filed);
+        }
+        return manager.getUriForDownloadedFile(id);
     }
 
     /** Whether [id] is a request this history holds, shown or earlier. Local results never are. */
