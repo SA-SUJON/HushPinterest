@@ -482,3 +482,5 @@ Couldn't check the file, so these are still the details Pinterest supplied.	Dosy
 Black bottom bar	Siyah alt çubuk
 In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.	Karanlık modda alt çubuğu sayfaya uyması için tamamen siyaha boyar. Bu, OLED ekranlarda biraz pil de tasarruf ettirir. Aydınlık mod olduğu gibi kalır. Değişiklik çubuk bir sonraki çizilişinde görünür.
 AMOLED dark theme	AMOLED karanlık tema
+# context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
+The picked file was left alone. If it's empty, delete it in your files app.	Seçilen dosyaya dokunulmadı. Boşsa dosyalar uygulamandan sil.

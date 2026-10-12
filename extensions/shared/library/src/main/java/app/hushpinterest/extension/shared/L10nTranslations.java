@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(940);
+        Map<String, String> table = new HashMap<>(942);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -880,6 +880,8 @@ public final class L10nTranslations {
                 "Die Datei, die die Dateiauswahl f\u00fcr die Liste angelegt hat, konnte nicht entfernt werden. L\u00f6sche sie in deiner Dateien-App.");
         table.put("The newest HushPinterest release is %1$s.",
                 "Die neueste Version von HushPinterest ist %1$s.");
+        table.put("The picked file was left alone. If it's empty, delete it in your files app.",
+                "Die gew\u00e4hlte Datei wurde nicht anger\u00fchrt. Wenn sie leer ist, l\u00f6sche sie in deiner Dateien-App.");
         table.put("The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "Die Pin-Liste wurde gespeichert, liest sich aber nicht so zur\u00fcck, wie sie geschrieben wurde. Speichere sie noch einmal als neue Datei.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
@@ -916,11 +918,11 @@ public final class L10nTranslations {
                 "Dieser Medienlink ist kein \u00f6ffentlicher Pinterest-Link, den HushPinterest nutzen kann.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Dieses Handy hat keine Dateiauswahl, hier l\u00e4sst sich also keine Datei w\u00e4hlen.");
-        table.put("This phone has no folder picker, so there's no way to choose a folder here.",
-                "Dieses Handy hat keine Ordnerauswahl, hier l\u00e4sst sich also kein Ordner w\u00e4hlen.");
     }
 
     private static void fillDe7(Map<String, String> table) {
+        table.put("This phone has no folder picker, so there's no way to choose a folder here.",
+                "Dieses Handy hat keine Ordnerauswahl, hier l\u00e4sst sich also kein Ordner w\u00e4hlen.");
         table.put("This request can't be retried. Check %s or open the pin again.",
                 "Diese Anfrage kann nicht erneut versucht werden. Pr\u00fcfe %s oder \u00f6ffne den Pin erneut.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
@@ -1024,7 +1026,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(940);
+        Map<String, String> table = new HashMap<>(942);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1857,6 +1859,8 @@ public final class L10nTranslations {
                 "No se pudo quitar el archivo que el selector cre\u00f3 para la lista. B\u00f3rralo en tu app de archivos.");
         table.put("The newest HushPinterest release is %1$s.",
                 "La versi\u00f3n m\u00e1s reciente de HushPinterest es la %1$s.");
+        table.put("The picked file was left alone. If it's empty, delete it in your files app.",
+                "El archivo elegido se dej\u00f3 como estaba. Si est\u00e1 vac\u00edo, b\u00f3rralo en tu app de archivos.");
         table.put("The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "La lista de pines se guard\u00f3, pero al leerla no coincide con lo que se escribi\u00f3. Gu\u00e1rdala de nuevo como un archivo nuevo.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
@@ -1893,11 +1897,11 @@ public final class L10nTranslations {
                 "Este enlace de medios no es un enlace p\u00fablico de Pinterest que HushPinterest pueda usar.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Este tel\u00e9fono no tiene selector de archivos, as\u00ed que aqu\u00ed no hay forma de elegir un archivo.");
-        table.put("This phone has no folder picker, so there's no way to choose a folder here.",
-                "Este tel\u00e9fono no tiene selector de carpetas, as\u00ed que aqu\u00ed no hay forma de elegir una carpeta.");
     }
 
     private static void fillEs7(Map<String, String> table) {
+        table.put("This phone has no folder picker, so there's no way to choose a folder here.",
+                "Este tel\u00e9fono no tiene selector de carpetas, as\u00ed que aqu\u00ed no hay forma de elegir una carpeta.");
         table.put("This request can't be retried. Check %s or open the pin again.",
                 "Esta solicitud no puede repetirse. Revisa %s o abre el pin de nuevo.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
@@ -2001,7 +2005,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(940);
+        Map<String, String> table = new HashMap<>(942);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -2834,6 +2838,8 @@ public final class L10nTranslations {
                 "File yang dibuat pemilih file untuk daftar ini tidak dapat dihapus. Hapus file itu di aplikasi file.");
         table.put("The newest HushPinterest release is %1$s.",
                 "Rilis HushPinterest terbaru adalah %1$s.");
+        table.put("The picked file was left alone. If it's empty, delete it in your files app.",
+                "File yang dipilih dibiarkan apa adanya. Jika kosong, hapus file itu di aplikasi file.");
         table.put("The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "Daftar Pin disimpan, tetapi saat dibaca kembali isinya tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
@@ -2870,11 +2876,11 @@ public final class L10nTranslations {
                 "Tautan media ini bukan tautan publik Pinterest yang bisa dipakai HushPinterest.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.");
-        table.put("This phone has no folder picker, so there's no way to choose a folder here.",
-                "Ponsel ini tidak memiliki pemilih folder, jadi folder tidak dapat dipilih di sini.");
     }
 
     private static void fillIn7(Map<String, String> table) {
+        table.put("This phone has no folder picker, so there's no way to choose a folder here.",
+                "Ponsel ini tidak memiliki pemilih folder, jadi folder tidak dapat dipilih di sini.");
         table.put("This request can't be retried. Check %s or open the pin again.",
                 "Permintaan ini tidak dapat dicoba lagi. Periksa %s atau buka pin lagi.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
@@ -2978,7 +2984,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(940);
+        Map<String, String> table = new HashMap<>(942);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -3811,6 +3817,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel remover o arquivo que o seletor criou para a lista. Apague-o no seu app de arquivos.");
         table.put("The newest HushPinterest release is %1$s.",
                 "A vers\u00e3o mais nova do HushPinterest \u00e9 %1$s.");
+        table.put("The picked file was left alone. If it's empty, delete it in your files app.",
+                "O arquivo escolhido ficou como estava. Se estiver vazio, apague-o no seu app de arquivos.");
         table.put("The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "A lista de Pins foi salva, mas n\u00e3o l\u00ea de volta igual ao que foi escrito. Salve de novo como um arquivo novo.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
@@ -3847,11 +3855,11 @@ public final class L10nTranslations {
                 "Este link de m\u00eddia n\u00e3o \u00e9 um link p\u00fablico do Pinterest que o HushPinterest possa usar.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Este dispositivo n\u00e3o tem seletor de arquivos, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel escolher um arquivo aqui.");
-        table.put("This phone has no folder picker, so there's no way to choose a folder here.",
-                "Este dispositivo n\u00e3o tem seletor de pastas, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel escolher uma pasta aqui.");
     }
 
     private static void fillPt_rBR7(Map<String, String> table) {
+        table.put("This phone has no folder picker, so there's no way to choose a folder here.",
+                "Este dispositivo n\u00e3o tem seletor de pastas, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel escolher uma pasta aqui.");
         table.put("This request can't be retried. Check %s or open the pin again.",
                 "N\u00e3o \u00e9 poss\u00edvel repetir esta solicita\u00e7\u00e3o. Confira %s ou abra o pin novamente.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",
@@ -3955,7 +3963,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(940);
+        Map<String, String> table = new HashMap<>(942);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -4788,6 +4796,8 @@ public final class L10nTranslations {
                 "Se\u00e7icinin liste i\u00e7in olu\u015fturdu\u011fu dosya kald\u0131r\u0131lamad\u0131. Dosyalar uygulamandan sil.");
         table.put("The newest HushPinterest release is %1$s.",
                 "En yeni HushPinterest s\u00fcr\u00fcm\u00fc %1$s.");
+        table.put("The picked file was left alone. If it's empty, delete it in your files app.",
+                "Se\u00e7ilen dosyaya dokunulmad\u0131. Bo\u015fsa dosyalar uygulamandan sil.");
         table.put("The pin list was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "Pin listesi kaydedildi ama geri okundu\u011funda yaz\u0131lanla ayn\u0131 de\u011fil. Yeni bir dosya olarak tekrar kaydet.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
@@ -4824,11 +4834,11 @@ public final class L10nTranslations {
                 "Bu medya ba\u011flant\u0131s\u0131, HushPinterest'in kullanabilece\u011fi herkese a\u00e7\u0131k bir Pinterest ba\u011flant\u0131s\u0131 de\u011fil.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Bu telefonda dosya se\u00e7ici yok, bu y\u00fczden burada dosya se\u00e7menin bir yolu yok.");
-        table.put("This phone has no folder picker, so there's no way to choose a folder here.",
-                "Bu telefonda klas\u00f6r se\u00e7ici yok, bu y\u00fczden burada klas\u00f6r se\u00e7menin bir yolu yok.");
     }
 
     private static void fillTr7(Map<String, String> table) {
+        table.put("This phone has no folder picker, so there's no way to choose a folder here.",
+                "Bu telefonda klas\u00f6r se\u00e7ici yok, bu y\u00fczden burada klas\u00f6r se\u00e7menin bir yolu yok.");
         table.put("This request can't be retried. Check %s or open the pin again.",
                 "Bu istek yeniden denenemiyor. %s klas\u00f6r\u00fcn\u00fc kontrol edin veya pini yeniden a\u00e7\u0131n.");
         table.put("This request can't be retried. Check Downloads or open the pin again.",

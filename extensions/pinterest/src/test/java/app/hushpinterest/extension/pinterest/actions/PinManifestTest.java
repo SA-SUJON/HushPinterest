@@ -314,6 +314,33 @@ public class PinManifestTest {
         assertEquals(0, PinListProvider.get(file).length);
     }
 
+    /** A picker can hand back a file that's already there, picked to be written over. It's the user's, so it stays. */
+    @Test public void aFilePickedToWriteOverStaysWhenTheListIsntWritten() throws Exception {
+        byte[] mine = "{\"mine\":true}".getBytes(StandardCharsets.UTF_8);
+        PinListProvider.refusesWrite = true;
+        Uri file = PinListProvider.put("mine.json", mine);
+        answer(exportOne(), file);
+        assertEquals("Couldn't save the pin list. Try again.", ShadowToast.getTextOfLatestToast());
+        assertArrayEquals(mine, PinListProvider.get(file));
+
+        PinListProvider.refusesWrite = false;
+        ShadowActivity.IntentForResult started = exportOne();
+        pending().set(null);
+        answer(started, file);
+        assertArrayEquals("a list lost while the picker was open leaves it too", mine, PinListProvider.get(file));
+    }
+
+    @Test public void aFileWhoseSizeCantBeReadIsLeftAlone() throws Exception {
+        PinListProvider.refusesWrite = true;
+        PinListProvider.hidesSize = true;
+        Uri file = PinListProvider.put("unknown.json", new byte[0]);
+        answer(exportOne(), file);
+        assertEquals("Couldn't save the pin list. Try again.\n\n"
+                + "The picked file was left alone. If it's empty, delete it in your files app.",
+                ShadowToast.getTextOfLatestToast());
+        assertNotNull("the file stays", PinListProvider.get(file));
+    }
+
     @Test public void aFileThatCantBeReadBackIsSavedButNotCalledChecked() throws Exception {
         PinListProvider.refusesRead = true;
         Uri file = PinListProvider.put("unreadable.json", null);

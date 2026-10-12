@@ -479,3 +479,5 @@ Couldn't check the file, so these are still the details Pinterest supplied.	Não
 Black bottom bar	Barra inferior preta
 In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.	No modo escuro, pinta a barra inferior de preto puro para combinar com a página, o que também economiza um pouco de bateria em telas OLED. O modo claro continua como está. A mudança aparece na próxima vez que a barra for redesenhada.
 AMOLED dark theme	Tema escuro AMOLED
+# context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
+The picked file was left alone. If it's empty, delete it in your files app.	O arquivo escolhido ficou como estava. Se estiver vazio, apague-o no seu app de arquivos.

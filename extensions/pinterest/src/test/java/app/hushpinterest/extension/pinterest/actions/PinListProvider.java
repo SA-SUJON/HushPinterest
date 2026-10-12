@@ -9,9 +9,11 @@ package app.hushpinterest.extension.pinterest.actions;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.provider.OpenableColumns;
 
 import org.robolectric.Robolectric;
 import org.robolectric.RuntimeEnvironment;
@@ -34,6 +36,8 @@ public final class PinListProvider extends ContentProvider {
     static volatile boolean refusesRead;
     /** Turns down DocumentsContract.deleteDocument, as a provider without delete support does. */
     static volatile boolean refusesDelete;
+    /** Answers a query with no rows, so a file's size can't be read. */
+    static volatile boolean hidesSize;
 
     private static File folder;
 
@@ -43,6 +47,7 @@ public final class PinListProvider extends ContentProvider {
         refusesWrite = false;
         refusesRead = false;
         refusesDelete = false;
+        hidesSize = false;
         folder = new File(RuntimeEnvironment.getApplication().getCacheDir(), "pin-lists-" + System.nanoTime());
         if (!folder.mkdirs()) throw new IllegalStateException("No folder for the test files");
         Robolectric.setupContentProvider(PinListProvider.class, AUTHORITY);
@@ -89,8 +94,15 @@ public final class PinListProvider extends ContentProvider {
         return null;
     }
 
+    /** A file's size, as OpenableColumns.SIZE, the way a document app answers it. */
+    @Override
+    public Cursor query(Uri uri, String[] projection, String selection, String[] args, String order) {
+        MatrixCursor cursor = new MatrixCursor(new String[]{OpenableColumns.SIZE});
+        if (!hidesSize) cursor.addRow(new Object[]{new File(folder, uri.getLastPathSegment()).length()});
+        return cursor;
+    }
+
     @Override public boolean onCreate() { return true; }
-    @Override public Cursor query(Uri uri, String[] projection, String selection, String[] args, String order) { return null; }
     @Override public String getType(Uri uri) { return PinManifest.MIME_TYPE; }
     @Override public Uri insert(Uri uri, ContentValues values) { return null; }
     @Override public int delete(Uri uri, String selection, String[] args) { return 0; }

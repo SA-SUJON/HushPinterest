@@ -13,9 +13,11 @@ import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.DocumentsContract;
+import android.provider.OpenableColumns;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -299,7 +301,7 @@ public final class PinManifest {
      */
     private static void discardThenSay(Context app, Uri uri, String said) {
         if (app == null) {
-            Utils.showToastLong(said + "\n\n" + leftBehind());
+            Utils.showToastLong(said + "\n\n" + leftAlone());
             return;
         }
         ContentResolver resolver = app.getContentResolver();
@@ -307,8 +309,14 @@ public final class PinManifest {
         if (!Utils.runOnBackgroundThread(work)) work.run();
     }
 
-    /** [said], with a note when the picked file couldn't be removed. */
+    /**
+     * [said], with a note when the picked file stays behind. Only an empty file is taken away: one
+     * that already holds something was picked to be written over and is the user's own.
+     */
     static String discarded(ContentResolver resolver, Uri uri, String said) {
+        long size = size(resolver, uri);
+        if (size > 0) return said;
+        if (size < 0) return said + "\n\n" + leftAlone();
         boolean gone;
         try {
             gone = DocumentsContract.deleteDocument(resolver, uri);
@@ -318,8 +326,23 @@ public final class PinManifest {
         return gone ? said : said + "\n\n" + leftBehind();
     }
 
+    /** How many bytes the picked file holds, or -1 when the app holding it won't say. */
+    private static long size(ContentResolver resolver, Uri uri) {
+        try (Cursor cursor = resolver.query(uri, new String[]{OpenableColumns.SIZE}, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst() && !cursor.isNull(0)) return cursor.getLong(0);
+        } catch (RuntimeException unanswered) {
+            // Treated as unknown, so the file stays.
+        }
+        return -1;
+    }
+
     private static String leftBehind() {
         return L10n.t("The file the picker made for the list couldn't be removed. Delete it in your files app.");
+    }
+
+    /** For a file whose size couldn't be read, which might be one the user picked to write over. */
+    private static String leftAlone() {
+        return L10n.t("The picked file was left alone. If it's empty, delete it in your files app.");
     }
 
     /**
