@@ -4,6 +4,18 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** Download pins has two new switches, both off to start. One waits for an unmetered network and the other holds downloads while roaming. They cover single pins, visible pins, boards and retries, and changing them never cancels a download that's already queued. When Android holds a download back for a network, Download history now says what it's waiting for (Wi-Fi marked as metered doesn't count as unmetered).
+
+* **Pinterest:** A finished download can be opened or shared straight from its Download history row. History asks Android first, so a deleted file or a download removed from history won't open anything stale. Set as wallpaper makes the same check now.
+
+* **Pinterest:** Download board keeps far less in memory while boards are loaded. Each pin is kept as its id and the media found for it instead of the whole pin. A Download history too long to read keeps its newest entries instead of starting over empty.
+
+* **Pinterest:** Strip link tracking and Plain pin links no longer swallow text that sits right after a link with no space, like a Japanese caption after `?utm_source=x`. Links with non-ASCII paths or queries stay whole.
+
+* **Pinterest:** The quick checks Download pin makes against pin.it short links and Pinterest's image host go out without any cookies the app holds for those hosts.
+
+* **Tooling:** A fixture test checks that every pin field Hide ads, Hide AI-labeled pins and Hide shopping read is still in Pinterest's build with a type the filters can use. A renamed or retyped field now fails the tests instead of quietly switching a filter off.
+
 * **Pinterest:** Hide shopping and product pins also hides the Shop the look section under a pin, the row of products picked to match the photo. The pin's own Visit button and its Paid link label stay.
 
 * **Tooling:** The fixture tests read Pinterest's manifests and resource tables with the same ARSCLib build the patcher uses, instead of a second copy whose classes could win or lose depending on classpath order. A check stops the tests if a patcher update moves it.
