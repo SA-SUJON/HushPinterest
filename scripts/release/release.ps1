@@ -207,6 +207,13 @@ switch ($Stage) {
             Write-ReleaseStep "$commit already went out through the release gate at $($done.finishedAt). Run -Stage build next."
             return
         }
+        $hookRecord = Join-Path $Root "build/release-stages/gate-hook/$commit.json"
+        if ($remote -ceq $commit -and (Test-Path -LiteralPath $hookRecord -PathType Leaf)) {
+            # The gate passed and origin took the push, but the run stopped before it wrote its marker.
+            Set-ReleaseStageMarker $Root $Version 'gate' $commit ((Get-Date) - $started).TotalMinutes
+            Write-ReleaseStep "$commit passed the release gate on an earlier run and origin already has it. Run -Stage build next."
+            return
+        }
         if ($remote -ceq $commit) {
             throw ("origin's main is already at $commit, but not through -Stage gate, so the release gate never " +
                 'built its bundle or patched the fixtures with it. Undo the prepare commit (git reset --keep HEAD~1 after ' +
@@ -219,9 +226,15 @@ switch ($Stage) {
             }
         }
         Write-ReleaseStep "pushing $commit through the release gate: the full suite, the bundle and every declared fixture patched with it"
+        # A record left from an earlier attempt would make a refusal now read as a passed gate.
+        Remove-Item -LiteralPath $hookRecord -Force -ErrorAction SilentlyContinue
         try {
             Invoke-ReleasePush -Root $Root -ReleaseGate
         } catch {
+            if (Test-Path -LiteralPath $hookRecord -PathType Leaf) {
+                throw ("The release gate passed $commit, but the push itself failed. Check the network, then run " +
+                    '-Stage gate again. If origin took it after all, that run goes straight on.')
+            }
             throw ("The release gate refused $commit. Read its output above. Fix the cause in a commit of its own: " +
                 'undo the prepare commit with git reset --keep HEAD~1, commit the fix, then prepare again.')
         }

@@ -1083,6 +1083,17 @@ try {
             -not $touchesPinterestSources) {
         Write-Step 'no code or published file changed'
     }
+    if ($releaseGate) {
+        # Read by release.ps1 -Stage gate when origin took this push but the run lost track of it,
+        # because the network dropped after the hook passed or the run was stopped.
+        $records = Join-Path $Root 'build/release-stages/gate-hook'
+        New-Item -ItemType Directory -Force -Path $records | Out-Null
+        foreach ($passed in $script:pushedCommits) {
+            $record = [ordered]@{ commit = $passed; passedAt = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') }
+            [IO.File]::WriteAllText((Join-Path $records "$passed.json"), (($record | ConvertTo-Json) + "`n"),
+                (New-Object Text.UTF8Encoding $false))
+        }
+    }
     Write-Step 'ok'
     exit 0
 } finally {
