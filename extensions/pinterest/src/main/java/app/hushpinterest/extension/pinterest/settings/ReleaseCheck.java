@@ -37,8 +37,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,9 +95,12 @@ public final class ReleaseCheck {
     static final int MAX_REDIRECTS = 3;
 
     /**
-     * The whole check, redirects and the body's reads included. The connection has its own connect
-     * and read timeouts too ({@link ReleaseTransport}), and this ends one that keeps trickling in.
-     * A test shortens it.
+     * The whole check, redirects and the body's reads included, timed on the monotonic clock. Each
+     * request's connect and read timeouts get no more than what's left of it ({@link ReleaseTransport}).
+     * The requests run on a thread of their own, and the check stops waiting for them when this
+     * runs out: the exchange still open is closed, which ends a read stalled on it, and the try is a
+     * TIMEOUT. So a check ends this long after it starts, plus however long its worker then waits to
+     * be scheduled, whatever the connection does. A test shortens it.
      */
     static volatile long deadlineMs = 20_000;
 
@@ -160,11 +167,16 @@ public final class ReleaseCheck {
 
     /** One GET. The phone's is {@link ReleaseTransport}; a test hands in its own, so no test goes online. */
     interface Transport {
-        Exchange get(URL url, Map<String, String> headers) throws IOException;
+        /**
+         * The request to [url], ready but not sent, so it can be closed while it waits. No connect or
+         * read waits longer than [timeoutMs], which is at least 1.
+         */
+        Exchange get(URL url, Map<String, String> headers, int timeoutMs) throws IOException;
     }
 
     /** One answer: its status, its headers and its body, until it's closed. */
     interface Exchange extends Closeable {
+        /** Sends the request and waits for the answer's status. Closing the exchange ends the wait. */
         int status() throws IOException;
 
         @Nullable
@@ -338,10 +350,41 @@ public final class ReleaseCheck {
 
     // ---- The request ---------------------------------------------------------------------------
 
-    /** Asks for the latest release through [transport] and reads the answer. Blocking. Never throws. */
+    /**
+     * Asks for the latest release through [transport] and reads the answer. Blocking, for no longer
+     * than {@link #deadlineMs} and scheduling. Never throws.
+     */
     static Answer fetch(Transport transport, @Nullable String version) {
         long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(deadlineMs);
         Map<String, String> headers = headers(version);
+        AtomicBoolean late = new AtomicBoolean();
+        AtomicReference<Exchange> open = new AtomicReference<>();
+        // A thread of its own rather than the worker pool, where it could sit queued behind other
+        // work, and so an address lookup that a close can't end still can't hold the check.
+        FutureTask<Answer> request = new FutureTask<>(() -> ask(transport, headers, deadline, late, open));
+        Thread thread = new Thread(request, "hushpinterest-release-check");
+        thread.setDaemon(true);
+        thread.start();
+        try {
+            return request.get(Math.max(0L, deadline - System.nanoTime()), TimeUnit.NANOSECONDS);
+        } catch (TimeoutException | InterruptedException stopped) {
+            if (stopped instanceof InterruptedException) Thread.currentThread().interrupt();
+            // The exchange still waiting is closed, and one opened from now on is closed unsent.
+            late.set(true);
+            Exchange expired = open.getAndSet(null);
+            if (expired != null) expired.close();
+            return Answer.failed(Result.TIMEOUT, "the check ran out of time");
+        } catch (ExecutionException failed) {
+            // ask() answers every IOException and RuntimeException itself.
+            Throwable cause = failed.getCause();
+            if (cause instanceof Error) throw (Error) cause;
+            return Answer.failed(Result.OFFLINE, "the request failed: " + cause.getClass().getSimpleName());
+        }
+    }
+
+    /** The requests, on the check's own thread. Each one gets what's left of the deadline. */
+    private static Answer ask(Transport transport, Map<String, String> headers, long deadline, AtomicBoolean late,
+                              AtomicReference<Exchange> open) {
         URL url;
         try {
             url = new URL(LATEST_RELEASE);
@@ -353,9 +396,13 @@ public final class ReleaseCheck {
             if (refusal != null) {
                 return Answer.failed(Result.REFUSED, (hop == 0 ? "the address " : "redirect " + hop + " ") + refusal);
             }
-            if (System.nanoTime() - deadline > 0) return Answer.failed(Result.TIMEOUT, "the check ran out of time");
-            try (Exchange exchange = transport.get(url, headers)) {
+            long left = TimeUnit.NANOSECONDS.toMillis(deadline - System.nanoTime());
+            if (left <= 0) return Answer.failed(Result.TIMEOUT, "the check ran out of time");
+            try (Exchange exchange = transport.get(url, headers, (int) Math.min(left, Integer.MAX_VALUE))) {
+                open.set(exchange);
+                if (late.get()) return Answer.failed(Result.TIMEOUT, "the check ran out of time");
                 int status = exchange.status();
+                if (System.nanoTime() - deadline > 0) return Answer.failed(Result.TIMEOUT, "the answer came too late");
                 if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
                     String location = exchange.header("Location");
                     if (location == null || location.trim().isEmpty()) {
@@ -437,7 +484,10 @@ public final class ReleaseCheck {
         return (remaining != null && remaining.trim().equals("0")) || exchange.header("Retry-After") != null;
     }
 
-    /** The body, or null when it runs past the cap. The deadline is checked between reads. */
+    /**
+     * The body, or null when it runs past the cap. The deadline is checked after every read, the end
+     * included, so a body whose end comes late is as late as one that stops coming.
+     */
     @Nullable
     static byte[] read(InputStream in, long deadline) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream(16 * 1024);
@@ -450,6 +500,7 @@ public final class ReleaseCheck {
             out.write(buffer, 0, count);
             if (System.nanoTime() - deadline > 0) throw new InterruptedIOException("the check ran out of time");
         }
+        if (System.nanoTime() - deadline > 0) throw new InterruptedIOException("the answer ended too late");
         return out.toByteArray();
     }
 

@@ -20,6 +20,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Deque;
@@ -29,6 +30,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -41,6 +44,10 @@ final class FakeGitHub implements ReleaseCheck.Transport {
     final List<URL> asked = new CopyOnWriteArrayList<>();
     /** What each request carried besides its address. */
     final List<Map<String, String>> sent = new CopyOnWriteArrayList<>();
+    /** The most each request's connect or read was allowed to wait, in milliseconds. */
+    final List<Integer> timeouts = new CopyOnWriteArrayList<>();
+    /** The thread each request was made on, so a test can wait for one the check stopped waiting for. */
+    final List<Thread> threads = new CopyOnWriteArrayList<>();
     /** Runs as each request arrives, on the thread that made it, before the reply. */
     volatile Runnable onRequest;
 
@@ -60,9 +67,12 @@ final class FakeGitHub implements ReleaseCheck.Transport {
     }
 
     @Override
-    public ReleaseCheck.Exchange get(URL url, Map<String, String> headers) throws IOException {
+    public ReleaseCheck.Exchange get(URL url, Map<String, String> headers, int timeoutMs) throws IOException {
+        if (timeoutMs < 1) throw new AssertionError("a timeout of " + timeoutMs + " ms waits forever");
         asked.add(url);
         sent.add(new LinkedHashMap<>(headers));
+        timeouts.add(timeoutMs);
+        threads.add(Thread.currentThread());
         Runnable hook = onRequest;
         if (hook != null) hook.run();
         Reply reply = replies.poll();
@@ -100,8 +110,11 @@ final class FakeGitHub implements ReleaseCheck.Transport {
         private long length = -1;
         private Supplier<InputStream> body;
         private IOException thrown;
+        private long slowMs;
+        private boolean stalled;
+        private boolean heldOpen;
         private final AtomicBoolean bodyOpened = new AtomicBoolean();
-        private final AtomicBoolean closed = new AtomicBoolean();
+        private final CountDownLatch closed = new CountDownLatch(1);
 
         /** A 200 with [tag]'s release. */
         static Reply release(String tag, String notes) {
@@ -139,6 +152,13 @@ final class FakeGitHub implements ReleaseCheck.Transport {
             return reply;
         }
 
+        /** Headers that never come: the status waits until the exchange is closed, then fails as a closed connection does. */
+        static Reply stalled() {
+            Reply reply = status(200);
+            reply.stalled = true;
+            return reply;
+        }
+
         Reply header(String name, String value) {
             headers.put(name, value);
             return this;
@@ -150,19 +170,51 @@ final class FakeGitHub implements ReleaseCheck.Transport {
             return this;
         }
 
+        /** The status comes [millis] after it's asked for, closed or not, like a lookup a close can't end. */
+        Reply slow(long millis) {
+            slowMs = millis;
+            return this;
+        }
+
+        /** The whole body comes, but its end only when the exchange is closed, like a server holding the connection. */
+        Reply heldOpen() {
+            heldOpen = true;
+            return this;
+        }
+
         boolean bodyOpened() {
             return bodyOpened.get();
         }
 
         boolean closed() {
-            return closed.get();
+            return closed.getCount() == 0;
+        }
+
+        /** Waits, at most long enough for any test, until the exchange is closed. */
+        private void awaitClose() {
+            try {
+                closed.await(30, TimeUnit.SECONDS);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+            }
         }
 
         ReleaseCheck.Exchange open() throws IOException {
             if (thrown != null) throw thrown;
             return new ReleaseCheck.Exchange() {
                 @Override
-                public int status() {
+                public int status() throws IOException {
+                    if (slowMs > 0) {
+                        try {
+                            Thread.sleep(slowMs);
+                        } catch (InterruptedException interrupted) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    if (stalled) {
+                        awaitClose();
+                        throw new IOException("Socket closed");
+                    }
                     return status;
                 }
 
@@ -180,12 +232,19 @@ final class FakeGitHub implements ReleaseCheck.Transport {
                 public InputStream body() {
                     bodyOpened.set(true);
                     if (body == null) throw new AssertionError("this reply has no body");
-                    return body.get();
+                    if (!heldOpen) return body.get();
+                    return new SequenceInputStream(body.get(), new InputStream() {
+                        @Override
+                        public int read() {
+                            awaitClose();
+                            return -1;
+                        }
+                    });
                 }
 
                 @Override
                 public void close() {
-                    closed.set(true);
+                    closed.countDown();
                 }
             };
         }

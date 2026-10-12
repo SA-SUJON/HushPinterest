@@ -32,9 +32,11 @@ import java.util.Map;
  * no cookie ({@link NoCookies}). Whatever a CookieManager keeps for api.github.com is dropped,
  * since only an answer from there could have left it, and a handler that would still add a cookie
  * stops the request before it goes out. What an answer stores is dropped again when the exchange
- * closes.
+ * closes. The request goes out when the check asks for its status, and closing the exchange then
+ * disconnects it, which ends a wait for headers or for the body.
  */
 final class ReleaseTransport implements ReleaseCheck.Transport {
+    /** The most any one connect or read waits. Each gets less when less of the whole check is left. */
     static final int CONNECT_TIMEOUT_MS = 10_000;
     static final int READ_TIMEOUT_MS = 10_000;
 
@@ -46,7 +48,7 @@ final class ReleaseTransport implements ReleaseCheck.Transport {
     }
 
     @Override
-    public ReleaseCheck.Exchange get(URL url, Map<String, String> headers) throws IOException {
+    public ReleaseCheck.Exchange get(URL url, Map<String, String> headers, int timeoutMs) throws IOException {
         URI uri;
         try {
             uri = url.toURI();
@@ -62,14 +64,16 @@ final class ReleaseTransport implements ReleaseCheck.Transport {
             connection.setRequestMethod("GET");
             connection.setInstanceFollowRedirects(false);
             connection.setUseCaches(false);
-            connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-            connection.setReadTimeout(READ_TIMEOUT_MS);
+            // Never 0, which HttpURLConnection reads as no timeout at all.
+            int left = Math.max(1, timeoutMs);
+            connection.setConnectTimeout(Math.min(CONNECT_TIMEOUT_MS, left));
+            connection.setReadTimeout(Math.min(READ_TIMEOUT_MS, left));
             // Nothing is left open in the pool for the rest of Pinterest's run.
             connection.setRequestProperty("Connection", "close");
             for (Map.Entry<String, String> header : headers.entrySet()) {
                 connection.setRequestProperty(header.getKey(), header.getValue());
             }
-            return new Answer(connection, uri, connection.getResponseCode());
+            return new Answer(connection, uri);
         } catch (IOException | RuntimeException failure) {
             connection.disconnect();
             NoCookies.forget(CookieHandler.getDefault(), uri);
@@ -91,17 +95,18 @@ final class ReleaseTransport implements ReleaseCheck.Transport {
     private static final class Answer implements ReleaseCheck.Exchange {
         private final HttpURLConnection connection;
         private final URI uri;
-        private final int status;
+        private volatile boolean closed;
 
-        Answer(HttpURLConnection connection, URI uri, int status) {
+        Answer(HttpURLConnection connection, URI uri) {
             this.connection = connection;
             this.uri = uri;
-            this.status = status;
         }
 
         @Override
-        public int status() {
-            return status;
+        public int status() throws IOException {
+            // A connection disconnected before it was sent would connect afresh when asked.
+            if (closed) throw new IOException("closed before it was sent");
+            return connection.getResponseCode();
         }
 
         @Nullable
@@ -122,6 +127,7 @@ final class ReleaseTransport implements ReleaseCheck.Transport {
 
         @Override
         public void close() {
+            closed = true;
             try {
                 connection.disconnect();
             } catch (Throwable ignored) {

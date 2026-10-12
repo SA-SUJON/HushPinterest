@@ -18,6 +18,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -42,6 +43,8 @@ import org.robolectric.shadows.ShadowToast;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.io.SequenceInputStream;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.HttpCookie;
@@ -425,6 +428,96 @@ public class ReleaseCheckTest {
         ReleaseCheckForTests.settle();
         assertEquals(asked + 1, github.asked.size());
         assertEquals("OK", Stored.RESULT.get());
+    }
+
+    /**
+     * How far past its deadline a stalled check may end: the time a busy test machine takes to
+     * schedule the check's threads again. Every stall below would hold the check 10 seconds or more.
+     */
+    private static final long SCHEDULING_MS = 2_000;
+
+    @Test
+    public void aStalledRequestEndsAtTheWholeChecksDeadlineAndIsClosed() throws Exception {
+        ReleaseCheck.deadlineMs = 300;
+
+        // Headers that never come.
+        Reply silent = Reply.stalled();
+        timesOut(new FakeGitHub().then(silent));
+        assertTrue("the stalled exchange was left open", silent.closed());
+
+        // A wait a close can't end, like an address lookup, can't hold the check either.
+        timesOut(new FakeGitHub().then(Reply.release("v0.2.0", null).slow(10_000)));
+
+        // The whole release, but its end held back: an answer that never ends is no answer.
+        Reply held = Reply.release("v0.2.0", null).heldOpen();
+        timesOut(new FakeGitHub().then(held));
+        assertTrue(held.bodyOpened());
+        assertTrue(held.closed());
+        // Every byte in time and the end after the deadline is late too.
+        InputStream lateEnd = new SequenceInputStream(new ByteArrayInputStream(new byte[]{'{', '}'}), new InputStream() {
+            @Override
+            public int read() {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+                return -1;
+            }
+        });
+        assertThrows(InterruptedIOException.class,
+                () -> ReleaseCheck.read(lateEnd, System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(20)));
+
+        // A redirect near the deadline: the next request gets what's left, not a fresh 10 seconds.
+        ReleaseCheck.deadlineMs = 1_000;
+        Reply next = Reply.stalled();
+        FakeGitHub near = new FakeGitHub()
+                .then(Reply.status(301).header("Location", ReleaseCheck.LATEST_RELEASE).slow(700))
+                .then(next);
+        timesOut(near);
+        assertEquals(2, near.asked.size());
+        assertTrue("the first request had " + near.timeouts.get(0) + " ms", near.timeouts.get(0) <= 1_000);
+        assertTrue("the redirect had " + near.timeouts.get(1) + " ms", near.timeouts.get(1) <= 300);
+        assertTrue(next.closed());
+
+        // One that only comes after the deadline isn't followed.
+        ReleaseCheck.deadlineMs = 300;
+        FakeGitHub past = new FakeGitHub()
+                .then(Reply.status(301).header("Location", ReleaseCheck.LATEST_RELEASE).slow(600));
+        timesOut(past);
+        past.threads.get(0).join(10_000);
+        assertEquals("a redirect past the deadline was followed", 1, past.asked.size());
+    }
+
+    private static void timesOut(FakeGitHub github) {
+        long started = System.nanoTime();
+        ReleaseCheck.Answer answer = ReleaseCheck.fetch(github, "0.1.8");
+        long took = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
+        assertEquals(answer.toString(), Result.TIMEOUT, answer.result);
+        assertTrue("a " + ReleaseCheck.deadlineMs + " ms check took " + took + " ms",
+                took < ReleaseCheck.deadlineMs + SCHEDULING_MS);
+    }
+
+    @Test
+    public void aCheckThatRunsOutOfTimeEndsSoCheckNowCanTryAgain() {
+        ReleaseCheck.deadlineMs = 300;
+        Reply silent = Reply.stalled();
+        github.then(silent);
+        assertTrue(ReleaseCheck.checkNow());
+        assertTrue(ReleaseCheck.isRunning());
+        ReleaseCheckForTests.settle();
+        assertFalse("the check that ran out of time still counts as running", ReleaseCheck.isRunning());
+        assertTrue(silent.closed());
+        assertEquals("TIMEOUT", Stored.RESULT.get());
+        assertEquals("Couldn't reach GitHub. Try again later.", ReleaseCheck.checkNowSummary());
+
+        // The next tap asks again at once.
+        github.then(Reply.release("v0.2.0", null));
+        assertTrue(ReleaseCheck.checkNow());
+        ReleaseCheckForTests.settle();
+        assertEquals(2, github.asked.size());
+        assertEquals("OK", Stored.RESULT.get());
+        assertEquals(NEWER, ReleaseCheck.checkNowSummary());
     }
 
     @Test
