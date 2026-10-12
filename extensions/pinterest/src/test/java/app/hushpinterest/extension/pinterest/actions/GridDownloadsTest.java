@@ -501,6 +501,31 @@ public class GridDownloadsTest {
         assertEquals(L10n.f("Selected: %1$d (unsupported: %2$d)", 1, 0), count(picker).getText().toString());
     }
 
+    /**
+     * At twice the text size the three buttons stack. Under a long list all three still show whole,
+     * and the list scrolls, where Android left Queue selected and a sliver of the next one.
+     */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "w411dp-h914dp-xxhdpi")
+    public void stackedButtonsShowWholeUnderALongList() {
+        RuntimeEnvironment.setFontScale(2f);
+        prepare();
+        for (int i = 1; i <= 14; i++) cell(pin("" + i), (i - 1) * 40);
+        AlertDialog picker = choose(grid.getChildAt(0));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        android.widget.Button queue = picker.getButton(AlertDialog.BUTTON_POSITIVE);
+        android.widget.Button cancel = picker.getButton(AlertDialog.BUTTON_NEGATIVE);
+        assertNotEquals("the buttons sat in one row, so this proves little", queue.getTop(), cancel.getTop());
+        for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEUTRAL, AlertDialog.BUTTON_NEGATIVE}) {
+            android.widget.Button button = picker.getButton(which);
+            android.graphics.Rect shown = new android.graphics.Rect();
+            assertTrue(button.getText() + " was off the dialog", button.getGlobalVisibleRect(shown));
+            assertEquals(button.getText() + " was cut off", button.getHeight(), shown.height());
+        }
+        ListView list = picker.getListView();
+        assertTrue("every row fit, so this proves little", list.getLastVisiblePosition() < list.getCount() - 1);
+    }
+
     @Test public void snapshotIncludesOnlyVisibleAttachedPinCellsAndDeduplicatesIds() {
         View first = cell(pin("1"), 0);
         cell(pin("1"), 100);

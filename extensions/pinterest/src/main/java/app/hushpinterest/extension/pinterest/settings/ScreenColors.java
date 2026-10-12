@@ -41,6 +41,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
+import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -526,6 +527,30 @@ final class ScreenColors {
         }
         View field = dialog.findViewById(android.R.id.edit);
         if (field instanceof EditText) paintField((EditText) field);
+        keepButtonsWhole(dialog);
+    }
+
+    /**
+     * Large text stacks a dialog's buttons, and AlertDialogLayout then promises the button strip
+     * only its first button and a peek at the next. A long list or message takes the rest, and the
+     * other buttons are left to scrolling the strip. The strip asks for all of its buttons instead,
+     * up to half the screen, and the list or message above scrolls.
+     */
+    private static void keepButtonsWhole(AlertDialog dialog) {
+        Button button = null;
+        for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL}) {
+            if (button == null) button = dialog.getButton(which);
+        }
+        if (button == null || !(button.getParent() instanceof View)) return;
+        View bar = (View) button.getParent();
+        if (!(bar.getParent() instanceof ScrollView)) return;
+        ScrollView strip = (ScrollView) bar.getParent();
+        int most = dialog.getContext().getResources().getDisplayMetrics().heightPixels / 2;
+        bar.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            int wanted = Math.min(view.getHeight(), most);
+            if (wanted > 0 && strip.getMinimumHeight() != wanted) strip.post(() -> strip.setMinimumHeight(wanted));
+        });
+        bar.requestLayout();
     }
 
     /** A dialog's title, the framework's own or one the dialog draws itself. */
