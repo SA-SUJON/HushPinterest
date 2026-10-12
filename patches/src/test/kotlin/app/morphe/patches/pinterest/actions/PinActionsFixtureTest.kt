@@ -82,7 +82,7 @@ class PinActionsFixtureTest {
             assertEquals("${build.name} mark passes the row register", (built[mark - 1] as OneRegisterInstruction).registerA,
                 (built[mark] as RegisterRangeInstruction).startRegister)
             val downloads = context.mutableClassDefBy("$EXTENSION_PACKAGE/actions/PinDownloads;")
-            val closeup =menu.methods.single { it.name == "hushDownloadCloseup" }.implementation!!.instructions.toList()
+            val closeup = menu.methods.single { it.name == "hushDownloadCloseup" }.implementation!!.instructions.toList()
             assertEquals(listOf(Opcode.IGET_BOOLEAN, Opcode.RETURN), closeup.map { it.opcode })
             assertTrue(references(closeup).any { it.endsWith("->isPinCloseup:Z") })
             val row = downloads.methods.single { it.name == "menuRow" }.implementation!!.instructions.toList()

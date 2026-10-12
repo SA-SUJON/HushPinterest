@@ -3157,11 +3157,11 @@ public class DexDiff {
             }
             String downloads = BASE + "actions/PinDownloads;";
             // Pinterest's own Download image row is marked once, straight off its row factory's result.
-            ClassDef marked = menuLayout();
-            if (marked != null) {
+            ClassDef layout = menuLayout();
+            if (layout != null) {
                 List<Method> inits = new ArrayList<>();
-                for (Method candidate : marked.getMethods()) if (candidate.getName().equals("<init>") && candidate.getImplementation() != null) inits.add(candidate);
-                Method init = actual(unique(inits, "pin menu constructor"));
+                for (Method candidate : layout.getMethods()) if (candidate.getName().equals("<init>") && candidate.getImplementation() != null) inits.add(candidate);
+                Method init = actual(unique(inits, "download menu constructor"));
                 List<Integer> marks = calls(init, downloads + "->nativeRow(Landroid/view/View;)V", 1);
                 if (init != null && marks.size() == 1) {
                     int at = marks.get(0);
@@ -3214,7 +3214,6 @@ public class DexDiff {
                 }
             }
             Method row = actual(downloads + "->menuRow(Landroid/view/ViewGroup;Ljava/lang/String;)Landroid/view/View;");
-            ClassDef layout = menuLayout();
             if (row != null && layout != null) {
                 List<Instruction> body = instructions(row);
                 List<Method> factories = new ArrayList<>();
