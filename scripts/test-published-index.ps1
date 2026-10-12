@@ -200,7 +200,8 @@ try {
     Set-PublishFile '.github/ISSUE_TEMPLATE/bug_report.yml' "version: 0.0.6`n"
     Set-PublishFile 'extensions/source.txt' 'the prepared bundle source'
     Set-PublishFile 'scripts/test-script-contracts.ps1' '# the broken release check'
-    Set-PublishFile 'CHANGELOG.md' "# Changelog`n`n## Unreleased`n`n## 0.0.7 (2026-10-10)`n`n* **Tooling:** Original release notes.`n"
+    # As release_text.py cuts it: the Unreleased heading goes with its notes.
+    Set-PublishFile 'CHANGELOG.md' "# Changelog`n`n## 0.0.7 (2026-10-10)`n`n* **Tooling:** Original release notes.`n"
     Set-PublishFile 'scripts/verify-release-checksums.ps1' @'
 param($AssetDirectory, $ChecksumsPath, $SignaturePath, $TrustedPublicKeyPath, $TrustedFingerprint, $ExpectedAssetNames, $Gpg)
 if ((Get-Content -LiteralPath $SignaturePath -Raw) -cne 'recorded signature') { throw 'The recorded signature changed.' }
@@ -326,7 +327,7 @@ Add-PublishEvent 'verify-index'
     Save-PublishCommit 'test: change the bundle source' | Out-Null
     Assert-PublishRefused (Invoke-PublishCase) '*changed source or index files: extensions/source.txt*'
     Invoke-PublishGit @('reset', '--hard', '--quiet', $corrected) | Out-Null
-    Set-PublishFile 'CHANGELOG.md' "# Changelog`n`n## Unreleased`n`n## 0.0.7 (2026-10-10)`n`n* **Tooling:** Changed published notes.`n"
+    Set-PublishFile 'CHANGELOG.md' "# Changelog`n`n## 0.0.7 (2026-10-10)`n`n* **Tooling:** Changed published notes.`n"
     Save-PublishCommit 'test: rewrite the released notes' | Out-Null
     Assert-PublishRefused (Invoke-PublishCase) '*already released CHANGELOG sections*'
     Invoke-PublishGit @('reset', '--hard', '--quiet', $corrected) | Out-Null

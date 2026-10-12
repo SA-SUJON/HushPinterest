@@ -169,10 +169,12 @@ function Get-PublishReleaseState {
         }
     }
     # A repair's release note belongs in Unreleased; the already published notes must stay intact.
-    $unreleased = '(?ms)(^## Unreleased[^\r\n]*\r?\n).*?(?=^## |\z)'
+    # The release cut removes the Unreleased heading itself, so a repair adds it back: compare both
+    # without the whole section, heading included.
+    $unreleased = '(?ms)^## Unreleased[^\r\n]*\r?\n.*?(?=^## |\z)'
     $before = Get-ReleaseGitText -Root $Root -Arguments @('show', "${index}:CHANGELOG.md")
     $after = Get-ReleaseGitText -Root $Root -Arguments @('show', "${head}:CHANGELOG.md")
-    if ([regex]::Replace($before, $unreleased, '$1') -cne [regex]::Replace($after, $unreleased, '$1')) {
+    if ([regex]::Replace($before, $unreleased, '') -cne [regex]::Replace($after, $unreleased, '')) {
         throw 'Publication recovery refuses changes to already released CHANGELOG sections.'
     }
     return [pscustomobject]@{ Source = $source; Index = $index; Head = $head; Chain = $chain }
