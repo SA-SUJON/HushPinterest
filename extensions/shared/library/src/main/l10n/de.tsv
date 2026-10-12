@@ -468,3 +468,13 @@ Height: %s	Höhe: %s
 Size: %s. Downloads look for the original first.	Größe: %s. Downloads suchen zuerst nach dem Original.
 Size: the original image	Größe: das Originalbild
 The file the picker made for the list couldn't be removed. Delete it in your files app.	Die Datei, die die Dateiauswahl für die Liste angelegt hat, konnte nicht entfernt werden. Lösche sie in deiner Dateien-App.
+Check the file	Datei prüfen
+Checking the file	Datei wird geprüft
+These details were checked from the first part of the file. HushPinterest didn't download the whole file.	Diese Angaben wurden anhand des ersten Teils der Datei geprüft. HushPinterest hat nicht die ganze Datei heruntergeladen.
+File type: %s	Dateityp: %s
+File size: %s	Dateigröße: %s
+Checked file: the %s size Pinterest supplied	Geprüfte Datei: die von Pinterest bereitgestellte Größe %s
+Checked file: the original image	Geprüfte Datei: das Originalbild
+Couldn't check the file, so these are still the details Pinterest supplied.	Die Datei konnte nicht geprüft werden, deshalb stehen hier weiter die Angaben von Pinterest.
+%s, supplied by Pinterest	%s, von Pinterest angegeben
+%s, checked from the file	%s, anhand der Datei geprüft

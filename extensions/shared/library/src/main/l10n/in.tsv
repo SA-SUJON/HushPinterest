@@ -468,3 +468,13 @@ Height: %s	Tinggi: %s
 Size: %s. Downloads look for the original first.	Ukuran: %s. Unduhan mencari versi asli terlebih dahulu.
 Size: the original image	Ukuran: gambar asli
 The file the picker made for the list couldn't be removed. Delete it in your files app.	File yang dibuat pemilih file untuk daftar ini tidak dapat dihapus. Hapus file itu di aplikasi file.
+Check the file	Periksa file
+Checking the file	Memeriksa file
+These details were checked from the first part of the file. HushPinterest didn't download the whole file.	Detail ini diperiksa dari bagian awal file. HushPinterest tidak mengunduh seluruh file.
+File type: %s	Jenis file: %s
+File size: %s	Ukuran file: %s
+Checked file: the %s size Pinterest supplied	File yang diperiksa: ukuran %s dari Pinterest
+Checked file: the original image	File yang diperiksa: gambar asli
+Couldn't check the file, so these are still the details Pinterest supplied.	File tidak dapat diperiksa, jadi ini masih detail yang diberikan Pinterest.
+%s, supplied by Pinterest	%s, dari Pinterest
+%s, checked from the file	%s, diperiksa dari file

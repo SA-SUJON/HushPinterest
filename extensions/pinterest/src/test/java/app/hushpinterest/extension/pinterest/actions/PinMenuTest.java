@@ -13,9 +13,12 @@ import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Looper;
+import android.text.format.Formatter;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -61,6 +64,7 @@ public class PinMenuTest {
         PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS));
         Settings.DOWNLOAD_PINS.save(true);
         ShadowAlertDialog.reset();
+        FileCheck.forgetForTests();
     }
 
     @After public void reset() {
@@ -171,11 +175,205 @@ public class PinMenuTest {
         PinDownloads.attach(host);
         assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
         String text = details();
-        assertTrue(text, text.contains("Width: 1920 pixels"));
+        assertTrue(text, text.contains("Width: 1920 pixels, supplied by Pinterest"));
         assertTrue(text, text.contains("Height: 1080 pixels"));
-        assertTrue(text, text.contains("Link type: video/mp4"));
+        assertTrue(text, text.contains("Link type: video/mp4, supplied by Pinterest"));
         assertFalse(text, text.contains("3840"));
+        assertFalse("a video's file isn't checked", text.contains("File size"));
+        assertNotEquals(View.VISIBLE, ShadowAlertDialog.getLatestAlertDialog()
+                .getButton(AlertDialog.BUTTON_NEUTRAL).getVisibility());
         assertNoDownload();
+    }
+
+    private static final String SOURCE = "https://i.pinimg.com/originals/source.png";
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "en-rUS-w390dp-h844dp-night-xhdpi")
+    public void checkTheFileShowsWhatTheFileHoldsOnlyAfterTheTapAndSaysWhereEachValueCameFrom() throws Exception {
+        try (FileHostForTests files = FileHostForTests.install()) {
+            files.partial(SOURCE, "bytes 0-65535/2500000",
+                    FileHostForTests.padded(FileHostForTests.picture(640, 480, Bitmap.CompressFormat.PNG), 65536));
+            Host host = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
+                    "url", SOURCE, "width", 3000, "height", 2000))));
+            PinDownloads.attach(host);
+            assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+            String supplied = message(dialog);
+            assertTrue(supplied, supplied.startsWith("These details come from the link and file information Pinterest "
+                    + "gave the app. HushPinterest hasn't opened the file to check them."));
+            assertTrue(supplied, supplied.contains("Width: 3000 pixels, supplied by Pinterest"));
+            assertTrue(supplied, supplied.contains("Height: 2000 pixels, supplied by Pinterest"));
+            assertTrue(supplied, supplied.contains("Link type: image/png, supplied by Pinterest"));
+            assertTrue(supplied, supplied.contains("File size: Unknown"));
+            assertTrue("opening the menu and the details asks nothing", files.asked.isEmpty());
+
+            Button check = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            assertEquals(View.VISIBLE, check.getVisibility());
+            assertEquals("Check the file", String.valueOf(check.getText()));
+            NativeDialogCapture.capture("supplied-media-details-check", activity.getWindow().getDecorView(), dialog);
+            assertTrue(check.performClick());
+            assertEquals("Checking the file", String.valueOf(check.getText()));
+            assertFalse(check.isEnabled());
+            assertTrue(check.performClick());
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("a second tap while it runs asks nothing more", 1, files.asked.size());
+            assertTrue("the details stay open", dialog.isShowing());
+            String checked = message(dialog);
+            assertTrue(checked, checked.startsWith("These details were checked from the first part of the file. "
+                    + "HushPinterest didn't download the whole file."));
+            assertTrue(checked, checked.contains("Width: 640 pixels, checked from the file"));
+            assertTrue(checked, checked.contains("Height: 480 pixels, checked from the file"));
+            assertTrue(checked, checked.contains("File type: image/png, checked from the file"));
+            assertTrue(checked, checked.contains("File size: " + Formatter.formatFileSize(activity, 2500000)
+                    + ", checked from the file"));
+            assertTrue(checked, checked.contains("Checked file: the original image"));
+            assertFalse(checked, checked.contains("supplied by Pinterest"));
+            assertFalse(checked, checked.contains("hasn't opened"));
+            assertEquals(View.GONE, check.getVisibility());
+            NativeDialogCapture.capture("checked-media-details", activity.getWindow().getDecorView(), dialog);
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            // Reopened, the details show what was checked, without asking again.
+            assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            AlertDialog reopened = ShadowAlertDialog.getLatestAlertDialog();
+            assertNotSame(dialog, reopened);
+            assertTrue(message(reopened), message(reopened).contains("Width: 640 pixels, checked from the file"));
+            assertNotEquals(View.VISIBLE, reopened.getButton(AlertDialog.BUTTON_NEUTRAL).getVisibility());
+            reopened.dismiss();
+
+            // Fifteen minutes on, it's Pinterest's details again, and the check is offered again.
+            files.now.addAndGet(FileCheck.FRESH_MS);
+            assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            AlertDialog expired = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(message(expired), message(expired).contains("Width: 3000 pixels, supplied by Pinterest"));
+            assertEquals(View.VISIBLE, expired.getButton(AlertDialog.BUTTON_NEUTRAL).getVisibility());
+            assertEquals(1, files.asked.size());
+            assertEquals(0, host.dismissed);
+            assertNoDownload();
+        }
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aStandInsCheckNamesTheSizeItReadAndAFailedCheckKeepsTheSuppliedDetails() throws Exception {
+        try (FileHostForTests files = FileHostForTests.install(); MediaHostForTests lookup = MediaHostForTests.install()) {
+            files.answer(MediaHostForTests.STAND_IN, url ->
+                    new FileHostForTests.Answer(url, 500, new FileHostForTests.Body(new byte[0])));
+            Host host = host(Map.of("id", "123", "images", Map.of(
+                    "736x", Map.of("url", MediaHostForTests.STAND_IN, "width", 736, "height", 1104))));
+            PinDownloads.attach(host);
+            assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(lookup.asked.isEmpty());
+            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+            Button check = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            assertTrue(check.performClick());
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            String failed = message(dialog);
+            assertTrue(failed, failed.startsWith("Couldn't check the file, so these are still the details Pinterest supplied."));
+            assertTrue(failed, failed.contains("Width: 736 pixels, supplied by Pinterest"));
+            assertTrue(failed, failed.contains("Size: 736x. Downloads look for the original first."));
+            assertTrue(failed, failed.contains("File size: Unknown"));
+            assertFalse(failed, failed.contains("hasn't opened"));
+            assertFalse(failed, failed.contains("checked from the file"));
+            assertEquals(View.VISIBLE, check.getVisibility());
+            assertTrue(check.isEnabled());
+            assertEquals("Check the file", String.valueOf(check.getText()));
+            assertEquals(1, files.asked.size());
+
+            // A second try reads the same size, as a download would with the original still missing.
+            files.partial(MediaHostForTests.STAND_IN, "bytes 0-65535/*",
+                    FileHostForTests.padded(FileHostForTests.picture(736, 1104, Bitmap.CompressFormat.JPEG), 65536));
+            assertTrue(check.performClick());
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(2, files.asked.size());
+            String checked = message(dialog);
+            assertTrue(checked, checked.contains("Width: 736 pixels, checked from the file"));
+            assertTrue(checked, checked.contains("File type: image/jpeg, checked from the file"));
+            assertTrue("a 206 without a total leaves the size unknown: " + checked, checked.contains("File size: Unknown"));
+            assertTrue(checked, checked.contains("Checked file: the 736x size Pinterest supplied"));
+            assertFalse(checked, checked.contains("the original image"));
+            assertNoDownload();
+        }
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void checkTheFileAsksNothingOnceDownloadPinsIsOffOrPaused() throws Exception {
+        try (FileHostForTests files = FileHostForTests.install()) {
+            files.partial(SOURCE, "bytes 0-65535/1234567",
+                    FileHostForTests.padded(FileHostForTests.picture(64, 48, Bitmap.CompressFormat.PNG), 65536));
+            Host host = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
+                    "url", SOURCE, "width", 3000, "height", 2000))));
+            PinDownloads.attach(host);
+            assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+            Button check = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+
+            Settings.DOWNLOAD_PINS.save(false);
+            assertTrue(check.performClick());
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            String off = message(dialog);
+            assertTrue(off, off.startsWith("Couldn't check the file, so these are still the details Pinterest supplied."));
+            assertTrue(off, off.contains("Width: 3000 pixels, supplied by Pinterest"));
+
+            Settings.DOWNLOAD_PINS.save(true);
+            PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+            assertTrue(check.performClick());
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(message(dialog).startsWith("Couldn't check the file"));
+            assertTrue(files.asked.isEmpty());
+
+            PauseForTests.resume();
+            assertTrue(check.performClick());
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("the control: on and running, the tap asks", 1, files.asked.size());
+            assertTrue(message(dialog).contains("Width: 64 pixels, checked from the file"));
+        }
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aCheckThatEndsAfterTheScreenClosesTouchesNothingButIsRemembered() throws Exception {
+        try (FileHostForTests files = FileHostForTests.install()) {
+            files.partial(SOURCE, "bytes 0-65535/1234567",
+                    FileHostForTests.padded(FileHostForTests.picture(64, 48, Bitmap.CompressFormat.PNG), 65536));
+            Host host = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
+                    "url", SOURCE, "width", 3000, "height", 2000))));
+            PinDownloads.attach(host);
+            assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+            String before = message(dialog);
+            assertTrue(dialog.getButton(AlertDialog.BUTTON_NEUTRAL).performClick());
+            activity.finish();
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(1, files.asked.size());
+            assertEquals("a finishing screen's details aren't touched", before, message(dialog));
+
+            Activity next = Robolectric.buildActivity(Activity.class).setup().get();
+            Utils.setActivity(next);
+            assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            AlertDialog reopened = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(message(reopened), message(reopened).contains("Width: 64 pixels, checked from the file"));
+            assertEquals(1, files.asked.size());
+        }
+    }
+
+    private static String message(AlertDialog dialog) {
+        TextView view = dialog.findViewById(android.R.id.message);
+        assertNotNull("the details have no message", view);
+        return String.valueOf(view.getText());
     }
 
     @Test public void adaptiveOnlyPinGetsAnAccessibleExplanationAndNeverDownloadsItsThumbnail() {

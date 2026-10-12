@@ -468,3 +468,13 @@ Height: %s	Alto: %s
 Size: %s. Downloads look for the original first.	Tamaño: %s. Las descargas buscan primero el original.
 Size: the original image	Tamaño: la imagen original
 The file the picker made for the list couldn't be removed. Delete it in your files app.	No se pudo quitar el archivo que el selector creó para la lista. Bórralo en tu app de archivos.
+Check the file	Comprobar el archivo
+Checking the file	Comprobando el archivo
+These details were checked from the first part of the file. HushPinterest didn't download the whole file.	Estos datos se comprobaron con la primera parte del archivo. HushPinterest no descargó el archivo completo.
+File type: %s	Tipo de archivo: %s
+File size: %s	Tamaño del archivo: %s
+Checked file: the %s size Pinterest supplied	Archivo comprobado: el tamaño %s que dio Pinterest
+Checked file: the original image	Archivo comprobado: la imagen original
+Couldn't check the file, so these are still the details Pinterest supplied.	No se pudo comprobar el archivo, así que estos siguen siendo los datos que dio Pinterest.
+%s, supplied by Pinterest	%s, según Pinterest
+%s, checked from the file	%s, comprobado en el archivo

@@ -15,9 +15,14 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.text.format.Formatter;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
+import androidx.annotation.Nullable;
+
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -181,25 +186,126 @@ public final class PinDownloads {
             if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
                 throw new IllegalStateException("Activity unavailable");
             }
-            String text = L10n.t("These details come from the link and file information Pinterest gave the app. "
-                + "HushPinterest hasn't opened the file to check them.")
-                    + "\n\n" + L10n.f("Width: %s", media.width == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.width))
-                    + "\n" + L10n.f("Height: %s", media.height == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.height))
-                    + "\n" + L10n.f("Link type: %s", media.urlType == null ? L10n.t("Unknown") : media.urlType);
-            if (media.source != null && media.size != null) text += "\n" + (PinMedia.standIn(media)
-                    ? L10n.f("Size: %s. Downloads look for the original first.", media.size)
-                    : L10n.t("Size: the original image"));
-            if (media.refusal != null) text = refusalMessage(media.refusal) + "\n\n" + text;
-            AlertDialog details = HushDialogs.builder(activity)
+            // Facts an earlier check found are shown again until they expire. Opening never asks.
+            FileCheck.Facts known = FileCheck.known(media);
+            boolean checkable = known == null && FileCheck.checkable(media);
+            AlertDialog.Builder builder = HushDialogs.builder(activity)
                     .setTitle(L10n.t("Media details"))
-                    .setMessage(text)
-                    .setPositiveButton(L10n.t("Close"), (dialog, which) -> dialog.dismiss())
-                    .create();
+                    .setMessage(detailsText(activity, media, known, false))
+                    .setPositiveButton(L10n.t("Close"), (dialog, which) -> dialog.dismiss());
+            // Its listener is replaced once the dialog shows, so a tap checks without closing it.
+            if (checkable) builder.setNeutralButton(L10n.t("Check the file"), null);
+            AlertDialog details = builder.create();
             details.show();
             HushDialogs.paint(details);
+            if (checkable) offerCheck(activity, details, media);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "show supplied media details", failure);
             Utils.showToastLong(L10n.t("Couldn't show the supplied media details. Open the pin again, then retry."));
+        }
+    }
+
+    /**
+     * The details' text. Each value says where it came from: supplied by Pinterest, checked from
+     * the file, or unknown. [checked] replaces the supplied values, and [failed] says a check
+     * didn't work, above the supplied ones.
+     */
+    static String detailsText(Context context, PinMedia.Resolution media, @Nullable FileCheck.Facts checked, boolean failed) {
+        StringBuilder text = new StringBuilder();
+        if (media.refusal != null) text.append(refusalMessage(media.refusal)).append("\n\n");
+        if (checked != null) {
+            text.append(L10n.t("These details were checked from the first part of the file. "
+                    + "HushPinterest didn't download the whole file."))
+                    .append("\n\n").append(L10n.f("Width: %s", fromFile(L10n.f("%d pixels", checked.width))))
+                    .append("\n").append(L10n.f("Height: %s", fromFile(L10n.f("%d pixels", checked.height))))
+                    .append("\n").append(L10n.f("File type: %s", fromFile(checked.mime)))
+                    .append("\n").append(L10n.f("File size: %s", checked.size == null ? L10n.t("Unknown")
+                            : fromFile(Formatter.formatFileSize(context, checked.size))))
+                    // A stand-in whose original the media host didn't give was checked as itself.
+                    .append("\n").append(PinMedia.standIn(media) && checked.url.equals(media.source.url)
+                            ? L10n.f("Checked file: the %s size Pinterest supplied", media.size)
+                            : L10n.t("Checked file: the original image"));
+            return text.toString();
+        }
+        text.append(failed ? L10n.t("Couldn't check the file, so these are still the details Pinterest supplied.")
+                : L10n.t("These details come from the link and file information Pinterest gave the app. "
+                + "HushPinterest hasn't opened the file to check them."));
+        text.append("\n\n").append(L10n.f("Width: %s", media.width == null ? L10n.t("Unknown")
+                        : supplied(L10n.f("%d pixels", media.width))))
+                .append("\n").append(L10n.f("Height: %s", media.height == null ? L10n.t("Unknown")
+                        : supplied(L10n.f("%d pixels", media.height))))
+                .append("\n").append(L10n.f("Link type: %s", media.urlType == null ? L10n.t("Unknown")
+                        : supplied(media.urlType)));
+        if (media.source != null && media.size != null) text.append("\n").append(PinMedia.standIn(media)
+                ? L10n.f("Size: %s. Downloads look for the original first.", media.size)
+                : L10n.t("Size: the original image"));
+        // Pinterest never says how big the file is. Only a check can.
+        if (FileCheck.checkable(media)) text.append("\n").append(L10n.f("File size: %s", L10n.t("Unknown")));
+        return text.toString();
+    }
+
+    private static String supplied(String value) {
+        return L10n.f("%s, supplied by Pinterest", value);
+    }
+
+    private static String fromFile(String value) {
+        return L10n.f("%s, checked from the file", value);
+    }
+
+    /**
+     * Check the file reads the start of the file a download would save, on a worker thread, and
+     * puts what it found in the open details. Only this tap asks the media host: opening the menu
+     * or the details, sharing and downloading never do.
+     */
+    private static void offerCheck(Activity activity, AlertDialog details, PinMedia.Resolution media) {
+        Button check = details.getButton(AlertDialog.BUTTON_NEUTRAL);
+        if (check == null) return;
+        // A tap already queued reaches the listener even after the button is disabled.
+        AtomicBoolean running = new AtomicBoolean();
+        check.setOnClickListener(ignored -> {
+            if (!running.compareAndSet(false, true)) return;
+            if (!active()) {
+                checked(activity, details, media, null, running);
+                return;
+            }
+            check.setEnabled(false);
+            check.setText(L10n.t("Checking the file"));
+            boolean queued = Utils.runOnBackgroundThread(() -> {
+                FileCheck.Facts[] found = new FileCheck.Facts[1];
+                try {
+                    // Switched off or paused since the tap: no request.
+                    if (active()) found[0] = FileCheck.check(media);
+                } catch (IOException unanswered) {
+                    HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "media file check failed");
+                } catch (RuntimeException failure) {
+                    HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "check media file", failure);
+                } finally {
+                    Utils.runOnMainThread(() -> checked(activity, details, media, found[0], running));
+                }
+            });
+            if (!queued) checked(activity, details, media, null, running);
+        });
+    }
+
+    /** Shows what a check found, or that it didn't work. Nothing once the details or the screen have closed. */
+    private static void checked(Activity activity, AlertDialog details, PinMedia.Resolution media,
+                                @Nullable FileCheck.Facts facts, AtomicBoolean running) {
+        try {
+            if (activity.isFinishing() || activity.isDestroyed() || !details.isShowing()) return;
+            details.setMessage(detailsText(activity, media, facts, facts == null));
+            Button check = details.getButton(AlertDialog.BUTTON_NEUTRAL);
+            if (facts != null) {
+                HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "media file checked");
+                if (check != null) check.setVisibility(View.GONE);
+                return;
+            }
+            if (check != null) {
+                check.setText(L10n.t("Check the file"));
+                check.setEnabled(true);
+            }
+            running.set(false);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "show checked media details", failure);
         }
     }
 

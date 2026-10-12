@@ -9,14 +9,18 @@ package app.hushpinterest.extension.pinterest.actions;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.CookieHandler;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.LongSupplier;
 
 import app.hushpinterest.extension.pinterest.settings.NoCookies;
 
@@ -24,7 +28,8 @@ import app.hushpinterest.extension.pinterest.settings.NoCookies;
  * HEAD requests for downloads and Plain pin links: whether the media host has an original behind a
  * supplied size, and where a pin.it short link leads. Neither follows a redirect or reads a body,
  * and neither carries a cookie ({@link NoCookies}). The downloads themselves go through Android's
- * DownloadManager.
+ * DownloadManager. Media details' Check the file adds one GET for the start of a file, with the
+ * same limits and a bounded read ({@link #prefix}).
  */
 public final class PinTransfer {
     private PinTransfer() {}
@@ -120,5 +125,78 @@ public final class PinTransfer {
         } finally {
             close(head, uri, kept, answered);
         }
+    }
+
+    /** The most of a file a check reads. Image headers sit well inside it. */
+    static final int PREFIX_BYTES = 65536;
+
+    /** How long reading the start of a file may take in all, however slowly its bytes arrive. */
+    static final long PREFIX_DEADLINE_MS = 15000;
+
+    /** What the media host answered a ranged GET with, and at most {@link #PREFIX_BYTES} of its body. */
+    static final class Prefix {
+        final int status;
+        /** The Content-Range header, or null. */
+        @Nullable final String range;
+        /** The Content-Length header, or -1. For a 206 it's the part sent, never the whole file. */
+        final long length;
+        /** The Content-Encoding header, or null. */
+        @Nullable final String encoding;
+        final byte[] bytes;
+
+        Prefix(int status, @Nullable String range, long length, @Nullable String encoding, byte[] bytes) {
+            this.status = status;
+            this.range = range;
+            this.length = length;
+            this.encoding = encoding;
+            this.bytes = bytes;
+        }
+    }
+
+    /**
+     * One GET for the first {@link #PREFIX_BYTES} bytes of the media file at [source], for Media
+     * details' Check the file. Like the HEAD requests it follows no redirect and carries no cookie.
+     * It reads no more than {@link #PREFIX_BYTES} bytes of the body, whatever the host sends, and
+     * gives up after {@link #PREFIX_DEADLINE_MS} however slowly they come. An answer other than
+     * 200 or 206 comes back with no body read.
+     */
+    static Prefix prefix(PinMedia.Source source, Connection factory, LongSupplier clock) throws IOException {
+        URI uri = PinMedia.mediaUri(source.url);
+        if (uri == null) throw new IOException("Not a public Pinterest media URL");
+        long deadline = clock.getAsLong() + PREFIX_DEADLINE_MS;
+        List<HttpCookie> kept = NoCookies.kept(CookieHandler.getDefault(), uri);
+        HttpURLConnection get = open(uri, factory);
+        Set<String> answered = Collections.emptySet();
+        try {
+            get.setRequestMethod("GET");
+            get.setInstanceFollowRedirects(false);
+            get.setUseCaches(false);
+            get.setConnectTimeout(5000);
+            get.setReadTimeout(5000);
+            get.setRequestProperty("Accept-Encoding", "identity");
+            get.setRequestProperty("Range", "bytes=0-" + (PREFIX_BYTES - 1));
+            int status = get.getResponseCode();
+            answered = NoCookies.setBy(get.getHeaderFields());
+            if (status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_PARTIAL) {
+                return new Prefix(status, null, -1, null, new byte[0]);
+            }
+            return new Prefix(status, get.getHeaderField("Content-Range"), get.getContentLengthLong(),
+                    get.getContentEncoding(), read(get.getInputStream(), clock, deadline));
+        } finally {
+            // Disconnecting drops what a 200 answer still had to send, without reading it.
+            close(get, uri, kept, answered);
+        }
+    }
+
+    private static byte[] read(InputStream body, LongSupplier clock, long deadline) throws IOException {
+        byte[] buffer = new byte[PREFIX_BYTES];
+        int filled = 0;
+        while (filled < PREFIX_BYTES) {
+            if (clock.getAsLong() > deadline) throw new SocketTimeoutException("The media host sent the file too slowly");
+            int read = body.read(buffer, filled, PREFIX_BYTES - filled);
+            if (read < 0) break;
+            filled += read;
+        }
+        return Arrays.copyOf(buffer, filled);
     }
 }

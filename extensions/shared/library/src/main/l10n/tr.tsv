@@ -468,3 +468,13 @@ Height: %s	Yükseklik: %s
 Size: %s. Downloads look for the original first.	Boyut: %s. İndirmeler önce özgün görseli arar.
 Size: the original image	Boyut: özgün görsel
 The file the picker made for the list couldn't be removed. Delete it in your files app.	Seçicinin liste için oluşturduğu dosya kaldırılamadı. Dosyalar uygulamandan sil.
+Check the file	Dosyayı denetle
+Checking the file	Dosya denetleniyor
+These details were checked from the first part of the file. HushPinterest didn't download the whole file.	Bu ayrıntılar dosyanın ilk kısmından denetlendi. HushPinterest dosyanın tamamını indirmedi.
+File type: %s	Dosya türü: %s
+File size: %s	Dosya boyutu: %s
+Checked file: the %s size Pinterest supplied	Denetlenen dosya: Pinterest'in sağladığı %s boyutu
+Checked file: the original image	Denetlenen dosya: özgün görsel
+Couldn't check the file, so these are still the details Pinterest supplied.	Dosya denetlenemedi, bu yüzden bunlar hâlâ Pinterest'in sağladığı ayrıntılar.
+%s, supplied by Pinterest	%s, Pinterest'e göre
+%s, checked from the file	%s, dosyadan denetlendi
