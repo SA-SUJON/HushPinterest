@@ -10,7 +10,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Rect;
-import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -21,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
+import app.hushpinterest.extension.pinterest.settings.HushDialogs;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
@@ -114,7 +114,7 @@ final class GridDownloads {
                 labels[i] = (text.isEmpty() ? "" : L10n.isolate(text) + "\n") + L10n.f("Pin %s", L10n.isolate(PinMedia.id(pins.get(i))));
             }
             boolean[] selected = new boolean[pins.size()];
-            AlertDialog picker = new AlertDialog.Builder(new ContextThemeWrapper(activity, android.R.style.Theme_Material_Dialog_Alert))
+            AlertDialog picker = HushDialogs.builder(activity)
                     .setTitle(L10n.f("Select visible pins (up to %d)", DownloadLedger.LIMIT))
                     .setMultiChoiceItems(labels, selected, (dialog, which, checked) -> {
                         selected[which] = checked;
@@ -128,7 +128,9 @@ final class GridDownloads {
                         if (!chosen.isEmpty()) queue(activity, chosen, L10n.t("Download visible pins"), null, 0, true);
                     })
                     .setNegativeButton(L10n.t("Cancel"), null).create();
+            HushDialogs.prepareChoices(picker);
             picker.show();
+            HushDialogs.paint(picker);
             picker.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
             return true;
         } catch (Throwable failure) {
@@ -180,12 +182,13 @@ final class GridDownloads {
 
         void begin() {
             try {
-                progress = new AlertDialog.Builder(new ContextThemeWrapper(activity.get(), android.R.style.Theme_Material_Dialog_Alert))
+                progress = HushDialogs.builder(activity.get())
                         .setTitle(title)
                         .setMessage(summary())
                         .setNegativeButton(L10n.t("Stop selection"), (dialog, which) -> stopped = true).create();
                 progress.setOnCancelListener(dialog -> stopped = true);
                 progress.show();
+                HushDialogs.paint(progress);
                 next();
             } catch (RuntimeException failure) {
                 HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "show batch progress", failure);

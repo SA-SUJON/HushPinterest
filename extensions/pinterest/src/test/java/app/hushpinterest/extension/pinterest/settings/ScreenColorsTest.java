@@ -14,17 +14,24 @@
 package app.hushpinterest.extension.pinterest.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckedTextView;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -38,6 +45,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowLooper;
 
 import java.util.ArrayList;
@@ -67,6 +75,7 @@ public class ScreenColorsTest {
     @After
     public void restore() {
         PatchFamily.inBuildForTests = null;
+        RuntimeEnvironment.setFontScale(1f);
     }
 
     /** WCAG's relative luminance of an opaque sRGB colour, 0 for black to 1 for white. */
@@ -100,7 +109,7 @@ public class ScreenColorsTest {
         // is read against that.
         text.put("dialog choice's name on its card", new int[]{c.title, c.card});
         text.put("dialog choice's detail on its card", new int[]{c.summary, c.card});
-        text.put("primary action text on its fill", new int[]{c.onAccent, c.accent});
+        text.put("primary action text on its fill", new int[]{c.onAccent, c.actionFill});
         text.put("secondary action on the dialog", new int[]{c.secondaryActionText(), c.dialog});
         text.put("secondary recovery action on its card", new int[]{c.secondaryActionText(), c.card});
         return text;
@@ -113,6 +122,7 @@ public class ScreenColorsTest {
         // The thumb shows where the switch is, so it needs 3:1 against the track it sits on.
         parts.put("switch off's thumb, against its track", new int[]{c.offThumb(), c.switchOff});
         parts.put("chevron of a row a tap opens something from, against its card", new int[]{c.summary, c.card});
+        parts.put("icon against its blue badge", new int[]{c.heading, c.iconBadge});
         return parts;
     }
 
@@ -138,10 +148,10 @@ public class ScreenColorsTest {
     @Test
     public void theBlackPagesRatios() {
         ScreenColors page = ScreenColors.DEFAULT;
-        assertEquals(19.24, contrast(page.title, page.background), 0.01);
-        assertEquals(9.50, contrast(page.summary, page.background), 0.01);
-        assertEquals(8.58, contrast(page.heading, page.background), 0.01);
-        assertEquals(4.85, contrast(page.onAccent, page.accent), 0.01);
+        assertEquals(19.25, contrast(page.title, page.background), 0.01);
+        assertEquals(10.04, contrast(page.summary, page.background), 0.01);
+        assertEquals(8.92, contrast(page.heading, page.background), 0.01);
+        assertEquals(4.73, contrast(page.onAccent, page.actionFill), 0.01);
         assertEquals(3.34, contrast(page.offThumb(), page.switchOff), 0.01);
     }
 
@@ -211,6 +221,9 @@ public class ScreenColorsTest {
                             .getColorForState(new int[]{android.R.attr.state_enabled, android.R.attr.state_checked}, 0));
                     assertEquals(ScreenColors.half(colors.accent), ((Switch) widget).getTrackTintList()
                             .getColorForState(new int[]{android.R.attr.state_checked}, 0));
+                    int touch = Math.round(48 * widget.getResources().getDisplayMetrics().density);
+                    assertTrue("switch width below 48dp", widget.getWidth() >= touch);
+                    assertTrue("switch height below 48dp", widget.getHeight() >= touch);
                     switches++;
                 }
             }
@@ -248,6 +261,104 @@ public class ScreenColorsTest {
         }
     }
 
+    @Test
+    public void everyRowKeepsItsOwnRoundedCardEvenInTheMiddleOfASection() {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        android.preference.Preference preference = new android.preference.Preference(context);
+        float density = context.getResources().getDisplayMetrics().density;
+        for (boolean first : new boolean[]{false, true}) {
+            for (boolean last : new boolean[]{false, true}) {
+                View row = new View(context);
+                ScreenColors.DEFAULT.paintSurface(row, preference, first, last);
+                InsetDrawable inset = (InsetDrawable) ((RippleDrawable) row.getBackground()).getDrawable(0);
+                Rect padding = new Rect();
+                inset.getPadding(padding);
+                assertEquals(new Rect(Math.round(16 * density), Math.round(3 * density),
+                        Math.round(16 * density), Math.round(3 * density)), padding);
+                GradientDrawable surface = (GradientDrawable) inset.getDrawable();
+                assertEquals(Math.round(12 * density), surface.getCornerRadius(), 0.01f);
+                assertEquals(ScreenColors.DEFAULT.card, surface.getColor().getDefaultColor());
+            }
+        }
+    }
+
+    @Test
+    @Config(qualifiers = "w390dp-h844dp-xhdpi")
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void styledRadioChoicesKeepTheirSelectionAndNativeClickListener() {
+        RuntimeEnvironment.setFontScale(2f);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            int[] clicked = {-1};
+            AlertDialog dialog = new AlertDialog.Builder(controller.get(), ScreenColors.THEME)
+                    .setTitle("Choose a layout")
+                    .setSingleChoiceItems(new String[]{"Compact", "A comfortable layout with more space for each pin"},
+                            1, (shown, which) -> clicked[0] = which).create();
+            dialog.create();
+            ScreenColors.choices(dialog);
+            android.widget.ListAdapter adapter = dialog.getListView().getAdapter();
+            assertTrue(adapter instanceof DialogChoices);
+            assertEquals(1, dialog.getListView().getCheckedItemPosition());
+            dialog.show();
+            try {
+                ScreenColors.DEFAULT.paint(dialog);
+                ShadowLooper.idleMainLooper();
+                assertSame("choices were wrapped twice", adapter, dialog.getListView().getAdapter());
+                ListView list = dialog.getListView();
+                int width = dialog.getWindow().getAttributes().width;
+                list.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(1600, View.MeasureSpec.EXACTLY));
+                list.layout(0, 0, width, 1600);
+                CheckedTextView selected = (CheckedTextView) list.getChildAt(1);
+                assertTrue(selected.isChecked());
+                assertTrue("the long choice did not wrap", selected.getLineCount() > 1);
+                assertNotNull(selected.getLayout());
+                for (int line = 0; line < selected.getLayout().getLineCount(); line++) {
+                    assertEquals(0, selected.getLayout().getEllipsisCount(line));
+                }
+                assertEquals(ScreenColors.DEFAULT.accent, selected.getCheckMarkTintList().getColorForState(
+                        new int[]{android.R.attr.state_enabled, android.R.attr.state_checked}, 0));
+                list.performItemClick(list.getChildAt(0), 0, adapter.getItemId(0));
+                assertEquals(0, clicked[0]);
+                assertEquals(0, list.getCheckedItemPosition());
+            } finally {
+                dialog.dismiss();
+            }
+        }
+    }
+
+    @Test
+    public void styledCheckboxChoicesKeepTheFrameworksSelectionArrayAndCallback() {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            boolean[] selected = {true, false};
+            int[] clicked = {-1};
+            AlertDialog dialog = new AlertDialog.Builder(controller.get(), ScreenColors.THEME)
+                    .setTitle("Choose actions")
+                    .setMultiChoiceItems(new String[]{"Download", "Copy link"}, selected,
+                            (shown, which, checked) -> clicked[0] = which).create();
+            dialog.create();
+            ScreenColors.choices(dialog);
+            dialog.show();
+            try {
+                ScreenColors.DEFAULT.paint(dialog);
+                ListView list = dialog.getListView();
+                list.measure(View.MeasureSpec.makeMeasureSpec(780, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(1600, View.MeasureSpec.EXACTLY));
+                list.layout(0, 0, 780, 1600);
+                assertTrue(list.getAdapter() instanceof DialogChoices);
+                assertTrue(list.isItemChecked(0));
+                assertFalse(list.isItemChecked(1));
+                list.performItemClick(list.getChildAt(1), 1, list.getAdapter().getItemId(1));
+                assertEquals(1, clicked[0]);
+                assertTrue(selected[0]);
+                assertTrue(selected[1]);
+                assertTrue(list.isItemChecked(0));
+                assertTrue(list.isItemChecked(1));
+            } finally {
+                dialog.dismiss();
+            }
+        }
+    }
+
     /**
      * The recovery page's title and message are centred, and so is the space they're centred in.
      * Wrapping its own text, the message sat at the start while the title, wide enough to fill the
@@ -276,7 +387,7 @@ public class ScreenColorsTest {
      * end padding on the icon itself and leaves out the -4dp start margin preference_material gives
      * the icon's frame, which it nests in a line of its own. On an S25 the padding squeezed the
      * glyph to a third of its box and the text started 11px right of its neighbors'. Painted, both
-     * shapes draw a full 24dp icon inside its line and start their text at the same place.
+     * shapes draw a full 24dp glyph in a 40dp badge and start their text at the same place.
      */
     @Test
     public void samsungsLargeTextSwitchRowKeepsItsIconAndTextEdge() {
@@ -291,6 +402,7 @@ public class ScreenColorsTest {
             android.widget.LinearLayout row = new android.widget.LinearLayout(context);
             row.setOrientation(samsungLarge ? android.widget.LinearLayout.VERTICAL : android.widget.LinearLayout.HORIZONTAL);
             android.widget.LinearLayout line = samsungLarge ? new android.widget.LinearLayout(context) : row;
+            line.setGravity(android.view.Gravity.CENTER_VERTICAL);
             android.widget.LinearLayout frame = new android.widget.LinearLayout(context);
             frame.setId(android.R.id.icon_frame);
             android.widget.ImageView icon = new android.widget.ImageView(context);
@@ -312,6 +424,13 @@ public class ScreenColorsTest {
             title.setId(android.R.id.title);
             title.setText(preference.getTitle());
             text.addView(title);
+            TextView summary = new TextView(context);
+            summary.setId(android.R.id.summary);
+            summary.setText("A longer summary\nthat takes several lines\nand keeps the icon\nbeside the title.");
+            android.widget.RelativeLayout.LayoutParams under = new android.widget.RelativeLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+            under.addRule(android.widget.RelativeLayout.BELOW, android.R.id.title);
+            text.addView(summary, under);
             line.addView(text, new android.widget.LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1));
             if (samsungLarge) {
                 row.addView(line);
@@ -326,12 +445,22 @@ public class ScreenColorsTest {
             row.layout(0, 0, 1080, row.getMeasuredHeight());
 
             String which = samsungLarge ? "the large-text row" : "the standard row";
-            assertEquals(which + " pads its icon", 0, icon.getPaddingStart() + icon.getPaddingEnd()
-                    + icon.getPaddingTop() + icon.getPaddingBottom());
-            assertEquals(which + "'s icon box", 24 * dp, icon.getWidth());
+            assertEquals(which + "'s badge padding", 8 * dp, icon.getPaddingStart());
+            assertEquals(which + "'s badge padding", 8 * dp, icon.getPaddingEnd());
+            assertEquals(which + "'s badge padding", 8 * dp, icon.getPaddingTop());
+            assertEquals(which + "'s badge padding", 8 * dp, icon.getPaddingBottom());
+            assertEquals(which + "'s badge box", 40 * dp, icon.getWidth());
+            assertEquals(which + "'s glyph box", 24 * dp, icon.getWidth() - icon.getPaddingStart() - icon.getPaddingEnd());
+            assertEquals(ScreenColors.DEFAULT.iconBadge, ((GradientDrawable) icon.getBackground()).getColor().getDefaultColor());
             assertTrue(which + " moves its icon past the edge of the line that clips it", frame.getLeft() >= 0);
+            int iconTop = 0;
+            for (View at = icon; at != row; at = (View) at.getParent()) iconTop += at.getTop();
+            assertEquals(which + " centres its icon down a multiline card", row.getPaddingTop(), iconTop);
             int x = 0;
             for (View at = title; at != row; at = (View) at.getParent()) x += at.getLeft();
+            int iconLeft = 0;
+            for (View at = icon; at != row; at = (View) at.getParent()) iconLeft += at.getLeft();
+            assertEquals(which + "'s gap after the badge", 12 * dp, x - iconLeft - icon.getWidth());
             textStart[shape] = x;
         }
         assertEquals("the large-text row's text starts somewhere else", textStart[0], textStart[1]);

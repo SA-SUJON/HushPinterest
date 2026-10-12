@@ -16,6 +16,7 @@ import android.content.pm.verify.domain.DomainVerificationManager;
 import android.content.pm.verify.domain.DomainVerificationUserState;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
@@ -92,7 +93,9 @@ public class SetupGuidancePreferenceTest {
         RuntimeEnvironment.setFontScale(1f);
     }
 
-    @Test public void guidanceIsOptionalAndOpeningOrDismissingItChangesNoSavedChoices() throws Exception {
+    @Test
+    @Config(qualifiers = "w390dp-h844dp-xhdpi")
+    public void guidanceIsOptionalAndOpeningOrDismissingItChangesNoSavedChoices() throws Exception {
         show();
         Settings.HIDE_ADS.save(!Settings.HIDE_ADS.defaultValue);
         Map<String, ?> before = new LinkedHashMap<>(Setting.preferences.preferences.getAll());
@@ -314,7 +317,13 @@ public class SetupGuidancePreferenceTest {
         scroll.setSmoothScrollingEnabled(false);
         scroll.fullScroll(View.FOCUS_DOWN);
         Button last = button(guide, "Pinterest data export help");
-        assertTrue(last.getBottom() <= scroll.getScrollY() + scroll.getHeight());
+        Rect lastBounds = new Rect();
+        last.getDrawingRect(lastBounds);
+        scroll.offsetDescendantRectToMyCoords(last, lastBounds);
+        assertTrue("reaching the last action didn't scroll the guide", scroll.getScrollY() > 0);
+        assertTrue("the last action starts above the visible guide", lastBounds.top >= scroll.getScrollY() + scroll.getPaddingTop());
+        assertTrue("the last action extends below the visible guide",
+                lastBounds.bottom <= scroll.getScrollY() + scroll.getHeight() - scroll.getPaddingBottom());
         last.performClick();
         assertEquals("https://help.pinterest.com/en/article/download-your-pinterest-data", GuideActivity.attempts.get(0).getDataString());
         assertTrue(guide.getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled());

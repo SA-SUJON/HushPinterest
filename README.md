@@ -8,16 +8,6 @@
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.34.0%2B-8A2BE2" alt="For Morphe Manager 1.34.0 or newer">
 </p>
 
-<p>
-  <a href="https://ko-fi.com/X8K126YVER">
-    <img height="42" src="https://storage.ko-fi.com/cdn/kofi2.png?v=3" alt="Buy me a coffee on Ko-fi" />
-  </a>
-</p>
-
-<p>
-  <sub><em>If HushPinterest makes Pinterest better for you, a coffee helps me keep testing patches and maintaining them as Pinterest changes.</em></sub>
-</p>
-
 # <img src="assets/icon.png" width="36" alt=""> HushPinterest
 
 HushPinterest is a Morphe patch bundle for Android that takes promoted pins out of Pinterest and can hide the pins Pinterest labels as AI. It also adds pin downloads, browser and sharing choices, privacy controls and switches for the interface.
@@ -55,7 +45,7 @@ Morphe Manager signs the patched Pinterest with a key it makes on your phone. An
 Setup and backup guide in About is optional. It explains installed patches, runtime switches and Pause, and distinguishes settings export from account, media and signing-key backups. It also opens Supported links and public Pinterest help. Same-key upgrades preserve installed data. If Android refuses a different key or an incompatible downgrade, keep the installed data and rebuild a compatible update.
 
 <p>
-  <img src="assets/screenshots/settings-setup-guide.png" width="240" alt="Optional setup guide with sign-in and supported-link guidance">
+  <img src="assets/screenshots/settings-setup-guide.png" width="240" alt="Native setup guide fixture with separate cards for installed patches and sign-in">
 </p>
 
 ## Patches
@@ -104,17 +94,21 @@ Disable update nag targets the Play Store prompt in Pinterest 14.39.0.
 
 Long-press the Pinterest icon and tap HushPinterest. You can also open Pinterest's App info page and tap Additional settings in the app, which Samsung phones call Configure in Pinterest.
 
+Settings use black pages with separate navy cards and blue icon badges. Text wraps in the cards and dialog choices. Pause sits below its status summary. The setup guide gives each topic its own card, and import review frames the switch changes.
+
 <p>
-  <img src="assets/screenshots/settings-home.png" width="240" alt="HushPinterest settings categories">
-  <img src="assets/screenshots/settings-feed.png" width="240" alt="Feed controls for promoted, AI-labeled and shopping pins">
-  <img src="assets/screenshots/settings-privacy.png" width="240" alt="Analytics, link-tracking and advertising ID controls">
-  <img src="assets/screenshots/settings-updates.png" width="240" alt="Release notes and update instructions in settings">
-  <img src="assets/screenshots/settings-recovery.png" width="240" alt="Retry and Back if the settings screen can't open">
+  <img src="assets/screenshots/settings-home.png" width="240" alt="Native settings home with a Pause button below its status summary">
+  <img src="assets/screenshots/settings-feed.png" width="240" alt="Feed switches on separate navy cards">
+  <img src="assets/screenshots/settings-privacy.png" width="240" alt="Privacy switches for analytics and link tracking">
+  <img src="assets/screenshots/settings-updates.png" width="240" alt="Native Updates page with check status and release links">
+  <img src="assets/screenshots/settings-recovery.png" width="240" alt="Controlled settings recovery state with Retry and Back">
 </p>
 
-These settings were captured on Android 16 with every patch included. All 19 feature switches saved and restored their choices. Pause and Resume were checked across restarts, and Supported links opened Android's link settings. Feed filtering, pin downloads, sharing and browser links were also checked on a signed-in phone.
+These images are native Android view captures from controlled fixtures for the redesign. Picker and history examples use sample data. No live downloads were started for the captures.
 
-If the settings page can't open, Retry tries to load it again. Back returns to Pinterest. The recovery screen was checked with a controlled load failure.
+Earlier phone checks on Android 16 verified that all 19 feature switches saved and restored their choices. Pause and Resume were checked across restarts, and Supported links opened Android's link settings. Feed filtering, pin downloads, sharing and browser links were also checked on a signed-in phone. Those checks predate this redesign.
+
+If the settings page can't open, Retry tries to load it again. Back returns to Pinterest. The recovery image uses a controlled load failure.
 
 Some things are Pinterest's own settings, and HushPinterest leaves them to it. The Pinterest's own settings page under More settings says where to find Pinterest's theme, privacy, notification, AI content and cellular autoplay settings, using the names Pinterest's menus show.
 
@@ -125,8 +119,8 @@ Download pins adds a Download row when Pinterest supplies an image or a direct M
 From a pin menu in a feed, search or board grid, Download visible pins lets you select up to 32 pins already on screen. Nothing is selected automatically. It uses each pin's supplied media and shows queued, saved, skipped, unsupported and failed counts. Stop selection leaves started downloads alone. Unstarted selections end when Pinterest closes.
 
 <p>
-  <img src="assets/screenshots/download-visible-pins.png" width="240" alt="Visible pins offered for selection with every checkbox initially empty">
-  <img src="assets/screenshots/download-selection-history.png" width="240" alt="Download history showing one completed video and one unsupported pin">
+  <img src="assets/screenshots/download-visible-pins.png" width="240" alt="Native visible-pin picker fixture with every checkbox initially empty">
+  <img src="assets/screenshots/download-selection-history.png" width="240" alt="Native history fixture with unsupported and failed pins, and a completed entry below">
 </p>
 
 Download board adds a row to a board's own menu. It saves the pins Pinterest has already loaded for that board, up to 500, and skips any that Download history lists as downloaded. A download that failed, or that Android no longer has, gets tried again. Download history shows the 32 most recent entries, and it quietly remembers the 500 downloads before those, so running Download board again on a full board skips everything it already saved. Removing a download from Download history forgets that pin's older downloads too, so the next Download board saves it again unless the history still lists another download of it. Pinterest loads a board a page at a time and HushPinterest never asks it for more, so scroll to the end of the board first if you want all of it. Loaded pins are remembered for the last four boards you opened, and only until Pinterest closes. The result shows the same counts as a selection, plus how many were already in Download history. Download pins has to be on too, and this switch starts off.
@@ -140,20 +134,20 @@ Download history also records results from visible-pin selections, including ski
 Supplied media details shows dimensions, a type and the size they belong to, from Pinterest's metadata and media address. The file hasn't been inspected, and missing values stay unknown. A recognized pin without a downloadable image or MP4 shows Download unavailable with a reason. Adaptive streams don't become thumbnail downloads.
 
 <p>
-  <img src="assets/screenshots/settings-download-history.png" width="240" alt="Download history with Refresh and Back">
+  <img src="assets/screenshots/settings-download-history.png" width="240" alt="Empty download history with Refresh, Back and Open Downloads">
 </p>
 
 Exports and import previews use the choices saved on this device. Import settings shows each switch's name and its old and new values before applying the file. Undo import restores the previous switches once. Editing a saved switch or restarting Pinterest ends Undo, even if you change the switch back. Failed writes keep Undo after rollback. The file contains allowed settings, including choices whose patches aren't installed. It doesn't contain accounts, media, signing keys, logs or temporary state.
 
 <p>
-  <img src="assets/screenshots/settings-import-preview.png" width="240" alt="Settings import review naming the switch and its old and new values">
+  <img src="assets/screenshots/settings-import-preview.png" width="240" alt="Native import review fixture with the switch's old and new values on one card">
 </p>
 
 Interface summaries now say which controls change and when. Bottom-bar and header choices take effect on their next layout. Recent searches and comments follow their next layout or visibility update. Pin-menu choices affect new menus. Screenshot suggestions require a restart. Search also recognizes reviewed terms such as Toolbar icons, Recent searches and Reverse image search, in each supported language.
 
 <p>
-  <img src="assets/screenshots/settings-interface.png" width="240" alt="Interface controls describing their effects and refresh boundaries">
-  <img src="assets/screenshots/settings-links.png" width="240" alt="Browser routing for pin Visit links and profile websites">
+  <img src="assets/screenshots/settings-interface.png" width="240" alt="Interface switches with wrapped summaries">
+  <img src="assets/screenshots/settings-links.png" width="240" alt="Link controls for browser routing and Android's Supported links settings">
 </p>
 
 HushPinterest checks the supplied HTTPS media address before passing it to Android's Downloads service, which [follows any redirects itself](https://github.com/aosp-mirror/platform_packages_providers_downloadprovider/blob/master/src/com/android/providers/downloads/DownloadThread.java). The address must be a supported public HTTPS Pinterest media address.

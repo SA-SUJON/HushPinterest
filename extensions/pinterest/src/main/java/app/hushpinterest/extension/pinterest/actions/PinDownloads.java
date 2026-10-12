@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
+import app.hushpinterest.extension.pinterest.settings.HushDialogs;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.L10n;
@@ -148,11 +149,13 @@ public final class PinDownloads {
                     ? L10n.f("Supplied size: %s. Downloads look for the original first.", media.size)
                     : L10n.t("Supplied size: the original image"));
             if (media.refusal != null) text = refusalMessage(media.refusal) + "\n\n" + text;
-            new AlertDialog.Builder(activity)
+            AlertDialog details = HushDialogs.builder(activity)
                     .setTitle(L10n.t("Supplied media details"))
                     .setMessage(text)
                     .setPositiveButton(L10n.t("Close"), (dialog, which) -> dialog.dismiss())
-                    .show();
+                    .create();
+            details.show();
+            HushDialogs.paint(details);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "show supplied media details", failure);
             Utils.showToastLong(L10n.t("Couldn't show the supplied media details. Open the pin again and try again."));

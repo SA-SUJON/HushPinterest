@@ -8,11 +8,13 @@ package app.hushpinterest.extension.pinterest.settings;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.preference.DialogPreference;
 import android.text.format.DateFormat;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -132,9 +134,13 @@ public final class DownloadHistoryPreference extends DialogPreference {
             message.setId(android.R.id.message);
             message.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             message.setTextColor(ScreenColors.DEFAULT.summary);
+            message.setSingleLine(false);
+            message.setMaxLines(Integer.MAX_VALUE);
+            message.setEllipsize(null);
+            message.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+            message.setLineSpacing(dp(2), 1);
             message.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-            int inset = dp(24);
-            message.setPaddingRelative(inset, dp(12), inset, dp(12));
+            messageStyle(true);
             content.addView(message, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             list.setId(android.R.id.list);
             list.setDivider(null);
@@ -149,6 +155,15 @@ public final class DownloadHistoryPreference extends DialogPreference {
         }
 
         boolean alive() { return session == this && dialog != null && dialog.isShowing(); }
+
+        void messageStyle(boolean empty) {
+            int inset = dp(ScreenColors.SIDE_DP);
+            int vertical = dp(empty ? 24 : 12);
+            message.setPaddingRelative(inset, vertical, inset, vertical);
+            message.setMinHeight(empty ? dp(144) : 0);
+            message.setGravity(empty ? Gravity.CENTER : Gravity.START | Gravity.CENTER_VERTICAL);
+            message.setTextAlignment(empty ? View.TEXT_ALIGNMENT_CENTER : View.TEXT_ALIGNMENT_VIEW_START);
+        }
 
         void working() {
             busy = true;
@@ -172,6 +187,7 @@ public final class DownloadHistoryPreference extends DialogPreference {
                     }
                     list.setAdapter(new ChoiceCards(ScreenColors.DEFAULT, names, details));
                     list.setVisibility(jobs.isEmpty() ? View.GONE : View.VISIBLE);
+                    messageStyle(jobs.isEmpty());
                     message.setText(L10n.t(getContext(), found == null ? "Couldn't check Downloads. Try again."
                             : jobs.isEmpty() ? "No HushPinterest downloads in this history."
                             : jobs.stream().anyMatch(job -> job.id < 0)
@@ -181,6 +197,7 @@ public final class DownloadHistoryPreference extends DialogPreference {
                     HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "show native download history", failure);
                     jobs = Collections.emptyList();
                     list.setVisibility(View.GONE);
+                    messageStyle(true);
                     message.setText(L10n.t(getContext(), "Couldn't check Downloads. Try again."));
                 } finally {
                     busy = false;
@@ -218,16 +235,29 @@ public final class DownloadHistoryPreference extends DialogPreference {
 
             LinearLayout header = new LinearLayout(getContext());
             header.setOrientation(LinearLayout.VERTICAL);
-            header.setPaddingRelative(dp(24), dp(20), dp(24), dp(12));
+            header.setPaddingRelative(dp(ScreenColors.SIDE_DP), dp(20), dp(ScreenColors.SIDE_DP), dp(12));
             TextView title = new TextView(getContext());
             title.setText(pinName(job));
             title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+            title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             title.setTextColor(ScreenColors.DEFAULT.title);
+            title.setSingleLine(false);
+            title.setMaxLines(Integer.MAX_VALUE);
+            title.setEllipsize(null);
+            title.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+            title.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
             title.setAccessibilityHeading(true);
             header.addView(title);
             TextView status = new TextView(getContext());
             status.setId(android.R.id.message);
             status.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            status.setSingleLine(false);
+            status.setMaxLines(Integer.MAX_VALUE);
+            status.setEllipsize(null);
+            status.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+            status.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+            status.setLineSpacing(dp(2), 1);
+            status.setPaddingRelative(0, dp(6), 0, 0);
             String guidance = "";
             if (job.canRetry() && !retryEnabled()) {
                 guidance = L10n.t(getContext(), Utils.settingsReady()

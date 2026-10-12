@@ -12,6 +12,8 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.preference.Preference;
 import android.provider.DocumentsContract;
@@ -99,13 +101,19 @@ public final class DownloadFolderPreference extends Preference {
         try {
             AlertDialog dialog = new AlertDialog.Builder(HushPinterestPreferenceFragment.themed(getContext()))
                     .setTitle(getTitle())
-                    .setItems(new CharSequence[]{L10n.t("Pick another folder"), L10n.t("Save in Download again")}, (shown, which) -> {
+                    .setAdapter(new ChoiceCards(ScreenColors.DEFAULT,
+                            new CharSequence[]{L10n.t("Pick another folder"), L10n.t("Save in Download again")},
+                            new CharSequence[]{"", ""}), (shown, which) -> {
                         if (which == 0) pick(page);
                         else forget();
                     })
                     .setNegativeButton(L10n.t("Back"), null)
-                    .show();
+                    .create();
+            dialog.create();
+            dialog.getListView().setDivider(null);
+            dialog.getListView().setSelector(new ColorDrawable(Color.TRANSPARENT));
             ScreenColors.dialog(dialog);
+            dialog.show();
         } catch (RuntimeException failure) {
             Logger.printInfo(() -> "Could not show the folder choices: " + failure.getClass().getSimpleName());
             pick(page);

@@ -148,12 +148,12 @@ public final class SettingsDialog extends DialogFragment {
         LinearLayout bar = new LinearLayout(getContext());
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.CENTER_VERTICAL);
-        int pad = dp(16);
+        int pad = dp(ScreenColors.SIDE_DP);
         // Start and end, not left and right: in a right-to-left language the bar is mirrored.
         bar.setPaddingRelative(dp(4), dp(12), pad, dp(12));
 
         android.widget.ImageButton back = new android.widget.ImageButton(getContext());
-        android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.BACK, Color.WHITE);
+        android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.BACK, ScreenColors.DEFAULT.title);
         arrow.setBounds(0, 0, dp(24), dp(24));
         arrow.setLayoutDirection(rightToLeft() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
         back.setImageDrawable(arrow);
@@ -181,9 +181,9 @@ public final class SettingsDialog extends DialogFragment {
         TextView title = new TextView(getContext());
         pageTitle = title;
         title.setText("HushPinterest");
-        title.setTextColor(Color.WHITE);
+        title.setTextColor(ScreenColors.DEFAULT.title);
         title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 26);
         title.setPaddingRelative(dp(8), 0, 0, 0);
         title.setAccessibilityHeading(true);
         bar.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -264,7 +264,7 @@ public final class SettingsDialog extends DialogFragment {
         });
         LinearLayout.LayoutParams layout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
-        layout.setMargins(dp(16), 0, dp(16), dp(12));
+        layout.setMargins(dp(ScreenColors.SIDE_DP), 0, dp(ScreenColors.SIDE_DP), dp(8));
         root.addView(searchBox, layout);
         // Typed letters alone tell a screen reader nothing about the list below, so the count is
         // spoken from a polite live region, once the typing has settled.

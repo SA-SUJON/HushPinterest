@@ -28,13 +28,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.Build;
 import android.os.OperationCanceledException;
 import android.preference.Preference;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.TypefaceSpan;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
@@ -479,8 +488,57 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             });
             builder.setNegativeButton(L10n.t("Cancel"), (dialog, which) -> answered(page));
         }
-        page.importPreview = builder.show();
+        page.importPreview = builder.create();
+        page.importPreview.create();
+        framePreview(page.importPreview);
         ScreenColors.dialog(page.importPreview);
+        page.importPreview.show();
+    }
+
+    /** Keeps the native message and its scroll behavior, with the changes on one framed card. */
+    private static void framePreview(AlertDialog dialog) {
+        TextView message = dialog.findViewById(android.R.id.message);
+        if (message == null) return;
+        Context context = dialog.getContext();
+        GradientDrawable surface = new GradientDrawable();
+        surface.setColor(ScreenColors.DEFAULT.card);
+        surface.setStroke(dp(context, 1), ScreenColors.DEFAULT.outline);
+        surface.setCornerRadius(dp(context, ScreenColors.RADIUS_DP));
+        message.setBackground(surface);
+        int padding = dp(context, ScreenColors.CONTENT_DP);
+        message.setPaddingRelative(padding, padding, padding, padding);
+        message.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        message.setSingleLine(false);
+        message.setMaxLines(Integer.MAX_VALUE);
+        message.setEllipsize(null);
+        message.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+        message.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        message.setLineSpacing(dp(context, 2), 1);
+        SpannableString text = new SpannableString(message.getText());
+        int headingEnd = text.toString().indexOf("\n\n");
+        if (headingEnd < 0) headingEnd = text.length();
+        text.setSpan(new ForegroundColorSpan(ScreenColors.DEFAULT.heading), 0, headingEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.setSpan(new TypefaceSpan("sans-serif-medium"), 0, headingEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.setSpan(new RelativeSizeSpan(16f / 14f), 0, headingEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        message.setText(text);
+        if (message.getParent() instanceof View) {
+            View body = (View) message.getParent();
+            int side = dp(context, ScreenColors.SIDE_DP);
+            body.setPaddingRelative(side, dp(context, 8), side, dp(context, 8));
+        }
+        ViewGroup.LayoutParams size = message.getLayoutParams();
+        size.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        if (size instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) size;
+            margins.setMarginStart(0);
+            margins.setMarginEnd(0);
+        }
+        message.setLayoutParams(size);
+    }
+
+    private static int dp(Context context, int value) {
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value,
+                context.getResources().getDisplayMetrics()));
     }
 
     private static void answered(HushPinterestPreferenceFragment page) {

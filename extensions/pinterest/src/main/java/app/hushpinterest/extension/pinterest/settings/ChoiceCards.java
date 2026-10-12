@@ -20,6 +20,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -58,6 +59,7 @@ final class ChoiceCards extends BaseAdapter {
     /** A choice's name, and what it does on the line under it. */
     @Override
     public CharSequence getItem(int position) {
+        if (TextUtils.isEmpty(details[position])) return names[position];
         return new SpannableStringBuilder(names[position]).append('\n').append(details[position]);
     }
 
@@ -76,14 +78,15 @@ final class ChoiceCards extends BaseAdapter {
         Card card = convertView instanceof Card ? (Card) convertView : new Card(parent.getContext(), colors);
         card.name.setText(names[position]);
         card.detail.setText(details[position]);
+        card.detail.setVisibility(TextUtils.isEmpty(details[position]) ? View.GONE : View.VISIBLE);
         return card;
     }
 
     /** One choice on a card set in from the dialog's edges. */
     static final class Card extends LinearLayout {
         /** How far the card sits in from the list's sides, and from the next card. */
-        static final int SIDE_INSET_DP = 16;
-        static final int GAP_INSET_DP = 4;
+        static final int SIDE_INSET_DP = ScreenColors.SIDE_DP;
+        static final int GAP_INSET_DP = ScreenColors.GAP_DP;
 
         final TextView name;
         final TextView detail;
@@ -98,12 +101,12 @@ final class ChoiceCards extends BaseAdapter {
             // The shared row surface, with its outline separating it from the dialog.
             surface.setColor(colors.card);
             surface.setStroke(dp(context, 1), colors.outline);
-            surface.setCornerRadius(dp(context, 10));
+            surface.setCornerRadius(dp(context, ScreenColors.RADIUS_DP));
             setBackground(new RippleDrawable(ColorStateList.valueOf(ScreenColors.half(colors.accent)),
                     new InsetDrawable(surface, side, gap, side, gap), null));
             // Set after the background, which puts its insets in as the padding.
-            setPaddingRelative(side + dp(context, 16), gap + dp(context, 12),
-                    side + dp(context, 16), gap + dp(context, 12));
+            setPaddingRelative(side + dp(context, ScreenColors.CONTENT_DP), gap + dp(context, 12),
+                    side + dp(context, ScreenColors.CONTENT_DP), gap + dp(context, 12));
             // 48 dp of card to tap at the least, at any text size.
             setMinimumHeight(2 * gap + dp(context, 48));
 
@@ -113,15 +116,20 @@ final class ChoiceCards extends BaseAdapter {
 
             name = new TextView(context);
             name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-            name.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-            name.setTextColor(colors.title);
+            name.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+            name.setTextColor(ScreenColors.dimmedWhenDisabled(colors.title));
+            name.setSingleLine(false);
+            name.setMaxLines(Integer.MAX_VALUE);
             ScreenColors.Chevron chevron = new ScreenColors.Chevron(colors.summary, dp(context, 2));
             chevron.setBounds(0, 0, dp(context, 24), dp(context, 24));
             text.addView(name, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
             detail = new TextView(context);
             detail.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-            detail.setTextColor(colors.summary);
+            detail.setTextColor(ScreenColors.dimmedWhenDisabled(colors.summary));
+            detail.setSingleLine(false);
+            detail.setMaxLines(Integer.MAX_VALUE);
+            detail.setLineSpacing(dp(context, 2), 1);
             LayoutParams under = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             under.topMargin = dp(context, 2);
             text.addView(detail, under);

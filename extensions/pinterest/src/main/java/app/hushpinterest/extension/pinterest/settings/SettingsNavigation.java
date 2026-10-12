@@ -162,8 +162,6 @@ final class SettingsNavigation extends BaseAdapter {
     private void section(String id, String title, String detail, String icon, boolean primary) {
         for (Preference candidate : page.sections()) {
             if (!title.contentEquals(candidate.getTitle())) continue;
-            // Gray on the home page and on More settings alike: a row that opens a page wears gray,
-            // and blue is left for the rows that do something where they are.
             Preference link = link(screen.getContext(), title, detail, icon);
             link.setKey("section_" + id);
             link.setOnPreferenceClickListener(ignored -> { navigate(id); return true; });
@@ -204,7 +202,7 @@ final class SettingsNavigation extends BaseAdapter {
         Preference row = new HushPinterestPreferenceFragment.Row(context);
         row.setTitle(title);
         row.setSummary(summary);
-        row.setIcon(SettingsIcons.icon(context, icon, palette().summary));
+        row.setIcon(SettingsIcons.icon(context, icon, palette().heading));
         row.setPersistent(false);
         return row;
     }
@@ -440,17 +438,18 @@ final class SettingsNavigation extends BaseAdapter {
             boolean first = position == 0 || group(getItem(position - 1)) != group;
             boolean last = position + 1 == getCount() || group(getItem(position + 1)) != group;
             palette().paintSurface(row, item, first, last);
-            if (MORE.equals(route)) {
-                row.setMinimumHeight(dp(56));
-                row.setPaddingRelative(dp(34), dp(12), dp(34), dp(12));
-            }
         }
         if (item == screen.getPreference(0)) {
             TextView title = row.findViewById(android.R.id.title);
-            if (title != null) title.setTypeface(android.graphics.Typeface.create("sans-serif-medium", 0));
+            if (title != null) {
+                title.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 18);
+                title.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
+            }
+            palette().paintStatusSurface(row);
         }
         if (item == screen.getPreference(0)) bindStatus(row);
         if (item == pageStatus) {
+            palette().paintStatusSurface(row);
             row.setMinimumHeight(Math.max(row.getMinimumHeight(), pageStatusHeight));
             if (pageAction) bindAction(row, HushPinterestPause.isPaused(), HushPinterestPause.pausesNextStart(screen.getContext()), true);
         }
@@ -482,13 +481,21 @@ final class SettingsNavigation extends BaseAdapter {
         action.setText(paused != nextPaused ? L10n.t("Undo") : nextPaused ? L10n.t("Resume") : L10n.t("Pause"));
         action.setAllCaps(false);
         action.setTextSize(14);
+        action.setTypeface(android.graphics.Typeface.create("sans-serif-medium", 0));
         action.setTextColor(palette().heading);
-        action.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        android.graphics.drawable.GradientDrawable outline = new android.graphics.drawable.GradientDrawable();
+        outline.setColor(android.graphics.Color.TRANSPARENT);
+        outline.setStroke(dp(1), palette().heading);
+        outline.setCornerRadius(dp(8));
+        action.setBackground(new android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(ScreenColors.half(palette().accent)), outline, null));
+        action.setStateListAnimator(null);
+        action.setElevation(0);
         action.setMinWidth(dp(48));
         action.setMinHeight(dp(48));
         action.setMinimumWidth(dp(48));
         action.setMinimumHeight(dp(48));
-        action.setPadding(0, 0, 0, 0);
+        action.setPadding(dp(12), 0, dp(12), 0);
         action.setOnClickListener(ignored -> {
             if (pageStatusAction) pageStatusHeight = Math.max(pageStatusHeight, row.getHeight());
             if (nextPaused) {
@@ -499,15 +506,16 @@ final class SettingsNavigation extends BaseAdapter {
             }
             rebuild();
         });
-        // From one and a half times the text size, a button beside the text leaves the name too
-        // little room and it breaks inside the word, so the button goes under the text there.
+        // The overview gives its status action a full line. At larger text sizes, category
+        // notices do the same so the button never squeezes their explanation.
         TextView summary = row.findViewById(android.R.id.summary);
-        if (screen.getContext().getResources().getConfiguration().fontScale >= 1.5f
+        if ((!pageStatusAction || screen.getContext().getResources().getConfiguration().fontScale >= 1.5f)
                 && summary != null && summary.getParent() instanceof android.widget.RelativeLayout) {
             android.widget.RelativeLayout.LayoutParams place = new android.widget.RelativeLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             place.addRule(android.widget.RelativeLayout.BELOW, android.R.id.summary);
             place.addRule(android.widget.RelativeLayout.ALIGN_PARENT_START);
+            place.topMargin = dp(10);
             ViewGroup column = (ViewGroup) summary.getParent();
             View earlier = column.findViewWithTag(STATUS_ACTION);
             if (earlier != null) column.removeView(earlier);

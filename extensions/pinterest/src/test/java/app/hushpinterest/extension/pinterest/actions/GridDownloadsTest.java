@@ -13,7 +13,9 @@ import android.app.DownloadManager;
 import android.content.Context;
 import android.os.Looper;
 import android.view.View;
+import android.widget.Checkable;
 import android.widget.ListView;
+import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 import org.junit.After;
 import org.junit.Before;
@@ -24,18 +26,23 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowToast;
+import org.robolectric.util.ReflectionHelpers;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
+import app.hushpinterest.extension.pinterest.NativeDialogCapture;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.PatchFamilyForTests;
 import app.hushpinterest.extension.pinterest.settings.Settings;
@@ -108,6 +115,96 @@ public class GridDownloadsTest {
             await.invoke(null);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
         }
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "en-rUS-w390dp-h844dp-night-xhdpi")
+    public void nativePickerShowsEmptyAndSelectedChoicesWithoutQueueing() throws Exception {
+        View origin = cell(previewPin("101", "A landscape study with warm evening light and a detailed foreground"), 0);
+        cell(previewPin("102", "A second reference for the same collection"), 100);
+        AlertDialog picker = choose(origin);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        ListView choices = picker.getListView();
+        assertEquals(2, choices.getAdapter().getCount());
+        assertEquals(0, choices.getCheckedItemCount());
+        assertFalse(picker.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        assertTrue(picker.getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled());
+        NativeDialogCapture.capture("visible-picker-empty", grid, picker);
+        TextView label = choices.getChildAt(0).findViewById(android.R.id.text1);
+        assertNotNull("the first choice has no label", label);
+        int titleEnd = label.getText().toString().indexOf('\n');
+        assertTrue("the pin ID must stay on its own line", titleEnd > 0);
+        assertTrue("the longer title never wrapped before the pin ID line",
+                label.getLayout().getLineEnd(0) < titleEnd);
+
+        assertTrue(choices.performItemClick(choices.getChildAt(0), 0, choices.getItemIdAtPosition(0)));
+        assertTrue(choices.isItemChecked(0));
+        assertTrue(picker.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        assertTrue(choices.performItemClick(choices.getChildAt(0), 0, choices.getItemIdAtPosition(0)));
+        assertEquals(0, choices.getCheckedItemCount());
+        assertFalse("clearing the last choice must disable Queue selected",
+                picker.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        assertTrue(choices.performItemClick(choices.getChildAt(1), 1, choices.getItemIdAtPosition(1)));
+        assertFalse(choices.isItemChecked(0));
+        assertTrue(choices.isItemChecked(1));
+        assertEquals(1, choices.getCheckedItemCount());
+        NativeDialogCapture.capture("visible-picker-selected", grid, picker);
+        assertTrue("the selected row has no checked indicator", choices.getChildAt(1) instanceof Checkable);
+        assertTrue("the visible checkbox lost the native list's selection", ((Checkable) choices.getChildAt(1)).isChecked());
+        picker.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(picker.isShowing());
+        assertEquals(0, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "en-rUS-w390dp-h844dp-night-xhdpi")
+    public void nativeBatchProgressKeepsItsStopActionAndReportsUnsupportedSources() throws Exception {
+        List<Object> pins = new ArrayList<>(List.of(previewPin("201", "First reference"), previewPin("202", "Second reference")));
+        Utils.awaitBackgroundTasksForTests();
+        ThreadPoolExecutor workers = ReflectionHelpers.getStaticField(Utils.class, "backgroundThreadPool");
+        int originalCoreSize = workers.getCorePoolSize();
+        CountDownLatch parked = new CountDownLatch(workers.getMaximumPoolSize());
+        CountDownLatch release = new CountDownLatch(1);
+        AlertDialog progress;
+        try {
+            // Leave the queue available for the result write, but hold every worker. The main
+            // looper can attach and lay out the dialog without advancing the batch to completion.
+            workers.setCorePoolSize(workers.getMaximumPoolSize());
+            for (int i = 0; i < workers.getMaximumPoolSize(); i++) {
+                assertTrue(Utils.runOnBackgroundThread(() -> {
+                    parked.countDown();
+                    try {
+                        release.await();
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                    }
+                }));
+            }
+            assertTrue("workers didn't pause before showing progress", parked.await(10, TimeUnit.SECONDS));
+            assertTrue(GridDownloads.queue(activity, pins, "Download visible pins", null, 0, true));
+            progress = ShadowAlertDialog.getLatestAlertDialog();
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(1, TimeUnit.SECONDS);
+            assertTrue("the progress window wasn't attached", progress.getWindow().getDecorView().isAttachedToWindow());
+            assertTrue(GridDownloads.running());
+            assertEquals("Stop selection", progress.getButton(AlertDialog.BUTTON_NEGATIVE).getText().toString());
+            assertTrue(progress.getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled());
+            NativeDialogCapture.capture("batch-progress", grid, progress);
+        } finally {
+            release.countDown();
+            workers.setCorePoolSize(originalCoreSize);
+        }
+        settle();
+        assertFalse(GridDownloads.running());
+        assertEquals("Close", progress.getButton(AlertDialog.BUTTON_NEGATIVE).getText().toString());
+        assertTrue(Shadows.shadowOf(progress).getMessage().toString().contains("Unsupported: 2"));
+        assertEquals(0, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+        NativeDialogCapture.capture("batch-progress-complete", grid, progress);
+    }
+
+    private Object previewPin(String id, String title) {
+        return Map.of("id", id, "title", title, "images", Map.of("orig", Map.of(
+                "url", "https://example.invalid/public-reference-" + id + ".jpg")));
     }
 
     @Test public void snapshotIncludesOnlyVisibleAttachedPinCellsAndDeduplicatesIds() {

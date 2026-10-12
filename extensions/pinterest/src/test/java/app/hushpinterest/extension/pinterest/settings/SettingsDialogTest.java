@@ -200,7 +200,7 @@ public class SettingsDialogTest {
             assertEquals(Button.class.getName(), String.valueOf(node.getClassName()));
             assertTrue(node.isEnabled());
             assertTrue(node.getActionList().contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK));
-            int surface = tag.equals(SettingsDialog.MOUNT_RETRY) ? ScreenColors.DEFAULT.accent : ScreenColors.DEFAULT.background;
+            int surface = tag.equals(SettingsDialog.MOUNT_RETRY) ? ScreenColors.DEFAULT.actionFill : ScreenColors.DEFAULT.dialog;
             double text = Color.luminance(action.getCurrentTextColor());
             double background = Color.luminance(surface);
             assertTrue("recovery text lacks contrast", (Math.max(text, background) + 0.05) / (Math.min(text, background) + 0.05) >= 4.5);

@@ -12,6 +12,7 @@ import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.net.Uri;
@@ -22,6 +23,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -120,6 +122,7 @@ public final class SetupGuidancePreference extends DialogPreference {
         final LinearLayout content = new LinearLayout(getContext());
         final List<Button> actions = new ArrayList<>();
         final TextView links;
+        LinearLayout section;
         AlertDialog dialog;
         boolean closed;
 
@@ -129,16 +132,16 @@ public final class SetupGuidancePreference extends DialogPreference {
             int height = Math.min(dp(420), getContext().getResources().getDisplayMetrics().heightPixels / 2);
             scroll.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height));
             content.setOrientation(LinearLayout.VERTICAL);
-            content.setPaddingRelative(dp(24), dp(12), dp(24), dp(16));
+            content.setPaddingRelative(dp(ScreenColors.SIDE_DP), dp(12), dp(ScreenColors.SIDE_DP), dp(4));
             scroll.addView(content, new ScrollView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-            heading(L10n.t(getContext(), "Installed patches and switches"));
+            heading(L10n.t(getContext(), "Installed patches and switches"), SettingsIcons.PATCHED);
             paragraph(L10n.t(getContext(), "Pick the patches in Morphe Manager when you patch the app. The switches "
                 + "here only control patches that are in your build. Changing a switch "
                 + "doesn't add or remove a patch. Pause keeps your saved choices, but "
                 + "anything set while patching stays in the app."));
 
-            heading(L10n.t(getContext(), "Sign in to your existing account"));
+            heading(L10n.t(getContext(), "Sign in to your existing account"), SettingsIcons.ABOUT);
             paragraph(L10n.t(getContext(), "Use the email on your Pinterest account and a Pinterest password. "
                 + "Google sign-in isn't supported, because this patched app is signed with "
                 + "a different key. Pinterest no longer offers Facebook login. Push "
@@ -146,14 +149,14 @@ public final class SetupGuidancePreference extends DialogPreference {
             paragraph(L10n.t(getContext(), "If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google."));
             action(L10n.t(getContext(), "Pinterest password help"), () -> openHelp(PASSWORD_HELP));
 
-            heading(L10n.t(getContext(), "Supported links"));
+            heading(L10n.t(getContext(), "Supported links"), SettingsIcons.LINKS);
             paragraph(L10n.t(getContext(), "Android may not trust a patched app's links on its own. You can choose "
                 + "the web addresses in Android's Open by default settings."));
             links = paragraph("");
             links.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
             action(L10n.t(getContext(), "Open link settings"), this::openLinkSettings);
 
-            heading(L10n.t(getContext(), "Back up before changing builds"));
+            heading(L10n.t(getContext(), "Back up before changing builds"), SettingsIcons.TOOLS);
             paragraph(L10n.t(getContext(), "Export settings saves HushPinterest's switches. It doesn't include your "
                 + "Pinterest account, pins, downloaded files or Morphe Manager's signing "
                 + "key. Keep the settings file and a backup of Manager's signing key "
@@ -205,12 +208,40 @@ public final class SetupGuidancePreference extends DialogPreference {
             }
         }
 
-        void heading(CharSequence text) {
+        void heading(CharSequence text, String glyph) {
+            LinearLayout card = new LinearLayout(getContext());
+            card.setOrientation(LinearLayout.HORIZONTAL);
+            card.setGravity(Gravity.TOP);
+            card.setPaddingRelative(dp(ScreenColors.CONTENT_DP), dp(16), dp(ScreenColors.CONTENT_DP), dp(8));
+            GradientDrawable surface = new GradientDrawable();
+            surface.setColor(ScreenColors.DEFAULT.card);
+            surface.setStroke(dp(1), ScreenColors.DEFAULT.outline);
+            surface.setCornerRadius(dp(ScreenColors.RADIUS_DP));
+            card.setBackground(surface);
+            ImageView icon = new ImageView(getContext());
+            icon.setImageDrawable(SettingsIcons.icon(getContext(), glyph, ScreenColors.DEFAULT.heading));
+            icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            icon.setPadding(dp(8), dp(8), dp(8), dp(8));
+            icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            GradientDrawable badge = new GradientDrawable();
+            badge.setColor(ScreenColors.DEFAULT.iconBadge);
+            badge.setCornerRadius(dp(8));
+            icon.setBackground(badge);
+            LinearLayout.LayoutParams iconSize = new LinearLayout.LayoutParams(dp(40), dp(40));
+            iconSize.setMarginEnd(dp(12));
+            card.addView(icon, iconSize);
+            section = new LinearLayout(getContext());
+            section.setOrientation(LinearLayout.VERTICAL);
+            card.addView(section, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            size.bottomMargin = dp(12);
+            content.addView(card, size);
             TextView heading = paragraph(text);
-            heading.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+            heading.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            heading.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             heading.setTextColor(ScreenColors.DEFAULT.heading);
             heading.setAccessibilityHeading(true);
-            heading.setPaddingRelative(0, dp(12), 0, dp(4));
+            heading.setPaddingRelative(0, 0, 0, dp(8));
         }
 
         TextView paragraph(CharSequence text) {
@@ -222,8 +253,9 @@ public final class SetupGuidancePreference extends DialogPreference {
             view.setMaxLines(Integer.MAX_VALUE);
             view.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
             view.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+            view.setLineSpacing(dp(2), 1);
             view.setPaddingRelative(0, 0, 0, dp(8));
-            content.addView(view, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            section.addView(view, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             return view;
         }
 
@@ -231,6 +263,7 @@ public final class SetupGuidancePreference extends DialogPreference {
             Button button = new Button(getContext());
             button.setText(title);
             button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             button.setAllCaps(false);
             button.setSingleLine(false);
             button.setMaxLines(Integer.MAX_VALUE);
@@ -238,15 +271,15 @@ public final class SetupGuidancePreference extends DialogPreference {
             button.setGravity(Gravity.CENTER);
             button.setTextColor(ScreenColors.DEFAULT.secondaryActionText());
             button.setMinHeight(dp(48));
-            button.setPaddingRelative(dp(12), dp(8), dp(12), dp(8));
+            button.setPaddingRelative(dp(ScreenColors.CONTENT_DP), dp(10), dp(ScreenColors.CONTENT_DP), dp(10));
             GradientDrawable surface = new GradientDrawable();
-            surface.setColor(ScreenColors.DEFAULT.card);
+            surface.setColor(ScreenColors.DEFAULT.dialog);
             surface.setStroke(dp(1), ScreenColors.DEFAULT.outline);
-            surface.setCornerRadius(dp(8));
+            surface.setCornerRadius(dp(ScreenColors.RADIUS_DP));
             button.setBackground(new RippleDrawable(ColorStateList.valueOf(ScreenColors.half(ScreenColors.DEFAULT.accent)), surface, null));
             LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             size.bottomMargin = dp(8);
-            content.addView(button, size);
+            section.addView(button, size);
             actions.add(button);
             button.setOnClickListener(view -> { if (alive()) action.run(); });
         }

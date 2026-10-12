@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import app.hushpinterest.extension.pinterest.NativeDialogCapture;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.SettingsContextRule;
 import app.hushpinterest.extension.shared.settings.BaseSettings;
@@ -150,7 +151,7 @@ public class SettingsNavigationTest {
         layout(dialog.getView());
         android.widget.Button action = statusAction();
         assertEquals("Pause", action.getText().toString());
-        assertTrue(action.getMinimumWidth() <= Math.round(48 * action.getResources().getDisplayMetrics().density));
+        assertTrue(action.getMinimumHeight() >= Math.round(48 * action.getResources().getDisplayMetrics().density));
         action.performClick();
         ShadowLooper.idleMainLooper();
         layout(dialog.getView());
@@ -165,6 +166,30 @@ public class SettingsNavigationTest {
         assertFalse(BaseSettings.PAUSED.savedValue());
         assertEquals("Pause", statusAction().getText().toString());
         assertTrue(Settings.HIDE_ADS.savedValue());
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void atNormalTextTheOverviewActionHasAFullWidthLineBelowItsSummary() {
+        assertEquals(1f, controller.get().getResources().getConfiguration().fontScale, 0f);
+        layout(dialog.getView());
+        View row = list().getChildAt(0);
+        TextView title = row.findViewById(android.R.id.title);
+        TextView summary = row.findViewById(android.R.id.summary);
+        android.widget.Button action = statusAction();
+        assertEquals("Pause", action.getText().toString());
+        assertEquals(summary.getParent(), action.getParent());
+        assertTrue("the action overlaps its summary", action.getTop() >= summary.getBottom());
+        android.view.ViewGroup column = (android.view.ViewGroup) summary.getParent();
+        assertEquals("the action doesn't start at the text column's edge", column.getPaddingLeft(), action.getLeft());
+        assertEquals("the action doesn't fill the text column", column.getWidth() - column.getPaddingRight(), action.getRight());
+        int touchTarget = Math.round(48 * action.getResources().getDisplayMetrics().density);
+        assertTrue("the action is shorter than a 48 dp touch target", action.getHeight() >= touchTarget);
+        assertEquals("the status name was squeezed onto extra lines", 1, title.getLineCount());
+        NativeDialogCapture.assertReadable(title);
+        NativeDialogCapture.assertReadable(summary);
+        NativeDialogCapture.assertReadable(action);
+        assertTrue("the action's label exceeds its available width", action.getLayout().getWidth()
+                <= action.getWidth() - action.getCompoundPaddingLeft() - action.getCompoundPaddingRight());
     }
 
     /** A Resume the store can't keep leaves the pause on screen, in storage and in the switch, and says so. */
@@ -457,6 +482,12 @@ public class SettingsNavigationTest {
             page.navigation.navigate("Feed");
             layout(dialog.getView());
             assertUncutText(dialog.getView());
+            View row = list().getChildAt(0);
+            TextView summary = row.findViewById(android.R.id.summary);
+            android.widget.Button action = pageAction();
+            assertEquals(summary.getParent(), action.getParent());
+            assertTrue("the large-text page action isn't under its summary", action.getTop() >= summary.getBottom());
+            NativeDialogCapture.assertReadable(action);
             capture("large-rtl-paused-feed");
         } finally {
             org.robolectric.RuntimeEnvironment.setFontScale(1f);
@@ -464,9 +495,9 @@ public class SettingsNavigationTest {
     }
 
     private android.widget.Button pageAction() {
-        android.view.ViewGroup frame = list().getChildAt(0).findViewById(android.R.id.widget_frame);
-        assertEquals(1, frame.getChildCount());
-        return (android.widget.Button) frame.getChildAt(0);
+        android.widget.Button action = firstButton(list().getChildAt(0));
+        assertNotNull("no action in the page's status row", action);
+        return action;
     }
 
     private int categoryCount(String title) {
@@ -487,8 +518,8 @@ public class SettingsNavigationTest {
     }
 
     /**
-     * At twice the text size the button beside the status text left the name too little room and
-     * "HushPinterest" broke inside the word. From one and a half times, the button goes under the text.
+     * The overview keeps its separate action line at twice the text size, so the status name
+     * doesn't break inside a word and the explanation still has the whole column to wrap in.
      */
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void atLargeTextTheStatusActionSitsUnderItsText() {
@@ -528,9 +559,9 @@ public class SettingsNavigationTest {
     }
 
     private android.widget.Button statusAction() {
-        android.view.ViewGroup frame = list().getChildAt(0).findViewById(android.R.id.widget_frame);
-        assertEquals(1, frame.getChildCount());
-        return (android.widget.Button) frame.getChildAt(0);
+        android.widget.Button action = firstButton(list().getChildAt(0));
+        assertNotNull("no action in the overview's status row", action);
+        return action;
     }
 
     @Test public void searchUsesRealControlsAndClearReturnsHome() {

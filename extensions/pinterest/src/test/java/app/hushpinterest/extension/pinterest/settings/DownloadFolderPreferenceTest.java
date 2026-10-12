@@ -24,11 +24,13 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowToast;
 
+import app.hushpinterest.extension.pinterest.NativeDialogCapture;
 import app.hushpinterest.extension.pinterest.actions.DownloadFolder;
 import app.hushpinterest.extension.shared.SettingsContextRule;
 
@@ -137,6 +139,29 @@ public class DownloadFolderPreferenceTest {
             assertEquals("Downloads will be saved in Download.", ShadowToast.getTextOfLatestToast());
             assertNull("going back opened no picker", shadowOf(activity).getNextStartedActivityForResult());
             assertEquals("Saves downloads in a folder you pick inside Pictures, DCIM, Download or Documents.", row.getSummary());
+        });
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "en-rUS-w390dp-h844dp-night-xhdpi")
+    public void nativeFolderChoicesStayReadableAndBackPreservesThePickedFolder() throws Exception {
+        DownloadFolder.PICKED.save("Pictures/Art references");
+        onRow((activity, row) -> {
+            row.getOnPreferenceClickListener().onPreferenceClick(row);
+            ShadowLooper.idleMainLooper();
+            AlertDialog menu = ShadowAlertDialog.getLatestAlertDialog();
+            assertNotNull(menu);
+            assertEquals(2, menu.getListView().getAdapter().getCount());
+            assertEquals("Pick another folder", menu.getListView().getAdapter().getItem(0).toString());
+            assertEquals("Save in Download again", menu.getListView().getAdapter().getItem(1).toString());
+            assertTrue(menu.getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled());
+            SettingsDialog settings = (SettingsDialog) activity.getFragmentManager().findFragmentByTag("hushpinterest_settings");
+            NativeDialogCapture.capture("download-folder-choices", settings.getView(), menu);
+            menu.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertFalse(menu.isShowing());
+            assertEquals("Pictures/Art references", DownloadFolder.PICKED.get());
+            assertNull("Back opened an external picker", shadowOf(activity).getNextStartedActivityForResult());
         });
     }
 

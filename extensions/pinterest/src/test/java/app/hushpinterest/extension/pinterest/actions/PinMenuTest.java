@@ -28,6 +28,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.shadows.ShadowAlertDialog;
@@ -37,6 +38,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
+import app.hushpinterest.extension.pinterest.NativeDialogCapture;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.PatchFamilyForTests;
 import app.hushpinterest.extension.pinterest.settings.Settings;
@@ -70,7 +72,9 @@ public class PinMenuTest {
         Utils.setActivity(null);
     }
 
-    @Test public void supportedImageOffersOptionalSuppliedDetailsWithoutStartingADownload() {
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "en-rUS-w390dp-h844dp-night-xhdpi")
+    public void supportedImageOffersOptionalSuppliedDetailsWithoutStartingADownload() throws Exception {
         Host host = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
                 "url", "https://i.pinimg.com/originals/source.png", "width", 3000, "height", 2000))));
         PinDownloads.attach(host);
@@ -87,6 +91,32 @@ public class PinMenuTest {
         assertTrue(text, text.contains("HushPinterest hasn't opened the file to check them."));
         assertEquals(0, host.dismissed);
         assertNoDownload();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertTrue(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        NativeDialogCapture.capture("supplied-media-details", activity.getWindow().getDecorView(), dialog);
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "en-rUS-w390dp-h844dp-night-xhdpi")
+    public void nativeDetailsExplainAnUnusableSuppliedAddressWithoutOpeningIt() throws Exception {
+        Host host = host(Map.of("id", "103", "images", Map.of("orig", Map.of(
+                "url", "https://example.invalid/public-reference.png", "width", 3000, "height", 2000))));
+        PinDownloads.attach(host);
+        assertEquals(1, host.layout.getChildCount());
+        assertTrue(host.layout.findViewWithTag(PinDownloads.ROW_TAG).performClick());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        String text = details();
+        assertTrue(text, text.contains("This media link isn't a public Pinterest link HushPinterest can use."));
+        assertTrue(text, text.contains("Supplied width: 3000 pixels"));
+        assertTrue(text, text.contains("Link type: Unknown"));
+        assertNoDownload();
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        NativeDialogCapture.capture("supplied-media-details-unavailable", activity.getWindow().getDecorView(), dialog);
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(dialog.isShowing());
+        assertEquals(0, host.dismissed);
     }
 
     @Test public void aPinWithDisplaySizesOnlyOffersEveryRowAndNamesTheStandInSize() {

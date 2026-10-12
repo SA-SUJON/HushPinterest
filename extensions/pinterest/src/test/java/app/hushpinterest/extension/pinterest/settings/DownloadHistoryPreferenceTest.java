@@ -38,6 +38,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.shadow.api.Shadow;
@@ -46,6 +47,7 @@ import org.robolectric.shadows.ShadowDownloadManager;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowToast;
 import org.robolectric.util.ReflectionHelpers;
+import org.robolectric.util.ReflectionHelpers.ClassParameter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
@@ -55,6 +57,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import app.hushpinterest.extension.pinterest.NativeDialogCapture;
 import app.hushpinterest.extension.pinterest.actions.DownloadLedger;
 import app.hushpinterest.extension.pinterest.actions.DownloadLedgerTest;
 import app.hushpinterest.extension.shared.L10n;
@@ -143,6 +146,49 @@ public class DownloadHistoryPreferenceTest {
         settle();
         assertEquals(text("No HushPinterest downloads in this history."), message(dialog));
         assertUsable(dialog);
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "en-rUS-w390dp-h844dp-night-xhdpi")
+    public void nativeHistoryShowsEmptyPopulatedAndEntryStatesWithoutStartingDownloads() throws Exception {
+        controller.visible();
+        AlertDialog empty = open();
+        assertEquals(text("No HushPinterest downloads in this history."), message(empty));
+        assertUsable(empty);
+        NativeDialogCapture.capture("download-history-empty", page.getView(), empty);
+        empty.dismiss();
+        ShadowLooper.idleMainLooper();
+
+        String source = "https://example.invalid/public-reference.jpg";
+        owned("301", DownloadManager.STATUS_PENDING, source);
+        owned("302", DownloadManager.STATUS_SUCCESSFUL, source);
+        long failed = owned("303", DownloadManager.STATUS_FAILED, source);
+        reasons().put(failed, DownloadManager.ERROR_INSUFFICIENT_SPACE);
+        assertTrue(ReflectionHelpers.<Boolean>callStaticMethod(DownloadLedger.class, "recordResult",
+                ClassParameter.from(Context.class, app), ClassParameter.from(String.class, "304"),
+                ClassParameter.from(DownloadLedger.State.class, DownloadLedger.State.UNSUPPORTED)));
+        AlertDialog history = open();
+        assertEquals(4, jobs(history).getAdapter().getCount());
+        assertUsable(history);
+        NativeDialogCapture.capture("download-history-populated", page.getView(), history);
+
+        int failedPosition = -1;
+        for (int i = 0; i < jobs(history).getAdapter().getCount(); i++) {
+            if (jobs(history).getAdapter().getItem(i).toString().contains("303")) failedPosition = i;
+        }
+        assertTrue("the failed request isn't in history", failedPosition >= 0);
+        AlertDialog entry = chooseJob(history, failedPosition);
+        assertTrue(message(entry).contains(text("Failed")));
+        assertTrue(message(entry).contains(text("Not enough storage.")));
+        assertEquals("an untrusted source must not offer Retry", 2, entry.getListView().getAdapter().getCount());
+        assertTrue(entry.getListView().getAdapter().getItem(0).toString().contains(text("Open pin")));
+        assertTrue(entry.getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled());
+        assertTrue(entry.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        NativeDialogCapture.capture("download-history-detail", page.getView(), history, entry);
+        assertEquals("preview clicks queued another native request", 3, nativeJobs.getRequestCount());
+        assertEquals(0, removed());
+        entry.dismiss();
+        history.dismiss();
     }
 
     @Test public void theScreenShowsTheBoundedOwnedRequestsWithDatesStatusAndSafeReasons() throws Exception {
@@ -439,7 +485,11 @@ public class DownloadHistoryPreferenceTest {
     }
 
     private long owned(String pinId, int state) {
-        long id = manager.enqueue(new DownloadManager.Request(Uri.parse(SOURCE)).setMimeType("image/jpeg"));
+        return owned(pinId, state, SOURCE);
+    }
+
+    private long owned(String pinId, int state, String source) {
+        long id = manager.enqueue(new DownloadManager.Request(Uri.parse(source)).setMimeType("image/jpeg"));
         status(id, state);
         assertTrue(DownloadLedger.record(app, id, pinId));
         return id;
