@@ -38,12 +38,14 @@ public class ToastLengthTest {
     // Translations run longer than English. This catches the ones that run far longer.
     private static final int TRANSLATION_LIMIT = 80;
     // How far a text is followed from its toast: through locals, parameters and String methods.
-    private static final int DEPTH = 4;
+    // A chain that runs out of steps fails theScanFollowsTextsToTheirToasts rather than passing unread.
+    private static final int DEPTH = 6;
 
     private static final Pattern TOAST = Pattern.compile("\\bshowToast(?:Short|Long)?\\s*\\(");
     private static final Pattern L10N_CALL = Pattern.compile("\\bL10n\\s*\\.\\s*(?:t|f|quantity)\\s*\\(");
     private static final Pattern DECLARATION = Pattern.compile("([\\w<>\\[\\].?]+)\\s+(\\w+)\\s*\\(");
-    private static final Pattern NAME = Pattern.compile("(?<![\\w.])(?:(\\w+)\\s*\\.\\s*)?([A-Za-z_]\\w*)\\b(\\s*\\()?");
+    // A name with the dotted chain in front of it, so a.b.method() reads as b's method.
+    private static final Pattern NAME = Pattern.compile("(?<!\\w)((?:\\w+\\s*\\.\\s*)*)([A-Za-z_]\\w*)\\b(\\s*\\()?");
     private static final Pattern RETURN = Pattern.compile("\\breturn\\b");
     private static final Pattern NUMBER = Pattern.compile("%(?:\\d+\\$)?d");
     private static final Pattern WORDS = Pattern.compile("%(?:\\d+\\$)?s");
@@ -52,6 +54,9 @@ public class ToastLengthTest {
     // L10n's and String's own methods, which hand a text through rather than make one.
     private static final Set<String> PASSED_THROUGH = new HashSet<>(Arrays.asList("L10n", "t", "f", "quantity",
             "isolate", "format", "valueOf", "toString", "equals", "length", "isEmpty", "trim"));
+    // Logger's methods whose lines go to the log only. Its toast shows errors.
+    private static final Set<String> LOGGED_ONLY = new HashSet<>(Arrays.asList("printDebug", "printInfo",
+            "diagnosticDebug", "diagnosticInfo"));
 
     @Test
     public void everyToastFitsTwoLines() throws IOException {
@@ -87,9 +92,11 @@ public class ToastLengthTest {
 
     @Test
     public void theScanFollowsTextsToTheirToasts() throws IOException {
-        Map<String, String> toasts = new Scan(realSources()).toasts();
+        Scan scan = new Scan(realSources());
+        Map<String, String> toasts = scan.toasts();
         // A scan that quietly found nothing would pass every other test here.
         assertTrue("found " + toasts.size(), toasts.size() > 100);
+        assertEquals("ran out of steps before reaching a text:\n" + String.join("\n", scan.cutShort), 0, scan.cutShort.size());
         // A local, a String method's return, a parameter its callers fill, and a method's return in another class.
         for (String text : new String[]{"%1$s: queued %2$d, skipped %3$d, unsupported %4$d, failed %5$d.",
                 "Settings exported, but the app holding it blocked the check.",
@@ -111,14 +118,47 @@ public class ToastLengthTest {
                 + "  private void say(@Nullable String text) { Utils.showToastLong(text); }\n"
                 + "  void helper() { Utils.showToastLong(message(true)); }\n"
                 + "  static String message(boolean x) { if (x) return L10n.t(\"Helper\"); return B.other(); }\n"
+                + "  void chained() { Utils.showToastLong(app.B.chained()); }\n"
+                + "  void added(int n) { String said = L10n.t(\"Added\"); if (n > 1) said += L10n.t(\"Plus\"); Utils.showToastShort(said); }\n"
+                + "  void built() { StringBuilder said = new StringBuilder(L10n.t(\"Built\")); said.append(L10n.t(\"Appended\"));"
+                + " Utils.showToastShort(said.toString()); }\n"
+                + "  void teller() { tell(L10n.t(\"Told\")); }\n"
+                + "  private void tell(String text) { if (text == null) text = L10n.t(\"Fallback\"); Utils.showToastLong(text); }\n"
+                + "  void made() { Utils.showToastLong(B.make().label()); }\n"
+                + "  void handed() { hand(x -> x, L10n.t(\"After a lambda\")); }\n"
+                + "  private void hand(Function<String, String> f, String error) { Utils.showToastLong(error); }\n"
                 + "  // Utils.showToastLong(L10n.t(\"Commented out\"));\n"
                 + "}\n");
         sources.put("B.java", "class B {\n"
                 + "  static String other() { return L10n.t(\"Other class\"); }\n"
+                + "  static String chained() { return L10n.t(\"Chained\"); }\n"
+                + "  static B make() { return new B(); }\n"
+                + "  String label() { return L10n.t(\"Label\"); }\n"
+                + "  static String fromParent() { return L10n.t(\"Inherited\"); }\n"
                 + "  static String unrelated() { return L10n.t(\"Not a toast\"); }\n"
                 + "}\n");
-        assertEquals(new HashSet<>(Arrays.asList("Direct text", "Local", "Passed %s", "x", "Helper", "Other class")),
-                new Scan(sources).toasts().keySet());
+        sources.put("C.java", "class C extends B {\n"
+                + "  void inherited() { Utils.showToastLong(fromParent()); }\n"
+                + "}\n");
+        Scan scan = new Scan(sources);
+        assertEquals(new HashSet<>(Arrays.asList("Direct text", "Local", "Passed %s", "x", "Helper", "Other class", "Chained",
+                "Added", "Plus", "Built", "Appended", "Told", "Fallback", "Label", "Inherited", "After a lambda")),
+                scan.toasts().keySet());
+        assertEquals(0, scan.cutShort.size());
+    }
+
+    @Test
+    public void aChainLongerThanTheStepsIsReported() {
+        StringBuilder code = new StringBuilder("class D {\n  void toast() { Utils.showToastLong(h0()); }\n");
+        for (int step = 0; step < DEPTH; step++) {
+            code.append("  static String h").append(step).append("() { return h").append(step + 1).append("(); }\n");
+        }
+        code.append("  static String h").append(DEPTH).append("() { return L10n.t(\"Deep\"); }\n}\n");
+        Map<String, String> sources = new LinkedHashMap<>();
+        sources.put("D.java", code.toString());
+        Scan scan = new Scan(sources);
+        assertTrue(scan.toasts().isEmpty());
+        assertEquals(1, scan.cutShort.size());
     }
 
     @Test
@@ -159,6 +199,21 @@ public class ToastLengthTest {
         }
     }
 
+    /** A stretch of code a name hands on to, and how the trail to a toast shows it. */
+    private static final class Step {
+        final Source source;
+        final int start;
+        final int end;
+        final String label;
+
+        Step(Source source, int start, int end, String label) {
+            this.source = source;
+            this.start = start;
+            this.end = end;
+            this.label = label;
+        }
+    }
+
     private static final class Source {
         final String name;
         final String text;
@@ -193,6 +248,12 @@ public class ToastLengthTest {
             return kind[at] == L10nCatalogTest.CODE;
         }
 
+        boolean readsText(int start, int end) {
+            Matcher call = L10N_CALL.matcher(text).region(start, end);
+            while (call.find()) if (code(call.start())) return true;
+            return false;
+        }
+
         int closing(int open, char opens, char closes) {
             int depth = 0;
             for (int at = open; at < text.length(); at++) {
@@ -208,17 +269,25 @@ public class ToastLengthTest {
             return at;
         }
 
+        private boolean typeStarts(int at) {
+            return at < text.length() && (Character.isUpperCase(text.charAt(at)) || text.charAt(at) == '?' || text.charAt(at) == '>');
+        }
+
         /** The comma-separated parts between [start] and [end], brackets and generics kept whole. */
         List<int[]> parts(int start, int end) {
             List<int[]> parts = new ArrayList<>();
             int depth = 0;
+            int angle = 0;
             int from = start;
             for (int at = start; at < end; at++) {
                 if (!code(at)) continue;
                 char c = text.charAt(at);
-                if ("([{<".indexOf(c) >= 0) depth++;
-                else if (")]}>".indexOf(c) >= 0) depth--;
-                else if (c == ',' && depth == 0) {
+                if ("([{".indexOf(c) >= 0) depth++;
+                else if (")]}".indexOf(c) >= 0) depth--;
+                // A type's <...>, where a lambda's -> or a comparison is no bracket.
+                else if (c == '<' && typeStarts(skipBlank(at + 1))) angle++;
+                else if (c == '>' && angle > 0 && text.charAt(at - 1) != '-') angle--;
+                else if (c == ',' && depth == 0 && angle == 0) {
                     parts.add(new int[]{from, at});
                     from = at + 1;
                 }
@@ -254,6 +323,8 @@ public class ToastLengthTest {
     private static final class Scan {
         private final Map<String, Source> byClass = new LinkedHashMap<>();
         private final Map<String, String> found = new TreeMap<>();
+        // Names still worth following when a chain ran out of steps.
+        final List<String> cutShort = new ArrayList<>();
 
         Scan(Map<String, String> sources) {
             for (Map.Entry<String, String> source : sources.entrySet()) {
@@ -288,66 +359,123 @@ public class ToastLengthTest {
                 for (String key : L10nCatalogTest.literalsIn(text, source.kind, l10n.end(), close, null)) found.putIfAbsent(key, where);
                 for (int at = l10n.start(); at <= close; at++) inL10n.add(at);
             }
-            if (depth == 0) return;
             Declared in = source.enclosing(start);
             Matcher name = NAME.matcher(text.substring(start, end));
             while (name.find()) {
                 int at = start + name.start(2);
-                String qualifier = name.group(1);
+                String chain = name.group(1).replaceAll("\\s", "");
                 String called = name.group(2);
                 boolean call = name.group(3) != null;
-                if (!source.code(at) || inL10n.contains(at) || KEYWORDS.contains(called) || PASSED_THROUGH.contains(called)) continue;
-                if (!seen.add(source.name + "#" + called + (call ? "()" : "@" + at))) continue;
-                if (call) {
-                    followReturns(qualifier, called, source, depth, seen, where);
-                } else if (qualifier == null && in != null) {
-                    followLocal(source, in, called, depth, seen, where);
+                if (!source.code(at) || inL10n.contains(at) || KEYWORDS.contains(called)) continue;
+                String qualifier;
+                if (PASSED_THROUGH.contains(called)) {
+                    // said.toString() and text.trim() hand on the local in front of them.
+                    if (!call || !chain.matches("\\w+\\.")) continue;
+                    called = chain.substring(0, chain.length() - 1);
+                    call = false;
+                    qualifier = null;
+                } else if (chain.isEmpty()) {
+                    // b().method() could be any class's method.
+                    qualifier = dotBefore(text, start + name.start()) ? "" : null;
+                } else {
+                    String[] links = chain.split("\\.");
+                    qualifier = links[links.length - 1];
+                }
+                String key = source.name + "#" + (qualifier == null ? "" : qualifier + ".") + called + (call ? "()" : "@" + at);
+                if (depth == 0) {
+                    // Out of steps: say so when the very next one would have read a text.
+                    if (seen.contains(key)) continue;
+                    for (Step step : steps(source, in, qualifier, called, call)) {
+                        if (step.source.readsText(step.start, step.end)) {
+                            cutShort.add(where + " > " + step.label);
+                            break;
+                        }
+                    }
+                    continue;
+                }
+                if (!seen.add(key)) continue;
+                for (Step step : steps(source, in, qualifier, called, call)) {
+                    follow(step.source, step.start, step.end, depth - 1, seen, where + " > " + step.label);
                 }
             }
         }
 
-        /** The returns of each String method [called] could be: in [source], the named class, or any class for obj.method(). */
-        private void followReturns(String qualifier, String called, Source source, int depth, Set<String> seen, String where) {
-            List<Source> owners = new ArrayList<>();
-            if (qualifier == null || qualifier.equals("this")) owners.add(source);
-            else if (byClass.containsKey(qualifier)) owners.add(byClass.get(qualifier));
-            else owners.addAll(byClass.values());
-            for (Source owner : owners) {
-                for (Declared method : owner.methods) {
-                    if (!method.name.equals(called) || !(method.returns.equals("String") || method.returns.equals("CharSequence"))) continue;
-                    Matcher returned = RETURN.matcher(owner.text).region(method.open, method.close);
-                    while (returned.find()) {
-                        if (!owner.code(returned.start())) continue;
-                        follow(owner, returned.end(), owner.expressionEnd(returned.end(), method.close), depth - 1, seen,
-                                where + " > " + called + "()");
+        /** Where [called] hands on from: a String method's returns, what a local is set to, or what callers pass a parameter. */
+        private List<Step> steps(Source source, Declared in, String qualifier, String called, boolean call) {
+            List<Step> steps = new ArrayList<>();
+            if (call) {
+                for (Source owner : owners(qualifier, called, source)) {
+                    for (Declared method : owner.methods) {
+                        if (!method.name.equals(called) || !textual(method)) continue;
+                        Matcher returned = RETURN.matcher(owner.text).region(method.open, method.close);
+                        while (returned.find()) {
+                            if (!owner.code(returned.start())) continue;
+                            steps.add(new Step(owner, returned.end(), owner.expressionEnd(returned.end(), method.close), called + "()"));
+                        }
                     }
                 }
+                return steps;
             }
-        }
-
-        /** What a local is set to in [in], or, for a parameter, what each caller passes in its place. */
-        private void followLocal(Source source, Declared in, String local, int depth, Set<String> seen, String where) {
-            Matcher set = Pattern.compile("\\b" + Pattern.quote(local) + "\\s*=(?!=)").matcher(source.text).region(in.open, in.close);
-            boolean assigned = false;
+            if (qualifier != null || in == null) return steps;
+            Matcher set = setting(called).matcher(source.text).region(in.open, in.close);
             while (set.find()) {
-                if (!source.code(set.start())) continue;
-                assigned = true;
-                follow(source, set.end(), source.expressionEnd(set.end(), in.close), depth - 1, seen, where + " > " + local);
+                if (source.code(set.start())) steps.add(new Step(source, set.end(), source.expressionEnd(set.end(), in.close), called));
             }
-            int index = in.parameters.indexOf(local);
-            if (assigned || index < 0) return;
+            int index = in.parameters.indexOf(called);
+            // Each call of Utils' showToast methods is a toast of its own, read from there.
+            if (index < 0 || in.name.startsWith("showToast") || LOGGED_ONLY.contains(in.name)) return steps;
             Pattern calls = Pattern.compile("(?<!\\w)" + Pattern.quote(in.name) + "\\s*\\(");
             for (Source caller : byClass.values()) {
-                Matcher call = calls.matcher(caller.text);
-                while (call.find()) {
-                    if (!caller.code(call.start()) || isDeclaration(caller, call.start())) continue;
-                    int open = call.end() - 1;
+                Matcher found = calls.matcher(caller.text);
+                while (found.find()) {
+                    if (!caller.code(found.start()) || isDeclaration(caller, found.start())) continue;
+                    int open = found.end() - 1;
                     List<int[]> arguments = caller.parts(open + 1, caller.closing(open, '(', ')'));
                     if (index >= arguments.size()) continue;
                     int[] argument = arguments.get(index);
-                    follow(caller, argument[0], argument[1], depth - 1, seen, where + " > " + in.name + "(" + local + ")");
+                    steps.add(new Step(caller, argument[0], argument[1], in.name + "(" + called + ")"));
                 }
             }
+            return steps;
+        }
+
+        /** Where a method [called] with [qualifier] in [source] could be declared. */
+        private List<Source> owners(String qualifier, String called, Source source) {
+            List<Source> owners = new ArrayList<>();
+            if (qualifier == null || qualifier.equals("this")) {
+                for (Declared method : source.methods) {
+                    if (method.name.equals(called)) {
+                        owners.add(source);
+                        return owners;
+                    }
+                }
+                // One the class doesn't declare comes from its parent or a static import.
+                Matcher from = Pattern.compile("\\bextends\\s+(\\w+)|\\bimport\\s+static\\s+[\\w.]*?(\\w+)\\s*\\.\\s*(?:"
+                        + Pattern.quote(called) + "|\\*)\\s*;").matcher(source.text);
+                while (from.find()) {
+                    Source owner = byClass.get(from.group(1) != null ? from.group(1) : from.group(2));
+                    if (owner != null && owner != source) owners.add(owner);
+                }
+            } else if (byClass.containsKey(qualifier)) {
+                owners.add(byClass.get(qualifier));
+            } else {
+                owners.addAll(byClass.values());
+            }
+            return owners;
+        }
+
+        private static Pattern setting(String local) {
+            return Pattern.compile("\\b" + Pattern.quote(local) + "\\s*(?:\\+?=(?!=)|\\.\\s*append\\s*\\()");
+        }
+
+        private static boolean textual(Declared method) {
+            return method.returns.equals("String") || method.returns.equals("CharSequence");
+        }
+
+        private static boolean dotBefore(String text, int at) {
+            int index = at - 1;
+            while (index >= 0 && Character.isWhitespace(text.charAt(index))) index--;
+            return index >= 0 && text.charAt(index) == '.';
         }
 
         private static boolean isDeclaration(Source source, int at) {

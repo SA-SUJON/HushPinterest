@@ -426,7 +426,7 @@ public final class BoardDownloads {
     private static void queue(Activity activity, List<Object> pins, Set<String> history, GridDownloads.Filter filter) {
         try {
             if (!active()) {
-                Utils.showToastLong(L10n.t("Resume and turn on Download pins and Download board first."));
+                Utils.showToastLong(L10n.t("Resume HushPinterest, turn on Download pins and Download board."));
                 return;
             }
             if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;

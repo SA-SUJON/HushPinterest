@@ -307,7 +307,7 @@ public class BoardDownloadsTest {
         BoardDownloads.record(page("77", 200, 2));
         choice.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         settle();
-        assertEquals("Resume and turn on Download pins and Download board first.",
+        assertEquals("Resume HushPinterest, turn on Download pins and Download board.",
                 ShadowToast.getTextOfLatestToast());
         assertEquals(0, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
         assertFalse(GridDownloads.running());

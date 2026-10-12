@@ -14,7 +14,7 @@ Back	Geri
 Cancel	İptal
 Clear diagnostic data	Tanılama verilerini temizle
 Copy quick report	Hızlı raporu kopyala
-Couldn't import or put back your old switches. Check them here.	İçe aktarılamadı, eski anahtarların da geri gelmedi. Burada kontrol et.
+Couldn't import or put back your old switches. Check them here.	İçe aktarılamadı ve eski anahtarlar geri yüklenemedi. Burada kontrol et.
 Couldn't import the settings. Nothing was changed.	Ayarlar içe aktarılamadı. Hiçbir şey değiştirilmedi.
 Couldn't open that file. Nothing was changed.	Bu dosya açılamadı. Hiçbir şey değiştirilmedi.
 Couldn't open the file picker. Try again.	Dosya seçici açılamadı. Tekrar dene.
@@ -36,9 +36,9 @@ Hide ads	Reklamları gizle
 Links, updates, backup and more	Bağlantılar, güncellemeler, yedekleme ve daha fazlası
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Anahtarlarını bir dosyaya kaydet. Anahtarlar bu Pinterest uygulamasındaki tüm hesaplar için geçerlidir. Duraklatma ve Hata ayıklama günlüğü dahil edilmez, sürüm denetimi de edilmez.
 Settings exported, but the app holding it blocked the check.	Ayarlar dışa aktarıldı ama dosyayı tutan uygulama kontrolü engelledi.
-The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.	O dosyayı tutan uygulama çok uzun sürüyor, bu yüzden HushPinterest beklemeyi bıraktı. Hiçbir şey değiştirilmedi.
+The file's app is too slow. Nothing was changed.	Dosyanın uygulaması çok yavaş. Hiçbir şey değiştirilmedi.
 The app with the last settings file hasn't answered. Try later.	Son ayar dosyasını tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.
-The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Ayar dosyasını tutan uygulama çok uzun sürüyor, bu yüzden HushPinterest beklemeyi bıraktı. O uygulama kaydetmeyi yine de bitirebilir, bu yüzden dosyaya güvenmeden önce onu kontrol et.
+The file's app is too slow. Check the file before you use it.	Dosyanın uygulaması çok yavaş. Kullanmadan önce dosyayı kontrol et.
 Delete %1$s from %2$s, then tap Resume again.	%1$s dosyasını %2$s içinden sil, sonra yeniden Devam et'e dokun.
 Settings file saved but reads back wrong. Save it as a new file.	Ayar dosyası kaydedildi ama yanlış okunuyor. Yeni dosya olarak kaydet.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Devam ettirene kadar Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır.
@@ -450,7 +450,7 @@ Selected: %1$d (unsupported: %2$d)	Seçilen: %1$d (desteklenmeyen: %2$d)
 Unsupported: %d	Desteklenmeyen: %d
 Queue pins	Pinleri sıraya al
 Download history already has each pin chosen from this board.	İndirme geçmişinde bu panodan seçilen her Pin zaten var.
-Resume and turn on Download pins and Download board first.	Önce sürdür, sonra Pin indirmeyi ve Panoyu indirmeyi aç.
+Resume HushPinterest, turn on Download pins and Download board.	HushPinterest'i sürdür, Pinleri indir ve Panoyu indir'i aç.
 Save list	Listeyi kaydet
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Bu liste yalnızca kaydedildiği sırada Pinterest'in panodan yüklediği, seçilen türdeki en fazla %d Pin'i içerir. Panonun daha aşağısındaki Pinler listede yok.
 This list has only the pins chosen from those on screen when it was saved.	Bu liste yalnızca kaydedildiği sırada ekrandakiler arasından seçilen Pinleri içerir.

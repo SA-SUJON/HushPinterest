@@ -35,10 +35,10 @@ Turns off every HushPinterest switch except Debug logging the next time Pinteres
 Hide ads	Werbung ausblenden
 Links, updates, backup and more	Links, Updates, Sicherung und mehr
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Speichert deine Schalter in einer Datei. Sie gelten für alle Konten in dieser Pinterest-App. Pause und Debug-Protokollierung sind nicht enthalten, die Suche nach neuen Versionen auch nicht.
-Settings exported, but the app holding it blocked the check.	Einstellungen exportiert, aber die Datei-App ließ keine Prüfung zu.
-The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.	Die App, in der die Datei liegt, braucht zu lange, deshalb wartet HushPinterest nicht mehr. Es wurde nichts geändert.
+Settings exported, but the app holding it blocked the check.	Einstellungen exportiert, aber die Dateien-App ließ keine Prüfung zu.
+The file's app is too slow. Nothing was changed.	Die App der Datei ist zu langsam. Es wurde nichts geändert.
 The app with the last settings file hasn't answered. Try later.	Die App mit der letzten Einstellungsdatei antwortet nicht. Versuch es später.
-The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Die App, in der die Einstellungsdatei liegt, braucht zu lange, deshalb wartet HushPinterest nicht mehr. Sie kann das Speichern noch abschließen, also prüfe die Datei, bevor du dich darauf verlässt.
+The file's app is too slow. Check the file before you use it.	Die App der Datei ist zu langsam. Prüfe die Datei, bevor du sie nutzt.
 Delete %1$s from %2$s, then tap Resume again.	Lösche %1$s aus %2$s und tippe dann erneut auf Fortsetzen.
 Settings file saved but reads back wrong. Save it as a new file.	Einstellungsdatei gespeichert, aber fehlerhaft. Speichere sie als neue Datei.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Bis zum Fortsetzen verhält sich jeder Schalter außer der Debug-Protokollierung, als wäre er aus. Was beim Patchen festgelegt wurde, bleibt aktiv.
@@ -450,14 +450,14 @@ Selected: %1$d (unsupported: %2$d)	Ausgewählt: %1$d (nicht unterstützt: %2$d)
 Unsupported: %d	Nicht unterstützt: %d
 Queue pins	Pins einreihen
 Download history already has each pin chosen from this board.	Der Download-Verlauf hat schon jeden gewählten Pin dieser Pinnwand.
-Resume and turn on Download pins and Download board first.	Fortsetzen und Pins herunterladen sowie Pinnwand herunterladen einschalten.
+Resume HushPinterest, turn on Download pins and Download board.	Setze HushPinterest fort, schalte Pins und Pinnwand herunterladen ein.
 Save list	Liste speichern
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Diese Liste enthält nur die Pins der gewählten Art, die Pinterest beim Speichern für die Pinnwand geladen hatte, bis zu %d. Pins weiter unten auf der Pinnwand sind nicht enthalten.
 This list has only the pins chosen from those on screen when it was saved.	Diese Liste enthält nur die Pins, die beim Speichern aus den Pins auf dem Bildschirm gewählt wurden.
 A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Ein Quelllink ist "missing", wenn der Pin keinen hatte, und "omitted", wenn er nicht genau so behalten werden konnte, wie er war, etwa ein Link mit Tracking-Angaben oder einer in ein privates Netzwerk.
 HushPinterest closed with the picker open. Pick and save again.	HushPinterest schloss bei offener Auswahl. Wähle und speichere erneut.
 Couldn't save the pin list. Try again.	Die Pin-Liste konnte nicht gespeichert werden. Versuche es noch einmal.
-Pin list saved, but the app holding it blocked the check.	Pin-Liste gespeichert, aber die Datei-App ließ keine Prüfung zu.
+Pin list saved, but the app holding it blocked the check.	Pin-Liste gespeichert, aber die Dateien-App ließ keine Prüfung zu.
 The saved list reads back wrong. Save it again as a new file.	Die gespeicherte Liste ist fehlerhaft. Speichere sie als neue Datei.
 Saved a list of one pin.	Eine Liste mit einem Pin wurde gespeichert.
 Saved a list of %d pins.	Eine Liste mit %d Pins wurde gespeichert.

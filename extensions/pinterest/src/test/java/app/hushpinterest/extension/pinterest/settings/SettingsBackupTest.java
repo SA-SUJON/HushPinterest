@@ -1690,10 +1690,8 @@ public class SettingsBackupTest {
 
     // ---- The app holding the file ------------------------------------------------------------
 
-    private static final String EXPORT_TIMEOUT = "The app holding the settings file is taking too long, so HushPinterest "
-            + "stopped waiting. That app may still finish saving it, so check the file before you rely on it.";
-    private static final String IMPORT_TIMEOUT =
-            "The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.";
+    private static final String EXPORT_TIMEOUT = "The file's app is too slow. Check the file before you use it.";
+    private static final String IMPORT_TIMEOUT = "The file's app is too slow. Nothing was changed.";
     private static final String STALLED = "The app with the last settings file hasn't answered. Try later.";
     private static final String MISMATCH =
             "Settings file saved but reads back wrong. Save it as a new file.";

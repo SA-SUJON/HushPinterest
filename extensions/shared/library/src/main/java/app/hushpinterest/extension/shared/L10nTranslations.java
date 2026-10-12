@@ -651,7 +651,7 @@ public final class L10nTranslations {
         table.put("Pin actions",
                 "Pin-Aktionen");
         table.put("Pin list saved, but the app holding it blocked the check.",
-                "Pin-Liste gespeichert, aber die Datei-App lie\u00df keine Pr\u00fcfung zu.");
+                "Pin-Liste gespeichert, aber die Dateien-App lie\u00df keine Pr\u00fcfung zu.");
         table.put("Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.",
                 "Pinterest kann die Werbe-ID-Berechtigung von Google und die Werbedienste von Android nicht mehr nutzen. Das wurde beim Patchen festgelegt. Patche erneut ohne diesen Patch, um sie zur\u00fcckzubekommen.");
         table.put("Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.",
@@ -743,8 +743,8 @@ public final class L10nTranslations {
                 "Setze HushPinterest fort und schalte Pins herunterladen ein.");
         table.put("Resume HushPinterest and turn on Download pins to use this.",
                 "Setze HushPinterest fort und schalte Pins herunterladen ein.");
-        table.put("Resume and turn on Download pins and Download board first.",
-                "Fortsetzen und Pins herunterladen sowie Pinnwand herunterladen einschalten.");
+        table.put("Resume HushPinterest, turn on Download pins and Download board.",
+                "Setze HushPinterest fort, schalte Pins und Pinnwand herunterladen ein.");
         table.put("Retry",
                 "Erneut versuchen");
         table.put("Retry download",
@@ -807,7 +807,7 @@ public final class L10nTranslations {
         table.put("Settings didn't fully refresh. Reopen them and try again.",
                 "Einstellungen nicht ganz aktualisiert. \u00d6ffne sie neu und versuch es erneut.");
         table.put("Settings exported, but the app holding it blocked the check.",
-                "Einstellungen exportiert, aber die Datei-App lie\u00df keine Pr\u00fcfung zu.");
+                "Einstellungen exportiert, aber die Dateien-App lie\u00df keine Pr\u00fcfung zu.");
         table.put("Settings exported.",
                 "Einstellungen exportiert.");
         table.put("Settings file saved but reads back wrong. Save it as a new file.",
@@ -882,10 +882,6 @@ public final class L10nTranslations {
                 "Diese Datei enth\u00e4lt eine Einstellung doppelt. Es wurde nichts ge\u00e4ndert.");
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Das ist keine HushPinterest-Einstellungsdatei. Es wurde nichts ge\u00e4ndert.");
-        table.put("The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.",
-                "Die App, in der die Datei liegt, braucht zu lange, deshalb wartet HushPinterest nicht mehr. Es wurde nichts ge\u00e4ndert.");
-        table.put("The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.",
-                "Die App, in der die Einstellungsdatei liegt, braucht zu lange, deshalb wartet HushPinterest nicht mehr. Sie kann das Speichern noch abschlie\u00dfen, also pr\u00fcfe die Datei, bevor du dich darauf verl\u00e4sst.");
         table.put("The app with the last settings file hasn't answered. Try later.",
                 "Die App mit der letzten Einstellungsdatei antwortet nicht. Versuch es sp\u00e4ter.");
         table.put("The diagnostic report couldn't be saved yet. Try again soon.",
@@ -896,6 +892,10 @@ public final class L10nTranslations {
                 "Der Download-Server konnte die Anfrage nicht abschlie\u00dfen.");
         table.put("The file already exists.",
                 "Die Datei existiert bereits.");
+        table.put("The file's app is too slow. Check the file before you use it.",
+                "Die App der Datei ist zu langsam. Pr\u00fcfe die Datei, bevor du sie nutzt.");
+        table.put("The file's app is too slow. Nothing was changed.",
+                "Die App der Datei ist zu langsam. Es wurde nichts ge\u00e4ndert.");
         table.put("The newest HushPinterest release is %1$s.",
                 "Die neueste Version von HushPinterest ist %1$s.");
         table.put("The saved list reads back wrong. Save it again as a new file.",
@@ -1733,9 +1733,9 @@ public final class L10nTranslations {
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Reanuda HushPinterest y activa Descargar pines para volver a intentarlo.");
         table.put("Resume HushPinterest and turn on Download pins to use this.",
-                "Reanuda HushPinterest y activa Descargar Pines para usar esto.");
-        table.put("Resume and turn on Download pins and Download board first.",
-                "Reanuda y activa Descargar Pines y Descargar tablero primero.");
+                "Reanuda HushPinterest y activa Descargar pines para usar esto.");
+        table.put("Resume HushPinterest, turn on Download pins and Download board.",
+                "Reanuda HushPinterest y activa Descargar pines y Descargar tablero.");
         table.put("Retry",
                 "Reintentar");
         table.put("Retry download",
@@ -1873,10 +1873,6 @@ public final class L10nTranslations {
                 "Ese archivo repite un ajuste. No se cambi\u00f3 nada.");
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Eso no es un archivo de configuraci\u00f3n de HushPinterest. No se cambi\u00f3 nada.");
-        table.put("The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.",
-                "La app que guarda ese archivo tarda demasiado, as\u00ed que HushPinterest dej\u00f3 de esperar. No se cambi\u00f3 nada.");
-        table.put("The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.",
-                "La app que guarda el archivo de configuraci\u00f3n tarda demasiado, as\u00ed que HushPinterest dej\u00f3 de esperar. Esa app a\u00fan puede terminar de guardarlo, as\u00ed que revisa el archivo antes de confiar en \u00e9l.");
         table.put("The app with the last settings file hasn't answered. Try later.",
                 "La app del \u00faltimo archivo de ajustes no responde. Int\u00e9ntalo luego.");
         table.put("The diagnostic report couldn't be saved yet. Try again soon.",
@@ -1887,6 +1883,10 @@ public final class L10nTranslations {
                 "El servidor de descarga no pudo completar la solicitud.");
         table.put("The file already exists.",
                 "El archivo ya existe.");
+        table.put("The file's app is too slow. Check the file before you use it.",
+                "La app del archivo tarda demasiado. Revisa el archivo antes de usarlo.");
+        table.put("The file's app is too slow. Nothing was changed.",
+                "La app del archivo tarda demasiado. No se cambi\u00f3 nada.");
         table.put("The newest HushPinterest release is %1$s.",
                 "La versi\u00f3n m\u00e1s reciente de HushPinterest es la %1$s.");
         table.put("The saved list reads back wrong. Save it again as a new file.",
@@ -2722,11 +2722,11 @@ public final class L10nTranslations {
         table.put("Resume",
                 "Lanjutkan");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
-                "Lanjutkan HushPinterest dan aktifkan Unduh pin untuk mencoba lagi.");
+                "Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk mencoba lagi.");
         table.put("Resume HushPinterest and turn on Download pins to use this.",
                 "Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk memakai ini.");
-        table.put("Resume and turn on Download pins and Download board first.",
-                "Lanjutkan, lalu aktifkan Unduh Pin dan Unduh papan dulu.");
+        table.put("Resume HushPinterest, turn on Download pins and Download board.",
+                "Lanjutkan HushPinterest, aktifkan Unduh Pin dan Unduh papan.");
         table.put("Retry",
                 "Coba lagi");
         table.put("Retry download",
@@ -2864,10 +2864,6 @@ public final class L10nTranslations {
                 "File itu mencantumkan satu pengaturan dua kali. Tidak ada yang diubah.");
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Itu bukan file pengaturan HushPinterest. Tidak ada yang diubah.");
-        table.put("The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.",
-                "Aplikasi yang menyimpan file itu terlalu lama, jadi HushPinterest berhenti menunggu. Tidak ada yang diubah.");
-        table.put("The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.",
-                "Aplikasi yang menyimpan file pengaturan terlalu lama, jadi HushPinterest berhenti menunggu. Aplikasi itu mungkin masih menyelesaikan penyimpanannya, jadi periksa file itu sebelum mengandalkannya.");
         table.put("The app with the last settings file hasn't answered. Try later.",
                 "Aplikasi file pengaturan terakhir belum merespons. Coba lagi nanti.");
         table.put("The diagnostic report couldn't be saved yet. Try again soon.",
@@ -2878,6 +2874,10 @@ public final class L10nTranslations {
                 "Server unduhan tidak dapat menyelesaikan permintaan.");
         table.put("The file already exists.",
                 "File sudah ada.");
+        table.put("The file's app is too slow. Check the file before you use it.",
+                "Aplikasi file itu terlalu lambat. Periksa file sebelum memakainya.");
+        table.put("The file's app is too slow. Nothing was changed.",
+                "Aplikasi file itu terlalu lambat. Tidak ada yang diubah.");
         table.put("The newest HushPinterest release is %1$s.",
                 "Rilis HushPinterest terbaru adalah %1$s.");
         table.put("The saved list reads back wrong. Save it again as a new file.",
@@ -3713,11 +3713,11 @@ public final class L10nTranslations {
         table.put("Resume",
                 "Retomar");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
-                "Retome o HushPinterest e ative Baixar pins para tentar novamente.");
+                "Retome o HushPinterest e ative Baixar Pins para tentar novamente.");
         table.put("Resume HushPinterest and turn on Download pins to use this.",
                 "Retome o HushPinterest e ative Baixar Pins para usar isto.");
-        table.put("Resume and turn on Download pins and Download board first.",
-                "Retome e ative Baixar Pins e Baixar pasta primeiro.");
+        table.put("Resume HushPinterest, turn on Download pins and Download board.",
+                "Retome o HushPinterest e ative Baixar Pins e Baixar pasta.");
         table.put("Retry",
                 "Tentar novamente");
         table.put("Retry download",
@@ -3855,10 +3855,6 @@ public final class L10nTranslations {
                 "Esse arquivo repete uma configura\u00e7\u00e3o. Nada foi alterado.");
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Isso n\u00e3o \u00e9 um arquivo de configura\u00e7\u00f5es do HushPinterest. Nada foi alterado.");
-        table.put("The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.",
-                "O app que guarda esse arquivo est\u00e1 demorando demais, ent\u00e3o o HushPinterest parou de esperar. Nada foi alterado.");
-        table.put("The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.",
-                "O app que guarda o arquivo de configura\u00e7\u00f5es est\u00e1 demorando demais, ent\u00e3o o HushPinterest parou de esperar. Esse app ainda pode terminar de salv\u00e1-lo, ent\u00e3o confira o arquivo antes de confiar nele.");
         table.put("The app with the last settings file hasn't answered. Try later.",
                 "O app do \u00faltimo arquivo de configura\u00e7\u00f5es n\u00e3o respondeu. Tente depois.");
         table.put("The diagnostic report couldn't be saved yet. Try again soon.",
@@ -3869,6 +3865,10 @@ public final class L10nTranslations {
                 "O servidor de download n\u00e3o conseguiu concluir a solicita\u00e7\u00e3o.");
         table.put("The file already exists.",
                 "O arquivo j\u00e1 existe.");
+        table.put("The file's app is too slow. Check the file before you use it.",
+                "O app do arquivo est\u00e1 lento demais. Confira o arquivo antes de us\u00e1-lo.");
+        table.put("The file's app is too slow. Nothing was changed.",
+                "O app do arquivo est\u00e1 lento demais. Nada foi alterado.");
         table.put("The newest HushPinterest release is %1$s.",
                 "A vers\u00e3o mais nova do HushPinterest \u00e9 %1$s.");
         table.put("The saved list reads back wrong. Save it again as a new file.",
@@ -4198,7 +4198,7 @@ public final class L10nTranslations {
         table.put("Couldn't copy the media link. Open the pin again, then retry.",
                 "Medya ba\u011flant\u0131s\u0131 kopyalanamad\u0131. Pin'i yeniden a\u00e7, sonra tekrar dene.");
         table.put("Couldn't import or put back your old switches. Check them here.",
-                "\u0130\u00e7e aktar\u0131lamad\u0131, eski anahtarlar\u0131n da geri gelmedi. Burada kontrol et.");
+                "\u0130\u00e7e aktar\u0131lamad\u0131 ve eski anahtarlar geri y\u00fcklenemedi. Burada kontrol et.");
         table.put("Couldn't import the settings. Nothing was changed.",
                 "Ayarlar i\u00e7e aktar\u0131lamad\u0131. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("Couldn't open Downloads.",
@@ -4707,8 +4707,8 @@ public final class L10nTranslations {
                 "Yeniden denemek i\u00e7in HushPinterest'i s\u00fcrd\u00fcr\u00fcn ve Pinleri indir'i a\u00e7\u0131n.");
         table.put("Resume HushPinterest and turn on Download pins to use this.",
                 "Bunu kullanmak i\u00e7in HushPinterest'i s\u00fcrd\u00fcr ve Pin indirmeyi a\u00e7.");
-        table.put("Resume and turn on Download pins and Download board first.",
-                "\u00d6nce s\u00fcrd\u00fcr, sonra Pin indirmeyi ve Panoyu indirmeyi a\u00e7.");
+        table.put("Resume HushPinterest, turn on Download pins and Download board.",
+                "HushPinterest'i s\u00fcrd\u00fcr, Pinleri indir ve Panoyu indir'i a\u00e7.");
         table.put("Retry",
                 "Yeniden dene");
         table.put("Retry download",
@@ -4846,10 +4846,6 @@ public final class L10nTranslations {
                 "Bu dosyada bir ayar iki kez ge\u00e7iyor. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Bu bir HushPinterest ayar dosyas\u0131 de\u011fil. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
-        table.put("The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.",
-                "O dosyay\u0131 tutan uygulama \u00e7ok uzun s\u00fcr\u00fcyor, bu y\u00fczden HushPinterest beklemeyi b\u0131rakt\u0131. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
-        table.put("The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.",
-                "Ayar dosyas\u0131n\u0131 tutan uygulama \u00e7ok uzun s\u00fcr\u00fcyor, bu y\u00fczden HushPinterest beklemeyi b\u0131rakt\u0131. O uygulama kaydetmeyi yine de bitirebilir, bu y\u00fczden dosyaya g\u00fcvenmeden \u00f6nce onu kontrol et.");
         table.put("The app with the last settings file hasn't answered. Try later.",
                 "Son ayar dosyas\u0131n\u0131 tutan uygulama h\u00e2l\u00e2 yan\u0131t vermedi. Daha sonra tekrar dene.");
         table.put("The diagnostic report couldn't be saved yet. Try again soon.",
@@ -4860,6 +4856,10 @@ public final class L10nTranslations {
                 "\u0130ndirme sunucusu iste\u011fi tamamlayamad\u0131.");
         table.put("The file already exists.",
                 "Dosya zaten var.");
+        table.put("The file's app is too slow. Check the file before you use it.",
+                "Dosyan\u0131n uygulamas\u0131 \u00e7ok yava\u015f. Kullanmadan \u00f6nce dosyay\u0131 kontrol et.");
+        table.put("The file's app is too slow. Nothing was changed.",
+                "Dosyan\u0131n uygulamas\u0131 \u00e7ok yava\u015f. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("The newest HushPinterest release is %1$s.",
                 "En yeni HushPinterest s\u00fcr\u00fcm\u00fc %1$s.");
         table.put("The saved list reads back wrong. Save it again as a new file.",

@@ -266,8 +266,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             }
         });
         if (!accepted) notStarted(run);
-        else watch(run, L10n.t("The app holding the settings file is taking too long, so HushPinterest stopped waiting. "
-                + "That app may still finish saving it, so check the file before you rely on it."));
+        else watch(run, L10n.t("The file's app is too slow. Check the file before you use it."));
     }
 
     /**
@@ -318,8 +317,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             }
         });
         if (!accepted) notStarted(run);
-        else watch(run, L10n.t("The app holding that file is taking too long, so HushPinterest stopped waiting. "
-                + "Nothing was changed."));
+        else watch(run, L10n.t("The file's app is too slow. Nothing was changed."));
     }
 
     /** The file's text, opened through its app with [run]'s cancel signal and held where the screen can close it. */

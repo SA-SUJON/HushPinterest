@@ -254,7 +254,7 @@ public class SettingsNavigationTest {
             assertTrue(BaseSettings.PAUSED.savedValue());
             assertEquals("Resume", statusAction().getText().toString());
             String line = String.valueOf(((Preference) list().getItemAtPosition(0)).getSummary());
-            assertTrue(line, line.contains("couldn't be removed") && line.endsWith("then tap Resume again."));
+            assertTrue(line, line.startsWith("Delete ") && line.endsWith("then tap Resume again."));
         } finally {
             held.delete();
             marker.delete();

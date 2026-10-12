@@ -36,9 +36,9 @@ Hide ads	Sembunyikan iklan
 Links, updates, backup and more	Tautan, pembaruan, cadangan, dan lainnya
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Simpan sakelar Anda ke sebuah file. Sakelar ini mencakup semua akun di aplikasi Pinterest ini. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.
 Settings exported, but the app holding it blocked the check.	Pengaturan diekspor, tetapi aplikasi penyimpannya menolak pemeriksaan.
-The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.	Aplikasi yang menyimpan file itu terlalu lama, jadi HushPinterest berhenti menunggu. Tidak ada yang diubah.
+The file's app is too slow. Nothing was changed.	Aplikasi file itu terlalu lambat. Tidak ada yang diubah.
 The app with the last settings file hasn't answered. Try later.	Aplikasi file pengaturan terakhir belum merespons. Coba lagi nanti.
-The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Aplikasi yang menyimpan file pengaturan terlalu lama, jadi HushPinterest berhenti menunggu. Aplikasi itu mungkin masih menyelesaikan penyimpanannya, jadi periksa file itu sebelum mengandalkannya.
+The file's app is too slow. Check the file before you use it.	Aplikasi file itu terlalu lambat. Periksa file sebelum memakainya.
 Delete %1$s from %2$s, then tap Resume again.	Hapus %1$s dari %2$s, lalu ketuk Lanjutkan lagi.
 Settings file saved but reads back wrong. Save it as a new file.	File pengaturan disimpan, tetapi isinya tidak cocok. Simpan sebagai file baru.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.
@@ -239,7 +239,7 @@ Saved in %s.	Disimpan di %s.
 Android dropped this request. Check Downloads before retrying.	Android membatalkan permintaan ini. Periksa Unduhan sebelum mencoba lagi.
 Android dropped this request. Check %s before retrying.	Android membatalkan permintaan ini. Periksa %s sebelum mencoba lagi.
 Couldn't check Downloads. Try again.	Tidak dapat memeriksa Unduhan. Coba lagi.
-Resume HushPinterest and turn on Download pins to retry.	Lanjutkan HushPinterest dan aktifkan Unduh pin untuk mencoba lagi.
+Resume HushPinterest and turn on Download pins to retry.	Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk mencoba lagi.
 Open the pin again to get a fresh download link.	Buka pin lagi untuk mendapatkan tautan unduhan baru.
 Can't retry this. Check Downloads or open the pin again.	Tidak dapat dicoba lagi. Periksa Unduhan atau buka pin lagi.
 Can't retry this. Check %s or open the pin again.	Tidak dapat dicoba lagi. Periksa %s atau buka pin lagi.
@@ -450,7 +450,7 @@ Selected: %1$d (unsupported: %2$d)	Dipilih: %1$d (tidak didukung: %2$d)
 Unsupported: %d	Tidak didukung: %d
 Queue pins	Antrekan Pin
 Download history already has each pin chosen from this board.	Riwayat unduhan sudah memiliki setiap Pin pilihan dari papan ini.
-Resume and turn on Download pins and Download board first.	Lanjutkan, lalu aktifkan Unduh Pin dan Unduh papan dulu.
+Resume HushPinterest, turn on Download pins and Download board.	Lanjutkan HushPinterest, aktifkan Unduh Pin dan Unduh papan.
 Save list	Simpan daftar
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Daftar ini hanya berisi Pin dari jenis yang dipilih yang sudah dimuat Pinterest untuk papan saat daftar disimpan, maksimal %d. Pin yang lebih bawah di papan tidak ada di dalamnya.
 This list has only the pins chosen from those on screen when it was saved.	Daftar ini hanya berisi Pin yang dipilih dari Pin di layar saat daftar disimpan.

@@ -386,7 +386,7 @@ public class PinMenuTest {
         assertEquals("Download unavailable", ((TextView) row).getText());
         assertTrue(row.isEnabled());
         assertTrue(row.isFocusable());
-        assertTrue(row.getContentDescription().toString().contains("streaming video"));
+        assertTrue(row.getContentDescription().toString().contains("only streams this video"));
         assertTrue(row.performClick());
         assertTrue(details().contains("Pinterest only streams this video. There's no file to download."));
         assertEquals(0, host.dismissed);

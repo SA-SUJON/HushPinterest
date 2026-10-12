@@ -36,9 +36,9 @@ Hide ads	Ocultar anuncios
 Links, updates, backup and more	Enlaces, actualizaciones, copia de seguridad y más
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Guarda tus interruptores en un archivo. Cubren todas las cuentas de esta app de Pinterest. La pausa y el Registro de depuración no se incluyen, y la búsqueda de nuevas versiones tampoco.
 Settings exported, but the app holding it blocked the check.	Ajustes exportados, pero la app del archivo impidió comprobarlo.
-The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.	La app que guarda ese archivo tarda demasiado, así que HushPinterest dejó de esperar. No se cambió nada.
+The file's app is too slow. Nothing was changed.	La app del archivo tarda demasiado. No se cambió nada.
 The app with the last settings file hasn't answered. Try later.	La app del último archivo de ajustes no responde. Inténtalo luego.
-The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.	La app que guarda el archivo de configuración tarda demasiado, así que HushPinterest dejó de esperar. Esa app aún puede terminar de guardarlo, así que revisa el archivo antes de confiar en él.
+The file's app is too slow. Check the file before you use it.	La app del archivo tarda demasiado. Revisa el archivo antes de usarlo.
 Delete %1$s from %2$s, then tap Resume again.	Borra %1$s de %2$s y luego vuelve a tocar Reanudar.
 Settings file saved but reads back wrong. Save it as a new file.	Ajustes guardados, pero el archivo no se lee bien. Guárdalo como nuevo.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Hasta que reanudes, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene.
@@ -275,7 +275,7 @@ Couldn't share this file. Check Downloads for the saved file.	No se pudo compart
 Couldn't share this file. Check %s for the saved file.	No se pudo compartir este archivo. Busca el archivo guardado en %s.
 This download isn't a saved file anymore. Check Downloads.	Esta descarga ya no es un archivo guardado. Revisa Descargas.
 This download isn't a saved file anymore. Check %s.	Esta descarga ya no es un archivo guardado. Revisa %s.
-Resume HushPinterest and turn on Download pins to use this.	Reanuda HushPinterest y activa Descargar Pines para usar esto.
+Resume HushPinterest and turn on Download pins to use this.	Reanuda HushPinterest y activa Descargar pines para usar esto.
 Remove from history	Eliminar del historial
 Removes this history entry. Files and active downloads are kept.	Elimina esta entrada del historial. Se conservan los archivos y las descargas activas.
 Open Downloads	Abrir Descargas
@@ -450,7 +450,7 @@ Selected: %1$d (unsupported: %2$d)	Seleccionados: %1$d (no compatibles: %2$d)
 Unsupported: %d	No compatibles: %d
 Queue pins	Poner pines en cola
 Download history already has each pin chosen from this board.	El Historial de descargas ya tiene cada pin elegido de este tablero.
-Resume and turn on Download pins and Download board first.	Reanuda y activa Descargar Pines y Descargar tablero primero.
+Resume HushPinterest, turn on Download pins and Download board.	Reanuda HushPinterest y activa Descargar pines y Descargar tablero.
 Save list	Guardar lista
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Esta lista solo tiene los pines del tipo elegido que Pinterest había cargado del tablero al guardarla, hasta %d. Los pines que están más abajo en el tablero no están incluidos.
 This list has only the pins chosen from those on screen when it was saved.	Esta lista solo tiene los pines elegidos entre los que había en pantalla al guardarla.
