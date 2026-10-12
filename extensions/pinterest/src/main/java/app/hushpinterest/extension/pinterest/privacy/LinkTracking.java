@@ -99,8 +99,29 @@ public final class LinkTracking {
         return found;
     }
 
+    /**
+     * Where the link in a match ends. URL runs to the next space, so text glued onto a link, as in
+     * "?utm_source=x見て", would go with the tag it follows. Past the host, a run of characters outside
+     * ASCII stays in the link only when the link carries straight on after it: a separator, a + or a
+     * percent escape, as in the IRI query "?q=見て&utm_source=x". Otherwise, at the end of the match or
+     * before a plain letter, the run is text after the link. A host name has no value to swallow text
+     * into, so an international one stays whole. Plain char checks, since ICU and the JVM read \s
+     * differently.
+     */
     private static int trimmedEnd(String url) {
-        int end = url.length();
+        int end = withoutPunctuation(url, url.length());
+        int at = url.indexOf("://") + 3;
+        while (at < end && "/?#".indexOf(url.charAt(at)) < 0) at++;
+        for (; at < end; at++) {
+            if (url.charAt(at) < 0x80) continue;
+            int glued = at;
+            while (at < end && url.charAt(at) >= 0x80) at++;
+            if (at == end || "/?#&=+%".indexOf(url.charAt(at)) < 0) return withoutPunctuation(url, glued);
+        }
+        return end;
+    }
+
+    private static int withoutPunctuation(String url, int end) {
         while (end > 0 && ".,!?;:)]}".indexOf(url.charAt(end - 1)) >= 0) end--;
         return end;
     }

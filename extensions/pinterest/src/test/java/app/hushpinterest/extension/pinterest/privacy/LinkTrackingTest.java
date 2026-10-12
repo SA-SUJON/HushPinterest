@@ -13,6 +13,8 @@ import static org.junit.Assert.assertSame;
 import android.content.ClipData;
 import android.content.Intent;
 
+import java.util.Collections;
+
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -71,6 +73,22 @@ public class LinkTrackingTest {
         assertEquals("https://example.org/a and https://example.org/b",
                 LinkTracking.cleanText("https://example.org/a?utm_source=1 and https://example.org/b?fbclid=2"));
         assertNull(LinkTracking.cleanText(null));
+    }
+
+    @Test public void textGluedOntoALinkStaysWhenItsTagGoes() {
+        assertEquals("https://www.pinterest.com/pin/123/見て",
+                LinkTracking.cleanText("https://www.pinterest.com/pin/123/?utm_source=x見て"));
+        assertEquals("Look https://example.org/a.見てOK!",
+                LinkTracking.cleanText("Look https://example.org/a?fbclid=1.見てOK!"));
+        assertEquals(Collections.singletonList("https://pin.it/OpaqueToken"), LinkTracking.urls("https://pin.it/OpaqueToken見て"));
+    }
+
+    @Test public void anIriQueryPathOrHostStaysWhole() {
+        assertEquals("https://example.org/search?q=見て",
+                LinkTracking.cleanText("https://example.org/search?q=見て&utm_source=x"));
+        assertEquals("https://example.org/wiki/東京?q=東京%20駅 next",
+                LinkTracking.cleanText("https://example.org/wiki/東京?q=東京%20駅&gclid=2 next"));
+        assertEquals("https://bücher.example/a", LinkTracking.cleanText("https://bücher.example/a?utm_source=x"));
     }
 
     @Test public void onlySharedTextExtrasChangeAndCopyLabelsStayTheSame() {
