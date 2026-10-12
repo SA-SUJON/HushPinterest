@@ -220,7 +220,7 @@ public class HushPinterestPreferenceFragmentTest {
                 if (!Collections.disjoint(build, PatchFamily.ACTIONS_PAGE)) expected.add("Pin actions");
                 if (!Collections.disjoint(build, PatchFamily.INTERFACE_PAGE)) expected.add("Interface");
                 expected.addAll(EVERY_BUILD);
-                // Its one switch is the page, so it comes with the patch, right after Links.
+                // The page holds only that patch's switch and its Android settings row, so it comes with the patch, right after Links.
                 if (build.contains(PatchFamily.FIX_PUSH_NOTIFICATIONS)) expected.add(expected.indexOf("Links") + 1, "Notifications");
                 if (!expected.equals(sections)) wrong.add(build + ": sections " + sections);
             }
