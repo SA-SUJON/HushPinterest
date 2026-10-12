@@ -48,6 +48,7 @@ public class PinTransferTest {
         long length = -1;
         InputStream input = new ByteArrayInputStream(new byte[0]);
         int inputOpens;
+        Map<String, List<String>> headers = Collections.emptyMap();
 
         Response(URI uri, int status, String redirect) throws IOException {
             super(uri.toURL()); this.status = status; this.redirect = redirect;
@@ -55,6 +56,7 @@ public class PinTransferTest {
 
         @Override public int getResponseCode() { return status; }
         @Override public String getHeaderField(String name) { return "Location".equals(name) ? redirect : null; }
+        @Override public Map<String, List<String>> getHeaderFields() { return headers; }
         @Override public long getContentLengthLong() { return length; }
         @Override public InputStream getInputStream() { inputOpens++; return input; }
         @Override public void disconnect() { disconnected = true; }
@@ -177,23 +179,57 @@ public class PinTransferTest {
         HttpCookie before = cookie("csrftoken", "1", "api.pinterest.com");
         before.setPath("/v3/");
         manager.getCookieStore().add(hop, before);
+        HttpCookie meanwhile = cookie("sess", "2", "api.pinterest.com");
+        meanwhile.setPath("/v3/");
         List<Integer> stored = new ArrayList<>();
-        PinTransfer.Connection storing = uri -> new Response(uri, 302, "https://www.pinterest.com/pin/1/") {
-            @Override public int getResponseCode() {
-                try {
-                    manager.put(uri, Collections.singletonMap("Set-Cookie", Collections.singletonList("redir=1; Path=/")));
-                } catch (IOException failure) {
-                    throw new AssertionError(failure);
-                }
-                stored.add(manager.getCookieStore().get(uri).size());
-                return super.getResponseCode();
-            }
-        };
+        PinTransfer.Connection storing = answering(manager, stored, "redir=1; Path=/", () ->
+                // Pinterest's own request to the same host stores a cookie while the lookup runs.
+                manager.getCookieStore().add(hop, meanwhile));
         for (int lookup = 0; lookup < 2; lookup++) {
             assertEquals("https://www.pinterest.com/pin/1/", PinTransfer.location(hop, 1500, storing));
-            assertEquals(Collections.singletonList(before), manager.getCookieStore().get(hop));
+            assertEquals(Arrays.asList(before, meanwhile), manager.getCookieStore().get(hop));
         }
-        assertEquals("the control: each answer stored one", Arrays.asList(2, 2), stored);
+        assertEquals("the control: each answer stored one", Arrays.asList(3, 3), stored);
+    }
+
+    @Test public void aKeptCookieTheRedirectorChangesOrEndsGetsItsValueBack() throws Exception {
+        CookieManager manager = new CookieManager();
+        CookieHandler.setDefault(manager);
+        URI hop = URI.create("https://api.pinterest.com/url_shortener/Zz9/redirect/");
+        HttpCookie before = cookie("csrftoken", "1", "api.pinterest.com");
+        before.setPath("/v3/");
+        manager.getCookieStore().add(hop, before);
+        List<Integer> stored = new ArrayList<>();
+        PinTransfer.location(hop, 1500, answering(manager, stored, "csrftoken=9; Path=/v3/", () -> {
+            assertEquals("the control: the answer changed it", "9", manager.getCookieStore().get(hop).get(0).getValue());
+        }));
+        assertEquals(1, manager.getCookieStore().get(hop).size());
+        assertEquals("1", manager.getCookieStore().get(hop).get(0).getValue());
+        PinTransfer.location(hop, 1500, answering(manager, stored, "csrftoken=; Max-Age=0; Path=/v3/", () ->
+                assertTrue("the control: the answer ended it", manager.getCookieStore().get(hop).isEmpty())));
+        assertEquals(Collections.singletonList(before), manager.getCookieStore().get(hop));
+        assertEquals("1", manager.getCookieStore().get(hop).get(0).getValue());
+    }
+
+    /** A 302 whose answer sets [setCookie] in [manager], as HttpURLConnection does, then runs [after]. */
+    private static PinTransfer.Connection answering(CookieManager manager, List<Integer> stored, String setCookie,
+                                                    Runnable after) {
+        return uri -> {
+            Response response = new Response(uri, 302, "https://www.pinterest.com/pin/1/") {
+                @Override public int getResponseCode() {
+                    try {
+                        manager.put(uri, headers);
+                    } catch (IOException failure) {
+                        throw new AssertionError(failure);
+                    }
+                    after.run();
+                    stored.add(manager.getCookieStore().get(uri).size());
+                    return super.getResponseCode();
+                }
+            };
+            response.headers = Collections.singletonMap("Set-Cookie", Collections.singletonList(setCookie));
+            return response;
+        };
     }
 
     private interface Request {

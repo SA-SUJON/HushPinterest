@@ -23,9 +23,12 @@ import java.net.HttpCookie;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Keeps the process's cookies off the extension's own requests: the release check and the HEAD
@@ -87,16 +90,48 @@ public final class NoCookies {
         }
     }
 
+    /** The names, in lower case, of the cookies an answer's Set-Cookie headers set. */
+    public static Set<String> setBy(@Nullable Map<String, List<String>> headers) {
+        Set<String> names = new HashSet<>();
+        if (headers == null) return names;
+        for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+            String name = header.getKey();
+            if (name == null || header.getValue() == null) continue;
+            String lower = name.toLowerCase(Locale.ROOT);
+            if (!lower.equals("set-cookie") && !lower.equals("set-cookie2")) continue;
+            for (String value : header.getValue()) {
+                if (value == null) continue;
+                try {
+                    for (HttpCookie cookie : HttpCookie.parse(value)) names.add(cookie.getName().toLowerCase(Locale.ROOT));
+                } catch (IllegalArgumentException unparsed) {
+                    // The cookie manager skips a header it can't read too.
+                }
+            }
+        }
+        return names;
+    }
+
     /**
-     * Drops what a CookieManager stored for [uri] after [before] was taken, and nothing it kept
-     * already, so a host that holds Pinterest's sign-in loses only what one answer from it left.
+     * Undoes what one answer did to a CookieManager's cookies for [uri], given what it kept before
+     * ([before]) and the names the answer set ([answered]): a cookie it added goes, and one it
+     * changed or ended gets its old value back. Cookies with other names are left alone, so one that
+     * Pinterest's own requests store on the same host meanwhile stays.
      */
-    public static void forgetSince(@Nullable CookieHandler handler, URI uri, @Nullable List<HttpCookie> before) {
-        if (before == null || !(handler instanceof CookieManager)) return;
+    public static void forgetSince(@Nullable CookieHandler handler, URI uri, @Nullable List<HttpCookie> before,
+                                   Set<String> answered) {
+        if (before == null || answered.isEmpty() || !(handler instanceof CookieManager)) return;
         try {
             CookieStore store = ((CookieManager) handler).getCookieStore();
             for (HttpCookie cookie : store.get(uri)) {
-                if (!before.contains(cookie)) store.remove(uri, cookie);
+                if (!answered.contains(cookie.getName().toLowerCase(Locale.ROOT))) continue;
+                int at = before.indexOf(cookie);
+                if (at >= 0 && Objects.equals(before.get(at).getValue(), cookie.getValue())) continue;
+                store.remove(uri, cookie);
+                if (at >= 0) store.add(uri, before.get(at));
+            }
+            List<HttpCookie> now = store.get(uri);
+            for (HttpCookie old : before) {
+                if (answered.contains(old.getName().toLowerCase(Locale.ROOT)) && !now.contains(old)) store.add(uri, old);
             }
         } catch (RuntimeException ignored) {
             // The check before the next request still stops one that would carry it.

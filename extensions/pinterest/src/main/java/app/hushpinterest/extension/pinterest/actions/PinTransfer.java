@@ -13,8 +13,10 @@ import java.net.CookieHandler;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import app.hushpinterest.extension.pinterest.settings.NoCookies;
 
@@ -49,13 +51,14 @@ public final class PinTransfer {
 
     /**
      * Closes [head] and drops what its answer stored: everything on pin.it and the media host, and
-     * on a pinterest.com hop only what wasn't in [kept], or that cookie would stop every later lookup.
+     * on a pinterest.com hop only what the answer set ([answered]) over what was [kept], or that
+     * cookie would stop every later lookup.
      */
-    private static void close(HttpURLConnection head, URI uri, @Nullable List<HttpCookie> kept) {
+    private static void close(HttpURLConnection head, URI uri, @Nullable List<HttpCookie> kept, Set<String> answered) {
         head.disconnect();
         CookieHandler cookies = CookieHandler.getDefault();
         if (forgettable(uri)) NoCookies.forget(cookies, uri);
-        else NoCookies.forgetSince(cookies, uri, kept);
+        else NoCookies.forgetSince(cookies, uri, kept, answered);
     }
 
     private static boolean forgettable(URI uri) {
@@ -72,6 +75,7 @@ public final class PinTransfer {
         if (uri == null) throw new IOException("Not a public Pinterest media URL");
         List<HttpCookie> kept = NoCookies.kept(CookieHandler.getDefault(), uri);
         HttpURLConnection head = open(uri, factory);
+        Set<String> answered = Collections.emptySet();
         try {
             head.setRequestMethod("HEAD");
             head.setInstanceFollowRedirects(false);
@@ -79,11 +83,13 @@ public final class PinTransfer {
             head.setConnectTimeout(5000);
             head.setReadTimeout(5000);
             head.setRequestProperty("Accept-Encoding", "identity");
-            if (head.getResponseCode() != HttpURLConnection.HTTP_OK) return false;
+            int status = head.getResponseCode();
+            answered = NoCookies.setBy(head.getHeaderFields());
+            if (status != HttpURLConnection.HTTP_OK) return false;
             String type = head.getContentType();
             return type != null && type.split(";", 2)[0].trim().equalsIgnoreCase(source.mime);
         } finally {
-            close(head, uri, kept);
+            close(head, uri, kept, answered);
         }
     }
 
@@ -99,6 +105,7 @@ public final class PinTransfer {
     static String location(URI uri, int timeoutMs, Connection factory) throws IOException {
         List<HttpCookie> kept = NoCookies.kept(CookieHandler.getDefault(), uri);
         HttpURLConnection head = open(uri, factory);
+        Set<String> answered = Collections.emptySet();
         try {
             head.setRequestMethod("HEAD");
             head.setInstanceFollowRedirects(false);
@@ -107,10 +114,11 @@ public final class PinTransfer {
             head.setReadTimeout(timeoutMs);
             head.setRequestProperty("Accept-Encoding", "identity");
             int status = head.getResponseCode();
+            answered = NoCookies.setBy(head.getHeaderFields());
             if (status != 301 && status != 302 && status != 303 && status != 307 && status != 308) return null;
             return head.getHeaderField("Location");
         } finally {
-            close(head, uri, kept);
+            close(head, uri, kept, answered);
         }
     }
 }
