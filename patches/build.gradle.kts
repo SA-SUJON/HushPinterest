@@ -809,11 +809,50 @@ val verifyBouncyCastleBuildGraph = tasks.register("verifyBouncyCastleBuildGraph"
     }
 }
 
+// The fixture tests read manifests and resource tables with ARSCLib, and the patcher they drive
+// runs on it too. REAndroid's ARSCLib and MorpheApp's fork share the com.reandroid packages, so
+// with both on a test classpath which class a test got came down to classpath order. One
+// provider on each test graph, and it has to be the build the patcher brings.
+val verifyArscLibTestGraph = tasks.register("verifyArscLibTestGraph") {
+    group = "verification"
+    description = "Checks the test graphs carry one ARSCLib, the build the patcher brings."
+
+    doLast {
+        fun arscLibs(name: String): List<String> {
+            val configuration = configurations.findByName(name)?.takeIf { it.isCanBeResolved }
+                ?: throw GradleException(
+                    "$name was not there to inspect. The plugin renamed it, so this gate is looking at the wrong graph."
+                )
+            return configuration.incoming.resolutionResult.allComponents
+                .mapNotNull { it.moduleVersion?.takeIf { module -> module.name.equals("arsclib", ignoreCase = true) } }
+                .map { "${it.group}:${it.name}:${it.version}" }
+                .distinct()
+                .sorted()
+        }
+        fun named(found: List<String>) = found.ifEmpty { listOf("no ARSCLib") }.joinToString(", ")
+
+        val patcher = arscLibs("patcherProvidedClasspath")
+        if (patcher.size != 1) {
+            throw GradleException("The patcher brings ${named(patcher)}, so there is no one build for the tests to match.")
+        }
+        for (name in listOf("testCompileClasspath", "testRuntimeClasspath")) {
+            val found = arscLibs(name)
+            if (found != patcher) {
+                throw GradleException(
+                    "$name carries ${named(found)} where the patcher brings ${patcher.single()}. " +
+                        "Point the arsclib pin in gradle/libs.versions.toml at the patcher's and drop any other ARSCLib."
+                )
+            }
+        }
+        logger.lifecycle("ARSCLib on the test graphs: ${patcher.single()}")
+    }
+}
+
 // By type rather than by the one name, so a second test task cannot start on a graph nothing
 // has looked at. :patches:test and :patches:fixtureTest are what scripts/pre-push.ps1 runs when a
 // patch source changes.
 tasks.withType<Test>().configureEach {
-    dependsOn(verifyBouncyCastleBuildGraph)
+    dependsOn(verifyBouncyCastleBuildGraph, verifyArscLibTestGraph)
 }
 
 dependencies {
@@ -836,10 +875,10 @@ dependencies {
     // Reads the signing certificate of every retained fixture. The patcher already brings this
     // exact version at run time; this puts it on the test compile classpath as well.
     testImplementation("com.android.tools.build:apksig:9.1.1")
-    // Reads the resource tables of the fixtures, for the Material You theme's colour table. The
-    // patcher already brings this exact version at run time; this puts it on the test compile
-    // classpath as well.
-    testImplementation("com.github.REAndroid:arsclib:a28c6fb2a7")
+    // Reads the manifests and resource tables of the fixtures. The patcher brings this exact
+    // build at run time only; this puts it on the test compile classpath as well, and
+    // verifyArscLibTestGraph keeps the two the same.
+    testImplementation(libs.arsclib)
 }
 
 val buildDependencyReport = tasks.register<WriteBuildDependencyReport>("buildDependencyReport") {
