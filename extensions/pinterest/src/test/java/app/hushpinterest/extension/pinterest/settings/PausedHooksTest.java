@@ -329,7 +329,7 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_TOPIC_SUGGESTIONS, Arrays.asList(PausedHooksTest::hidesTopicRow, PausedHooksTest::foldsTopicRow));
         probes.put(Settings.QUIET_EMAIL_REMINDER, Collections.singletonList(UiHooks::quietEmailReminder));
         probes.put(Settings.HIDE_SURVEY_PROMPTS, Arrays.asList(UiHooks::hideSurveyPrompts, UiHooks::hideSponsoredPolls));
-        probes.put(Settings.HIDE_SAVE_TOASTS, Collections.singletonList(PausedHooksTest::dropsSaveToast));
+        probes.put(Settings.HIDE_SAVE_TOASTS, Arrays.asList(PausedHooksTest::dropsSaveToast, UiHooksForTests::quietsSavedToast));
         probes.put(Settings.ORIGINAL_IMAGES, Arrays.asList(UiHooks::originalImages, () -> {
             Set<String> sizes = new HashSet<>();
             UiHooks.imageSizes(sizes);

@@ -2345,7 +2345,10 @@ public class DexDiff {
         static final String TOAST_CONTAINER = "Lcom/pinterest/gestalt/toast/PinterestToastContainer;";
         static final String TOAST_VIEW = "Lcom/pinterest/gestalt/toast/BaseGestaltToast;";
         static final Set<String> SAVE_TOAST_STRINGS = Set.of("saved_to", "saved_onto_board_bold", "pinned", "pinned_multiple", "pinned_multiple_to_board",
-                "multi_board_save_saved_to_profile");
+                "multi_board_save_saved_to_profile", "saved_onto_board", "saved_to_board_section", "saved_multiple_to_board_section", "pin_saved");
+        static final String TOAST_MAKE = "Landroid/widget/Toast;->makeText";
+        static final Set<String> TOAST_SHAPES = Set.of("(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;",
+                "(Landroid/content/Context;II)Landroid/widget/Toast;");
         final FeatureIndex clean;
         final FeatureIndex patched;
         final List<String> findings = new ArrayList<>();
@@ -2359,6 +2362,7 @@ public class DexDiff {
         final Map<String, List<Method>> callbacks = new HashMap<>();
         final Set<String> controlMethods = new HashSet<>();
         final Set<String> checkedControls = new HashSet<>();
+        List<Method> saveReaders;
         boolean featureControls;
 
         static int firstRegister(Instruction i) {
@@ -2809,6 +2813,7 @@ public class DexDiff {
         }
 
         boolean simpleGuard(Contract c, String hook, String selector) {
+            if (selector.equals("androidToast")) return androidToast(hook);
             if (selector.equals("profileWebsite")) {
                 List<Method> headers = new ArrayList<>();
                 for (Method m : clean.holding("website_link")) if (m.getName().equals("onClick")
@@ -2844,6 +2849,7 @@ public class DexDiff {
             }
             List<Method> targets = new ArrayList<>();
             int before = 0;
+            boolean whole = true;
             if (selector.equals("share")) {
                 for (Method m : clean.methods.values()) {
                     if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null || !m.getReturnType().equals("V")
@@ -2904,7 +2910,7 @@ public class DexDiff {
                             && ((MethodReference) reference(i)).getDefiningClass().equals(model)
                             && descriptor((MethodReference) reference(i)).equals("(" + TOAST_CONTAINER + ")" + TOAST_VIEW))) targets.add(m);
                 }
-                if (targets.size() == 1) saveToastStub(targets.get(0).getParameterTypes().get(0).toString());
+                if (targets.size() == 1) whole = saveToastStub(targets.get(0).getParameterTypes().get(0).toString());
             } else { fail("unknown guard selector " + selector); return false; }
             Method original = unique(targets, c.callee);
             Method m = actual(original);
@@ -2932,15 +2938,16 @@ public class DexDiff {
                 }
                 guard(m, hook, before, args, prep, selector.equals("email"), selector.equals("update"));
             }
-            return original != null;
+            return original != null && whole;
         }
 
         /**
          * The save toast stub: one instance check per concrete toast model that reads a save
          * confirmation's text or names the follow suggestion or the "more ideas" confirmation, then
-         * false, then the shared true.
+         * false, then the shared true. The message stub is the same for the toast models that show
+         * a text they were handed. Answers whether this build has one of those.
          */
-        void saveToastStub(String model) {
+        boolean saveToastStub(String model) {
             Set<String> expected = new TreeSet<>();
             for (ClassDef owner : clean.classes.values()) {
                 if (AccessFlags.ABSTRACT.isSet(owner.getAccessFlags()) || AccessFlags.INTERFACE.isSet(owner.getAccessFlags())
@@ -2957,12 +2964,176 @@ public class DexDiff {
                             && f.getType().equals(f.getDefiningClass())) expected.add(owner.getType());
                 }
             }
-            Method stub = actual(BASE + "ui/UiHooks;->isSaveToast(Ljava/lang/Object;)Z");
+            instanceStub("isSaveToast", expected, "save toast");
+            Set<String> told = new HashSet<>(expected);
+            for (String field : textToasts(model).keySet()) told.add(field.substring(0, field.indexOf("->")));
+            Set<String> messages = messageToasts(model, told);
+            instanceStub("isMessageToast", messages, "message toast");
+            return !messages.isEmpty();
+        }
+
+        /** Pinterest's methods that read a save confirmation's text, found once. */
+        List<Method> saveReaders() {
+            if (saveReaders != null) return saveReaders;
+            saveReaders = new ArrayList<>();
+            for (Method m : clean.methods.values()) {
+                if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null) continue;
+                for (Instruction i : m.getImplementation().getInstructions()) if (i.getOpcode() == Opcode.SGET
+                        && reference(i) instanceof FieldReference f && f.getType().equals("I") && SAVE_TOAST_STRINGS.contains(f.getName())) {
+                    saveReaders.add(m); break;
+                }
+            }
+            return saveReaders;
+        }
+
+        /** Whether [type] is [target] or extends it, as far as the clean build's own classes say. */
+        boolean inherits(String type, String target) {
+            Set<String> seen = new HashSet<>();
+            for (String at = type; at != null && seen.add(at); ) {
+                if (at.equals(target)) return true;
+                ClassDef cd = clean.classes.get(at);
+                at = cd == null ? null : cd.getSuperclass();
+            }
+            return false;
+        }
+
+        /**
+         * The toast models that ask an interface they hold in a public field for their text, where a
+         * class behind that interface reads a save text: each such field as smali names it, with
+         * those classes.
+         */
+        Map<String, List<String>> textToasts(String model) {
+            Map<String, Set<String>> sources = new HashMap<>();
+            for (Method reader : saveReaders()) {
+                ClassDef owner = clean.classes.get(reader.getDefiningClass());
+                if (owner == null || !AccessFlags.PUBLIC.isSet(owner.getAccessFlags()) || AccessFlags.ABSTRACT.isSet(owner.getAccessFlags())
+                        || AccessFlags.INTERFACE.isSet(owner.getAccessFlags()) || inherits(owner.getType(), model)) continue;
+                for (String type : owner.getInterfaces()) sources.computeIfAbsent(type, k -> new TreeSet<>()).add(owner.getType());
+            }
+            Map<String, List<String>> texts = new TreeMap<>();
+            String builder = "(" + TOAST_CONTAINER + ")" + TOAST_VIEW;
+            for (ClassDef owner : clean.classes.values()) {
+                if (!AccessFlags.PUBLIC.isSet(owner.getAccessFlags()) || AccessFlags.ABSTRACT.isSet(owner.getAccessFlags())
+                        || AccessFlags.INTERFACE.isSet(owner.getAccessFlags()) || owner.getType().equals(model)
+                        || owner.getType().startsWith(OWN) || !inherits(owner.getType(), model)) continue;
+                Set<String> asked = new HashSet<>();
+                for (Method m : owner.getMethods()) if (descriptor(m).equals(builder)) for (Instruction i : instructions(m))
+                    if (reference(i) instanceof MethodReference call && call.getReturnType().equals("Ljava/lang/CharSequence;")) asked.add(call.getDefiningClass());
+                for (Field f : owner.getFields()) if (asked.contains(f.getType()) && sources.containsKey(f.getType())
+                        && AccessFlags.PUBLIC.isSet(f.getAccessFlags()) && !AccessFlags.STATIC.isSet(f.getAccessFlags()))
+                    texts.put(owner.getType() + "->" + f.getName() + ":" + f.getType(), new ArrayList<>(sources.get(f.getType())));
+            }
+            return texts;
+        }
+
+        /**
+         * The public toast models a method that reads a save text builds, other than the ones
+         * [told] apart already, that keep a text in a field of their own or of a class they extend.
+         * The model HushPinterest's own messages are built with is never one.
+         */
+        Set<String> messageToasts(String model, Set<String> told) {
+            String own = null;
+            Method post = patched.methods.get(BASE + "ui/PinterestToasts;->post(Landroid/app/Activity;Ljava/lang/String;I)Z");
+            if (post != null) for (Instruction i : instructions(post)) if (i.getOpcode() == Opcode.NEW_INSTANCE) own = String.valueOf(reference(i));
+            Set<String> messages = new TreeSet<>();
+            for (Method reader : saveReaders()) for (Instruction i : instructions(reader)) {
+                if (i.getOpcode() != Opcode.NEW_INSTANCE) continue;
+                String type = String.valueOf(reference(i));
+                ClassDef owner = clean.classes.get(type);
+                if (owner == null || type.equals(model) || told.contains(type) || !inherits(type, model)
+                        || !AccessFlags.PUBLIC.isSet(owner.getAccessFlags()) || AccessFlags.ABSTRACT.isSet(owner.getAccessFlags())
+                        || own != null && inherits(own, type)) continue;
+                boolean text = false;
+                Set<String> seen = new HashSet<>();
+                for (ClassDef at = owner; at != null && !at.getType().equals(model) && seen.add(at.getType()); at = clean.classes.get(at.getSuperclass()))
+                    for (Field f : at.getFields()) if (!AccessFlags.STATIC.isSet(f.getAccessFlags())
+                            && (f.getType().equals("Ljava/lang/String;") || f.getType().equals("Ljava/lang/CharSequence;"))) text = true;
+                if (text) messages.add(type);
+            }
+            return messages;
+        }
+
+        /** True when the toast made at [at] goes into a register that the very next instruction shows. */
+        static boolean shownAtOnce(List<Instruction> body, int at) {
+            return at + 2 < body.size() && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                    && body.get(at + 2).getOpcode() == Opcode.INVOKE_VIRTUAL
+                    && "Landroid/widget/Toast;->show()V".equals(String.valueOf(reference(body.get(at + 2))))
+                    && arguments(body.get(at + 2)).equals(List.of(firstRegister(body.get(at + 1))));
+        }
+
+        /**
+         * The Android toasts the screens that save a pin show. Each Toast.makeText call in a method
+         * that reads a save text, and in a static helper one of them hands a text to, goes to the
+         * stand-in of the same shape on the same registers when its toast is shown at once. Any
+         * other stays as it was. The rule runs once per shape and checks that shape's calls. Its
+         * answer is for both: some call was taken over and none was left because it couldn't be.
+         */
+        boolean androidToast(String hook) {
+            String original = TOAST_MAKE + hook.substring(hook.indexOf('('));
+            Map<String, Method> makers = new LinkedHashMap<>();
+            for (Method reader : saveReaders()) {
+                makers.put(reader.toString(), reader);
+                for (Instruction i : instructions(reader)) {
+                    if (!i.getOpcode().name().startsWith("INVOKE_STATIC") || !(reference(i) instanceof MethodReference)) continue;
+                    MethodReference call = (MethodReference) reference(i);
+                    if (call.getDefiningClass().startsWith(OWN) || !descriptor(call).equals("(Landroid/content/Context;Ljava/lang/CharSequence;I)V")) continue;
+                    Method helper = clean.methods.get(call.toString());
+                    if (helper != null && helper.getImplementation() != null && AccessFlags.STATIC.isSet(helper.getAccessFlags()))
+                        makers.put(helper.toString(), helper);
+                }
+            }
+            int sites = 0, unsure = 0, taken = 0;
+            for (Method maker : makers.values()) {
+                List<Instruction> was = instructions(maker);
+                List<Integer> originals = new ArrayList<>();
+                int left = 0;
+                for (int at = 0; at < was.size(); at++) {
+                    if (!was.get(at).getOpcode().name().startsWith("INVOKE_STATIC") || !(reference(was.get(at)) instanceof MethodReference)) continue;
+                    MethodReference call = (MethodReference) reference(was.get(at));
+                    if (!call.toString().startsWith(TOAST_MAKE + "(") || !TOAST_SHAPES.contains(descriptor(call))) continue;
+                    boolean shown = shownAtOnce(was, at);
+                    if (shown) sites++; else unsure++;
+                    if (!call.toString().equals(original)) continue;
+                    if (shown) originals.add(at); else left++;
+                }
+                if (originals.isEmpty()) continue;
+                taken += originals.size();
+                Method m = actual(maker);
+                List<Integer> hooked = calls(m, hook, originals.size());
+                if (m == null) continue;
+                List<Instruction> body = instructions(m);
+                if (callSites(body, original).size() != left) fail(original + " remains beside its stand-in in " + m);
+                for (int n = 0; n < Math.min(hooked.size(), originals.size()); n++) {
+                    Instruction old = was.get(originals.get(n));
+                    if (!arguments(body.get(hooked.get(n))).equals(arguments(old))) fail(hook + " changed its argument registers in " + m);
+                    edits.computeIfAbsent(m.toString(), k -> new FeatureEdits()).replacements.put(hooked.get(n), old);
+                }
+            }
+            if (taken > 0) {
+                Method stand = actual(hook);
+                if (stand != null) fallback(stand, original);
+            }
+            return sites > 0 && unsure == 0;
+        }
+
+        /**
+         * A stub that answers true for an instance of one of the [expected] classes: a check apiece,
+         * then false, then the shared true. With none expected it must still be the extension's own
+         * body, which answers false.
+         */
+        void instanceStub(String name, Set<String> expected, String what) {
+            Method stub = actual(BASE + "ui/UiHooks;->" + name + "(Ljava/lang/Object;)Z");
             if (stub == null) return;
             List<Instruction> body = instructions(stub);
+            if (expected.isEmpty()) {
+                if (body.size() != 2 || body.get(0).getOpcode() != Opcode.CONST_4 || ((NarrowLiteralInstruction) body.get(0)).getNarrowLiteral() != 0
+                        || body.get(1).getOpcode() != Opcode.RETURN || firstRegister(body.get(1)) != firstRegister(body.get(0)))
+                    fail(what + " stub names toasts this build doesn't have");
+                return;
+            }
             int n = (body.size() - 4) / 2, input = parameter(stub, 0);
             List<String> named = new ArrayList<>();
-            boolean shaped = expected.size() > 0 && body.size() == 2 * expected.size() + 4;
+            boolean shaped = body.size() == 2 * expected.size() + 4;
             Layout code = new Layout(stub.getImplementation());
             for (int k = 0; shaped && k < n; k++) {
                 Instruction check = body.get(2 * k), branch = body.get(2 * k + 1);
@@ -2977,7 +3148,7 @@ public class DexDiff {
                         && exit.getOpcode() == Opcode.RETURN && firstRegister(exit) == firstRegister(literal);
             }
             if (!shaped || !new TreeSet<>(named).equals(expected) || named.size() != expected.size())
-                fail("save toast stub names " + named + " instead of the save toast models " + expected);
+                fail(what + " stub names " + named + " instead of the " + what + " models " + expected);
         }
 
         /**

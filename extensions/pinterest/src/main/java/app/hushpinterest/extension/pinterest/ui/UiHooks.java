@@ -6,7 +6,9 @@
  */
 package app.hushpinterest.extension.pinterest.ui;
 
+import android.content.Context;
 import android.view.View;
+import android.widget.Toast;
 
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -72,6 +74,9 @@ public final class UiHooks {
     /** The toast class a test stands in for the save toasts patching names. */
     static volatile Class<?> saveToastForTests;
 
+    /** The toast class a test stands in for the ones patching names as showing a text they were handed. */
+    static volatile Class<?> messageToastForTests;
+
     /** True drops a save confirmation or follow suggestion before Pinterest's toast container builds it. */
     public static boolean hideSaveToast(Object toast) {
         boolean on = enabled(FamilyNames.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS);
@@ -90,11 +95,17 @@ public final class UiHooks {
         Class<?> forced = saveToastForTests;
         if (forced != null) return forced.isInstance(toast);
         try {
-            return isSaveToast(toast) || isSaveTextToast(toast);
+            return isSaveToast(toast) || isSaveTextToast(toast)
+                    || messageToast(toast) && SaveToastTexts.holdsSave(toast, Utils.getActivity(), Utils.getContext());
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_SAVE_TOASTS, "toast model", failure);
             return false;
         }
+    }
+
+    private static boolean messageToast(Object toast) {
+        Class<?> forced = messageToastForTests;
+        return forced != null ? forced.isInstance(toast) : isMessageToast(toast);
     }
 
     /** Answers false here. Patching writes instance checks for the save toast models found in that build. */
@@ -108,6 +119,73 @@ public final class UiHooks {
      */
     public static boolean isSaveTextToast(Object toast) {
         return false;
+    }
+
+    /**
+     * Answers false here. Patching writes instance checks for the toast models that show a text
+     * they were handed and that a screen that saves pins builds. The same models carry "Moved Pin"
+     * and "Section created", so one of them is a save toast only when its text reads as a save.
+     */
+    public static boolean isMessageToast(Object toast) {
+        return false;
+    }
+
+    /**
+     * Stands in for Toast.makeText in the screens that save a pin. Pinterest confirms some saves
+     * with an Android toast instead of its own: from the board picker while it counts a browser
+     * tab it opened as still open, for a pin saved from another app's share sheet, and for a save
+     * to a board section outside its home screen. None of those reach the toast container. With
+     * the switch on, a save confirmation comes back as a toast that never shows. Any other text,
+     * and every text while the switch is off or HushPinterest is paused, is the toast Android makes.
+     */
+    public static Toast androidToast(Context context, CharSequence text, int duration) {
+        if (hideAndroidToast(context, text)) return new QuietToast(context);
+        return Toast.makeText(context, text, duration);
+    }
+
+    /** The same for a toast made from a text's resource id. */
+    public static Toast androidToast(Context context, int text, int duration) {
+        if (hideAndroidToast(context, resourceText(context, text))) return new QuietToast(context);
+        return Toast.makeText(context, text, duration);
+    }
+
+    private static boolean hideAndroidToast(Context context, CharSequence text) {
+        boolean on = enabled(FamilyNames.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS);
+        boolean hide = on && context != null && saveText(context, text);
+        // The line for a toast that never reaches the container. The text stays out of the log: it
+        // can hold a board's name.
+        Logger.printDebug(() -> "Android toast from a save screen"
+                + (hide ? " hidden" : on ? " shown" : " shown, switch off or paused"));
+        if (!hide) return false;
+        HookStatus.counted(FamilyNames.HIDE_SAVE_TOASTS, "save toast hidden");
+        return true;
+    }
+
+    private static boolean saveText(Context context, CharSequence text) {
+        try {
+            return SaveToastTexts.matches(text, context, Utils.getActivity(), Utils.getContext());
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_SAVE_TOASTS, "toast text", failure);
+            return false;
+        }
+    }
+
+    private static CharSequence resourceText(Context context, int text) {
+        try {
+            return context.getText(text);
+        } catch (RuntimeException missing) {
+            return null;
+        }
+    }
+
+    /** What Pinterest gets back in place of a save confirmation: a toast whose show() does nothing. */
+    private static final class QuietToast extends Toast {
+        QuietToast(Context context) {
+            super(context);
+        }
+
+        @Override public void show() {
+        }
     }
 
     /** True has Pinterest's image model answer its original rendition first, where it has one. */
