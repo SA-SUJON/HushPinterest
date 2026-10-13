@@ -11,16 +11,20 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
+import app.morphe.patches.pinterest.misc.extension.handleTargets
 import app.morphe.patches.pinterest.misc.extension.localRegisterCount
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireFreeAt
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.extension.requireThisIntact
+import app.morphe.patches.pinterest.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -29,18 +33,27 @@ private const val PATCH = "AMOLED black"
 /** Pinterest's frosted glass. The bar's tabs and its search pill are made of it where the bar shows them as glass. */
 internal const val BLUR_VIEW = "Lcom/pinterest/gestalt/design/blur/GestaltBlurView;"
 
+/** The id of the bar that holds the reply box. Every comments screen is built by the one method that looks it up. */
+internal const val COMMENTS_SCREEN_ID = "comment_bottom_bar"
+
+internal const val COMMENTS_HOOK = "$AMOLED_BLACK->comments(Landroid/view/View;)V"
+internal const val PIN_MENU_HOOK = "$AMOLED_BLACK->pinMenu(Landroid/view/View;)V"
+
 /** Where a glass view washes its canvas: its draw method, the wash's index, and the registers holding the view and the color. */
 internal data class GlassWash(val draw: Method, val index: Int, val view: Int, val color: Int)
 
 /**
  * The bar's gray is Pinterest's elevation color, which menus, popovers and floating buttons share,
- * so the theme is left alone and only the bar's own drawables are recolored as it draws.
+ * so the theme is left alone and only the bar's own drawables are recolored as it draws. The
+ * comments sheet and a pin's menu carry the same color, and each is handed to the extension by the
+ * method that builds it. The three are found apart, so a build that lacks one keeps the others.
  */
 @Suppress("unused")
 val amoledBlackPatch = bytecodePatch(
     name = PATCH,
     description = "Paints the bottom bar pure black in dark mode, so it matches Pinterest's black pages on OLED " +
-        "screens. Light mode stays as it is. Starts off. Turn it on in HushPinterest settings > Interface.",
+        "screens. The comments sheet and a pin's menu can go black too, each with its own switch. Light mode " +
+        "stays as it is. Starts off. Turn them on in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)
@@ -48,21 +61,48 @@ val amoledBlackPatch = bytecodePatch(
     execute {
         requireStatusMethod("amoledBlack")
         requireStatusMethod("blackBottomBar")
-        val wash = glassWash()
-        val bar = mutableClassDefBy(BOTTOM_BAR)
-        // The extension paints the plain LinearLayout children, which is where the bar keeps its tabs.
-        if (bar.fields.none { it.type == "Landroid/widget/LinearLayout;" }) {
-            throw PatchException("Bottom bar no longer keeps its tabs in a plain row")
+        requireStatusMethod("blackComments")
+        requireStatusMethod("blackPinMenu")
+        handleTargets(PATCH, "surfaces", listOf("bottom bar", "comments screen", "pin menu")) { surface ->
+            try {
+                when (surface) {
+                    "bottom bar" -> {
+                        paintBottomBar()
+                        enableCapability("blackBottomBar")
+                    }
+                    "comments screen" -> {
+                        handOver(commentsScreen(), surface, COMMENTS_HOOK)
+                        enableCapability("blackComments")
+                    }
+                    else -> {
+                        handOver(pinMenuSheet(), surface, PIN_MENU_HOOK)
+                        enableCapability("blackPinMenu")
+                    }
+                }
+                null
+            } catch (missing: PatchException) {
+                "the $surface isn't built the way 14.39.0 builds it (${missing.message})"
+            }
         }
-        refreshOnDispatchDraw(bar, "$AMOLED_BLACK->bottomBar(Landroid/view/View;)V")
-        // Glass has no fill to recolor. The extension answers the color each frame's wash uses instead.
-        mutable(wash.draw).addInstructionsAtControlFlowLabel(wash.index, """
-            invoke-static { v${wash.view}, v${wash.color} }, $AMOLED_BLACK->blurFill(Landroid/view/View;I)I
-            move-result v${wash.color}
-        """)
-        enableCapability("blackBottomBar")
         enableStatus("amoledBlack")
     }
+}
+
+/** Everything is found and checked before the bar or the glass changes. */
+private fun BytecodePatchContext.paintBottomBar() {
+    val wash = glassWash()
+    if (classDefByOrNull(BOTTOM_BAR) == null) throw PatchException("$PATCH: Pinterest's bottom bar wasn't found")
+    val bar = mutableClassDefBy(BOTTOM_BAR)
+    // The extension paints the plain LinearLayout children, which is where the bar keeps its tabs.
+    if (bar.fields.none { it.type == "Landroid/widget/LinearLayout;" }) {
+        throw PatchException("Bottom bar no longer keeps its tabs in a plain row")
+    }
+    refreshOnDispatchDraw(bar, "$AMOLED_BLACK->bottomBar(Landroid/view/View;)V")
+    // Glass has no fill to recolor. The extension answers the color each frame's wash uses instead.
+    mutable(wash.draw).addInstructionsAtControlFlowLabel(wash.index, """
+        invoke-static { v${wash.view}, v${wash.color} }, $AMOLED_BLACK->blurFill(Landroid/view/View;I)I
+        move-result v${wash.color}
+    """)
 }
 
 /**
@@ -88,4 +128,51 @@ internal fun BytecodePatchContext.glassWash(): GlassWash {
     // The hook's answer replaces the color in its register, so nothing after the wash may read the old one.
     draw.requireFreeAt(PATCH, index + 1, listOf(color))
     return GlassWash(draw, index, view, color)
+}
+
+/**
+ * The method that builds every comments screen: the one onCreateView that looks up the reply bar
+ * and answers the screen's root view. Nothing is changed here.
+ */
+internal fun BytecodePatchContext.commentsScreen(): Method {
+    val builders = mutableListOf<Method>()
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        owner.methods.filterTo(builders) { method ->
+            method.name == "onCreateView" && method.implementation != null &&
+                method.fields().any { it.name == COMMENTS_SCREEN_ID && it.type == "I" }
+        }
+    }
+    return builders.one("$PATCH: comments screen builder")
+}
+
+/** The method that builds a pin's menu and answers the sheet that holds it. Nothing is changed here. */
+internal fun BytecodePatchContext.pinMenuSheet(): Method {
+    val menu = classDefByOrNull(PIN_MENU) ?: throw PatchException("$PATCH: Pinterest's pin menu wasn't found")
+    return menu.methods.filter { it.name == "createModalView" && it.implementation != null }
+        .one("$PATCH: pin menu builder")
+}
+
+/**
+ * Hands the view [builder] answers to [hook], right in front of its only return and on every way
+ * into it. The hook reads the answered register and writes nothing, so it borrows no register.
+ */
+private fun BytecodePatchContext.handOver(builder: Method, what: String, hook: String) {
+    if (!isView(builder.returnType)) {
+        throw PatchException("$PATCH: the $what builder answers ${builder.returnType}, which isn't a view")
+    }
+    val method = mutable(builder)
+    val (index, answer) = method.instructions().withIndex().filter { (_, instruction) ->
+        instruction.opcode == Opcode.RETURN_OBJECT
+    }.one("$PATCH: $what builder return")
+    val view = (answer as OneRegisterInstruction).registerA
+    method.addInstructionsAtControlFlowLabel(index, "invoke-static/range { v$view .. v$view }, $hook")
+}
+
+/** Whether [type] is one of Android's views or a class of Pinterest's built on one. */
+private fun BytecodePatchContext.isView(type: String): Boolean {
+    val seen = mutableSetOf<String>()
+    var at: String? = type
+    while (at != null && seen.add(at)) at = (classDefByOrNull(at) ?: break).superclass
+    return at != null && (at.startsWith("Landroid/view/") || at.startsWith("Landroid/widget/"))
 }

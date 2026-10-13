@@ -12,10 +12,12 @@ import static org.junit.Assert.assertSame;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -27,6 +29,9 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+
+import java.util.Arrays;
+import java.util.List;
 
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.SettingsContextRule;
@@ -45,6 +50,8 @@ public class AmoledBlackTest {
     @After public void restore() {
         PauseForTests.resume();
         Settings.BLACK_BOTTOM_BAR.resetToDefault();
+        Settings.BLACK_COMMENTS.resetToDefault();
+        Settings.BLACK_PIN_MENU.resetToDefault();
         HookStatus.clear();
         AmoledBlack.tabRoot = -1;
         AmoledBlack.searchText = -1;
@@ -242,6 +249,110 @@ public class AmoledBlackTest {
         AmoledBlack.bottomBar(bar);
         assertEquals(Color.BLACK, row.getColor().getDefaultColor());
         assertEquals(ELEVATION, ((GradientDrawable) menu).getColor().getDefaultColor());
+    }
+
+    @Test public void aPinsMenuTurnsBlackAndTheNextMenuPinterestBuildsStartsGray() {
+        Settings.BLACK_PIN_MENU.save(true);
+        FrameLayout menu = sheet(true, "modal_header", "modal_container");
+        View header = fill(menu, 1, card());
+        View list = fill(menu, 2, new ColorDrawable(ELEVATION));
+        // Android keeps the first card it loads and builds each later one from it.
+        Drawable.ConstantState loaded = header.getBackground().getConstantState();
+        AmoledBlack.pinMenu(menu);
+        assertEquals(Color.BLACK, cardColor(header.getBackground()));
+        assertEquals(Color.BLACK, ((ColorDrawable) list.getBackground()).getColor());
+        assertEquals("the next menu's card comes out of Android's copy gray", ELEVATION, cardColor(loaded.newDrawable()));
+        Settings.BLACK_PIN_MENU.save(false);
+        menu.layout(0, 0, 320, 480);
+        assertEquals("a layout pass with the switch off gives the gray back", ELEVATION, cardColor(header.getBackground()));
+        assertEquals(ELEVATION, ((ColorDrawable) list.getBackground()).getColor());
+    }
+
+    @Test public void theCommentsScreenTurnsBlackAndAFillPinterestSwapsInLaterFollowsOnTheNextLayout() {
+        Settings.BLACK_COMMENTS.save(true);
+        FrameLayout screen = sheet(true, "comments_feed", "comment_bottom_bar", "floating_comment_view");
+        View feed = fill(screen, 1, card());
+        GradientDrawable replyBar = solid();
+        fill(screen, 2, replyBar);
+        View floating = fill(screen, 3, new ColorDrawable(ELEVATION));
+        View photo = fill(screen, View.NO_ID, new ColorDrawable(ELEVATION));
+        AmoledBlack.comments(screen);
+        assertEquals(Color.BLACK, cardColor(feed.getBackground()));
+        assertEquals(Color.BLACK, replyBar.getColor().getDefaultColor());
+        assertEquals(Color.BLACK, ((ColorDrawable) floating.getBackground()).getColor());
+        assertEquals("a view the screen isn't painted by keeps its color", ELEVATION, ((ColorDrawable) photo.getBackground()).getColor());
+        // A full-height sheet gets a plain shape after the screen was handed over.
+        GradientDrawable fullHeight = solid();
+        feed.setBackground(fullHeight);
+        screen.layout(0, 0, 320, 480);
+        assertEquals(Color.BLACK, fullHeight.getColor().getDefaultColor());
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        screen.layout(0, 0, 320, 520);
+        assertEquals("Pause gives the gray back on the next layout", ELEVATION, fullHeight.getColor().getDefaultColor());
+        assertEquals(ELEVATION, replyBar.getColor().getDefaultColor());
+        assertEquals(ELEVATION, ((ColorDrawable) floating.getBackground()).getColor());
+    }
+
+    @Test public void eachSheetFollowsItsOwnSwitchAndLightModeIsLeftAlone() {
+        Settings.BLACK_COMMENTS.save(true);
+        FrameLayout menu = sheet(true, "modal_header", "modal_container");
+        View list = fill(menu, 2, new ColorDrawable(ELEVATION));
+        AmoledBlack.pinMenu(menu);
+        menu.layout(0, 0, 320, 480);
+        assertEquals("the comments switch leaves a pin's menu alone", ELEVATION, ((ColorDrawable) list.getBackground()).getColor());
+        FrameLayout light = sheet(false, "comments_feed", "comment_bottom_bar", "floating_comment_view");
+        View floating = fill(light, 3, new ColorDrawable(ELEVATION));
+        AmoledBlack.comments(light);
+        light.layout(0, 0, 320, 480);
+        assertEquals(ELEVATION, ((ColorDrawable) floating.getBackground()).getColor());
+    }
+
+    /**
+     * A sheet like the ones Pinterest hands over, in dark mode or light. Its resources know the ids
+     * its fills are found by, numbered from 1 in the order given.
+     */
+    private static FrameLayout sheet(boolean night, String... names) {
+        Context base = RuntimeEnvironment.getApplication();
+        Configuration configuration = new Configuration(base.getResources().getConfiguration());
+        configuration.uiMode = (night ? Configuration.UI_MODE_NIGHT_YES : Configuration.UI_MODE_NIGHT_NO)
+                | (configuration.uiMode & ~Configuration.UI_MODE_NIGHT_MASK);
+        Context themed = base.createConfigurationContext(configuration);
+        Resources original = themed.getResources();
+        List<String> known = Arrays.asList(names);
+        Resources resources = new Resources(themed.getAssets(), original.getDisplayMetrics(), original.getConfiguration()) {
+            @Override public int getIdentifier(String name, String type, String owner) {
+                return known.indexOf(name) + 1;
+            }
+        };
+        return new FrameLayout(themed) {
+            @Override public Resources getResources() { return resources; }
+        };
+    }
+
+    /** A view in the sheet with one of its ids and a background. */
+    private static View fill(FrameLayout sheet, int id, Drawable background) {
+        View view = new View(sheet.getContext());
+        view.setId(id);
+        view.setBackground(background);
+        sheet.addView(view);
+        return view;
+    }
+
+    /** A sheet's rounded card the way Pinterest's layer list builds it: a clear layer under the gray shape. */
+    private static LayerDrawable card() {
+        GradientDrawable clear = new GradientDrawable();
+        clear.setColor(Color.TRANSPARENT);
+        return new LayerDrawable(new Drawable[] {clear, solid()});
+    }
+
+    private static GradientDrawable solid() {
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(ELEVATION);
+        return shape;
+    }
+
+    private static int cardColor(Drawable card) {
+        return ((GradientDrawable) ((LayerDrawable) card).getDrawable(1)).getColor().getDefaultColor();
     }
 
     /** A bar like Pinterest's, holding a plain tab row with the gray rounded shape. */

@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -25,6 +26,7 @@ import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
+import app.hushpinterest.extension.shared.settings.BooleanSetting;
 
 /**
  * Paints the bottom bar black in dark mode. Pinterest fills it with the same warm gray theme color
@@ -35,6 +37,10 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
  * tabs are frosted glass they have no fill, and the color Pinterest washes the glass with is
  * answered black instead. Gradients stay, so the shadow strip above the bar and the scrim behind a
  * floating bar keep their look, and so do the icons, each tab's outline and the selected-tab marker.
+ *
+ * <p>The comments sheet and a pin's menu carry the same gray, each behind its own switch. They are
+ * painted as Pinterest finishes building them and again after their layout passes, on the views
+ * that hold the fill and nothing else, so their text, icons and dividers stay as they are.
  */
 public final class AmoledBlack {
     private AmoledBlack() {}
@@ -51,6 +57,8 @@ public final class AmoledBlack {
     private static final Map<View, Integer> misses = new WeakHashMap<>();
     /** Bar draws that look for a strip Pinterest may add after the bar's first draw, before a window counts as having none. */
     private static final int SEARCHES = 8;
+    /** The sheets handed over so far. Each one repaints after its layout passes. */
+    private static final Map<View, Sheet> sheets = new WeakHashMap<>();
 
     // Pinterest's ids, read by name the first time: -1 before that, 0 when this build has none.
     static int tabRoot = -1;
@@ -100,6 +108,84 @@ public final class AmoledBlack {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.AMOLED_BLACK, "bottom bar glass", failure);
             return color;
+        }
+    }
+
+    /**
+     * Pinterest can give a sheet another background after it has handed the sheet over, and off or
+     * Pause should give the gray back while the sheet is still open. Both come with a layout pass.
+     */
+    private static final View.OnLayoutChangeListener REPAINT_SHEET =
+            (sheet, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                try {
+                    Sheet known = sheets.get(sheet);
+                    if (known != null) paintSheet(sheet, known, Utils.settingsReady() && known.setting.get() && night(sheet));
+                } catch (Throwable failure) {
+                    HookStatus.threw(FamilyNames.AMOLED_BLACK, "sheet layout", failure);
+                }
+            };
+
+    /**
+     * Called with the comments screen as Pinterest finishes building it. The sheet that slides up,
+     * the bar that holds the reply box and the comment floating over the list each carry the gray.
+     */
+    public static void comments(View sheet) {
+        built(sheet, Settings.BLACK_COMMENTS, "comments", "comments_feed", "comment_bottom_bar", "floating_comment_view");
+    }
+
+    /**
+     * Called with a pin's menu as Pinterest finishes building it, before it is shown. Its rounded
+     * header and the scrolling list under it carry the gray.
+     */
+    public static void pinMenu(View sheet) {
+        built(sheet, Settings.BLACK_PIN_MENU, "pin menu", "modal_header", "modal_container");
+    }
+
+    /** Pinterest's ids are read by name each time a sheet is built, which is once per time it opens. */
+    private static void built(View sheet, BooleanSetting setting, String what, String... fills) {
+        try {
+            if (sheet == null) return;
+            int[] ids = new int[fills.length];
+            for (int index = 0; index < fills.length; index++) ids[index] = id(sheet, fills[index]);
+            Sheet known = new Sheet(setting, ids);
+            if (sheets.put(sheet, known) == null) sheet.addOnLayoutChangeListener(REPAINT_SHEET);
+            paintSheet(sheet, known, UiHooks.enabled(FamilyNames.AMOLED_BLACK, setting) && night(sheet));
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.AMOLED_BLACK, what, failure);
+        }
+    }
+
+    private static void paintSheet(View sheet, Sheet known, boolean black) {
+        for (int id : known.fills) {
+            View fill = id == 0 ? null : sheet.findViewById(id);
+            if (fill == null) continue;
+            Drawable background = fill.getBackground();
+            if (background instanceof LayerDrawable) paint((LayerDrawable) background, black);
+            else paint(fill, black);
+        }
+    }
+
+    /**
+     * A sheet's rounded card is a solid shape layered over a clear one. Layers loaded from one
+     * resource share their shapes until the whole drawable is mutated, and Pinterest's other
+     * sheets load the same one.
+     */
+    private static void paint(LayerDrawable layers, boolean black) {
+        if (black) layers.mutate();
+        for (int index = 0; index < layers.getNumberOfLayers(); index++) {
+            Drawable layer = layers.getDrawable(index);
+            if (layer instanceof GradientDrawable) paint((GradientDrawable) layer, black);
+        }
+    }
+
+    /** The switch that paints a sheet and the ids of the views that carry its gray, 0 for one this build has none of. */
+    private static final class Sheet {
+        final BooleanSetting setting;
+        final int[] fills;
+
+        Sheet(BooleanSetting setting, int[] fills) {
+            this.setting = setting;
+            this.fills = fills;
         }
     }
 

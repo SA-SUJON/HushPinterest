@@ -51,7 +51,7 @@ class UiFixtureTest {
         "hideNavigationButtons" to "navigationButtons", "hideHeaderButtons" to "headerButtons",
         "hidePinMenuItems" to "pinMenuItems", "hideComments" to "comments",
         "quietEmailReminder" to "emailReminder", "disableUpdateNag" to "updateNag",
-        "amoledBlack" to "blackBottomBar",
+        "amoledBlack" to "blackBottomBar", "amoledBlack" to "blackComments", "amoledBlack" to "blackPinMenu",
     )
 
     @Test fun `every interface family matches each supported vendor build without a warning`() {
@@ -153,6 +153,27 @@ class UiFixtureTest {
             assertEquals("${build.name}: the glass hands over the color it was about to use", color, question.registerD)
             assertEquals("${build.name}: the answer lands where the wash reads its color", color,
                 (glass[asked + 1] as OneRegisterInstruction).registerA)
+            // The comments screen and the pin menu's sheet are each handed over by the method that builds them.
+            val builders = listOf(
+                "comments" to classes.flatMap { it.methods }.single { method ->
+                    method.name == "onCreateView" && method.fields().any { it.name == COMMENTS_SCREEN_ID }
+                },
+                "pinMenu" to classes.single { it.type == PIN_MENU }.methods.single { it.name == "createModalView" },
+            )
+            for ((hook, was) in builders) {
+                val answer = was.instructions().indexOfFirst { it.opcode == Opcode.RETURN_OBJECT }
+                val view = (was.instructions()[answer] as OneRegisterInstruction).registerA
+                val built = context.mutable(was).instructions()
+                assertEquals("${build.name}: $hook goes in where the view was answered", answer,
+                    built.indexOfFirst { isCall(it, AMOLED_BLACK, hook) })
+                assertEquals("${build.name}: the $hook builder gained its hook, nothing else", was.instructions().size + 1, built.size)
+                assertEquals("${build.name}: the $hook builder still answers once", 1, built.count { it.opcode == Opcode.RETURN_OBJECT })
+                val handed = built[answer] as RegisterRangeInstruction
+                assertEquals("${build.name}: $hook takes the answered view and nothing else", view to 1,
+                    handed.startRegister to handed.registerCount)
+                assertEquals("${build.name}: the $hook builder answers the same view right after", Opcode.RETURN_OBJECT to view,
+                    built[answer + 1].opcode to (built[answer + 1] as OneRegisterInstruction).registerA)
+            }
             val original = classes.flatMap { it.methods }.single { "inAppUpdateManager" in it.strings() }
             val modified = context.mutable(original)
             assertEquals("the shared coroutine's other task must keep its dispatcher", original.instructions()[0].opcode,
@@ -241,12 +262,14 @@ class UiFixtureTest {
                         .containsAll(listOf("HOME", "PROFILE", "CREATE", "NOTIFICATIONS"))) ||
                     owner.methods.any { method -> method.strings().any { it in anchors } ||
                         method.fields().any { it.name in FILTERABLE_PIN_MENU_TITLES ||
-                            it.name == "email_verification_reminder_title" } }
+                            it.name == "email_verification_reminder_title" || it.name == COMMENTS_SCREEN_ID } }
                 if (match) found[owner.type] = ImmutableClassDef.of(owner)
             }
         }
         // Include every application superclass so final inherited methods are checked before an override is added.
-        var parents = found.values.mapNotNull { it.superclass }.toSet() - found.keys
+        // The sheet a pin's menu is built into comes along too, so the patch can tell it's a view.
+        val sheets = found[PIN_MENU]?.methods?.filter { it.name == "createModalView" }?.map { it.returnType }.orEmpty()
+        var parents = (found.values.mapNotNull { it.superclass } + sheets).toSet() - found.keys
         while (parents.isNotEmpty()) {
             val loaded = FixtureDex.classes(build, parents)
             found += loaded

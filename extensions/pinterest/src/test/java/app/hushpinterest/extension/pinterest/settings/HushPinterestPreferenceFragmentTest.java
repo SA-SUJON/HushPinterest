@@ -319,6 +319,37 @@ public class HushPinterestPreferenceFragmentTest {
         }
     }
 
+    /** Black comments and Black pin menu each have their own hook, so each row shows only where its hook went in, under Black bottom bar. */
+    @Test
+    public void theBlackSheetRowsShowOnlyWhereTheirHooksWentIn() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Set<PatchFamily.Capability> barOnly = EnumSet.allOf(PatchFamily.Capability.class);
+        barOnly.remove(PatchFamily.Capability.BLACK_COMMENTS);
+        barOnly.remove(PatchFamily.Capability.BLACK_PIN_MENU);
+        PatchFamily.capabilitiesForTests = barOnly;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            assertNull(page.findPreference(Settings.BLACK_COMMENTS.key));
+            assertNull(page.findPreference(Settings.BLACK_PIN_MENU.key));
+            assertNotNull(page.findPreference(Settings.BLACK_BOTTOM_BAR.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            int bar = indexOfKey(rows, Settings.BLACK_BOTTOM_BAR.key);
+            SwitchPreference comments = (SwitchPreference) page.findPreference(Settings.BLACK_COMMENTS.key);
+            SwitchPreference menu = (SwitchPreference) page.findPreference(Settings.BLACK_PIN_MENU.key);
+            assertEquals("Black comments", String.valueOf(comments.getTitle()));
+            assertEquals("Black pin menu", String.valueOf(menu.getTitle()));
+            assertFalse("Black comments starts off", comments.isChecked());
+            assertFalse("Black pin menu starts off", menu.isChecked());
+            assertEquals(bar + 1, indexOfKey(rows, Settings.BLACK_COMMENTS.key));
+            assertEquals(bar + 2, indexOfKey(rows, Settings.BLACK_PIN_MENU.key));
+        }
+    }
+
     @Test
     public void thePausedCardSaysWhatStaysInForEveryReason() {
         for (HushPinterestPause.Reason why : HushPinterestPause.Reason.values()) {

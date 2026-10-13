@@ -485,6 +485,11 @@ Couldn't check the file, so these are still the details Pinterest supplied.	Die 
 Black bottom bar	Schwarze untere Leiste
 In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.	Färbt im dunklen Modus die untere Leiste tiefschwarz, passend zur Seite. Auf OLED-Bildschirmen spart das auch etwas Akku. Der helle Modus bleibt, wie er ist. Die Änderung zeigt sich, wenn die Leiste das nächste Mal neu gezeichnet wird.
 AMOLED dark theme	Dunkles AMOLED-Design
+# context: two more AMOLED black switches on the Interface page, one for the comments sheet and one for a pin's three-dot menu
+Black comments	Schwarze Kommentare
+In dark mode, paints the comments sheet and its reply bar pure black. Light mode stays as it is. The change shows the next time you open comments.	Färbt im dunklen Modus das Kommentarfenster und seine Antwortleiste tiefschwarz. Der helle Modus bleibt, wie er ist. Die Änderung zeigt sich, wenn du das nächste Mal die Kommentare öffnest.
+Black pin menu	Schwarzes Pin-Menü
+In dark mode, paints a pin's menu pure black. Light mode stays as it is. The change shows the next time you open the menu.	Färbt im dunklen Modus das Menü eines Pins tiefschwarz. Der helle Modus bleibt, wie er ist. Die Änderung zeigt sich, wenn du das Menü das nächste Mal öffnest.
 # context: the two Hide closeup buttons switches on the Interface page. Pinterest calls the lens button's menu entry Search image.
 Hide back arrow on pins	Zurück-Pfeil auf Pins ausblenden
 Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.	Blendet den Zurück-Pfeil aus, der über einem geöffneten Pin schwebt. Mit der Zurück-Geste oder -Taste deines Handys verlässt du den Pin weiterhin. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.

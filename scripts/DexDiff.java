@@ -273,7 +273,7 @@ public class DexDiff {
             "once-call", "once-call <method reference>");
 
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
-            Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2), Map.entry("drawWash", 4),
+            Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2), Map.entry("drawWash", 4), Map.entry("builtView", 3),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
             Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
@@ -2725,6 +2725,43 @@ public class DexDiff {
             if (!inPlace) { fail(hook + " does not answer the wash color in place in " + m); return false; }
             remove(m, at, at + 2);
             return true;
+        }
+
+        /**
+         * A view handed over as it leaves the one method that builds it. The rule names the hook, the
+         * method's name and what picks the method out: its class, or the id whose R field it reads.
+         * The method answers a view through a single return-object, and the hook sits right in front
+         * of that return with the answered register, as the only way into it.
+         */
+        void builtView(Contract c) {
+            String hook = c.strings.get(0), name = c.strings.get(1), anchor = c.strings.get(2);
+            List<Method> builders = new ArrayList<>();
+            for (Method m : clean.methods.values()) {
+                if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null || !m.getName().equals(name)) continue;
+                if (anchor.startsWith("L") ? m.getDefiningClass().equals(anchor)
+                        : instructions(m).stream().anyMatch(i -> readsId(i, anchor))) builders.add(m);
+            }
+            Method builder = unique(builders, "builder of the view for " + hook);
+            boolean shaped = false;
+            if (builder != null) {
+                String type = builder.getReturnType();
+                shaped = instructions(builder).stream().filter(i -> i.getOpcode() == Opcode.RETURN_OBJECT).count() == 1
+                        && (type.equals("Landroid/view/View;") || frameworkView(type));
+                if (!shaped) fail(builder + " doesn't answer a view through a single return");
+            }
+            Method m = shaped ? actual(builder) : null;
+            List<Integer> sites = calls(m, hook, 1);
+            boolean handed = false;
+            if (m != null && sites.size() == 1) {
+                List<Instruction> body = instructions(m);
+                int at = sites.get(0);
+                handed = at + 1 < body.size() && body.get(at + 1).getOpcode() == Opcode.RETURN_OBJECT
+                        && body.stream().filter(i -> i.getOpcode() == Opcode.RETURN_OBJECT).count() == 1
+                        && arguments(body.get(at)).equals(List.of(firstRegister(body.get(at + 1)))) && onlyFrom(m, at + 1, at);
+                if (!handed) fail(hook + " doesn't take the view " + m + " answers, right in front of its only return");
+                else remove(m, at, at + 1);
+            }
+            capability(c.callee, handed);
         }
 
         void feed(Contract c) {
@@ -5197,6 +5234,7 @@ public class DexDiff {
                     case "refresh": refresh(c); break;
                     case "draw": draw(c); break;
                     case "drawWash": draw(c); break;
+                    case "builtView": builtView(c); break;
                     case "navigation": navigation(c); break;
                     case "menu": menu(c); break;
                     case "downloads": downloads(c); break;

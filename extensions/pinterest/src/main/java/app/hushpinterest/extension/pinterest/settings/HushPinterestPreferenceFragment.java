@@ -390,6 +390,17 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("In dark mode, paints the bottom bar pure black to match the page, which also saves a "
                         + "little battery on OLED screens. Light mode stays as it is. The change shows the next time "
                         + "the bar redraws."), SettingsIcons.DARK_MODE);
+            // Each has its own hook, so a build where Pinterest's comments or pin menu wasn't found has no row for it.
+            if (build.contains(PatchFamily.AMOLED_BLACK) && PatchFamily.Capability.BLACK_COMMENTS.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.BLACK_COMMENTS, L10n.t("Black comments"),
+                        L10n.t("In dark mode, paints the comments sheet and its reply bar pure black. Light mode stays "
+                            + "as it is. The change shows the next time you open comments.")), SettingsIcons.DARK_MODE));
+            }
+            if (build.contains(PatchFamily.AMOLED_BLACK) && PatchFamily.Capability.BLACK_PIN_MENU.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.BLACK_PIN_MENU, L10n.t("Black pin menu"),
+                        L10n.t("In dark mode, paints a pin's menu pure black. Light mode stays as it is. The change "
+                            + "shows the next time you open the menu.")), SettingsIcons.DARK_MODE));
+            }
             patchToggle(ui, context, build, PatchFamily.HIDE_CLOSEUP_BUTTONS, Settings.HIDE_CLOSEUP_BACK,
                     L10n.t("Hide back arrow on pins"),
                     L10n.t("Hides the back arrow that floats over a pin you open. Your phone's back gesture or button "

@@ -485,6 +485,11 @@ Couldn't check the file, so these are still the details Pinterest supplied.	Dosy
 Black bottom bar	Siyah alt çubuk
 In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.	Karanlık modda alt çubuğu sayfaya uyması için tamamen siyaha boyar. Bu, OLED ekranlarda biraz pil de tasarruf ettirir. Aydınlık mod olduğu gibi kalır. Değişiklik çubuk bir sonraki çizilişinde görünür.
 AMOLED dark theme	AMOLED karanlık tema
+# context: two more AMOLED black switches on the Interface page, one for the comments sheet and one for a pin's three-dot menu
+Black comments	Siyah yorumlar
+In dark mode, paints the comments sheet and its reply bar pure black. Light mode stays as it is. The change shows the next time you open comments.	Karanlık modda yorum panelini ve yanıt çubuğunu tamamen siyaha boyar. Aydınlık mod olduğu gibi kalır. Değişiklik yorumları bir sonraki açışında görünür.
+Black pin menu	Siyah pin menüsü
+In dark mode, paints a pin's menu pure black. Light mode stays as it is. The change shows the next time you open the menu.	Karanlık modda bir pinin menüsünü tamamen siyaha boyar. Aydınlık mod olduğu gibi kalır. Değişiklik menüyü bir sonraki açışında görünür.
 # context: the two Hide closeup buttons switches on the Interface page. Pinterest calls the lens button's menu entry Search image.
 Hide back arrow on pins	Pinlerde geri okunu gizle
 Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.	Açtığın bir pinin üzerinde duran geri okunu gizler. Telefonunun geri hareketi veya düğmesi seni yine pinden çıkarır. Değişiklik açtığın bir sonraki pinde görünür.

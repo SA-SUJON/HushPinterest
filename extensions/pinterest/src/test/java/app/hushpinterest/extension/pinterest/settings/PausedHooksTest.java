@@ -315,6 +315,8 @@ public class PausedHooksTest {
             return header.getVisibility() != View.INVISIBLE;
         }));
         probes.put(Settings.BLACK_BOTTOM_BAR, Collections.singletonList(PausedHooksTest::paintsBottomBarBlack));
+        probes.put(Settings.BLACK_COMMENTS, Collections.singletonList(() -> paintsSheetBlack(true)));
+        probes.put(Settings.BLACK_PIN_MENU, Collections.singletonList(() -> paintsSheetBlack(false)));
         probes.put(Settings.HIDE_CLOSEUP_BACK, Arrays.asList(() -> hidesCloseupButton(true), () -> keepsCloseupButtonHidden(true)));
         probes.put(Settings.HIDE_CLOSEUP_LENS, Arrays.asList(() -> hidesCloseupButton(false), () -> keepsCloseupButtonHidden(false)));
         probes.put(Settings.HIDE_PIN_MENU_COLLAGE, Collections.singletonList(() -> hidesMenuItem("overflow_menu_add_to_collage")));
@@ -469,6 +471,31 @@ public class PausedHooksTest {
         tabs.setBackground(fill);
         bar.addView(tabs);
         AmoledBlack.bottomBar(bar);
+        return fill.getColor().getDefaultColor() == Color.BLACK;
+    }
+
+    /** A dark-mode comments screen or pin menu, with one of the gray fills Pinterest's ids name: true when it turned black. */
+    private static boolean paintsSheetBlack(boolean comments) {
+        Context context = RuntimeEnvironment.getApplication();
+        Configuration night = new Configuration(context.getResources().getConfiguration());
+        night.uiMode = Configuration.UI_MODE_NIGHT_YES | (night.uiMode & ~Configuration.UI_MODE_NIGHT_MASK);
+        Context dark = context.createConfigurationContext(night);
+        Resources original = dark.getResources();
+        String named = comments ? "comment_bottom_bar" : "modal_container";
+        Resources resources = new Resources(dark.getAssets(), original.getDisplayMetrics(), original.getConfiguration()) {
+            @Override public int getIdentifier(String name, String type, String owner) { return named.equals(name) ? 1 : 0; }
+        };
+        LinearLayout sheet = new LinearLayout(dark) {
+            @Override public Resources getResources() { return resources; }
+        };
+        View holder = new View(dark);
+        holder.setId(1);
+        GradientDrawable fill = new GradientDrawable();
+        fill.setColor(0xFF33332E);
+        holder.setBackground(fill);
+        sheet.addView(holder);
+        if (comments) AmoledBlack.comments(sheet);
+        else AmoledBlack.pinMenu(sheet);
         return fill.getColor().getDefaultColor() == Color.BLACK;
     }
 
