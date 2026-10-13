@@ -152,6 +152,14 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     private static boolean updatingPreference;
 
     /**
+     * Raised while one action changes several rows and says itself what became of them all, as
+     * Quick setups does. A change that had to be recovered then shows no toast of its own: Android
+     * queues only a few toasts for an app, and a toast for each row can push out the one message
+     * that counts them. Main thread only, like the changes it covers.
+     */
+    static boolean recoveryToastHeld;
+
+    /**
      * The keys of settings changed in this process that only take effect after a restart.
      *
      * <p>A toast said so once and vanished, and nothing afterwards said a restart was still
@@ -302,10 +310,12 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
                     restored = false;
                 }
             }
-            Context context = getActivity();
-            Utils.showToastLong(String.valueOf(restored
-                    ? preferenceChangeRecoveredMessage(context)
-                    : preferenceChangeRecoveryFailedMessage(context)));
+            if (!recoveryToastHeld) {
+                Context context = getActivity();
+                Utils.showToastLong(String.valueOf(restored
+                        ? preferenceChangeRecoveredMessage(context)
+                        : preferenceChangeRecoveryFailedMessage(context)));
+            }
         } finally {
             updatingPreference = false;
         }

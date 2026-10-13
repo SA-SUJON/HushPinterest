@@ -918,20 +918,24 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
 
     /**
      * Applies one Quick setups choice to the switches on this page, says how many changed and
-     * answers that count. A switch whose change didn't land isn't in it: a second line says how
-     * many didn't, and whether the page shows their saved values again or has to be opened again
-     * first.
+     * answers that count. A switch whose change didn't land isn't in it. The one toast then counts
+     * those as well, and says whether the page shows their saved values again or has to be opened
+     * again first. It's the only word on the run: no switch shows a toast of its own, and each
+     * text fits the two lines a toast gets.
      */
     int applyQuickSetup(Map<BooleanSetting, Boolean> values) {
         PreferenceScreen screen = getPreferenceScreen();
         if (screen == null) return 0;
         QuickSetups.Outcome outcome = QuickSetups.apply(screen, values);
-        String message = L10n.quantity(outcome.accepted, "Changed %1$d setting", "Changed %1$d settings", outcome.accepted);
-        if (outcome.failed > 0) {
-            message += "\n" + (outcome.settled
-                    ? L10n.quantity(outcome.failed, "%1$d setting couldn't be changed. Its saved value is shown.",
-                            "%1$d settings couldn't be changed. Their saved values are shown.", outcome.failed)
-                    : preferenceChangeRecoveryFailedMessage(getContext()));
+        String message;
+        if (outcome.failed == 0) {
+            message = L10n.quantity(outcome.accepted, "Changed %1$d setting", "Changed %1$d settings", outcome.accepted);
+        } else if (outcome.settled) {
+            message = L10n.quantity(outcome.failed, "%1$d changed. %2$d setting is still on its saved value.",
+                    "%1$d changed. %2$d settings are still on their saved values.", outcome.accepted, outcome.failed);
+        } else {
+            message = L10n.quantity(outcome.failed, "%1$d changed. %2$d setting didn't. Reopen settings and try again.",
+                    "%1$d changed. %2$d settings didn't. Reopen settings and try again.", outcome.accepted, outcome.failed);
         }
         Utils.showToastLong(message);
         return outcome.accepted;

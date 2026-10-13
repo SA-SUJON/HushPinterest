@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** When a Quick setup can't change some of its switches, you now get one short message that says how many changed and how many didn't. Before, each of those switches could show a message of its own and crowd out the summary, and the summary itself ran past the two lines a message gets.
+
 * **Pinterest:** A switch that needs a restart could have trouble saving on its way back to its starting value and still end up there. The restart row kept counting it anyway, and the next time you flipped that switch it could snap back. Now the row's count is right and the switch stays where you put it.
 
 * **Pinterest:** With a screen reader on, the settings screen now reads how many changes are waiting for a restart whenever that number changes, and reads the result of a Check now you tapped. Each is read once, after whatever is already being read, and focus stays where it was. The daily check that runs on its own stays quiet.

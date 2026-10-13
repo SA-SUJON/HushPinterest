@@ -640,8 +640,8 @@ public class SettingsNavigationTest {
 
     /**
      * One switch's change fails on its way into the setting, and the page's listener puts the saved
-     * value back and says so. Quick setups counts the five that took their value rather than the six
-     * it tried, and its own toast says the sixth still shows what's saved.
+     * value back. Quick setups counts the five that took their value rather than the six it tried,
+     * and its toast, the only one of the run, says the sixth is still on its saved value.
      */
     @Test public void aQuickSetupCountsOnlyTheSwitchesThatTookTheirValue() throws Exception {
         BooleanSetting refused = Settings.HIDE_TOPIC_SUGGESTIONS;
@@ -649,10 +649,8 @@ public class SettingsNavigationTest {
             try (AutoCloseable ignored = unreadableOnce(refused.key)) {
                 assertEquals(5, page.applyQuickSetup(QuickSetupKeys.quiet()));
             }
-            assertTrue("the listener's own recovery went unsaid",
-                    ShadowToast.showedToast("The setting couldn't finish updating. Its saved value is shown."));
-            assertEquals("Changed 5 settings\n1 setting couldn't be changed. Its saved value is shown.",
-                    ShadowToast.getTextOfLatestToast());
+            assertEquals("5 changed. 1 setting is still on its saved value.", ShadowToast.getTextOfLatestToast());
+            assertEquals("the switch showed a toast of its own as well", 1, ShadowToast.shownToastCount());
             for (BooleanSetting setting : QuickSetupKeys.QUIET) assertHolds(setting, setting != refused);
             recreate();
             for (BooleanSetting setting : QuickSetupKeys.QUIET) assertHolds(setting, setting != refused);
@@ -676,10 +674,9 @@ public class SettingsNavigationTest {
         try {
             dropWritesTo(lost.key);
             assertEquals(5, page.applyQuickSetup(QuickSetupKeys.quiet()));
-            assertEquals("Changed 5 settings\nSettings didn't fully refresh. Reopen them and try again.",
-                    ShadowToast.getTextOfLatestToast());
-            assertFalse("the listener heard of a write that never landed",
-                    ShadowToast.showedToast("The setting couldn't finish updating. Its saved value is shown."));
+            assertEquals("5 changed. 1 setting didn't. Reopen settings and try again.", ShadowToast.getTextOfLatestToast());
+            assertEquals(1, ShadowToast.shownToastCount());
+            // A change the listener had heard of and recovered would have its row back on the saved value.
             assertTrue("the control: the row doesn't show the value that was lost",
                     ((SwitchPreference) page.findPreference(lost.key)).isChecked());
             assertFalse(lost.savedValue());
@@ -693,23 +690,52 @@ public class SettingsNavigationTest {
 
     /**
      * A change the page's listener had to recover is still counted when the setting took it first:
-     * the listener's message is shown, then the count, and the row, the setting and the store all
-     * hold the value asked for.
+     * the row, the setting and the store all hold the value asked for, so the count is all the run
+     * says, in its one toast.
      */
     @Test public void aChangeTheListenerRecoveredIsCountedWhenItsValueLanded() {
         try {
             assertEquals(6, page.applyQuickSetup(QuickSetupKeys.quiet()));
             ShadowToast.reset();
             // Going back to a default has the setting clear its stored value, and the first of those writes is lost.
-            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.LOST)) {
+            try (FailingStore store = FailingStore.install(FailingStore.Fault.LOST)) {
                 assertEquals(6, page.applyQuickSetup(QuickSetupKeys.defaults()));
+                // The lost write is the setting's own, and only the listener's recovery catches its failure.
+                assertTrue("the control: no write met the fault", store.editors.get() > 0);
             }
-            assertTrue("the control: no change went through the listener's recovery",
-                    ShadowToast.showedToast("The setting couldn't finish updating. Its saved value is shown."));
             assertEquals("Changed 6 settings", ShadowToast.getTextOfLatestToast());
+            assertEquals("the recovered switch showed a toast of its own as well", 1, ShadowToast.shownToastCount());
             for (BooleanSetting setting : QuickSetupKeys.QUIET) assertHolds(setting, setting.defaultValue);
             recreate();
             for (BooleanSetting setting : QuickSetupKeys.QUIET) assertHolds(setting, setting.defaultValue);
+        } finally {
+            for (BooleanSetting setting : QuickSetupKeys.DEFAULTS) setting.resetToDefault();
+        }
+    }
+
+    /**
+     * Two switches fail in one Quick setups choice. Android queues only a few toasts for an app,
+     * so a toast from each of them could push out the one that counts the run. The run shows a
+     * single toast with both counts in it, short enough for the two lines a toast gets. A switch
+     * flipped by hand afterwards still says for itself that it couldn't change.
+     */
+    @Test public void aQuickSetupThatFailsOnSeveralSwitchesSaysSoOnceWithBothCounts() throws Exception {
+        BooleanSetting first = Settings.HIDE_TOPIC_SUGGESTIONS;
+        BooleanSetting second = Settings.HIDE_SAVE_TOASTS;
+        try {
+            try (AutoCloseable ignored = unreadableOnce(first.key, second.key)) {
+                assertEquals(4, page.applyQuickSetup(QuickSetupKeys.quiet()));
+            }
+            assertEquals("4 changed. 2 settings are still on their saved values.", ShadowToast.getTextOfLatestToast());
+            assertEquals("each switch that failed showed a toast of its own", 1, ShadowToast.shownToastCount());
+            for (BooleanSetting setting : QuickSetupKeys.QUIET) assertHolds(setting, setting != first && setting != second);
+
+            ShadowToast.reset();
+            try (AutoCloseable ignored = unreadableOnce(first.key)) {
+                ((SwitchPreference) page.findPreference(first.key)).setChecked(true);
+            }
+            assertEquals("The setting couldn't finish updating. Its saved value is shown.", ShadowToast.getTextOfLatestToast());
+            assertHolds(first, false);
         } finally {
             for (BooleanSetting setting : QuickSetupKeys.DEFAULTS) setting.resetToDefault();
         }
@@ -768,19 +794,21 @@ public class SettingsNavigationTest {
     }
 
     /**
-     * Setting's store with its next typed read of [key] failing: the read the page's listener makes
-     * before it takes a row's new value into the setting. Closing it puts the store back.
+     * Setting's store with its next typed read of each of [keys] failing: the read the page's
+     * listener makes before it takes a row's new value into the setting. Nothing reads a switch's
+     * key through this store sooner. The row's own write goes to the page's store, which this
+     * leaves alone, and a change to another switch reads only that switch's key. Closing it puts
+     * the store back.
      */
-    private static AutoCloseable unreadableOnce(String key) throws Exception {
+    private static AutoCloseable unreadableOnce(String... keys) throws Exception {
         java.lang.reflect.Field field = app.hushpinterest.extension.shared.settings.preference.SharedPrefCategory.class
                 .getDeclaredField("preferences");
         field.setAccessible(true);
         android.content.SharedPreferences real = (android.content.SharedPreferences) field.get(Setting.preferences);
-        boolean[] failed = {false};
+        java.util.Set<String> unread = new java.util.HashSet<>(Arrays.asList(keys));
         field.set(Setting.preferences, java.lang.reflect.Proxy.newProxyInstance(real.getClass().getClassLoader(),
                 new Class<?>[]{android.content.SharedPreferences.class}, (proxy, method, args) -> {
-                    if (!failed[0] && method.getName().equals("getBoolean") && key.equals(args[0])) {
-                        failed[0] = true;
+                    if (method.getName().equals("getBoolean") && unread.remove(args[0])) {
                         throw new IllegalStateException("injected read failure");
                     }
                     return passOn(method, real, args);

@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(1004);
+        Map<String, String> table = new HashMap<>(1008);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -61,16 +61,20 @@ public final class L10nTranslations {
     }
 
     private static void fillDe0(Map<String, String> table) {
+        table.put("%1$d changed. %2$d setting didn't. Reopen settings and try again.",
+                "%1$d ge\u00e4ndert, %2$d nicht. \u00d6ffne die Einstellungen neu und versuch es erneut.");
+        table.put("%1$d changed. %2$d setting is still on its saved value.",
+                "%1$d ge\u00e4ndert. %2$d Einstellung zeigt weiter den gespeicherten Wert.");
+        table.put("%1$d changed. %2$d settings are still on their saved values.",
+                "%1$d ge\u00e4ndert. %2$d Einstellungen zeigen weiter die gespeicherten Werte.");
+        table.put("%1$d changed. %2$d settings didn't. Reopen settings and try again.",
+                "%1$d ge\u00e4ndert, %2$d nicht. \u00d6ffne die Einstellungen neu und versuch es erneut.");
         table.put("%1$d item in that file isn't a setting this version of HushPinterest knows, so it'll be left out.",
                 "%1$d Eintrag in dieser Datei ist keine Einstellung, die diese Version von HushPinterest kennt, und wird deshalb ausgelassen.");
         table.put("%1$d items in that file aren't settings this version of HushPinterest knows, so they'll be left out.",
                 "%1$d Eintr\u00e4ge in dieser Datei sind keine Einstellungen, die diese Version von HushPinterest kennt, und werden deshalb ausgelassen.");
-        table.put("%1$d setting couldn't be changed. Its saved value is shown.",
-                "%1$d Einstellung blieb unver\u00e4ndert. Der gespeicherte Wert wird angezeigt.");
         table.put("%1$d setting found",
                 "%1$d Einstellung gefunden");
-        table.put("%1$d settings couldn't be changed. Their saved values are shown.",
-                "%1$d Einstellungen blieben unver\u00e4ndert. Gespeicherte Werte werden angezeigt.");
         table.put("%1$d settings found",
                 "%1$d Einstellungen gefunden");
         table.put("%1$d switch will change.",
@@ -177,13 +181,13 @@ public final class L10nTranslations {
                 "Schwarzes Pin-Men\u00fc");
         table.put("Block Store browser ID",
                 "Browser-ID im Block Store");
+    }
+
+    private static void fillDe1(Map<String, String> table) {
         table.put("Bookmarks file (HTML)",
                 "Lesezeichendatei (HTML)");
         table.put("Boost pin",
                 "Pin bewerben");
-    }
-
-    private static void fillDe1(Map<String, String> table) {
         table.put("Browse settings",
                 "Einstellungen durchsuchen");
         table.put("Buy me a coffee on Ko-fi",
@@ -300,13 +304,13 @@ public final class L10nTranslations {
                 "Teilen fehlgeschlagen. Die gespeicherte Datei liegt in Downloads.");
         table.put("Couldn't show Notifications. It's in Pinterest's App info.",
                 "\u201eBenachrichtigungen\u201c lie\u00df sich nicht \u00f6ffnen. Siehe App-Info von Pinterest.");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Couldn't show Open by default. It's in Pinterest's App info.",
                 "\u201eStandardm\u00e4\u00dfig \u00f6ffnen\u201c lie\u00df sich nicht \u00f6ffnen. Siehe App-Info von Pinterest.");
         table.put("Couldn't show the media details. Open the pin again and retry.",
                 "Mediendetails nicht anzeigbar. \u00d6ffne den Pin erneut und versuch es noch mal.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Couldn't start that. Try again in a moment.",
                 "Das lie\u00df sich nicht starten. Versuche es gleich noch einmal.");
         table.put("Couldn't start the board download. Try again from its menu.",
@@ -423,13 +427,13 @@ public final class L10nTranslations {
                 "Start des Google-Werbe-SDK");
         table.put("Height: %s",
                 "H\u00f6he: %s");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.",
                 "Hilft bei der Google-Anmeldung nur mit microG-RE oder XSpoofSignatures. Die normalen Google Play-Dienste ignorieren es. Beim Patchen festgelegt. Patche erneut ohne diesen Patch, um es zu entfernen.");
         table.put("Hide AI-labeled pins",
                 "KI-markierte Pins ausblenden");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Hide Create button",
                 "Erstellen-Schaltfl\u00e4che ausblenden");
         table.put("Hide Notifications button",
@@ -546,13 +550,13 @@ public final class L10nTranslations {
                 "F\u00e4rbt im dunklen Modus das Men\u00fc eines Pins tiefschwarz. Der helle Modus bleibt, wie er ist. Die \u00c4nderung zeigt sich, wenn du das Men\u00fc das n\u00e4chste Mal \u00f6ffnest.");
         table.put("In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.",
                 "F\u00e4rbt im dunklen Modus die untere Leiste tiefschwarz, passend zur Seite. Auf OLED-Bildschirmen spart das auch etwas Akku. Der helle Modus bleibt, wie er ist. Die \u00c4nderung zeigt sich, wenn die Leiste das n\u00e4chste Mal neu gezeichnet wird.");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("In dark mode, paints the comments sheet and its reply bar pure black. Light mode stays as it is. The change shows the next time you open comments.",
                 "F\u00e4rbt im dunklen Modus das Kommentarfenster und seine Antwortleiste tiefschwarz. Der helle Modus bleibt, wie er ist. Die \u00c4nderung zeigt sich, wenn du das n\u00e4chste Mal die Kommentare \u00f6ffnest.");
         table.put("Installed patches and switches",
                 "Installierte Patches und Schalter");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Interface",
                 "Oberfl\u00e4che");
         table.put("It supports Pinterest %1$s.",
@@ -669,13 +673,13 @@ public final class L10nTranslations {
                 "Von Android pausiert.");
         table.put("Pick a download folder",
                 "Download-Ordner ausw\u00e4hlen");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("Pick a folder in Pictures, DCIM, Download or Documents.",
                 "W\u00e4hle einen Ordner in Pictures, DCIM, Download oder Documents.");
         table.put("Pick another folder",
                 "Anderen Ordner w\u00e4hlen");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.",
                 "W\u00e4hle die Patches in Morphe Manager aus, wenn du die App patchst. Die Schalter hier steuern nur Patches, die in deinem Build enthalten sind. Ein Schalter f\u00fcgt keinen Patch hinzu und entfernt keinen. Pause beh\u00e4lt deine gespeicherte Auswahl, aber alles, was beim Patchen festgelegt wurde, bleibt in der App.");
         table.put("Pin %s",
@@ -792,13 +796,13 @@ public final class L10nTranslations {
                 "Erneut versuchen");
         table.put("Retry download",
                 "Download erneut starten");
+    }
+
+    private static void fillDe6(Map<String, String> table) {
         table.put("Reverse image search",
                 "Umgekehrte Bildersuche");
         table.put("Same as Pinterest",
                 "Wie in Pinterest");
-    }
-
-    private static void fillDe6(Map<String, String> table) {
         table.put("Save full report",
                 "Vollst\u00e4ndigen Bericht speichern");
         table.put("Save in Pinterest's folder",
@@ -915,13 +919,13 @@ public final class L10nTranslations {
                 "HushPinterest unterst\u00fctzen");
         table.put("Supported links",
                 "Unterst\u00fctzte Links");
+    }
+
+    private static void fillDe7(Map<String, String> table) {
         table.put("System share sheet",
                 "Systemmen\u00fc zum Teilen");
         table.put("Tap to turn it back on.",
                 "Zum Wiedereinschalten tippen.");
-    }
-
-    private static void fillDe7(Map<String, String> table) {
         table.put("That file is damaged or partly downloaded. Nothing was changed.",
                 "Diese Datei ist besch\u00e4digt oder unvollst\u00e4ndig. Es wurde nichts ge\u00e4ndert.");
         table.put("That file is from a newer HushPinterest. Nothing was changed.",
@@ -1038,13 +1042,13 @@ public final class L10nTranslations {
                 "Version");
         table.put("Video",
                 "Video");
+    }
+
+    private static void fillDe8(Map<String, String> table) {
         table.put("Videos (%d)",
                 "Videos (%d)");
         table.put("Waiting for Wi-Fi that isn't metered. A hotspot doesn't count.",
                 "Wartet auf nicht getaktetes WLAN. Ein Hotspot z\u00e4hlt nicht.");
-    }
-
-    private static void fillDe8(Map<String, String> table) {
         table.put("Waiting for a network connection this download can use.",
                 "Wartet auf eine Netzwerkverbindung, die dieser Download nutzen darf.");
         table.put("Which push, email and in-app notices Pinterest sends you.",
@@ -1092,7 +1096,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(1004);
+        Map<String, String> table = new HashMap<>(1008);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1106,16 +1110,20 @@ public final class L10nTranslations {
     }
 
     private static void fillEs0(Map<String, String> table) {
+        table.put("%1$d changed. %2$d setting didn't. Reopen settings and try again.",
+                "Cambiados: %1$d. %2$d ajuste no cambi\u00f3. Vuelve a abrir los ajustes e int\u00e9ntalo.");
+        table.put("%1$d changed. %2$d setting is still on its saved value.",
+                "Cambiados: %1$d. %2$d ajuste sigue con su valor guardado.");
+        table.put("%1$d changed. %2$d settings are still on their saved values.",
+                "Cambiados: %1$d. %2$d ajustes siguen con su valor guardado.");
+        table.put("%1$d changed. %2$d settings didn't. Reopen settings and try again.",
+                "Cambiados: %1$d. %2$d ajustes no cambiaron. Vuelve a abrir los ajustes e int\u00e9ntalo.");
         table.put("%1$d item in that file isn't a setting this version of HushPinterest knows, so it'll be left out.",
                 "%1$d elemento de ese archivo no es un ajuste que conozca esta versi\u00f3n de HushPinterest, as\u00ed que se omitir\u00e1.");
         table.put("%1$d items in that file aren't settings this version of HushPinterest knows, so they'll be left out.",
                 "%1$d elementos de ese archivo no son ajustes que conozca esta versi\u00f3n de HushPinterest, as\u00ed que se omitir\u00e1n.");
-        table.put("%1$d setting couldn't be changed. Its saved value is shown.",
-                "No se pudo cambiar %1$d ajuste. Se muestra su valor guardado.");
         table.put("%1$d setting found",
                 "%1$d ajuste encontrado");
-        table.put("%1$d settings couldn't be changed. Their saved values are shown.",
-                "No se pudieron cambiar %1$d ajustes. Se muestran sus valores guardados.");
         table.put("%1$d settings found",
                 "%1$d ajustes encontrados");
         table.put("%1$d switch will change.",
@@ -1222,13 +1230,13 @@ public final class L10nTranslations {
                 "Men\u00fa del pin en negro");
         table.put("Block Store browser ID",
                 "ID de navegador en Block Store");
+    }
+
+    private static void fillEs1(Map<String, String> table) {
         table.put("Bookmarks file (HTML)",
                 "Archivo de marcadores (HTML)");
         table.put("Boost pin",
                 "Impulsar Pin");
-    }
-
-    private static void fillEs1(Map<String, String> table) {
         table.put("Browse settings",
                 "Explorar ajustes");
         table.put("Buy me a coffee on Ko-fi",
@@ -1345,13 +1353,13 @@ public final class L10nTranslations {
                 "No se pudo compartir este archivo. Busca el archivo guardado en Descargas.");
         table.put("Couldn't show Notifications. It's in Pinterest's App info.",
                 "No se abri\u00f3 Notificaciones. Est\u00e1 en la info de la app de Pinterest.");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Couldn't show Open by default. It's in Pinterest's App info.",
                 "No se abri\u00f3 Abrir de forma predeterminada. Est\u00e1 en la info de Pinterest.");
         table.put("Couldn't show the media details. Open the pin again and retry.",
                 "No se pudieron mostrar los detalles. Vuelve a abrir el Pin y reint\u00e9ntalo.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Couldn't start that. Try again in a moment.",
                 "No se pudo iniciar. Int\u00e9ntalo de nuevo en un momento.");
         table.put("Couldn't start the board download. Try again from its menu.",
@@ -1468,13 +1476,13 @@ public final class L10nTranslations {
                 "inicio del SDK de anuncios de Google");
         table.put("Height: %s",
                 "Alto: %s");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.",
                 "Ayuda al inicio de sesi\u00f3n con Google solo con microG-RE o XSpoofSignatures. Los servicios normales de Google Play lo ignoran. Se define al parchear. Vuelve a parchear sin \u00e9l para quitarlo.");
         table.put("Hide AI-labeled pins",
                 "Ocultar pines con etiqueta de IA");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Hide Create button",
                 "Ocultar bot\u00f3n Crear");
         table.put("Hide Notifications button",
@@ -1591,13 +1599,13 @@ public final class L10nTranslations {
                 "En modo oscuro, pinta de negro puro el men\u00fa de un pin. El modo claro se queda como est\u00e1. El cambio se ve la pr\u00f3xima vez que abras el men\u00fa.");
         table.put("In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.",
                 "En modo oscuro, pinta la barra inferior de negro puro para que combine con la p\u00e1gina, lo que tambi\u00e9n ahorra un poco de bater\u00eda en pantallas OLED. El modo claro se queda como est\u00e1. El cambio se ve la pr\u00f3xima vez que se vuelva a dibujar la barra.");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("In dark mode, paints the comments sheet and its reply bar pure black. Light mode stays as it is. The change shows the next time you open comments.",
                 "En modo oscuro, pinta de negro puro el panel de comentarios y su barra de respuesta. El modo claro se queda como est\u00e1. El cambio se ve la pr\u00f3xima vez que abras los comentarios.");
         table.put("Installed patches and switches",
                 "Parches instalados e interruptores");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Interface",
                 "Interfaz");
         table.put("It supports Pinterest %1$s.",
@@ -1714,13 +1722,13 @@ public final class L10nTranslations {
                 "Android lo puso en pausa.");
         table.put("Pick a download folder",
                 "Elegir una carpeta de descargas");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("Pick a folder in Pictures, DCIM, Download or Documents.",
                 "Elige una carpeta en Pictures, DCIM, Download o Documents.");
         table.put("Pick another folder",
                 "Elegir otra carpeta");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.",
                 "Elige los parches en Morphe Manager cuando parchees la app. Los interruptores de aqu\u00ed solo controlan los parches que est\u00e1n en tu versi\u00f3n. Cambiar un interruptor no a\u00f1ade ni quita ning\u00fan parche. Pausa conserva tus elecciones guardadas, pero lo que se defini\u00f3 al parchear se queda en la app.");
         table.put("Pin %s",
@@ -1837,13 +1845,13 @@ public final class L10nTranslations {
                 "Reintentar");
         table.put("Retry download",
                 "Reintentar descarga");
+    }
+
+    private static void fillEs6(Map<String, String> table) {
         table.put("Reverse image search",
                 "B\u00fasqueda inversa de im\u00e1genes");
         table.put("Same as Pinterest",
                 "El mismo que en Pinterest");
-    }
-
-    private static void fillEs6(Map<String, String> table) {
         table.put("Save full report",
                 "Guardar informe completo");
         table.put("Save in Pinterest's folder",
@@ -1960,13 +1968,13 @@ public final class L10nTranslations {
                 "Apoya HushPinterest");
         table.put("Supported links",
                 "Enlaces compatibles");
+    }
+
+    private static void fillEs7(Map<String, String> table) {
         table.put("System share sheet",
                 "Men\u00fa de compartir del sistema");
         table.put("Tap to turn it back on.",
                 "Toca para volver a activarlo.");
-    }
-
-    private static void fillEs7(Map<String, String> table) {
         table.put("That file is damaged or partly downloaded. Nothing was changed.",
                 "Ese archivo est\u00e1 da\u00f1ado o incompleto. No se cambi\u00f3 nada.");
         table.put("That file is from a newer HushPinterest. Nothing was changed.",
@@ -2083,13 +2091,13 @@ public final class L10nTranslations {
                 "Versi\u00f3n");
         table.put("Video",
                 "Video");
+    }
+
+    private static void fillEs8(Map<String, String> table) {
         table.put("Videos (%d)",
                 "Videos (%d)");
         table.put("Waiting for Wi-Fi that isn't metered. A hotspot doesn't count.",
                 "Esperando Wi-Fi sin uso medido. Un punto de acceso no cuenta.");
-    }
-
-    private static void fillEs8(Map<String, String> table) {
         table.put("Waiting for a network connection this download can use.",
                 "Esperando una conexi\u00f3n de red que esta descarga pueda usar.");
         table.put("Which push, email and in-app notices Pinterest sends you.",
@@ -2137,7 +2145,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(1004);
+        Map<String, String> table = new HashMap<>(1008);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -2151,16 +2159,20 @@ public final class L10nTranslations {
     }
 
     private static void fillIn0(Map<String, String> table) {
+        table.put("%1$d changed. %2$d setting didn't. Reopen settings and try again.",
+                "%1$d diubah, %2$d pengaturan tidak. Buka kembali pengaturan lalu coba lagi.");
+        table.put("%1$d changed. %2$d setting is still on its saved value.",
+                "%1$d diubah. %2$d pengaturan masih memakai nilai tersimpan.");
+        table.put("%1$d changed. %2$d settings are still on their saved values.",
+                "%1$d diubah. %2$d pengaturan masih memakai nilai tersimpan.");
+        table.put("%1$d changed. %2$d settings didn't. Reopen settings and try again.",
+                "%1$d diubah, %2$d pengaturan tidak. Buka kembali pengaturan lalu coba lagi.");
         table.put("%1$d item in that file isn't a setting this version of HushPinterest knows, so it'll be left out.",
                 "%1$d item dalam file itu bukan pengaturan yang dikenali versi HushPinterest ini, jadi tidak akan disertakan.");
         table.put("%1$d items in that file aren't settings this version of HushPinterest knows, so they'll be left out.",
                 "%1$d item dalam file itu bukan pengaturan yang dikenali versi HushPinterest ini, jadi tidak akan disertakan.");
-        table.put("%1$d setting couldn't be changed. Its saved value is shown.",
-                "%1$d pengaturan tidak dapat diubah. Nilai yang tersimpan ditampilkan.");
         table.put("%1$d setting found",
                 "%1$d pengaturan ditemukan");
-        table.put("%1$d settings couldn't be changed. Their saved values are shown.",
-                "%1$d pengaturan tidak dapat diubah. Nilai yang tersimpan ditampilkan.");
         table.put("%1$d settings found",
                 "%1$d pengaturan ditemukan");
         table.put("%1$d switch will change.",
@@ -2267,13 +2279,13 @@ public final class L10nTranslations {
                 "Menu pin hitam");
         table.put("Block Store browser ID",
                 "ID browser di Block Store");
+    }
+
+    private static void fillIn1(Map<String, String> table) {
         table.put("Bookmarks file (HTML)",
                 "File bookmark (HTML)");
         table.put("Boost pin",
                 "Promosikan Pin");
-    }
-
-    private static void fillIn1(Map<String, String> table) {
         table.put("Browse settings",
                 "Jelajahi pengaturan");
         table.put("Buy me a coffee on Ko-fi",
@@ -2390,13 +2402,13 @@ public final class L10nTranslations {
                 "File ini tidak dapat dibagikan. Cari file tersimpan di Unduhan.");
         table.put("Couldn't show Notifications. It's in Pinterest's App info.",
                 "Notifikasi tidak terbuka. Ada di Info aplikasi Pinterest.");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Couldn't show Open by default. It's in Pinterest's App info.",
                 "Buka secara default tidak terbuka. Ada di Info aplikasi Pinterest.");
         table.put("Couldn't show the media details. Open the pin again and retry.",
                 "Detail media tidak dapat ditampilkan. Buka Pin lagi, lalu coba kembali.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Couldn't start that. Try again in a moment.",
                 "Tidak dapat dimulai. Coba lagi dalam beberapa saat.");
         table.put("Couldn't start the board download. Try again from its menu.",
@@ -2513,13 +2525,13 @@ public final class L10nTranslations {
                 "memulai SDK iklan Google");
         table.put("Height: %s",
                 "Tinggi: %s");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.",
                 "Membantu masuk dengan Google hanya dengan microG-RE atau XSpoofSignatures. Google Play services biasa mengabaikannya. Diatur saat menambal. Tambal ulang tanpanya untuk menghapusnya.");
         table.put("Hide AI-labeled pins",
                 "Sembunyikan pin berlabel AI");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Hide Create button",
                 "Sembunyikan tombol Buat");
         table.put("Hide Notifications button",
@@ -2636,13 +2648,13 @@ public final class L10nTranslations {
                 "Dalam mode gelap, mewarnai menu pin hitam pekat. Mode terang tetap seperti biasa. Perubahan terlihat saat Anda membuka menu berikutnya.");
         table.put("In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.",
                 "Dalam mode gelap, mewarnai bilah bawah hitam pekat agar serasi dengan halaman, yang juga sedikit menghemat baterai di layar OLED. Mode terang tetap seperti biasa. Perubahan terlihat saat bilah digambar ulang berikutnya.");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("In dark mode, paints the comments sheet and its reply bar pure black. Light mode stays as it is. The change shows the next time you open comments.",
                 "Dalam mode gelap, mewarnai panel komentar dan bilah balasannya hitam pekat. Mode terang tetap seperti biasa. Perubahan terlihat saat Anda membuka komentar berikutnya.");
         table.put("Installed patches and switches",
                 "Patch yang terpasang dan sakelar");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Interface",
                 "Antarmuka");
         table.put("It supports Pinterest %1$s.",
@@ -2759,13 +2771,13 @@ public final class L10nTranslations {
                 "Dijeda oleh Android.");
         table.put("Pick a download folder",
                 "Pilih folder unduhan");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("Pick a folder in Pictures, DCIM, Download or Documents.",
                 "Pilih folder di Pictures, DCIM, Download, atau Documents.");
         table.put("Pick another folder",
                 "Pilih folder lain");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.",
                 "Pilih patch di Morphe Manager saat Anda menambal aplikasi. Sakelar di sini hanya mengatur patch yang ada di build Anda. Mengubah sakelar tidak menambah atau menghapus patch. Jeda menyimpan pilihan Anda, tetapi apa pun yang diatur saat menambal tetap ada di aplikasi.");
         table.put("Pin %s",
@@ -2882,13 +2894,13 @@ public final class L10nTranslations {
                 "Coba lagi");
         table.put("Retry download",
                 "Coba unduh lagi");
+    }
+
+    private static void fillIn6(Map<String, String> table) {
         table.put("Reverse image search",
                 "Pencarian gambar terbalik");
         table.put("Same as Pinterest",
                 "Sama dengan Pinterest");
-    }
-
-    private static void fillIn6(Map<String, String> table) {
         table.put("Save full report",
                 "Simpan laporan lengkap");
         table.put("Save in Pinterest's folder",
@@ -3005,13 +3017,13 @@ public final class L10nTranslations {
                 "Dukung HushPinterest");
         table.put("Supported links",
                 "Tautan yang didukung");
+    }
+
+    private static void fillIn7(Map<String, String> table) {
         table.put("System share sheet",
                 "Menu berbagi sistem");
         table.put("Tap to turn it back on.",
                 "Ketuk untuk mengaktifkan HushPinterest lagi.");
-    }
-
-    private static void fillIn7(Map<String, String> table) {
         table.put("That file is damaged or partly downloaded. Nothing was changed.",
                 "File itu rusak atau hanya terunduh sebagian. Tidak ada yang diubah.");
         table.put("That file is from a newer HushPinterest. Nothing was changed.",
@@ -3128,13 +3140,13 @@ public final class L10nTranslations {
                 "Versi");
         table.put("Video",
                 "Video");
+    }
+
+    private static void fillIn8(Map<String, String> table) {
         table.put("Videos (%d)",
                 "Video (%d)");
         table.put("Waiting for Wi-Fi that isn't metered. A hotspot doesn't count.",
                 "Menunggu Wi-Fi yang tidak terukur. Hotspot tidak dihitung.");
-    }
-
-    private static void fillIn8(Map<String, String> table) {
         table.put("Waiting for a network connection this download can use.",
                 "Menunggu koneksi jaringan yang boleh dipakai unduhan ini.");
         table.put("Which push, email and in-app notices Pinterest sends you.",
@@ -3182,7 +3194,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(1004);
+        Map<String, String> table = new HashMap<>(1008);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -3196,16 +3208,20 @@ public final class L10nTranslations {
     }
 
     private static void fillPt_rBR0(Map<String, String> table) {
+        table.put("%1$d changed. %2$d setting didn't. Reopen settings and try again.",
+                "Alteradas: %1$d. Sem mudar: %2$d. Reabra as configura\u00e7\u00f5es e tente de novo.");
+        table.put("%1$d changed. %2$d setting is still on its saved value.",
+                "Alteradas: %1$d. %2$d configura\u00e7\u00e3o continua com o valor salvo.");
+        table.put("%1$d changed. %2$d settings are still on their saved values.",
+                "Alteradas: %1$d. %2$d configura\u00e7\u00f5es continuam com o valor salvo.");
+        table.put("%1$d changed. %2$d settings didn't. Reopen settings and try again.",
+                "Alteradas: %1$d. Sem mudar: %2$d. Reabra as configura\u00e7\u00f5es e tente de novo.");
         table.put("%1$d item in that file isn't a setting this version of HushPinterest knows, so it'll be left out.",
                 "%1$d item desse arquivo n\u00e3o \u00e9 uma configura\u00e7\u00e3o conhecida por esta vers\u00e3o do HushPinterest e ser\u00e1 ignorado.");
         table.put("%1$d items in that file aren't settings this version of HushPinterest knows, so they'll be left out.",
                 "%1$d itens desse arquivo n\u00e3o s\u00e3o configura\u00e7\u00f5es conhecidas por esta vers\u00e3o do HushPinterest e ser\u00e3o ignorados.");
-        table.put("%1$d setting couldn't be changed. Its saved value is shown.",
-                "N\u00e3o foi poss\u00edvel alterar %1$d configura\u00e7\u00e3o. O valor salvo aparece.");
         table.put("%1$d setting found",
                 "%1$d configura\u00e7\u00e3o encontrada");
-        table.put("%1$d settings couldn't be changed. Their saved values are shown.",
-                "N\u00e3o foi poss\u00edvel alterar %1$d configura\u00e7\u00f5es. Os valores salvos aparecem.");
         table.put("%1$d settings found",
                 "%1$d configura\u00e7\u00f5es encontradas");
         table.put("%1$d switch will change.",
@@ -3312,13 +3328,13 @@ public final class L10nTranslations {
                 "Menu do pin em preto");
         table.put("Block Store browser ID",
                 "ID de navegador no Block Store");
+    }
+
+    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Bookmarks file (HTML)",
                 "Arquivo de favoritos (HTML)");
         table.put("Boost pin",
                 "Impulsionar Pin");
-    }
-
-    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Browse settings",
                 "Explorar configura\u00e7\u00f5es");
         table.put("Buy me a coffee on Ko-fi",
@@ -3435,13 +3451,13 @@ public final class L10nTranslations {
                 "N\u00e3o deu para compartilhar. Procure o arquivo salvo em Downloads.");
         table.put("Couldn't show Notifications. It's in Pinterest's App info.",
                 "A tela Notifica\u00e7\u00f5es n\u00e3o abriu. Fica nas Informa\u00e7\u00f5es do app do Pinterest.");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Couldn't show Open by default. It's in Pinterest's App info.",
                 "A tela Abrir por padr\u00e3o n\u00e3o abriu. Fica nas Informa\u00e7\u00f5es do app do Pinterest.");
         table.put("Couldn't show the media details. Open the pin again and retry.",
                 "N\u00e3o foi poss\u00edvel mostrar os detalhes. Abra o Pin de novo e tente outra vez.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Couldn't start that. Try again in a moment.",
                 "N\u00e3o foi poss\u00edvel iniciar isso. Tente de novo em instantes.");
         table.put("Couldn't start the board download. Try again from its menu.",
@@ -3558,13 +3574,13 @@ public final class L10nTranslations {
                 "in\u00edcio do SDK de an\u00fancios do Google");
         table.put("Height: %s",
                 "Altura: %s");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.",
                 "Ajuda no login com Google s\u00f3 com microG-RE ou XSpoofSignatures. O Google Play Services normal o ignora. Definido ao aplicar os patches. Aplique de novo sem ele para remov\u00ea-lo.");
         table.put("Hide AI-labeled pins",
                 "Ocultar pins com selo de IA");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Hide Create button",
                 "Ocultar bot\u00e3o Criar");
         table.put("Hide Notifications button",
@@ -3681,13 +3697,13 @@ public final class L10nTranslations {
                 "No modo escuro, pinta de preto puro o menu de um pin. O modo claro continua como est\u00e1. A mudan\u00e7a aparece na pr\u00f3xima vez que voc\u00ea abrir o menu.");
         table.put("In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.",
                 "No modo escuro, pinta a barra inferior de preto puro para combinar com a p\u00e1gina, o que tamb\u00e9m economiza um pouco de bateria em telas OLED. O modo claro continua como est\u00e1. A mudan\u00e7a aparece na pr\u00f3xima vez que a barra for redesenhada.");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("In dark mode, paints the comments sheet and its reply bar pure black. Light mode stays as it is. The change shows the next time you open comments.",
                 "No modo escuro, pinta de preto puro o painel de coment\u00e1rios e sua barra de resposta. O modo claro continua como est\u00e1. A mudan\u00e7a aparece na pr\u00f3xima vez que voc\u00ea abrir os coment\u00e1rios.");
         table.put("Installed patches and switches",
                 "Patches instalados e op\u00e7\u00f5es");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Interface",
                 "Interface");
         table.put("It supports Pinterest %1$s.",
@@ -3804,13 +3820,13 @@ public final class L10nTranslations {
                 "Pausado pelo Android.");
         table.put("Pick a download folder",
                 "Escolher uma pasta de downloads");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Pick a folder in Pictures, DCIM, Download or Documents.",
                 "Escolha uma pasta em Pictures, DCIM, Download ou Documents.");
         table.put("Pick another folder",
                 "Escolher outra pasta");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.",
                 "Escolha os patches no Morphe Manager ao aplicar os patches ao app. As op\u00e7\u00f5es daqui s\u00f3 controlam os patches que est\u00e3o na sua vers\u00e3o. Mudar uma op\u00e7\u00e3o n\u00e3o adiciona nem remove patches. Pausar mant\u00e9m suas escolhas salvas, mas o que foi definido ao aplicar os patches continua no app.");
         table.put("Pin %s",
@@ -3927,13 +3943,13 @@ public final class L10nTranslations {
                 "Tentar novamente");
         table.put("Retry download",
                 "Tentar baixar novamente");
+    }
+
+    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Reverse image search",
                 "Pesquisa reversa de imagens");
         table.put("Same as Pinterest",
                 "O mesmo do Pinterest");
-    }
-
-    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Save full report",
                 "Salvar relat\u00f3rio completo");
         table.put("Save in Pinterest's folder",
@@ -4050,13 +4066,13 @@ public final class L10nTranslations {
                 "Apoie o HushPinterest");
         table.put("Supported links",
                 "Links compat\u00edveis");
+    }
+
+    private static void fillPt_rBR7(Map<String, String> table) {
         table.put("System share sheet",
                 "Menu de compartilhamento do sistema");
         table.put("Tap to turn it back on.",
                 "Toque para reativar.");
-    }
-
-    private static void fillPt_rBR7(Map<String, String> table) {
         table.put("That file is damaged or partly downloaded. Nothing was changed.",
                 "Esse arquivo est\u00e1 corrompido ou incompleto. Nada foi alterado.");
         table.put("That file is from a newer HushPinterest. Nothing was changed.",
@@ -4173,13 +4189,13 @@ public final class L10nTranslations {
                 "Vers\u00e3o");
         table.put("Video",
                 "V\u00eddeo");
+    }
+
+    private static void fillPt_rBR8(Map<String, String> table) {
         table.put("Videos (%d)",
                 "V\u00eddeos (%d)");
         table.put("Waiting for Wi-Fi that isn't metered. A hotspot doesn't count.",
                 "Aguardando um Wi-Fi ilimitado. Um ponto de acesso n\u00e3o conta.");
-    }
-
-    private static void fillPt_rBR8(Map<String, String> table) {
         table.put("Waiting for a network connection this download can use.",
                 "Aguardando uma conex\u00e3o de rede que este download possa usar.");
         table.put("Which push, email and in-app notices Pinterest sends you.",
@@ -4227,7 +4243,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(1004);
+        Map<String, String> table = new HashMap<>(1008);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -4241,16 +4257,20 @@ public final class L10nTranslations {
     }
 
     private static void fillTr0(Map<String, String> table) {
+        table.put("%1$d changed. %2$d setting didn't. Reopen settings and try again.",
+                "%1$d ayar de\u011fi\u015fti, %2$d ayar de\u011fi\u015fmedi. Ayarlar\u0131 yeniden a\u00e7\u0131p tekrar dene.");
+        table.put("%1$d changed. %2$d setting is still on its saved value.",
+                "%1$d ayar de\u011fi\u015fti. %2$d ayar kay\u0131tl\u0131 de\u011ferinde kald\u0131.");
+        table.put("%1$d changed. %2$d settings are still on their saved values.",
+                "%1$d ayar de\u011fi\u015fti. %2$d ayar kay\u0131tl\u0131 de\u011ferinde kald\u0131.");
+        table.put("%1$d changed. %2$d settings didn't. Reopen settings and try again.",
+                "%1$d ayar de\u011fi\u015fti, %2$d ayar de\u011fi\u015fmedi. Ayarlar\u0131 yeniden a\u00e7\u0131p tekrar dene.");
         table.put("%1$d item in that file isn't a setting this version of HushPinterest knows, so it'll be left out.",
                 "O dosyadaki %1$d \u00f6\u011fe, HushPinterest'in bu s\u00fcr\u00fcm\u00fcn\u00fcn tan\u0131d\u0131\u011f\u0131 ayarlardan de\u011fil, bu y\u00fczden atlanacak.");
         table.put("%1$d items in that file aren't settings this version of HushPinterest knows, so they'll be left out.",
                 "O dosyadaki %1$d \u00f6\u011fe, HushPinterest'in bu s\u00fcr\u00fcm\u00fcn\u00fcn tan\u0131d\u0131\u011f\u0131 ayarlardan de\u011fil, bu y\u00fczden atlanacak.");
-        table.put("%1$d setting couldn't be changed. Its saved value is shown.",
-                "%1$d ayar de\u011fi\u015ftirilemedi. Kay\u0131tl\u0131 de\u011feri g\u00f6steriliyor.");
         table.put("%1$d setting found",
                 "%1$d ayar bulundu");
-        table.put("%1$d settings couldn't be changed. Their saved values are shown.",
-                "%1$d ayar de\u011fi\u015ftirilemedi. Kay\u0131tl\u0131 de\u011ferleri g\u00f6steriliyor.");
         table.put("%1$d settings found",
                 "%1$d ayar bulundu");
         table.put("%1$d switch will change.",
@@ -4357,13 +4377,13 @@ public final class L10nTranslations {
                 "Siyah pin men\u00fcs\u00fc");
         table.put("Block Store browser ID",
                 "Block Store taray\u0131c\u0131 kimli\u011fi");
+    }
+
+    private static void fillTr1(Map<String, String> table) {
         table.put("Bookmarks file (HTML)",
                 "Yer imleri dosyas\u0131 (HTML)");
         table.put("Boost pin",
                 "Pini tan\u0131t");
-    }
-
-    private static void fillTr1(Map<String, String> table) {
         table.put("Browse settings",
                 "Ayarlar\u0131 ke\u015ffet");
         table.put("Buy me a coffee on Ko-fi",
@@ -4480,13 +4500,13 @@ public final class L10nTranslations {
                 "Bu dosya payla\u015f\u0131lamad\u0131. Kay\u0131tl\u0131 dosya i\u00e7in \u0130ndirilenler'e bak.");
         table.put("Couldn't show Notifications. It's in Pinterest's App info.",
                 "Bildirimler a\u00e7\u0131lamad\u0131. Pinterest'in Uygulama bilgileri'nde.");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Couldn't show Open by default. It's in Pinterest's App info.",
                 "Varsay\u0131lan olarak a\u00e7 a\u00e7\u0131lamad\u0131. Pinterest'in Uygulama bilgileri'nde.");
         table.put("Couldn't show the media details. Open the pin again and retry.",
                 "Medya ayr\u0131nt\u0131lar\u0131 g\u00f6sterilemedi. Pin'i yeniden a\u00e7, sonra tekrar dene.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Couldn't start that. Try again in a moment.",
                 "Bu i\u015flem ba\u015flat\u0131lamad\u0131. Birazdan tekrar dene.");
         table.put("Couldn't start the board download. Try again from its menu.",
@@ -4603,13 +4623,13 @@ public final class L10nTranslations {
                 "Google reklam SDK's\u0131n\u0131n ba\u015flat\u0131lmas\u0131");
         table.put("Height: %s",
                 "Y\u00fckseklik: %s");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.",
                 "Google ile giri\u015fe yaln\u0131zca microG-RE veya XSpoofSignatures ile yard\u0131mc\u0131 olur. Normal Google Play hizmetleri bunu yok sayar. Yamalarken ayarlan\u0131r. Kald\u0131rmak i\u00e7in bu yama olmadan yeniden yamala.");
         table.put("Hide AI-labeled pins",
                 "Yapay zeka etiketli pinleri gizle");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Hide Create button",
                 "Olu\u015ftur d\u00fc\u011fmesini gizle");
         table.put("Hide Notifications button",
@@ -4726,13 +4746,13 @@ public final class L10nTranslations {
                 "Karanl\u0131k modda bir pinin men\u00fcs\u00fcn\u00fc tamamen siyaha boyar. Ayd\u0131nl\u0131k mod oldu\u011fu gibi kal\u0131r. De\u011fi\u015fiklik men\u00fcy\u00fc bir sonraki a\u00e7\u0131\u015f\u0131nda g\u00f6r\u00fcn\u00fcr.");
         table.put("In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.",
                 "Karanl\u0131k modda alt \u00e7ubu\u011fu sayfaya uymas\u0131 i\u00e7in tamamen siyaha boyar. Bu, OLED ekranlarda biraz pil de tasarruf ettirir. Ayd\u0131nl\u0131k mod oldu\u011fu gibi kal\u0131r. De\u011fi\u015fiklik \u00e7ubuk bir sonraki \u00e7izili\u015finde g\u00f6r\u00fcn\u00fcr.");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("In dark mode, paints the comments sheet and its reply bar pure black. Light mode stays as it is. The change shows the next time you open comments.",
                 "Karanl\u0131k modda yorum panelini ve yan\u0131t \u00e7ubu\u011funu tamamen siyaha boyar. Ayd\u0131nl\u0131k mod oldu\u011fu gibi kal\u0131r. De\u011fi\u015fiklik yorumlar\u0131 bir sonraki a\u00e7\u0131\u015f\u0131nda g\u00f6r\u00fcn\u00fcr.");
         table.put("Installed patches and switches",
                 "Y\u00fckl\u00fc yamalar ve anahtarlar");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Interface",
                 "Aray\u00fcz");
         table.put("It supports Pinterest %1$s.",
@@ -4849,13 +4869,13 @@ public final class L10nTranslations {
                 "Android taraf\u0131ndan duraklat\u0131ld\u0131.");
         table.put("Pick a download folder",
                 "\u0130ndirme klas\u00f6r\u00fc se\u00e7");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("Pick a folder in Pictures, DCIM, Download or Documents.",
                 "Pictures, DCIM, Download veya Documents i\u00e7inde bir klas\u00f6r se\u00e7.");
         table.put("Pick another folder",
                 "Ba\u015fka klas\u00f6r se\u00e7");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("Pick the patches in Morphe Manager when you patch the app. The switches here only control patches that are in your build. Changing a switch doesn't add or remove a patch. Pause keeps your saved choices, but anything set while patching stays in the app.",
                 "Uygulamay\u0131 yamalarken yamalar\u0131 Morphe Manager'da se\u00e7. Buradaki anahtarlar yaln\u0131zca s\u00fcr\u00fcm\u00fcnde bulunan yamalar\u0131 kontrol eder. Bir anahtar\u0131 de\u011fi\u015ftirmek yama eklemez veya kald\u0131rmaz. Duraklat kay\u0131tl\u0131 se\u00e7imlerini korur, ama yamalarken ayarlanan her \u015fey uygulamada kal\u0131r.");
         table.put("Pin %s",
@@ -4972,13 +4992,13 @@ public final class L10nTranslations {
                 "Yeniden dene");
         table.put("Retry download",
                 "\u0130ndirmeyi yeniden dene");
+    }
+
+    private static void fillTr6(Map<String, String> table) {
         table.put("Reverse image search",
                 "Tersine g\u00f6rsel arama");
         table.put("Same as Pinterest",
                 "Pinterest ile ayn\u0131");
-    }
-
-    private static void fillTr6(Map<String, String> table) {
         table.put("Save full report",
                 "Tam raporu kaydet");
         table.put("Save in Pinterest's folder",
@@ -5095,13 +5115,13 @@ public final class L10nTranslations {
                 "HushPinterest'i destekle");
         table.put("Supported links",
                 "Desteklenen ba\u011flant\u0131lar");
+    }
+
+    private static void fillTr7(Map<String, String> table) {
         table.put("System share sheet",
                 "Sistem payla\u015f\u0131m men\u00fcs\u00fc");
         table.put("Tap to turn it back on.",
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
-    }
-
-    private static void fillTr7(Map<String, String> table) {
         table.put("That file is damaged or partly downloaded. Nothing was changed.",
                 "Bu dosya hasarl\u0131 ya da eksik indirilmi\u015f. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("That file is from a newer HushPinterest. Nothing was changed.",
@@ -5218,13 +5238,13 @@ public final class L10nTranslations {
                 "S\u00fcr\u00fcm");
         table.put("Video",
                 "Video");
+    }
+
+    private static void fillTr8(Map<String, String> table) {
         table.put("Videos (%d)",
                 "Videolar (%d)");
         table.put("Waiting for Wi-Fi that isn't metered. A hotspot doesn't count.",
                 "Saya\u00e7s\u0131z Wi-Fi bekleniyor. Hotspot say\u0131lmaz.");
-    }
-
-    private static void fillTr8(Map<String, String> table) {
         table.put("Waiting for a network connection this download can use.",
                 "Bu indirmenin kullanabilece\u011fi bir a\u011f ba\u011flant\u0131s\u0131 bekleniyor.");
         table.put("Which push, email and in-app notices Pinterest sends you.",

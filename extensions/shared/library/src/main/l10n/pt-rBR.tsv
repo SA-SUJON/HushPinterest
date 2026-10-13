@@ -531,7 +531,11 @@ HushPinterest language	Idioma do HushPinterest
 Same as Pinterest	O mesmo do Pinterest
 # context: the second language choice and the row's line while it's in force: the English language, by its name in this language
 English	Inglês
-# context: second line of the toast after a Quick setups choice, when exactly one switch didn't take its new value and the page shows the value it still has
-%1$d setting couldn't be changed. Its saved value is shown.	Não foi possível alterar %1$d configuração. O valor salvo aparece.
-# context: the same line for any other count; %1$d is how many switches didn't change
-%1$d settings couldn't be changed. Their saved values are shown.	Não foi possível alterar %1$d configurações. Os valores salvos aparecem.
+# context: the whole toast after a Quick setups choice when exactly one switch didn't take its new value and still shows the value it had; %1$d is how many switches changed, %2$d how many didn't. A toast holds two lines, so keep it short
+%1$d changed. %2$d setting is still on its saved value.	Alteradas: %1$d. %2$d configuração continua com o valor salvo.
+# context: the same toast when any other number of switches didn't change
+%1$d changed. %2$d settings are still on their saved values.	Alteradas: %1$d. %2$d configurações continuam com o valor salvo.
+# context: the whole toast after a Quick setups choice when exactly one switch didn't change and the page may not show what's saved for it until the settings are opened again; %1$d is how many switches changed, %2$d how many didn't. A toast holds two lines, so keep it short
+%1$d changed. %2$d setting didn't. Reopen settings and try again.	Alteradas: %1$d. Sem mudar: %2$d. Reabra as configurações e tente de novo.
+# context: the same toast when any other number of switches didn't change
+%1$d changed. %2$d settings didn't. Reopen settings and try again.	Alteradas: %1$d. Sem mudar: %2$d. Reabra as configurações e tente de novo.

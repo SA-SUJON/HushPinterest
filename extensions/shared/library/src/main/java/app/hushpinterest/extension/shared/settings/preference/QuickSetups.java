@@ -72,28 +72,36 @@ public final class QuickSetups {
      * is accepted only when its row, its setting and the store all answer the value asked for.
      * The store is what the preferences answer now: the write to disk is the framework's own and
      * may still be on its way.
+     *
+     * <p>No switch says anything of its own while this runs. The listener's toast for a change it
+     * had to recover is held back, so the caller has to say what the answer holds.
      */
     public static Outcome apply(PreferenceGroup screen, Map<BooleanSetting, Boolean> values) {
         int accepted = 0;
         int failed = 0;
         boolean settled = true;
-        for (Map.Entry<BooleanSetting, Boolean> value : values.entrySet()) {
-            BooleanSetting setting = value.getKey();
-            Preference row = screen.findPreference(setting.key);
-            if (!(row instanceof TwoStatePreference) || value.getValue() == null) continue;
-            TwoStatePreference toggle = (TwoStatePreference) row;
-            boolean wanted = value.getValue();
-            if (toggle.isChecked() == wanted) continue;
-            toggle.setChecked(wanted);
-            boolean shown = toggle.isChecked();
-            boolean typed = setting.savedValue();
-            boolean stored = setting.persistedValue();
-            if (shown == wanted && typed == wanted && stored == wanted) {
-                accepted++;
-            } else {
-                failed++;
-                if (shown != typed || typed != stored) settled = false;
+        AbstractPreferenceFragment.recoveryToastHeld = true;
+        try {
+            for (Map.Entry<BooleanSetting, Boolean> value : values.entrySet()) {
+                BooleanSetting setting = value.getKey();
+                Preference row = screen.findPreference(setting.key);
+                if (!(row instanceof TwoStatePreference) || value.getValue() == null) continue;
+                TwoStatePreference toggle = (TwoStatePreference) row;
+                boolean wanted = value.getValue();
+                if (toggle.isChecked() == wanted) continue;
+                toggle.setChecked(wanted);
+                boolean shown = toggle.isChecked();
+                boolean typed = setting.savedValue();
+                boolean stored = setting.persistedValue();
+                if (shown == wanted && typed == wanted && stored == wanted) {
+                    accepted++;
+                } else {
+                    failed++;
+                    if (shown != typed || typed != stored) settled = false;
+                }
             }
+        } finally {
+            AbstractPreferenceFragment.recoveryToastHeld = false;
         }
         return new Outcome(accepted, failed, settled);
     }
