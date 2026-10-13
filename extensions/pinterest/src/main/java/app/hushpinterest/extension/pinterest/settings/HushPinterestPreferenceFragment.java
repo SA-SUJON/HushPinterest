@@ -895,13 +895,25 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         }
     }
 
-    /** Applies one Quick setups choice to the switches on this page and says how many changed. */
+    /**
+     * Applies one Quick setups choice to the switches on this page, says how many changed and
+     * answers that count. A switch whose change didn't land isn't in it: a second line says how
+     * many didn't, and whether the page shows their saved values again or has to be opened again
+     * first.
+     */
     int applyQuickSetup(Map<BooleanSetting, Boolean> values) {
         PreferenceScreen screen = getPreferenceScreen();
         if (screen == null) return 0;
-        int changed = QuickSetups.apply(screen, values);
-        Utils.showToastLong(L10n.quantity(changed, "Changed %1$d setting", "Changed %1$d settings", changed));
-        return changed;
+        QuickSetups.Outcome outcome = QuickSetups.apply(screen, values);
+        String message = L10n.quantity(outcome.accepted, "Changed %1$d setting", "Changed %1$d settings", outcome.accepted);
+        if (outcome.failed > 0) {
+            message += "\n" + (outcome.settled
+                    ? L10n.quantity(outcome.failed, "%1$d setting couldn't be changed. Its saved value is shown.",
+                            "%1$d settings couldn't be changed. Their saved values are shown.", outcome.failed)
+                    : preferenceChangeRecoveryFailedMessage(getContext()));
+        }
+        Utils.showToastLong(message);
+        return outcome.accepted;
     }
 
     /**

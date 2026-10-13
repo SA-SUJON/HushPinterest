@@ -44,21 +44,57 @@ public final class QuickSetups {
         return Collections.unmodifiableMap(values);
     }
 
+    /** What one choice did to the switches it set out to change. */
+    public static final class Outcome {
+        /** Switches now on the value asked for: the row, the setting and the store all answer it. */
+        public final int accepted;
+        /** Switches that were asked to change and aren't on the value asked for. */
+        public final int failed;
+        /**
+         * False when a switch that failed is left with its row, its setting and the store answering
+         * different things, which the page can only show right once it's opened again.
+         */
+        public final boolean settled;
+
+        Outcome(int accepted, int failed, boolean settled) {
+            this.accepted = accepted;
+            this.failed = failed;
+            this.settled = settled;
+        }
+    }
+
     /**
      * Sets each switch row on [screen] named in [values] that shows something else, and answers
-     * how many changed. A row that already shows its value doesn't count.
+     * what became of them. A row that already shows its value counts as neither.
+     *
+     * <p>Call on the main thread. There the store tells the page's listener before setChecked
+     * returns, and the listener can leave a change out or put the saved value back, so a switch
+     * is accepted only when its row, its setting and the store all answer the value asked for.
+     * The store is what the preferences answer now: the write to disk is the framework's own and
+     * may still be on its way.
      */
-    public static int apply(PreferenceGroup screen, Map<BooleanSetting, Boolean> values) {
-        int changed = 0;
+    public static Outcome apply(PreferenceGroup screen, Map<BooleanSetting, Boolean> values) {
+        int accepted = 0;
+        int failed = 0;
+        boolean settled = true;
         for (Map.Entry<BooleanSetting, Boolean> value : values.entrySet()) {
-            Preference row = screen.findPreference(value.getKey().key);
+            BooleanSetting setting = value.getKey();
+            Preference row = screen.findPreference(setting.key);
             if (!(row instanceof TwoStatePreference) || value.getValue() == null) continue;
             TwoStatePreference toggle = (TwoStatePreference) row;
             boolean wanted = value.getValue();
             if (toggle.isChecked() == wanted) continue;
             toggle.setChecked(wanted);
-            changed++;
+            boolean shown = toggle.isChecked();
+            boolean typed = setting.savedValue();
+            boolean stored = setting.persistedValue();
+            if (shown == wanted && typed == wanted && stored == wanted) {
+                accepted++;
+            } else {
+                failed++;
+                if (shown != typed || typed != stored) settled = false;
+            }
         }
-        return changed;
+        return new Outcome(accepted, failed, settled);
     }
 }

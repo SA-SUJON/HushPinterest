@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** Quick setups now counts only the switches that really changed. If one can't be changed, the message also says how many were left as they were, and whether the page already shows their saved values or needs opening again first.
+
 * **Pinterest:** More settings is now a heading on the settings home page, with its six pages listed under it from Links to About. Every page is one tap from home and Back always goes home. Report a problem and Support HushPinterest are still the last two rows. Patch descriptions and the bug report form point to the shorter paths.
 
 * **Pinterest:** HushPinterest can show its own settings, menus and messages in English while Pinterest stays in your language. Tap HushPinterest language on the Pause, backup and diagnostics page and pick English. The screen changes right away with no restart, and Same as Pinterest switches it back. The choice works while HushPinterest is paused and isn't written to exported settings files.
