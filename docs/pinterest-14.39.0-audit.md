@@ -2,7 +2,7 @@
 
 This reference combines a signed-in survey of the original Pinterest Android app, targeted analysis of its APK, and a review of HushPinterest's source. It is intended for maintaining existing patches and choosing new ones.
 
-The survey ran on October 9, 2026 with Pinterest 14.38.0 (version code 14388010). HushPinterest moved to 14.39.0 (14398020) on October 10, and the APK facts, native anchors and resource names in these references were checked again against that build the same day. The screens weren't surveyed again, so read every live observation here as 14.38.0 evidence.
+The first survey ran on October 9, 2026 with Pinterest 14.38.0 (version code 14388010). A signed-in follow-up on October 12 captured the original 14.39.0 app (14398020), its native settings and pin actions, then completed the four-phase counter study. The detailed October 9 screen rows remain dated historical evidence. The four settings images below are fresh 14.39.0 captures.
 
 ## Read this first
 
@@ -25,7 +25,7 @@ No patch behavior was changed for this audit. The reference distinguishes a code
 |---|---|
 | Pinterest package | `com.pinterest` |
 | Surveyed APK | 14.38.0, version code 14388010, SHA-256 `af6b383adb445cebee1ca43f14ac409f91475c1d62e0e11ef52ef52e29fb0553` |
-| Current target APK | 14.39.0, version code 14398020, SHA-256 `4ecc7f9a34c89fd98d0e2133c294517772857b935969847bfd92b3e25b13e78d`. Static checks only |
+| Current target APK | 14.39.0, version code 14398020, SHA-256 `4ecc7f9a34c89fd98d0e2133c294517772857b935969847bfd92b3e25b13e78d`. Static checks on October 10, signed-in survey and counter study on October 12 |
 | Original signing certificate SHA-256 | `341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa` |
 | Hush source reviewed | `932f0c5` for the survey, with 23 catalog entries. The references were refreshed at `6383001`, which had 26. The patch reference covers the 27 that ship in 0.0.7 |
 | Published bundle at inspection | v0.0.5. v0.0.6 followed on October 10 and still targets 14.38.0. v0.0.7 followed on October 11 and targets 14.39.0 only. Later source changes are not assumed to be in any of them |
@@ -33,7 +33,7 @@ No patch behavior was changed for this audit. The reference distinguishes a code
 | App installation | Original signed APK. No Hush extension or selected patches |
 | Account | Signed in manually. Credentials were not part of the audit |
 | Native theme | System default, appearing light |
-| Account experiments | Labs was already enabled. The Labs page listed **AI Forward**, `search_ai_fwd_conversation` |
+| Account experiments | On October 9, Labs was already enabled and listed **AI Forward**, `search_ai_fwd_conversation`. This page was not repeated in the October 12 captures |
 | Account preservation | Login survived a cold emulator restart. A named local snapshot and separately verified offline AVD backup were retained |
 
 This is a factory **binary** baseline with an existing signed-in account. It is not a claim that every account preference is a new-account default. Server experiments, region, account history and app configuration can change the UI without changing the APK. The Labs finding is one reason to avoid treating these screens as universal.
@@ -55,7 +55,9 @@ Raw signed-in screenshots, hierarchy files and packet data remain local because 
 
 ### Measured runtime summary
 
-The [controlled runtime study](pinterest-14.39.0-runtime.md), run on 14.38.0, captured 10,122 packets and correlated visible connections with the app's socket ownership. Startup included Pinterest API/tracking service names and AppsFlyer. Three minutes of feed browsing received about 4.2 MB and recorded 94.722 seconds of video activity. The following ten-minute background intervals were quiet for this app, with 7,272 combined bytes while Home was visible and 2,719 combined bytes with the display off.
+The [runtime study](pinterest-14.39.0-runtime.md) was repeated on 14.39.0 on October 12 using cumulative primary-app-UID network counters and operating-system activity statistics. Six feed swipes received 2,319,319 bytes over the 184.99-second counter span and recorded 38.205 seconds of video activity. The following background counter intervals added 7,280 combined bytes with the display on and 6,868 with it off. The fresh guest packet capture has not been retrieved, so destinations and encrypted request contents are unverified.
+
+The earlier 14.38.0 study remains separate. It captured 10,122 packets and correlated visible startup connections with Pinterest API/tracking and AppsFlyer service names. Those packet and service observations must not be attributed to 14.39.0.
 
 Those byte totals use Android's primary-app-UID counters and the chapter's recorded counter intervals. They do not identify encrypted request bodies or assign every byte to an ad. A short background sample also cannot rule out the delayed workers found in the scheduler. The emulator provides software activity measurements. Physical battery drain remains unmeasured while the prepared phone is connected to USB power.
 
@@ -93,7 +95,7 @@ Pinterest publicly describes multiple image, video and shopping formats across b
 
 ## Signed-in screen survey
 
-Everything in this section was seen on 14.38.0. The resource names under [stable live anchors](#stable-live-anchors-from-this-account) are all still in 14.39.0's resource table.
+The detailed rows below describe the October 9 survey on 14.38.0. On October 12, fresh 14.39.0 captures repeated Home, an organic pin and its Share and overflow routes, Search, Saved, the creation entry, native settings, privacy, social permissions, content permissions, notifications, AI recommendation controls and populated comments. They do not repeat every historical subpage. Theme, Profile visibility, Labs, typeahead and Search filters keep their earlier date. The resource names under [stable live anchors](#stable-live-anchors-from-this-account) remain checked against 14.39.0.
 
 ### Home, pin actions and Search
 
@@ -144,11 +146,11 @@ The advertiser destination domains displayed in descriptions are UI labels. They
 </p>
 
 <p>
-  <img src="images/pinterest-stock-notifications.png" width="250" alt="Factory Pinterest Shopping Pins notification controls separated into push, email and in-app">
+  <img src="images/pinterest-stock-notifications.png" width="250" alt="Factory Pinterest Shopping Pins notification summary showing push, email and in-app state">
   <img src="images/pinterest-stock-ai-preferences.png" width="250" alt="Factory Pinterest AI-content recommendation controls with global and topic choices">
 </p>
 
-These images show one account's observed state. The switch positions are not a statement of universal defaults.
+These four images were recaptured on October 12 with the original Pinterest 14.39.0 app. They show one account's observed state. The switch positions are not universal defaults, and the notification image shows channel summaries rather than expanded switches.
 
 ## Interface findings and customization opportunities
 
@@ -189,7 +191,7 @@ These are proposed work items, not completed features. The linked chapters conta
 | P2 | Extend native controls with clear scope | Native settings navigation, independent save/follow-up messages, autoplay/prefetch control and notification categories are concrete leads |
 | P3 | Check native toasts on a device | They landed after 0.0.6 in the settings patch, with Android toasts whenever Pinterest's toast layer isn't showing. Download board and Long-press download, the other two leads here, landed in 0.0.6 |
 
-The repository's open issue intake was also checked. [Issue #3](https://github.com/SysAdminDoc/HushPinterest/issues/3) concerns release structure and update discovery, and [issue #4](https://github.com/SysAdminDoc/HushPinterest/issues/4) concerns combining patch sources. Neither is evidence of an ad or privacy defect. The historical version mismatch in #3 is not the current index state, which reported v0.0.5 at the survey and v0.0.6 since October 10. Issue status and reporter confirmation should remain independent of this documentation work.
+The repository's open issue intake was also checked. [Issue #3](https://github.com/SysAdminDoc/HushPinterest/issues/3) concerns release structure and update discovery, and [issue #4](https://github.com/SysAdminDoc/HushPinterest/issues/4) concerns combining patch sources. Neither is evidence of an ad or privacy defect. The historical version mismatch in #3 is not the current index state. The published index reported v0.0.5 at the first survey, then v0.0.6 on October 10 and v0.0.7 on October 11. Issue status and reporter confirmation should remain independent of this documentation work.
 
 ## Repeating this audit on the next version
 
@@ -220,6 +222,6 @@ These names locate live elements. A generic `list_action`, sheet button or Gesta
 
 ## Remaining evidence gaps
 
-The audit did not cover business-account tooling, paid campaigns, populated-board actions, all video formats, full creation/edit/publish flows, private messaging, actual notification delivery, login-provider compatibility, password recovery, regional consent flows, offline recovery, large-text/TalkBack use or exhaustive remote experiments. The [runtime chapter](pinterest-14.39.0-runtime.md) records the measured 14.38.0 network, background and CPU activity and separates software activity from physical battery drain. It did not compare a newly built patched APK against this factory run.
+The audit did not cover business-account tooling, paid campaigns, populated-board actions, all video formats, full creation/edit/publish flows, private messaging, actual notification delivery, login-provider compatibility, password recovery, regional consent flows, offline recovery, large-text/TalkBack use or exhaustive remote experiments. The [runtime chapter](pinterest-14.39.0-runtime.md) separates fresh 14.39.0 counter measurements from the historical 14.38.0 packet study. Neither measures physical battery drain or compares a newly built patched APK.
 
-Original-media, share-link and push behavior from earlier patch work can remain useful historical evidence, but it must not be relabeled as a fresh factory observation. The named snapshot preserves this audit's signed-in baseline locally for those future comparisons.
+Original-media, share-link and push behavior from earlier patch work can remain useful historical evidence, but it must not be relabeled as a fresh factory observation. The retained October 9 snapshot preserves the earlier signed-in baseline. The fresh survey and counter inputs stay local for later comparisons.

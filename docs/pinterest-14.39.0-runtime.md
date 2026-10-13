@@ -1,14 +1,57 @@
 # Pinterest runtime observations
 
-These measurements were taken on October 9, 2026 with the original Pinterest 14.38.0 app (version code 14388010), the build HushPinterest targeted before it moved to 14.39.0 on October 10. They haven't been repeated on 14.39.0. The static checks that carry over were redone on 14.39.0: the seven worker classes in the scheduling table are all still in its DEX, and its network security policy is unchanged. Treat the numbers as the 14.38.0 baseline, and run the same protocol on 14.39.0 before comparing a patched 14.39.0 build against them.
+The original Pinterest 14.39.0 app (version code 14398020) completed the four-phase study on October 12, 2026. The signed-in account and cached data were kept. A cold launch stopped and relaunched the process without clearing the app.
 
-All four emulator measurement phases are complete. Network traffic, background activity and software resource use were measured. Physical battery drain was not measured.
+The fresh network byte totals use Android's cumulative primary-app-UID BPF counters. They do not depend on packet capture. The new guest capture has not been retrieved or analyzed, so there are no fresh captured-packet totals, TLS service names or UDP shares. The October 9 packet study below remains a separate 14.38.0 baseline.
 
-Measured on October 9, 2026. This chapter adds observed network and operating-system activity to the [factory audit](pinterest-14.39.0-audit.md), [advertising analysis](pinterest-14.39.0-ads.md) and [privacy analysis](pinterest-14.39.0-privacy.md).
+The [14.39.0 runtime data](pinterest-14.39.0-runtime-data.json) keeps the aggregate counters, memory boundaries and input hashes. The [14.38.0 data](pinterest-14.38.0-runtime-data.json) is unchanged.
+
+## October 12 study on 14.39.0
+
+The Android 13/API 33 emulator ran headlessly with host audio disabled, a configured 2,048 MB of guest memory and two virtual CPU cores. The captured process affinity also permits two CPUs. System MemTotal was not collected, so 2,048 MB describes the launch allocation rather than measured usable memory.
+
+Socket polling was requested every second at startup, every two seconds during browsing and every ten seconds while Home was visible. Collection overhead makes the actual gaps longer. The screen-off phase had boundary observations only. Network counters exclude separate isolated UIDs. CPU and media statistics are software activity measures, and the synthetic battery supplies no physical drain result.
+
+| Phase | Observation window, seconds | Counter span, seconds | UID RX bytes | UID TX bytes | RX packets | TX packets |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Cold launch | 31.00 | 40.09 | 2,307,457 | 161,067 | 2,139 | 1,173 |
+| Foreground, six swipes | 181.00 | 184.99 | 2,319,319 | 63,464 | 1,953 | 451 |
+| Background, screen on | 600.00 | 605.39 | 3,781 | 3,499 | 59 | 55 |
+| Background, screen off | 600.00 | 605.09 | 3,156 | 3,712 | 40 | 39 |
+
+Use each counter span for a counter rate. The explicit observation window does not cover all sequential boundary collection overhead.
+
+| Phase | Main-process CPU, seconds | Framework app CPU, ms | Video activity, ms | Audio activity, ms | Job time, ms | Job executions |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Cold launch | 5.12 | 5,152 | 5,385 | 0 | 694 | 2 |
+| Foreground, six swipes | 11.93 | 11,937 | 38,205 | 31,016 | 0 | 0 |
+| Background, screen on | 0.42 | 417 | 0 | 0 | 0 | 0 |
+| Background, screen off | 0.35 | 261 | 0 | 0 | 0 | 0 |
+
+The process counters cover the sampled main process. Framework app CPU can include isolated-process accounting, so the two figures need not match. Job deltas include boundary transitions and do not identify a worker's purpose. Three jobs were registered after startup and browsing, and two remained after the screen-on background interval. Registration does not establish execution.
+
+| Boundary | Total PSS, KB | Total RSS, KB | Java heap PSS, KB | Native heap PSS, KB | Code PSS, KB |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Foreground start | 247,904 | 344,072 | 43,260 | 47,216 | 112,948 |
+| Foreground end | 283,110 | 377,804 | 41,440 | 81,192 | 113,960 |
+| Background screen-on start | 240,880 | 334,888 | 35,932 | 66,780 | 92,908 |
+| Background screen-on end | 230,670 | 324,948 | 27,188 | 66,884 | 92,784 |
+| Background screen-off start | 225,157 | 324,424 | 25,856 | 66,536 | 89,904 |
+| Background screen-off end | 221,386 | 317,892 | 25,624 | 66,472 | 88,940 |
+
+These are boundary snapshots, not peak usage or a memory-leak test. The screen was asleep at both screen-off boundaries. Light idle reached IDLE at the end while deep idle stayed INACTIVE. Those observations do not establish sustained suspend or deep Doze. Battery simulation was reset after collection.
+
+The background counters increased by 7,280 combined bytes with the screen on and 6,868 with it off. Their destinations and purpose remain unknown. The run is a baseline for one account, cache state and feed. It does not compare a patched build or establish a version-to-version improvement.
+
+## October 9 packet baseline on 14.38.0
+
+The following study used the original Pinterest 14.38.0 app (version code 14388010). Its packet counts, visible service names and scheduling-database rows belong to that earlier run. Static checks of the seven worker classes and network security policy were repeated on 14.39.0. Do not combine the old packet attribution with the new counter intervals.
+
+This October 9 study adds observed network and operating-system activity to the [factory audit](pinterest-14.39.0-audit.md), [advertising analysis](pinterest-14.39.0-ads.md) and [privacy analysis](pinterest-14.39.0-privacy.md).
 
 The [public runtime data](pinterest-14.38.0-runtime-data.json) contains the exact phase values, original APK hash and source-summary hashes for later comparisons.
 
-## What was measured
+### What was measured
 
 The app was the original, signed Pinterest 14.38.0 APK, version code 14388010, with no Hush patches applied. The account was already signed in. App data and cached content were retained. A cold launch means the process was stopped and launched again. It does not mean a new account, cleared cache or first install.
 
@@ -26,7 +69,7 @@ Three measurements were collected independently.
 
 Raw captures, socket addresses and account material stay local. Public results contain aggregates and sanitized service names.
 
-## Why the earlier capture was inconclusive
+### Why the earlier capture was inconclusive
 
 The emulator console's Ethernet capture produced only a few background protocol packets. The active guest network used `wlan0`, so that capture did not provide useful app traffic. Its empty application results must not be treated as evidence that Pinterest did not connect or transmit.
 
@@ -38,7 +81,7 @@ The final capture used tcpdump 4.99.1 with libpcap 1.9.1. It contained 10,122 pa
 
 Of the captured packets, 10,101 were on `wlan0`, seven on `eth0`, four on `dummy0` and ten on loopback. An offline comparison found no identical IP frames crossing interfaces within 10 milliseconds. That check reduces one duplication concern for this run but does not prove that every possible duplicate would be detected.
 
-## Collection procedure
+### Collection procedure
 
 1. Confirm the original APK and package identity. Preserve the signed-in account and saved emulator baseline.
 2. Record the emulator's device time, uptime and initial state. Use device time for packet phases and socket observations.
@@ -53,7 +96,7 @@ Of the captured packets, 10,101 were on `wlan0`, seven on `eth0`, four on `dummy
 
 Android uses eBPF to support network traffic accounting. The counter analysis here reads the cumulative per-UID map rather than trying to subtract coarse historical time buckets. See the [Android eBPF traffic monitoring documentation](https://source.android.com/docs/core/data/ebpf-traffic-monitor).
 
-### Packet ownership rules
+#### Packet ownership rules
 
 A packet is correlated to Pinterest only when its protocol and both socket endpoints exactly match a socket observed under the primary app UID within 3 seconds before or after that packet. This is a temporal correlation. It is not kernel tagging of every captured packet.
 
@@ -63,13 +106,13 @@ The 10-second background polling interval deliberately leaves gaps larger than t
 
 The visible TLS table is stricter than a DNS inventory. It contains only ClientHellos whose exact socket tuples match the primary app UID. DNS requests often belong to the system resolver, so a lookup alone is not assigned to Pinterest. Hostnames belonging to unrelated apps are omitted.
 
-### Isolated process coverage
+#### Isolated process coverage
 
 Android can assign a separate UID to an isolated process. The foreground-start and background-start battery snapshots contain an isolated UID mapping to Pinterest. That proves the mapping at those observations. It does not establish ownership for that UID throughout the whole run.
 
 The primary measurements therefore do not automatically add isolated-UID traffic. This is a coverage limit, not evidence that the isolated process did no work. A future capture can extend attribution with a timestamped process and isolated-UID lifecycle record.
 
-### Exact time intervals
+#### Exact time intervals
 
 Packet totals are bounded by explicit phase start and end times. Counter snapshots are sequential collections that take several seconds. Their differences include collection overhead around the phase.
 
@@ -82,9 +125,9 @@ Packet totals are bounded by explicit phase start and end times. Counter snapsho
 
 Do not divide a counter delta by the packet duration or compare the totals as though they covered identical intervals.
 
-## Observed network activity
+### Observed network activity
 
-### Primary UID counters
+#### Primary UID counters
 
 The following byte deltas come from Android's cumulative per-UID BPF map. They are separate from the packet-derived totals that follow.
 
@@ -97,7 +140,7 @@ The following byte deltas come from Android's cumulative per-UID BPF map. They a
 
 These are observations from one account and feed state. Content, cache warmth, experiments and ad delivery can change the results. They are a baseline to compare against, not a universal Pinterest data-use rate.
 
-### Packet capture with conservative UID correlation
+#### Packet capture with conservative UID correlation
 
 | Phase | Primary-UID-correlated packets | Primary-UID-correlated IP bytes | Unknown packets | Unknown IP bytes |
 | --- | ---: | ---: | ---: | ---: |
@@ -114,7 +157,7 @@ IP bytes include packet headers, acknowledgments and retransmissions at the capt
 
 UDP traffic on port 443 was substantial. It accounted for 1,725,445 of the primary-correlated IP bytes during cold launch and 4,244,181 during foreground browsing. That is about 67% and 99% respectively. During screen-on background activity, 2,737 of the 3,632 primary-correlated bytes used UDP port 443, about 75%. No meaningful primary-correlated UDP share can be computed for the screen-off interval because its attributed denominator is zero. The parser counts these packets but does not decode QUIC. It cannot name their destinations from an absent TCP ClientHello or determine what was sent inside them.
 
-### Visible service names from the controlled capture
+#### Visible service names from the controlled capture
 
 Every entry below is a visible TLS ClientHello correlated to the primary app UID during the cold-launch phase. Counts refer to observed ClientHellos, not API calls, ad impressions or uploaded events.
 
@@ -133,7 +176,7 @@ The controlled capture also contains one primary-UID-correlated ClientHello grou
 
 There are 11 target-correlated ClientHellos in the cold-launch window. The eight table rows account for ten. The withheld `recaptcha.net` service accounts for the remaining one.
 
-## CPU, media and scheduled work
+### CPU, media and scheduled work
 
 These values come from the completed counter snapshot intervals, not the shorter packet windows.
 
@@ -161,7 +204,7 @@ The earlier startup job history recorded two runs lasting 1.897 seconds and 0.09
 
 A bound WebView sandbox service record showed no foreground-service starts. No Pinterest-named alarm entry was found in the collected alarm snapshot. Those are narrow observations. They do not prove that the app has no background work or can never arrange an alarm through another system component.
 
-### Recorded worker scheduling metadata
+#### Recorded worker scheduling metadata
 
 A read-only query of the app's WorkManager database selected only worker class and scheduling columns. It did not read worker input or output data. The selected columns were `worker_class_name`, `state`, `interval_duration`, `initial_delay`, `run_attempt_count`, `required_network_type`, `requires_charging`, `requires_device_idle`, `requires_battery_not_low` and `requires_storage_not_low`.
 
@@ -181,7 +224,7 @@ The numeric state and network-type values are preserved as observed. Current ups
 
 Class names provide useful trace targets for patch maintenance, but they do not establish encrypted payload contents or prove which worker produced a particular packet. The three screen-state rows and the 64-millisecond transition job increase are not joined by a verified work identifier here.
 
-### Memory boundary observations
+#### Memory boundary observations
 
 The main Pinterest process retained the same process identity and start tick value through foreground browsing and the screen-on background interval. These are snapshots of its memory accounting at boundaries.
 
@@ -196,7 +239,7 @@ PSS apportions shared pages across processes. RSS includes resident pages withou
 
 These four observations do not establish peak usage or a memory leak. A later collection or reclamation can change the totals, and isolated-process memory is separate. The printed graphics value was zero, but that field cannot establish that the app performed no GPU work or consumed no graphics-related memory elsewhere.
 
-### Background findings
+#### Background findings
 
 During the completed screen-on background counter interval, the primary app UID received 3,720 bytes and transmitted 3,552 bytes. The main process accumulated 0.32 seconds of CPU time. The app statistics recorded no added audio, video or WorkManager execution time. Pinterest therefore retained some network activity during this interval, though these counters do not identify its purpose.
 
@@ -214,15 +257,15 @@ At the screen-off start boundary, Android reported the display asleep and screen
 
 At the ending boundary, the display was still asleep, screen-on was false and forced idle was off. Light idle had reached `IDLE`, while the deeper idle state remained `INACTIVE`. The other app's long partial wake lock was still present. The run therefore observed entry into light idle at a boundary, but it did not establish deep Doze or sustained system suspend.
 
-## Battery measurements
+### Battery measurements
 
-### What the emulator can establish
+#### What the emulator can establish
 
 The emulator run provides CPU time, network bytes, media activity and scheduled-work observations. Its battery percentage and charge counter are synthetic. Simulating an unplugged state enables useful software accounting but does not create a real battery or measure consumed charge.
 
 No emulator percentage change, modeled mAh estimate or CPU timer in this chapter should be presented as physical battery drain or expected phone battery life. Android's own guidance distinguishes activity timelines from the amount of battery consumed. See [Batterystats and Battery Historian](https://developer.android.com/topic/performance/power/setup-battery-historian).
 
-### Physical-device result
+#### Physical-device result
 
 No physical battery-drain result is available yet. The prepared Galaxy S22 remained connected to USB power, so it had not completed a battery-powered discharge interval. It also had an existing modified Pinterest 14.38.0 install. A measurement of that installation must be labeled separately and cannot stand in for the original-app emulator baseline.
 
@@ -234,7 +277,7 @@ Use at least a control interval to show device background consumption. State whe
 
 Perfetto documents battery counters and device-dependent power-rail sources. Availability must be checked on the actual phone. A source existing in the tracing interface does not mean the hardware exposes calibrated readings for every component. See [Perfetto power data sources](https://perfetto.dev/docs/data-sources/battery-counters).
 
-## Patch opportunities supported by the measurements
+### Patch opportunities supported by the measurements
 
 | Opportunity | Current evidence | What a patch comparison needs to demonstrate |
 | --- | --- | --- |
@@ -248,15 +291,15 @@ Perfetto documents battery counters and device-dependent power-rail sources. Ava
 
 The current evidence supports targeted comparisons. It does not establish the payload of any encrypted request, the number of ads delivered, a count of tracking events, or a battery saving from an unmeasured patch.
 
-## Repeating the comparison
+### Repeating the comparison
 
-Use the saved signed-in baseline and the same original APK version. A 14.39.0 comparison needs its own original-app run under this protocol first. Record the cache state and exact phase durations. Keep screen settings, host resource limits and network conditions consistent. Preserve the native app's privacy and autoplay settings in the record.
+Use the saved signed-in baseline and the same original APK version. For 14.39.0, the October 12 counter results above provide the original-app baseline. A packet-level comparison still needs the matching guest capture. Record the cache state and exact phase durations. Keep screen settings, host resource limits and network conditions consistent. Preserve the native app's privacy and autoplay settings in the record.
 
 For each patch configuration, repeat the original workload and retain an unpatched comparison run. Report individual repetitions and variation rather than publishing only the best result. Feed content and server experiments can differ even on the same account, so matching a query or saved content set is preferable to assuming two home feeds are identical.
 
 Retain sanitized phase summaries in the repository. Keep raw packet captures and account-bearing diagnostics local. Save the capture tool version, parser version and the exact correlation window so future updates can reproduce the interpretation.
 
-## Evidence and remaining limits
+### Evidence and remaining limits
 
 The results come from finalized `network-summary.json`, `runtime-summary.json`, the boundary memory snapshots and the restricted scheduling-metadata query. The [public runtime data](pinterest-14.38.0-runtime-data.json) preserves the four phase results and hashes of the two source summaries. Packets outside the four phase windows are excluded from the phase tables even though they remain part of the whole-capture packet count.
 

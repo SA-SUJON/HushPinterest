@@ -5,6 +5,7 @@ Every HushPinterest release, newest first.
 ## Unreleased
 
 * **Tooling:** The README is much shorter now. It keeps what you need to install, set up, troubleshoot and verify HushPinterest, and the longer version with its test notes and internals is still in the repository history. The Ko-fi link that dropped out of it on October 12 is back above the title.
+* **Tooling:** The runtime reference now includes the original Pinterest 14.39.0 survey and four measurement intervals. It keeps those network counters and memory snapshots separate from the older 14.38.0 packet study. Four native settings screenshots were refreshed too.
 * **Pinterest:** Settings search, buttons and choices have clearer focus outlines and consistent control borders. Back and Clear search also have labels when you hover or hold them.
 * **Pinterest:** Settings summaries are shorter, with the same restart and download limits explained in all five translations. Switches use squared corners, and Licenses and a no-change import preview close with Close.
 * **Pinterest:** Download board keeps its explanation above the choices, so large text doesn't squeeze out the actions. Download history explains why finished files can't be opened while downloads are off or paused, and no longer suggests getting a fresh link for a finished download.

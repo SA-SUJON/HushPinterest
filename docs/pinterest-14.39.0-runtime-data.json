@@ -1,0 +1,505 @@
+{
+  "schema": 2,
+  "observation_date": "2026-10-12",
+  "app": {
+    "package": "com.pinterest",
+    "version": "14.39.0",
+    "version_code": 14398020,
+    "apk_sha256": "4ecc7f9a34c89fd98d0e2133c294517772857b935969847bfd92b3e25b13e78d",
+    "original_signed_apk": true,
+    "patches_applied": 0,
+    "signed_in": true,
+    "existing_data_and_cache_retained": true
+  },
+  "environment": {
+    "platform": "Android Emulator",
+    "android_version": "13",
+    "api": 33,
+    "architecture": "x86_64",
+    "configured_guest_memory_mb": 2048,
+    "measured_guest_memtotal_kb": null,
+    "virtual_cpu_cores": 2,
+    "configuration_evidence": "The recorded launch sets 2048 MB and two cores. Captured process affinity permits CPUs 0 and 1. System MemTotal was not collected.",
+    "display_pixels": {
+      "width": 1080,
+      "height": 2400
+    },
+    "headless": true,
+    "host_audio_disabled": true,
+    "network": "emulated Wi-Fi",
+    "battery": "synthetic",
+    "physical_energy_measured": false,
+    "physical_battery_life_estimate": null
+  },
+  "method": {
+    "network_byte_source": "cumulative BPF primary-app-UID mAppUidStatsMap counters",
+    "fresh_packet_capture_analyzed": false,
+    "socket_observations_collected": true,
+    "tls_decrypted": false,
+    "quic_decoded": false,
+    "device_clock_ticks_per_second": 100,
+    "clock_ticks_evidence": "Previously measured on this Android guest; not queried again during this offline analysis.",
+    "uid_scope": "Network accounting uses the primary app UID only.",
+    "batterystats_cpu_scope": "App-associated framework accounting can include mapped isolated-process CPU."
+  },
+  "source_sha256": {
+    "counter_parser": "33c1974d79272a416b8614d719106b7b3d085ede2c1a3b9186776659e6087977",
+    "aggregate_derivation": "8344215218943fa016e14d8eec0150ad8b43ac7e08f962e3046d2167b1e26a60",
+    "input_files": {
+      "background-screen-off-end-alarm.txt": "940efe94381e14548b1efe9e24b6272110bfad9f50d3ef7c5843492171781ff1",
+      "background-screen-off-end-battery.txt": "ae49ba651ad4dbcbcac7c5d9743e55a7b08d0ca943b7cbd7788baff7988f5d7c",
+      "background-screen-off-end-batterystats.txt": "1f18b8ac47ee1f16b1429a3abf3a365567d19d329bd875f297c4ffbe6a9b5285",
+      "background-screen-off-end-clock.txt": "50293eb660c13ab4b7ddee1063a7ac502b7dab04af7ef7575a05604ae2ffd427",
+      "background-screen-off-end-cpuinfo.txt": "90f6128ecc930b2abb65324c8f700e86bc5895eade3e6ab42b77a242922ca7f1",
+      "background-screen-off-end-deviceidle.txt": "2e1b05b2572ab3ce5e5faceaf68253c42af27f996e8475c296e9fffdb5c60357",
+      "background-screen-off-end-end.txt": "f3f2b656f9d564455820c24772030f99d470876c85a6fd8a869063526d78ffc9",
+      "background-screen-off-end-jobs.txt": "28d6efdbb4abb4572d38c82a2f86786c76c3764cc51eb12abb92d97ee9b1f57b",
+      "background-screen-off-end-meminfo.txt": "273367f3808c106190cc92e6b5a7cba32ce7246829deff120b870a7b6ad00e2b",
+      "background-screen-off-end-netstats-poll.txt": "c7abe78b7b8856eab200624133a4456e00c8c580e96530d3000e0cfa11349dd0",
+      "background-screen-off-end-netstats.txt": "aac219cdfa9dc9869ede28dfbed7c350b4caf9f9f3d18a75dc6f2d229a0aa5a8",
+      "background-screen-off-end-power.txt": "ed0c564f4ed4d013244ed4cd877d73390d5965416a7abbe779a5b40e073d4dd1",
+      "background-screen-off-end-proc.txt": "80e523cbabd9dfb3af7ea139540a4f06e47da6da56ec407e8a0e900171d47b7c",
+      "background-screen-off-end-ps.txt": "9a9b226a34c04c9afc18b6163aa56b0c8cc9f18ae33c069b7ee2acaffd77bf34",
+      "background-screen-off-end-services.txt": "7b74ee0786ce975ba96733203e956fa475b594cb1d3eabdc70ebd2d151f9379f",
+      "background-screen-off-end-ss.txt": "f5c97ab7d16ff9ed3657a0adb263fea2dcb14a03e3b88183abfb113b51421418",
+      "background-screen-off-end-time.json": "ad01132048067455f0679287994faa79223ef49efef8fa60dda7a9bf03524bf6",
+      "background-screen-off-end-usage.txt": "080b8a39c856d89b3038e01a010d99d2e66a42285b22f1936f7be17bfe45d253",
+      "background-screen-off-start-alarm.txt": "c9b0808cc3de528f1e8f71cf407dd9f1effd3b50a7c8a1099579740e42725888",
+      "background-screen-off-start-battery.txt": "ae49ba651ad4dbcbcac7c5d9743e55a7b08d0ca943b7cbd7788baff7988f5d7c",
+      "background-screen-off-start-batterystats.txt": "be7a9405a003a319df9988a9e5e0294326d9ab71869dcd1c4946353d320be89d",
+      "background-screen-off-start-clock.txt": "cf3d0fd86ea5bcdde571f80d29ea55ce652e54bb667ef6a55dce81d342a78ac4",
+      "background-screen-off-start-cpuinfo.txt": "2b3679a23d8a109a490b0aee37382c8e24ec1f8762b8f1d3f615d7af6eaf2ebc",
+      "background-screen-off-start-deviceidle.txt": "8119f7b6adca0643e4924f25b774e2cb742fb0fc73747a43d7a389ed5e12e2b7",
+      "background-screen-off-start-end.txt": "e0ef863d70599e4fba2e96aa2b3243c0b27b74e7044f8f552560bf9e8d5f7fbc",
+      "background-screen-off-start-jobs.txt": "b1b44304c127b7e1b89c931e4bf736fb4c3ed119faa357f8aee89b4666fcb3e0",
+      "background-screen-off-start-meminfo.txt": "93c3d6fa21180c303076b9ad752f231b07cde2822c43e63c4e814aa726e97ff1",
+      "background-screen-off-start-netstats-poll.txt": "c7abe78b7b8856eab200624133a4456e00c8c580e96530d3000e0cfa11349dd0",
+      "background-screen-off-start-netstats.txt": "4110e13177464524f4bf2fce1866f7e57561ebccfd71dda328b714438043b5aa",
+      "background-screen-off-start-power.txt": "ad514368051e300621ecf0b288b5ed8b52cb89ed707ca049d42ac058856d0989",
+      "background-screen-off-start-proc.txt": "f88961d2aa8f26883a7d4c70980bd99873aedb91983076a0127caed99d6f3b9a",
+      "background-screen-off-start-ps.txt": "99328f592e4a3562919261f194d3349fe5ec0c2b00bed6291d98ce6a19338c49",
+      "background-screen-off-start-services.txt": "92277a6719968ac7f148f7f624a38f3cb06a563e0648257e6caa6e8a60a4bd31",
+      "background-screen-off-start-ss.txt": "9eaf297d9726186273deb7a1f4f016dca9993a22cee252b128e1b1933ff5b20e",
+      "background-screen-off-start-time.json": "063fe1ae4eec75ee4b40327f70a2bbc68304dead85b23be66ae5e085e7e4903a",
+      "background-screen-off-start-usage.txt": "080b8a39c856d89b3038e01a010d99d2e66a42285b22f1936f7be17bfe45d253",
+      "background-screen-on-end-alarm.txt": "cdf681def3276c0ea58608c53b1719baad136b5eb013caf2afa03ebc895cdc9e",
+      "background-screen-on-end-battery.txt": "ae49ba651ad4dbcbcac7c5d9743e55a7b08d0ca943b7cbd7788baff7988f5d7c",
+      "background-screen-on-end-batterystats.txt": "d07bc532109b4532804ea2cbb659531b4c45ee56a0d382e7071d1e569b5e741a",
+      "background-screen-on-end-clock.txt": "b9c8d27c92bc6e21a6227e03058e845df79bad14d8bb9de0546d14c17f637ecf",
+      "background-screen-on-end-cpuinfo.txt": "c4ebffd9269bfe44f55aec6aa01b70d7b7b7b31f15737a27eb0f48fd27ce36d5",
+      "background-screen-on-end-deviceidle.txt": "08e3956d2911bc7ffe6714e749fb96996b420def24ac995a3e3a65a4c7b288be",
+      "background-screen-on-end-end.txt": "c3055c96da568e640adbd18caec06b9a5256e9039851f341080ce6a377103907",
+      "background-screen-on-end-jobs.txt": "e752bbc607c61af6d338f706985fc095f4936fe65fbb0df9e3eca68bd21135c1",
+      "background-screen-on-end-meminfo.txt": "f94edf9d55b9327e80a3e52c3994423d0d25b77fd952a357d8fc1b253e57ee39",
+      "background-screen-on-end-netstats-poll.txt": "c7abe78b7b8856eab200624133a4456e00c8c580e96530d3000e0cfa11349dd0",
+      "background-screen-on-end-netstats.txt": "68898370331ebd60121031d5dc25deee7e6fec7107eefd7195a3b6eb239e0491",
+      "background-screen-on-end-power.txt": "9a095d09d1fabd9bec6c0e14c149eb41ec9e1fb5b003f50877781a1e7c888857",
+      "background-screen-on-end-proc.txt": "915e01cd5e760140a9258548317332629d6c3541aa656b0f2ed05de0a52ea2e8",
+      "background-screen-on-end-ps.txt": "4de85d2f875fdb9420de6833cfdf4b672991b7a566e6a38965226cb74c12fd66",
+      "background-screen-on-end-services.txt": "9bdef7df22eed1dd8e60f109e03466b0cdceaf75372c6f779adbb214749dfd71",
+      "background-screen-on-end-ss.txt": "861c441815974fb1cc9f912e38ba44e3c9d9eed5a4faf98e15b41cf47007e83c",
+      "background-screen-on-end-time.json": "d8f6a09b3aaf0dbcd04fe22bba16fa3c1053fa5f5e60ff8ec51d8ecf1bd561ed",
+      "background-screen-on-end-usage.txt": "080b8a39c856d89b3038e01a010d99d2e66a42285b22f1936f7be17bfe45d253",
+      "background-screen-on-start-alarm.txt": "406c91b8bf82c722f67819cf3fac793f4f665de9105447679ce45092ec532cd9",
+      "background-screen-on-start-battery.txt": "ae49ba651ad4dbcbcac7c5d9743e55a7b08d0ca943b7cbd7788baff7988f5d7c",
+      "background-screen-on-start-batterystats.txt": "34aa854d607476e98fea1563f6bfa796b93654d86a2baf491d97b122374bcf9f",
+      "background-screen-on-start-clock.txt": "83795ce692d4c0988f68eff05c08125e3ce4eaa465e065fa7de90573bda6c034",
+      "background-screen-on-start-cpuinfo.txt": "1da0511bfd523106be8a3e8ecda35acbe3c95baf7b7db4b8f86adf1ba36592fe",
+      "background-screen-on-start-deviceidle.txt": "08e3956d2911bc7ffe6714e749fb96996b420def24ac995a3e3a65a4c7b288be",
+      "background-screen-on-start-end.txt": "7a01a2cde36bb7f2a459c8e215dc5fcbf443b72a4835c69090a43bfe38b461d5",
+      "background-screen-on-start-jobs.txt": "d74359dc4eb85aabda6d6001ff76cabe231c857891a7e0e2d8e03ca3a7d3ac20",
+      "background-screen-on-start-meminfo.txt": "1defc2bf02033a4e6fefb4fe53b9f7a1d24dbcdd234b9436a7aac87bd6ddcb23",
+      "background-screen-on-start-netstats-poll.txt": "c7abe78b7b8856eab200624133a4456e00c8c580e96530d3000e0cfa11349dd0",
+      "background-screen-on-start-netstats.txt": "3c350f4818b7c380f9557aa3a61401709563eea24465706392c1fa28a268cda0",
+      "background-screen-on-start-power.txt": "ad7bc3460306806a2e3eb0a4c4047e52cf03e2eebf449642ab1e5be0c95ad490",
+      "background-screen-on-start-proc.txt": "1a7edcbeb85e5b5ec35ee2373bb00d04f013e0ec8377612f794555a870fb59ff",
+      "background-screen-on-start-ps.txt": "a6d793c8d816e2be0793e0dacc7d125f21858877f3151873b07bf9e1ed3830dd",
+      "background-screen-on-start-services.txt": "08ea7e8cf16a59cfc7c7e02d1888299014c3c4d34408e7d784aab621fd93b714",
+      "background-screen-on-start-ss.txt": "ba895ff8b8a83ed57148b26ed122bc14ee101df2e520a70b893fadf01dd7422b",
+      "background-screen-on-start-time.json": "a80153af85da019e00fc65f72a2de6b499f0bee148ae094c9bd70b8b32b014d7",
+      "background-screen-on-start-usage.txt": "080b8a39c856d89b3038e01a010d99d2e66a42285b22f1936f7be17bfe45d253",
+      "cold-start-before-alarm.txt": "1bdbc8fe3432a8efe286e04727cef84dc192619b149ea01cc51ef658289fd756",
+      "cold-start-before-battery.txt": "ae49ba651ad4dbcbcac7c5d9743e55a7b08d0ca943b7cbd7788baff7988f5d7c",
+      "cold-start-before-batterystats.txt": "9cb896a38cc6f0244848e819ab9d3238a45ae1d3eaac56cec000b3ddcbcd50a6",
+      "cold-start-before-clock.txt": "7963e564007e1a3849f4ce423bcaedfafe2b330847ad64eab3300c0d1f482d4f",
+      "cold-start-before-cpuinfo.txt": "0b9de2d605b5cc3e81c71ba720ebaa12e37d063178fb9dade739a9768ef19ca4",
+      "cold-start-before-deviceidle.txt": "9350af8d699e195eab39b494820593434495dfab2ec957926eb5753c41becb58",
+      "cold-start-before-end.txt": "8641d5afe20e94481170821294d695a429044727cdaa27bc8b7c51b6d68939e9",
+      "cold-start-before-jobs.txt": "cb43ebb8ddf6805491e410fd9fa7e3fc87e38d822ffd6b0e7f7db7498db22830",
+      "cold-start-before-meminfo.txt": "2db5f1b4e9d66b65a2b64c06b082fae32ecb724b931ed7567cfda36d381a540f",
+      "cold-start-before-netstats-poll.txt": "c7abe78b7b8856eab200624133a4456e00c8c580e96530d3000e0cfa11349dd0",
+      "cold-start-before-netstats.txt": "10b0eba9189ef7fe93fefec28443edacfcdbb9dbf27fd77ee859fa041f32d7ab",
+      "cold-start-before-power.txt": "2a2a9f18dd4d9c38102bdd4088207a2cea4bf5dceadcb3958ec81f6581fd9d3e",
+      "cold-start-before-proc.txt": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "cold-start-before-ps.txt": "c3d08702daf2040b0027ad8fec5ced38f8a2801e0712f4ab15af12b6a2a4152e",
+      "cold-start-before-services.txt": "17ad0153bad208359a123f808559eae5b06a04da61001bbade28ec7d5b7249a3",
+      "cold-start-before-ss.txt": "90fabc684d70e15b540b326427b6e43328fca27a617fbe7436083c72e1de1fe9",
+      "cold-start-before-time.json": "1a96adef1203da4c93a9effa748920e004a71d88f0edef1e5487917bc0dc9ac9",
+      "cold-start-before-usage.txt": "080b8a39c856d89b3038e01a010d99d2e66a42285b22f1936f7be17bfe45d253",
+      "foreground-browse-end-alarm.txt": "0791d6d20b12e896c427173d07c24ffa67c2b795aaa347390d5c5931c074b9ed",
+      "foreground-browse-end-battery.txt": "ae49ba651ad4dbcbcac7c5d9743e55a7b08d0ca943b7cbd7788baff7988f5d7c",
+      "foreground-browse-end-batterystats.txt": "3e4af9095c668ceb318e1fd1a93a708da777079acc6c44cbe868a7fdea97cb12",
+      "foreground-browse-end-clock.txt": "8a19f1b32fd5d8d9d2ed647ce4c3260bb2efa127fb0ee2158b4cd793d0a3457c",
+      "foreground-browse-end-cpuinfo.txt": "2cde97df0e34a2d561a2f31cce7ee94fe74817e87cf672fb4ff11744e1b2995f",
+      "foreground-browse-end-deviceidle.txt": "08e3956d2911bc7ffe6714e749fb96996b420def24ac995a3e3a65a4c7b288be",
+      "foreground-browse-end-end.txt": "aa6fb8ea1860c10259f2817a959870cde8b6f527266e7e7f82994c41d4927b04",
+      "foreground-browse-end-jobs.txt": "2e188c00b487b7c9ddd0c62481c9b122477909ebc0e2f675daa1774fce07636b",
+      "foreground-browse-end-meminfo.txt": "4e7d74d54ef9c05c2146bc4db5106ceece4891e8cc78d07f9566205608b794d6",
+      "foreground-browse-end-netstats-poll.txt": "c7abe78b7b8856eab200624133a4456e00c8c580e96530d3000e0cfa11349dd0",
+      "foreground-browse-end-netstats.txt": "971195e9d9d7453c8322424f98090323c9cf19fa24aafd7b7b37f13a3983b376",
+      "foreground-browse-end-power.txt": "174b5f0d233280cb96bda75d620cef00ac437ba205ccf4829459b081f081ae3f",
+      "foreground-browse-end-proc.txt": "409d8a8e2573225cbf19b7e8dcf092da7c97b83e2b61170d6edc39af1c4209b1",
+      "foreground-browse-end-ps.txt": "5eae8460e1a4b2b2e82e950db226eba6a811b08238f51c86d715e72251f7a6a6",
+      "foreground-browse-end-services.txt": "2c728de996eb4750206b11f23d1b4682071264d01a6777189ab437ccc15235d6",
+      "foreground-browse-end-ss.txt": "62909d5b896826afd84042d9ce673293f21de4a3718c97c1b591b37c02ee5923",
+      "foreground-browse-end-time.json": "c6216cda521b132c7c54151cc2d852fa1cec18751b8e24a83a1c60c306e752b5",
+      "foreground-browse-end-usage.txt": "080b8a39c856d89b3038e01a010d99d2e66a42285b22f1936f7be17bfe45d253",
+      "foreground-browse-start-alarm.txt": "074f46a12746e6cc578984435c00c7a799858ae35ba52f63787aa01aa25e8ec3",
+      "foreground-browse-start-battery.txt": "ae49ba651ad4dbcbcac7c5d9743e55a7b08d0ca943b7cbd7788baff7988f5d7c",
+      "foreground-browse-start-batterystats.txt": "e619b9ff54f41fdc1c4dd38c61063eeed25caaa65c21b10dc95da491a7b5a6c3",
+      "foreground-browse-start-clock.txt": "6105b0195ba06b5ebc62cb8d857dc7a275aab572c112c461e056328e61ec752b",
+      "foreground-browse-start-cpuinfo.txt": "d447f910b0d7e7dc2db1ac34366be7040b854d799c6e8b2d998ec29c6696862a",
+      "foreground-browse-start-deviceidle.txt": "08e3956d2911bc7ffe6714e749fb96996b420def24ac995a3e3a65a4c7b288be",
+      "foreground-browse-start-end.txt": "c3d4530ca99115a64c553dbdc9cd19e43c1c9f4fbf5c680457f2977541252e52",
+      "foreground-browse-start-jobs.txt": "45c47aa9118d3ee21cedca2c3b032bf9b9910a6b9af669f0e8af444ae92c8fb2",
+      "foreground-browse-start-meminfo.txt": "c46e0d452fcfdf2b448725103a535a32a2547ec9ac40b67d827862c5f454d67e",
+      "foreground-browse-start-netstats-poll.txt": "c7abe78b7b8856eab200624133a4456e00c8c580e96530d3000e0cfa11349dd0",
+      "foreground-browse-start-netstats.txt": "46a2b946926e290bc3a4f9bf504aafb927d63f045f069ab9872e834ba162c781",
+      "foreground-browse-start-power.txt": "3bdf45c048a40a336199946a96df9fa35606e6d0c87b2c311d1308554c70c303",
+      "foreground-browse-start-proc.txt": "fe91be8dea7e8b04f536ef4daee56055cb73eb7876a975f8520dcc1d61639be7",
+      "foreground-browse-start-ps.txt": "dbb6caaca5ae5c67286ddae92460acc2837707f31b576d8a0eb35f77b6ffe78f",
+      "foreground-browse-start-services.txt": "48e0cb683871a8879f5f005d130231993f1c845a520e8bd9421d2b2ea71d38a2",
+      "foreground-browse-start-ss.txt": "2b974cb786743654818676cd6ab9a2156daebc8089dc686dbf984db372d11609",
+      "foreground-browse-start-time.json": "422c6e03761ee7a62b3afe9fb871c80f5942f145dbf6acda2e5d8c658a86d5fb",
+      "foreground-browse-start-usage.txt": "080b8a39c856d89b3038e01a010d99d2e66a42285b22f1936f7be17bfe45d253",
+      "phases.json": "b210cba5f8c4b2e83f9d54bf369ce508a59a072b6add77b28c70cc2ddfe2f0bb",
+      "restored-battery.txt": "3323b90ab8e434f6fc7ca7dc09fbac7725d9338cab15e72fdf9fdd58293332f1",
+      "run-status.json": "d420da2834214a4636dd2bb8ffc51b7d26b36f3736f3ad8bf62da6057ace9365",
+      "socket-observations.jsonl": "4b0af0c1b3cf598bd47ee26e3f961459e9b5cccdc5d18ded965ad9b9394ab8b3"
+    }
+  },
+  "phases": [
+    {
+      "name": "cold-launch",
+      "phase_start_utc": "2026-10-12T06:04:11+00:00",
+      "phase_end_utc": "2026-10-12T06:04:42+00:00",
+      "observation_window_seconds": 31.0,
+      "counter_snapshot_span_seconds": 40.09,
+      "home_feed_swipes": 0,
+      "requested_socket_poll_interval_seconds": 1,
+      "socket_observations_inclusive_of_boundaries": 25,
+      "primary_uid_bpf_delta": {
+        "rx_bytes": 2307457,
+        "rx_packets": 2139,
+        "tx_bytes": 161067,
+        "tx_packets": 1173
+      },
+      "main_process_cpu": {
+        "user_seconds": 2.97,
+        "kernel_seconds": 2.15,
+        "total_seconds": 5.12
+      },
+      "incomplete_main_process_cpu_coverage": false,
+      "app_batterystats_cpu_delta_ms": {
+        "user": 2992,
+        "kernel": 2160,
+        "total": 5152
+      },
+      "app_media_timer_delta": {
+        "video": {
+          "ms": 5385,
+          "count": 1.0
+        },
+        "audio": {
+          "ms": 0,
+          "count": 0.0
+        }
+      },
+      "app_job_timer_delta": {
+        "recorded_ms": 694,
+        "recorded_execution_count": 2,
+        "timing_note": "Sequential boundary snapshots include transitions and do not identify a worker or establish execution inside the explicit phase."
+      },
+      "registered_jobs_at_start": 0,
+      "registered_jobs_at_end": 3,
+      "isolated_uid_mapping_observed_at_boundary": true,
+      "packet_observations": null,
+      "primary_uid_visible_tls_services": null
+    },
+    {
+      "name": "foreground-browse",
+      "phase_start_utc": "2026-10-12T06:04:50+00:00",
+      "phase_end_utc": "2026-10-12T06:07:51+00:00",
+      "observation_window_seconds": 181.0,
+      "counter_snapshot_span_seconds": 184.99,
+      "home_feed_swipes": 6,
+      "requested_socket_poll_interval_seconds": 2,
+      "socket_observations_inclusive_of_boundaries": 78,
+      "primary_uid_bpf_delta": {
+        "rx_bytes": 2319319,
+        "rx_packets": 1953,
+        "tx_bytes": 63464,
+        "tx_packets": 451
+      },
+      "main_process_cpu": {
+        "user_seconds": 3.38,
+        "kernel_seconds": 8.55,
+        "total_seconds": 11.93
+      },
+      "incomplete_main_process_cpu_coverage": false,
+      "app_batterystats_cpu_delta_ms": {
+        "user": 4009,
+        "kernel": 7928,
+        "total": 11937
+      },
+      "app_media_timer_delta": {
+        "video": {
+          "ms": 38205,
+          "count": 2.0
+        },
+        "audio": {
+          "ms": 31016,
+          "count": 2.0
+        }
+      },
+      "app_job_timer_delta": {
+        "recorded_ms": 0,
+        "recorded_execution_count": 0,
+        "timing_note": "Sequential boundary snapshots include transitions and do not identify a worker or establish execution inside the explicit phase."
+      },
+      "registered_jobs_at_start": 3,
+      "registered_jobs_at_end": 3,
+      "isolated_uid_mapping_observed_at_boundary": true,
+      "packet_observations": null,
+      "primary_uid_visible_tls_services": null
+    },
+    {
+      "name": "background-screen-on",
+      "phase_start_utc": "2026-10-12T06:08:06+00:00",
+      "phase_end_utc": "2026-10-12T06:18:06+00:00",
+      "observation_window_seconds": 600.0,
+      "counter_snapshot_span_seconds": 605.39,
+      "home_feed_swipes": 0,
+      "requested_socket_poll_interval_seconds": 10,
+      "socket_observations_inclusive_of_boundaries": 60,
+      "primary_uid_bpf_delta": {
+        "rx_bytes": 3781,
+        "rx_packets": 59,
+        "tx_bytes": 3499,
+        "tx_packets": 55
+      },
+      "main_process_cpu": {
+        "user_seconds": 0.27,
+        "kernel_seconds": 0.15,
+        "total_seconds": 0.42
+      },
+      "incomplete_main_process_cpu_coverage": false,
+      "app_batterystats_cpu_delta_ms": {
+        "user": 297,
+        "kernel": 120,
+        "total": 417
+      },
+      "app_media_timer_delta": {
+        "video": {
+          "ms": 0,
+          "count": 0.0
+        },
+        "audio": {
+          "ms": 0,
+          "count": 0.0
+        }
+      },
+      "app_job_timer_delta": {
+        "recorded_ms": 0,
+        "recorded_execution_count": 0,
+        "timing_note": "Sequential boundary snapshots include transitions and do not identify a worker or establish execution inside the explicit phase."
+      },
+      "registered_jobs_at_start": 3,
+      "registered_jobs_at_end": 2,
+      "isolated_uid_mapping_observed_at_boundary": true,
+      "packet_observations": null,
+      "primary_uid_visible_tls_services": null
+    },
+    {
+      "name": "background-screen-off",
+      "phase_start_utc": "2026-10-12T06:18:15+00:00",
+      "phase_end_utc": "2026-10-12T06:28:15+00:00",
+      "observation_window_seconds": 600.0,
+      "counter_snapshot_span_seconds": 605.09,
+      "home_feed_swipes": 0,
+      "requested_socket_poll_interval_seconds": null,
+      "socket_observations_inclusive_of_boundaries": 1,
+      "primary_uid_bpf_delta": {
+        "rx_bytes": 3156,
+        "rx_packets": 40,
+        "tx_bytes": 3712,
+        "tx_packets": 39
+      },
+      "main_process_cpu": {
+        "user_seconds": 0.23,
+        "kernel_seconds": 0.12,
+        "total_seconds": 0.35
+      },
+      "incomplete_main_process_cpu_coverage": false,
+      "app_batterystats_cpu_delta_ms": {
+        "user": 200,
+        "kernel": 61,
+        "total": 261
+      },
+      "app_media_timer_delta": {
+        "video": {
+          "ms": 0,
+          "count": 0.0
+        },
+        "audio": {
+          "ms": 0,
+          "count": 0.0
+        }
+      },
+      "app_job_timer_delta": {
+        "recorded_ms": 0,
+        "recorded_execution_count": 0,
+        "timing_note": "Sequential boundary snapshots include transitions and do not identify a worker or establish execution inside the explicit phase."
+      },
+      "registered_jobs_at_start": 2,
+      "registered_jobs_at_end": 2,
+      "isolated_uid_mapping_observed_at_boundary": true,
+      "packet_observations": null,
+      "primary_uid_visible_tls_services": null
+    }
+  ],
+  "memory_boundaries": [
+    {
+      "boundary": "background-screen-off-end",
+      "total_pss_kb": 221386,
+      "total_rss_kb": 317892,
+      "total_swap_pss_kb": 746,
+      "java_heap_pss_kb": 25624,
+      "native_heap_pss_kb": 66472,
+      "code_pss_kb": 88940,
+      "graphics_pss_kb": 0
+    },
+    {
+      "boundary": "background-screen-off-start",
+      "total_pss_kb": 225157,
+      "total_rss_kb": 324424,
+      "total_swap_pss_kb": 736,
+      "java_heap_pss_kb": 25856,
+      "native_heap_pss_kb": 66536,
+      "code_pss_kb": 89904,
+      "graphics_pss_kb": 0
+    },
+    {
+      "boundary": "background-screen-on-end",
+      "total_pss_kb": 230670,
+      "total_rss_kb": 324948,
+      "total_swap_pss_kb": 220,
+      "java_heap_pss_kb": 27188,
+      "native_heap_pss_kb": 66884,
+      "code_pss_kb": 92784,
+      "graphics_pss_kb": 0
+    },
+    {
+      "boundary": "background-screen-on-start",
+      "total_pss_kb": 240880,
+      "total_rss_kb": 334888,
+      "total_swap_pss_kb": 218,
+      "java_heap_pss_kb": 35932,
+      "native_heap_pss_kb": 66780,
+      "code_pss_kb": 92908,
+      "graphics_pss_kb": 0
+    },
+    {
+      "boundary": "foreground-browse-end",
+      "total_pss_kb": 283110,
+      "total_rss_kb": 377804,
+      "total_swap_pss_kb": 219,
+      "java_heap_pss_kb": 41440,
+      "native_heap_pss_kb": 81192,
+      "code_pss_kb": 113960,
+      "graphics_pss_kb": 0
+    },
+    {
+      "boundary": "foreground-browse-start",
+      "total_pss_kb": 247904,
+      "total_rss_kb": 344072,
+      "total_swap_pss_kb": 378,
+      "java_heap_pss_kb": 43260,
+      "native_heap_pss_kb": 47216,
+      "code_pss_kb": 112948,
+      "graphics_pss_kb": 0
+    }
+  ],
+  "power_boundaries": [
+    {
+      "boundary": "background-screen-off-end",
+      "wakefulness": "Asleep",
+      "forced_idle": "false",
+      "screen_on": "false",
+      "deep_idle_state": "INACTIVE",
+      "light_idle_state": "IDLE"
+    },
+    {
+      "boundary": "background-screen-off-start",
+      "wakefulness": "Asleep",
+      "forced_idle": "false",
+      "screen_on": "false",
+      "deep_idle_state": "INACTIVE",
+      "light_idle_state": "INACTIVE"
+    },
+    {
+      "boundary": "background-screen-on-end",
+      "wakefulness": "Awake",
+      "forced_idle": "false",
+      "screen_on": "true",
+      "deep_idle_state": "ACTIVE",
+      "light_idle_state": "ACTIVE"
+    },
+    {
+      "boundary": "background-screen-on-start",
+      "wakefulness": "Awake",
+      "forced_idle": "false",
+      "screen_on": "true",
+      "deep_idle_state": "ACTIVE",
+      "light_idle_state": "ACTIVE"
+    },
+    {
+      "boundary": "cold-start-before",
+      "wakefulness": "Awake",
+      "forced_idle": "false",
+      "screen_on": "true",
+      "deep_idle_state": "ACTIVE",
+      "light_idle_state": "ACTIVE"
+    },
+    {
+      "boundary": "foreground-browse-end",
+      "wakefulness": "Awake",
+      "forced_idle": "false",
+      "screen_on": "true",
+      "deep_idle_state": "ACTIVE",
+      "light_idle_state": "ACTIVE"
+    },
+    {
+      "boundary": "foreground-browse-start",
+      "wakefulness": "Awake",
+      "forced_idle": "false",
+      "screen_on": "true",
+      "deep_idle_state": "ACTIVE",
+      "light_idle_state": "ACTIVE"
+    }
+  ],
+  "limitations": [
+    "The earlier 14.38.0 packet capture is excluded from these fresh 14.39.0 results.",
+    "Missing fresh packet analysis prevents capture-derived packet totals, attributed capture bytes, UDP/QUIC shares, visible TLS service names and drop/truncation checks.",
+    "BPF snapshots have their own elapsed intervals, including collection overhead. Use counter spans for rates.",
+    "Main process CPU excludes unsampled exited/isolated processes. Framework app CPU is separate accounting.",
+    "One signed-in account and one content/cache state do not establish universal data use or a patched comparison.",
+    "Synthetic battery and activity timers do not measure physical battery drain.",
+    "No decrypted request/header contents are available. GMA header behavior is unverified.",
+    "Memory snapshots are not peak usage or leak evidence. Zero graphics PSS does not establish no GPU activity.",
+    "Environment memory is the configured emulator allocation, not a measured physical-memory total.",
+    "Socket snapshots alone do not supply service names or packet ownership totals.",
+    "The screen was asleep at both screen-off boundaries. Light idle reached IDLE while deep idle remained INACTIVE. This does not prove sustained suspend or deep Doze.",
+    "Public data omits raw UIDs, process IDs, socket endpoints, account information and packet payloads."
+  ]
+}
