@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Ask a question
-    url: https://github.com/SysAdminDoc/HushPinterest/discussions
-    about: Setup help, how a switch works, whether a Pinterest version works. Answers there help the next person too.
+  - name: Setup help
+    url: https://github.com/SysAdminDoc/HushPinterest#help
+    about: Install steps, where the settings are, signing in and which Pinterest version works. If your question isn't covered there, open a bug report and ask.
