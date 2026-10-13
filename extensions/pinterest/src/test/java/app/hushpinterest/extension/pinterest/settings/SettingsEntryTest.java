@@ -270,7 +270,7 @@ public class SettingsEntryTest {
      * With Pinterest already running, App info's request reaches the activity through onNewIntent,
      * and the screen opens when it resumes. A plain launch from the icon opens nothing.
      */
-    @Test public void appInfosRequestOpensTheScreenOverARunningThreads() {
+    @Test public void appInfosRequestOpensTheScreenOverRunningPinterest() {
         ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class,
                 new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)).create();
         SettingsEntry.onActivityCreate(activity.get());
@@ -286,6 +286,29 @@ public class SettingsEntryTest {
 
         assertNotNull("App info's request didn't open the screen", dialogOver(activity.get()));
         org.junit.Assert.assertEquals(Intent.ACTION_MAIN, fromAppInfo.getAction());
+    }
+
+    /** A fresh explicit request after Back must reopen the same host, including the launcher shortcut. */
+    @Test public void newRequestsReopenSettingsAfterBackWithoutRestartingTheHost() {
+        ActivityController<Activity> activity = openedOverNewActivity();
+        for (boolean shortcut : new boolean[]{false, true}) {
+            ((SettingsDialog) dialogOver(activity.get())).getDialog().onBackPressed();
+            ShadowLooper.idleMainLooper();
+            assertNull("Back did not close settings", dialogOver(activity.get()));
+
+            activity.pause();
+            Intent request = shortcut
+                    ? new Intent(Intent.ACTION_MAIN).putExtra(SettingsEntry.EXTRA_OPEN_SETTINGS, true)
+                    : new Intent(Intent.ACTION_APPLICATION_PREFERENCES);
+            SettingsEntry.onNewIntent(activity.get(), request);
+            activity.resume();
+            ShadowLooper.idleMainLooper();
+
+            assertNotNull("a fresh request did not reopen the same host", dialogOver(activity.get()));
+            org.junit.Assert.assertEquals(Intent.ACTION_MAIN, request.getAction());
+            org.junit.Assert.assertFalse("the shortcut extra was not spent",
+                    request.getBooleanExtra(SettingsEntry.EXTRA_OPEN_SETTINGS, false));
+        }
     }
 
     /**

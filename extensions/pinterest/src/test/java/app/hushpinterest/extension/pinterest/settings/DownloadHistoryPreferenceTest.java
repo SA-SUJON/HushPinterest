@@ -240,6 +240,8 @@ public class DownloadHistoryPreferenceTest {
         AlertDialog choice = chooseJob(dialog, 0);
         assertEquals(3, choice.getListView().getAdapter().getCount());
         assertTrue(choice.getListView().getAdapter().getItem(0).toString().contains(text("Retry download")));
+        assertTrue(choice.getListView().getAdapter().getItem(1).toString()
+                .contains(text("Open the pin again to get a fresh download link.")));
         choice.dismiss();
         ShadowLooper.idleMainLooper();
         status(id, DownloadManager.STATUS_SUCCESSFUL);
@@ -260,6 +262,7 @@ public class DownloadHistoryPreferenceTest {
         long id = owned("123", DownloadManager.STATUS_SUCCESSFUL);
         AlertDialog history = open();
         AlertDialog choice = chooseJob(history, 0);
+        assertFalse(message(choice).contains(text("Resume HushPinterest and turn on Download pins to use this.")));
         ListAdapter choices = choice.getListView().getAdapter();
         assertTrue(choices.getItem(0).toString().contains(text("Open file")));
         assertTrue(choices.getItem(1).toString().contains(text("Share file")));
@@ -282,11 +285,39 @@ public class DownloadHistoryPreferenceTest {
         Settings.DOWNLOAD_PINS.save(false);
         choice = chooseJob(history, 0);
         assertEquals(2, choice.getListView().getAdapter().getCount());
+        assertTrue(message(choice).contains(text("Completed")));
+        assertTrue(message(choice).contains(text("Resume HushPinterest and turn on Download pins to use this.")));
         choice.dismiss();
         ShadowLooper.idleMainLooper();
         Settings.DOWNLOAD_PINS.save(true);
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
-        assertEquals(2, chooseJob(history, 0).getListView().getAdapter().getCount());
+        choice = chooseJob(history, 0);
+        assertEquals(2, choice.getListView().getAdapter().getCount());
+        assertTrue(message(choice).contains(text("Resume HushPinterest and turn on Download pins to use this.")));
+        choice.dismiss();
+        ShadowLooper.idleMainLooper();
+        PauseForTests.resume();
+        choice = chooseJob(history, 0);
+        assertEquals(5, choice.getListView().getAdapter().getCount());
+        assertFalse(message(choice).contains(text("Resume HushPinterest and turn on Download pins to use this.")));
+        assertEquals(1, nativeJobs.getRequestCount());
+        assertEquals(0, removed());
+    }
+
+    @Test public void unavailableDownloadHooksExplainTheMissingCompletedFileActions() throws Exception {
+        owned("123", DownloadManager.STATUS_SUCCESSFUL);
+        AlertDialog history = open();
+        PatchFamilyForTests.capabilities(EnumSet.noneOf(PatchFamily.Capability.class));
+        AlertDialog choice = chooseJob(history, 0);
+        assertEquals(2, choice.getListView().getAdapter().getCount());
+        assertTrue(message(choice).contains(text("Completed")));
+        assertTrue(message(choice).contains(L10n.f(page.row.getContext(),
+                "This build doesn't include the parts that handle %1$s.", text("Download pins"))));
+        assertFalse(message(choice).contains(text("Open the pin again to get a fresh download link.")));
+        assertFalse(choice.getListView().getAdapter().getItem(0).toString()
+                .contains(text("Open the pin again to get a fresh download link.")));
+        assertFalse(message(choice).contains(text("Resume HushPinterest and turn on Download pins to use this.")));
+        assertUsable(history);
         assertEquals(1, nativeJobs.getRequestCount());
         assertEquals(0, removed());
     }

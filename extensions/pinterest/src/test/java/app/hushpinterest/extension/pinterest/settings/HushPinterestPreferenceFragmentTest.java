@@ -451,7 +451,7 @@ public class HushPinterestPreferenceFragmentTest {
             assertFalse(unmetered.isChecked());
             assertFalse(roaming.isChecked());
             // Unmetered isn't the same as Wi-Fi, and the summary says so.
-            assertTrue(String.valueOf(unmetered.getSummary()).contains("Wi-Fi marked as metered"));
+            assertTrue(String.valueOf(unmetered.getSummary()).contains("Metered Wi-Fi"));
         }
     }
 

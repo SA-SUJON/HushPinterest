@@ -16,10 +16,8 @@ package app.hushpinterest.extension.pinterest.settings;
 import android.content.res.ColorStateList;
 import android.database.DataSetObserver;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.RippleDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -71,26 +69,15 @@ final class DialogChoices extends BaseAdapter {
                 if (drawable != null && drawable.isStateful()) drawable.mutate().setTintList(indicator);
             }
             choice.setCompoundDrawablePadding(Math.round(ScreenColors.CONTENT_DP * density));
-            StateListDrawable background = new StateListDrawable();
-            background.addState(new int[]{android.R.attr.state_checked}, surface(density, 0xFF17294B, colors.accent));
-            background.addState(new int[]{}, surface(density, colors.card, colors.outline));
             int side = Math.round(ScreenColors.SIDE_DP * density);
             int gap = Math.round(ScreenColors.GAP_DP * density);
             choice.setBackground(new RippleDrawable(ColorStateList.valueOf(ScreenColors.half(colors.accent)),
-                    new InsetDrawable(background, side, gap, side, gap), null));
+                    new InsetDrawable(colors.choiceSurface(choice), side, gap, side, gap), null));
             // Rounding both sides up at densities such as 450dpi exceeds the measured 48dp row.
             int verticalPadding = (int) (12 * density) + gap;
             choice.setPaddingRelative(side + Math.round(ScreenColors.CONTENT_DP * density), verticalPadding,
                     side + Math.round(ScreenColors.CONTENT_DP * density), verticalPadding);
         }
         return row;
-    }
-
-    private GradientDrawable surface(float density, int fill, int edge) {
-        GradientDrawable surface = new GradientDrawable();
-        surface.setColor(fill);
-        surface.setStroke(Math.round(density), ScreenColors.dimmedWhenDisabled(edge));
-        surface.setCornerRadius(Math.round(ScreenColors.RADIUS_DP * density));
-        return surface;
     }
 }

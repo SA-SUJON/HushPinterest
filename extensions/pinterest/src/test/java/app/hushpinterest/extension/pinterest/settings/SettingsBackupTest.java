@@ -1408,7 +1408,7 @@ public class SettingsBackupTest {
             AlertDialog preview = shownPreview();
             assertEquals("Your switches already match that file, so nothing will change.",
                     String.valueOf(shadowOf(preview).getMessage()));
-            assertEquals("OK", String.valueOf(preview.getButton(AlertDialog.BUTTON_POSITIVE).getText()));
+            assertEquals("Close", String.valueOf(preview.getButton(AlertDialog.BUTTON_POSITIVE).getText()));
             assertFalse(preview.getButton(AlertDialog.BUTTON_NEGATIVE).isShown());
             preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             settle();

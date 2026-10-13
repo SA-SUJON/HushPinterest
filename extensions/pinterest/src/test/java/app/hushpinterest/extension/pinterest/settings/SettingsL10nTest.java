@@ -440,7 +440,9 @@ public class SettingsL10nTest {
             AlertDialog notice = (AlertDialog) ShadowAlertDialog.getLatestDialog();
             assertNotNull("the licences row opened no dialog", notice);
             shown.add(String.valueOf(org.robolectric.Shadows.shadowOf(notice).getTitle()));
-            shown.add(String.valueOf(notice.getButton(AlertDialog.BUTTON_POSITIVE).getText()));
+            String close = String.valueOf(notice.getButton(AlertDialog.BUTTON_POSITIVE).getText());
+            assertEquals(L10n.t("Close"), close);
+            shown.add(close);
             notice.dismiss();
 
             addSettingsFileText(activity, rows, shown);

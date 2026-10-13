@@ -53,7 +53,6 @@ Import settings	Impor pengaturan
 Importing settings	Mengimpor pengaturan
 Licenses	Lisensi
 Links	Tautan
-OK	Oke
 Pause HushPinterest	Jeda HushPinterest
 Reading the settings file	Membaca file pengaturan
 Retry	Coba lagi
@@ -169,25 +168,25 @@ Privacy	Privasi
 Pin actions	Tindakan Pin
 Interface	Antarmuka
 Hide shopping and product pins	Sembunyikan belanja dan Pin produk
-Hides shoppable pins, shopping stories and featured boards.	Menyembunyikan pin yang bisa dibeli, cerita belanja, dan papan unggulan.
+Hides product pins, shopping stories, featured boards and Shop the look under pins. Visit and Paid link stay.	Menyembunyikan pin produk, cerita belanja, papan unggulan, dan Shop the look di bawah pin. Tautan kunjungan dan label tautan berbayar tetap ada.
 Disable analytics	Nonaktifkan analitik
-Stops Pinterest from sending usage reports and running its analytics tasks. Google's analytics collection stays off until you patch again without Disable analytics.	Menghentikan Pinterest mengirim laporan penggunaan dan menjalankan tugas analitiknya. Pengumpulan analitik Google tetap mati sampai Anda menambal ulang tanpa Disable analytics.
+Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.	Menghentikan laporan penggunaan dan tugas analitik. Mulai ulang setelah dimatikan atau dijeda. Analitik Google tetap mati sampai Anda menambal ulang tanpa patch Nonaktifkan analitik.
 Firebase and Google Analytics collection is turned off	Pengumpulan data Firebase dan Google Analytics dinonaktifkan
 Analytics launch tasks	Tugas awal analitik
 Analytics uploads	Pengiriman data analitik
 Strip link tracking	Hapus pelacakan tautan
-Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them unless Plain pin links is on.	Menghapus tag pelacakan dari tautan yang Anda salin atau bagikan. Tautan pendek pin.it tetap seperti buatan Pinterest, kecuali Tautan pin biasa aktif.
-Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them.	Menghapus tag pelacakan dari tautan yang Anda salin atau bagikan. Tautan pendek pin.it tetap seperti buatan Pinterest.
+Removes tracking tags from copied and shared links. Short pin.it links stay unchanged unless Plain pin links is on.	Menghapus tag pelacakan dari tautan yang disalin dan dibagikan. Tautan pendek pin.it tetap sama kecuali Tautan pin biasa aktif.
+Removes tracking tags from copied and shared links. Short pin.it links stay unchanged.	Menghapus tag pelacakan dari tautan yang disalin dan dibagikan. Tautan pendek pin.it tetap sama.
 Plain pin links	Tautan pin biasa
-Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. Pin links from Pinterest's country sites become that same link too. When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.	Tautan pin.it yang disalin dan dibagikan menjadi tautan pinterest.com milik pin itu sendiri, sehingga tidak menunjukkan siapa yang membagikannya. Tautan pin dari situs Pinterest untuk tiap negara juga menjadi tautan yang sama. Jika HushPinterest belum mengenal pin tersebut, tautan yang disalin diperiksa ke Pinterest di latar belakang lalu diganti sesaat kemudian.
+Replaces short and country-site pin links with pinterest.com links that don't identify who shared them. Unknown copied short links change only if a background check finds the pin. Sharing doesn't wait for that check.	Mengganti tautan pin pendek dan situs negara dengan tautan pinterest.com tanpa identitas pembagi. Tautan pendek yang disalin dan belum dikenal hanya berubah jika pemeriksaan latar belakang menemukan pin. Berbagi tidak menunggu pemeriksaan itu.
 Hide advertising ID	Sembunyikan ID iklan
 Block Store browser ID	ID browser di Block Store
-Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your advertising ID in Android settings. Pinterest also stops keeping its browser ID in Google's Block Store, where it would outlast a reinstall.	Pinterest melihat ID iklan kosong dengan pelacakan iklan dibatasi, seolah Anda menghapus ID iklan di pengaturan Android. Pinterest juga berhenti menyimpan ID browser miliknya di Block Store Google, tempat ID itu akan tetap ada walau aplikasi dipasang ulang.
+Shows an empty ad ID with tracking limited, as if you deleted it in Android. Also stops Google's Block Store from keeping Pinterest's browser ID across reinstalls.	Menampilkan ID iklan kosong dengan pelacakan dibatasi, seolah dihapus di Android. Juga mencegah Block Store Google menyimpan ID browser Pinterest setelah pemasangan ulang.
 Remove ad tracking permissions	Hapus izin pelacakan iklan
 Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Pinterest tidak lagi bisa memakai izin ID iklan Google atau layanan iklan Android. Ini diatur saat Anda menambal. Tambal ulang tanpanya untuk mengembalikannya.
 Pinterest's access to the ad ID and Android's ad services is removed	akses Pinterest ke ID iklan dan layanan iklan Android dihapus
 Spoof signature for Google sign-in	Palsukan tanda tangan untuk login Google
-Tells Android this is the original Pinterest, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched. Patch again without it to take it out.	Memberi tahu Android bahwa ini Pinterest asli, agar masuk dengan Google bisa berfungsi dengan microG-RE atau modul XSpoofSignatures. Google Play services biasa mengabaikannya. Ini diatur saat Anda menambal. Tambal ulang tanpanya untuk menghapusnya.
+Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.	Membantu masuk dengan Google hanya dengan microG-RE atau XSpoofSignatures. Google Play services biasa mengabaikannya. Diatur saat menambal. Tambal ulang tanpanya untuk menghapusnya.
 Pinterest's original signature is added to the app	Tanda tangan asli Pinterest ditambahkan ke aplikasi
 Download pins	Unduh Pin
 Open links in your browser	Buka tautan di browser Anda
@@ -376,15 +375,15 @@ Nothing was queued. The selection stopped or wasn't available.	Tidak ada yang di
 Pinterest didn't supply supported media for this pin.	Pinterest tidak menyediakan media yang didukung untuk Pin ini.
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Unduh satu pin, atau pilih beberapa pin dalam kisi. Menyimpan video dan gambar asli, atau ukuran terbesar yang dimiliki Pinterest.
 Save in Pinterest's folder	Simpan di folder Pinterest
-Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.	Menyimpan unduhan di Pictures/100PINT/Pins, folder yang dipakai Pinterest untuk gambar yang disimpannya sendiri, bukan di Download.
+Saves to Pictures/100PINT/Pins with Pinterest's own images, instead of the Download folder.	Menyimpan di Pictures/100PINT/Pins bersama gambar Pinterest sendiri, bukan di folder Download.
 Download on unmetered networks only	Unduh hanya di jaringan tidak terukur
-New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.	Unduhan baru menunggu di Unduhan Android hingga ada jaringan yang dianggap Android tidak terukur, seperti kebanyakan Wi-Fi rumah. Data seluler biasanya dianggap terukur, begitu juga Wi-Fi yang ditandai terukur, seperti hotspot ponsel. Unduhan yang sudah dalam antrean tetap memakai aturannya sendiri.
+New downloads wait for an unmetered network, usually home Wi-Fi. Metered Wi-Fi and most hotspots don't qualify. Queued downloads keep their original rule.	Unduhan baru menunggu jaringan tidak terukur, biasanya Wi-Fi rumah. Wi-Fi terukur dan kebanyakan hotspot tidak memenuhi syarat. Unduhan dalam antrean tetap memakai aturan awalnya.
 No downloads while roaming	Jangan mengunduh saat roaming
-New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.	Unduhan baru tidak memakai data seluler saat ponsel Anda sedang roaming. Unduhan menunggu Wi-Fi atau jaringan asal Anda. Unduhan yang sudah dalam antrean tetap memakai aturannya sendiri.
+New downloads avoid roaming data. They wait for Wi-Fi or your home mobile network. Queued downloads keep their original rule.	Unduhan baru menghindari data roaming. Unduhan menunggu Wi-Fi atau jaringan seluler asal Anda. Unduhan dalam antrean tetap memakai aturan awalnya.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Hanya 32 unduhan dan hasil pilihan terbaru yang ditampilkan. File yang tersimpan tetap disimpan.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Unduh papan
-Adds Download board to a board's menu. It saves the pins Pinterest has loaded for that board so far and skips any already in Download history. Download pins has to be on too.	Menambahkan Unduh papan ke menu papan. Menyimpan Pin yang sejauh ini sudah dimuat Pinterest untuk papan itu dan melewati yang sudah ada di Riwayat unduhan. Unduh Pin juga harus aktif.
+Downloads up to 500 loaded pins, skipping those in Download history. Needs Download pins on. Scroll the board to load more.	Mengunduh hingga 500 pin yang dimuat, melewati yang ada di Riwayat unduhan. Unduh Pin harus aktif. Gulir papan untuk memuat lebih banyak.
 Skipped because they're already in Download history: %d	Dilewati karena sudah ada di Riwayat unduhan: %d
 Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.	Hanya Pin yang sejauh ini sudah dimuat Pinterest untuk papan ini yang disertakan, maksimal %d. Untuk menyertakan lebih banyak, gulir papan lebih jauh ke bawah dulu.
 This board's pins haven't loaded yet. Scroll it and try again.	Pin dari papan ini belum dimuat. Gulir papan, lalu coba lagi.
@@ -394,7 +393,7 @@ board menus	menu papan
 loaded board pins	Pin papan yang dimuat
 # context: Long-press download, a button added to the round menu a held pin opens, and its switch on the Pin actions page.
 Long-press download	Unduh dengan tekan lama
-Adds a Download button to the round menu you get when you hold a pin. Slide onto it and let go to save the pin. Download pins has to be on too.	Menambahkan tombol Unduh ke menu bundar yang muncul saat Anda menahan Pin. Geser ke tombol itu lalu lepaskan untuk menyimpan Pin. Unduh Pin juga harus aktif.
+Adds Download to a grid pin's long-press menu. Slide onto it and release. Needs Download pins on.	Menambahkan Unduh ke menu tekan lama pin di kisi. Geser ke sana lalu lepaskan. Unduh Pin harus aktif.
 # context: Hide ads coverage in a partial build: each list holder or ad-only view the patch did or didn't hook, named in the Feed page summary. The last row adds how many of a target's hooks went in.
 promoted pins in feed pages	pin promosi di halaman feed
 promoted pins in paged results	pin promosi di hasil per halaman

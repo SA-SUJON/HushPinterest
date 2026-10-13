@@ -112,11 +112,8 @@ final class ChoiceCards extends BaseAdapter {
             setGravity(Gravity.CENTER_VERTICAL);
             int side = dp(context, SIDE_INSET_DP);
             int gap = dp(context, GAP_INSET_DP);
-            GradientDrawable surface = new GradientDrawable();
+            GradientDrawable surface = colors.cardSurface(this, true);
             // The shared row surface, with its outline separating it from the dialog.
-            surface.setColor(colors.card);
-            surface.setStroke(dp(context, 1), colors.outline);
-            surface.setCornerRadius(dp(context, ScreenColors.RADIUS_DP));
             setBackground(new RippleDrawable(ColorStateList.valueOf(ScreenColors.half(colors.accent)),
                     new InsetDrawable(surface, side, gap, side, gap), null));
             // Set after the background, which puts its insets in as the padding.

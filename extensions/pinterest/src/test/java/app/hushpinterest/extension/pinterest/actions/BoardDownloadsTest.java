@@ -14,6 +14,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Looper;
+import android.view.View;
+import android.widget.ListView;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;
@@ -23,8 +27,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.shadow.api.Shadow;
@@ -41,6 +47,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import app.hushpinterest.extension.pinterest.NativeDialogCapture;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.PatchFamilyForTests;
 import app.hushpinterest.extension.pinterest.settings.Settings;
@@ -102,6 +109,7 @@ public class BoardDownloadsTest {
         PatchFamilyForTests.capabilities(null);
         PauseForTests.resume();
         Utils.setActivity(null);
+        RuntimeEnvironment.setFontScale(1f);
     }
 
     private static Map<String, Object> pin(String id, String board) {
@@ -248,6 +256,152 @@ public class BoardDownloadsTest {
         assertTrue(choice.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
         assertEquals(2, BoardDownloads.listed("77", GridDownloads.Filter.ALL).size());
         assertEquals("nothing queued", 2, Shadows.shadowOf(manager).getRequestCount());
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "en-rUS-w390dp-h844dp-night-xhdpi")
+    public void theBoardExplanationKeepsTheChoicesAndActionsReachableAtTwiceTheTextSize() throws Exception {
+        RuntimeEnvironment.setFontScale(2f);
+        assertEquals(2f, activity.getResources().getConfiguration().fontScale, 0f);
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        for (String id : new String[]{"100", "101"}) {
+            long job = manager.enqueue(new DownloadManager.Request(Uri.parse("https://i.pinimg.com/originals/" + id + ".jpg")));
+            assertTrue(DownloadLedger.record(activity, job, id));
+        }
+        AlertDialog choice = openChooser(page("77", 100, 2));
+        NativeDialogCapture.capture("board-picker-known-large-text", activity.findViewById(android.R.id.content), choice);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        View decor = choice.getWindow().getDecorView();
+        ListView kinds = choice.getListView();
+        assertEquals(ListView.CHOICE_MODE_SINGLE, kinds.getChoiceMode());
+        assertEquals(0, kinds.getCheckedItemPosition());
+        assertEquals(3, kinds.getCount());
+        assertTrue("the explanation left no room for the choices", kinds.getHeight() > 0);
+        int[] at = new int[2];
+        for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEUTRAL, AlertDialog.BUTTON_NEGATIVE}) {
+            View button = choice.getButton(which);
+            button.getLocationInWindow(at);
+            assertTrue(button + " has no height", button.getHeight() > 0);
+            assertTrue(button + " is below the dialog", at[1] + button.getHeight() <= decor.getHeight());
+            android.graphics.Rect shown = new android.graphics.Rect();
+            assertTrue(button + " isn't visible", button.getGlobalVisibleRect(shown));
+            assertEquals(button + " is clipped", button.getHeight(), shown.height());
+        }
+        TextView explanation = visibleMessage(decor);
+        assertNotNull(explanation);
+        assertTrue(explanation.getText().toString().contains("Every pin loaded from this board is already in Download history."));
+        assertTrue(explanation.getText().toString().contains("To include more, scroll further down the board first."));
+        assertFalse(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        assertTrue(choice.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
+        kinds.performItemClick(kinds.getAdapter().getView(2, null, kinds), 2, kinds.getItemIdAtPosition(2));
+        assertEquals(2, kinds.getCheckedItemPosition());
+        assertFalse(choice.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
+        assertEquals("reading and selecting must not queue", 2, Shadows.shadowOf(manager).getRequestCount());
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "en-rUS-w640dp-h360dp-land-night-xhdpi")
+    public void aShortLandscapeBoardChooserScrollsItsFullExplanationAndEveryKindAtTwiceTheTextSize() throws Exception {
+        RuntimeEnvironment.setFontScale(2f);
+        assertEquals(2f, activity.getResources().getConfiguration().fontScale, 0f);
+        assertEquals(1280, activity.getResources().getDisplayMetrics().widthPixels);
+        assertEquals(720, activity.getResources().getDisplayMetrics().heightPixels);
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        for (String id : new String[]{"100", "101"}) {
+            long job = manager.enqueue(new DownloadManager.Request(Uri.parse("https://i.pinimg.com/originals/" + id + ".jpg")));
+            assertTrue(DownloadLedger.record(activity, job, id));
+        }
+        AlertDialog choice = openChooser(Arrays.asList(pin("100", "77"), video("101", "101.mp4", "77")));
+        View decor = choice.getWindow().getDecorView();
+        layoutInCurrentViewport(choice);
+        NativeDialogCapture.assertReadable(decor);
+        ListView kinds = choice.getListView();
+        assertEquals(ListView.CHOICE_MODE_SINGLE, kinds.getChoiceMode());
+        assertEquals(0, kinds.getCheckedItemPosition());
+        assertEquals(3, kinds.getCount());
+        assertTrue("the header starved the native choice list", kinds.getHeight() > 0);
+        for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEUTRAL, AlertDialog.BUTTON_NEGATIVE}) {
+            assertWholeInWindow(choice.getButton(which));
+        }
+
+        TextView explanation = visibleMessage(decor);
+        assertNotNull(explanation);
+        assertTrue(explanation.getText().toString().contains("Every pin loaded from this board is already in Download history."));
+        assertTrue(explanation.getText().toString().endsWith("To include more, scroll further down the board first."));
+        View ancestor = explanation;
+        while (ancestor.getParent() instanceof View && !(ancestor instanceof ScrollView)) ancestor = (View) ancestor.getParent();
+        assertTrue("the full explanation has no scrolling viewport", ancestor instanceof ScrollView);
+        ScrollView guidance = (ScrollView) ancestor;
+        assertTrue("the short window didn't exercise overflow", guidance.getChildAt(0).getHeight() > guidance.getHeight());
+        for (int line = 0; line < explanation.getLineCount(); line++) {
+            android.graphics.Rect wanted = new android.graphics.Rect();
+            explanation.getLayout().getLineBounds(line, wanted);
+            wanted.offset(explanation.getCompoundPaddingLeft(), explanation.getCompoundPaddingTop());
+            android.view.ViewGroup content = (android.view.ViewGroup) guidance.getChildAt(0);
+            content.offsetDescendantRectToMyCoords(explanation, wanted);
+            guidance.requestChildRectangleOnScreen(content, wanted, true);
+            int[] textAt = new int[2], viewportAt = new int[2];
+            explanation.getLocationInWindow(textAt);
+            guidance.getLocationInWindow(viewportAt);
+            int top = textAt[1] + explanation.getCompoundPaddingTop() + explanation.getLayout().getLineTop(line);
+            int bottom = textAt[1] + explanation.getCompoundPaddingTop() + explanation.getLayout().getLineBottom(line);
+            assertTrue("explanation line " + line + " can't scroll into view", top >= viewportAt[1]
+                    && bottom <= viewportAt[1] + guidance.getHeight());
+        }
+        assertTrue("the explanation never scrolled", guidance.getScrollY() > 0);
+
+        for (int position = 0; position < kinds.getCount(); position++) {
+            kinds.setSelection(position);
+            layoutInCurrentViewport(choice);
+            View row = kinds.getChildAt(position - kinds.getFirstVisiblePosition());
+            assertNotNull("kind " + position + " can't be reached by scrolling", row);
+            assertWholeInWindow(row);
+            assertTrue(kinds.performItemClick(row, position, kinds.getItemIdAtPosition(position)));
+            assertEquals(position, kinds.getCheckedItemPosition());
+            assertFalse("known pins became queueable", choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+            assertTrue("a loaded kind lost Save list", choice.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
+        }
+        assertEquals("reading and selecting queued a request", 2, Shadows.shadowOf(manager).getRequestCount());
+        assertEquals(Arrays.asList("100", "101"), ids(BoardDownloads.loaded("77")));
+        assertEquals(java.util.Set.of("100", "101"), DownloadLedger.downloadedPinIds(activity));
+        assertTrue(Settings.DOWNLOAD_PINS.get());
+        assertTrue(Settings.DOWNLOAD_BOARD.get());
+        assertFalse(GridDownloads.running());
+    }
+
+    /** Use this test's real landscape viewport, not the portrait capture helper's fixed canvas. */
+    private void layoutInCurrentViewport(AlertDialog dialog) {
+        android.util.DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
+        View decor = dialog.getWindow().getDecorView();
+        int width = Math.min(metrics.widthPixels, dialog.getWindow().getAttributes().width);
+        for (int pass = 0; pass < 2; pass++) {
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            decor.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(metrics.heightPixels, View.MeasureSpec.AT_MOST));
+            decor.layout(0, 0, decor.getMeasuredWidth(), decor.getMeasuredHeight());
+        }
+        assertTrue("dialog exceeds the short viewport", decor.getHeight() <= metrics.heightPixels);
+    }
+
+    private static void assertWholeInWindow(View view) {
+        android.graphics.Rect shown = new android.graphics.Rect();
+        assertTrue(view + " has no height", view.getHeight() > 0);
+        assertTrue(view + " is outside the dialog", view.getGlobalVisibleRect(shown));
+        assertEquals(view + " is clipped vertically", view.getHeight(), shown.height());
+        assertEquals(view + " is clipped horizontally", view.getWidth(), shown.width());
+    }
+
+    private static TextView visibleMessage(View view) {
+        if (view.getVisibility() != View.VISIBLE) return null;
+        if (view instanceof TextView && view.getId() == android.R.id.message) return (TextView) view;
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                TextView found = visibleMessage(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     @Test public void aKindWithNoNewPinsCantBeQueued() throws Exception {

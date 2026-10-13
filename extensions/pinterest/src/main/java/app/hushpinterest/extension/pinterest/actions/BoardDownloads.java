@@ -9,6 +9,8 @@ package app.hushpinterest.extension.pinterest.actions;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
@@ -380,29 +382,54 @@ public final class BoardDownloads {
                 names[filter.ordinal()] = filter.label(counts[filter.ordinal()]) + "\n" + L10n.f("Unsupported: %d", unsupported);
             }
             AlertDialog.Builder builder = HushDialogs.builder(activity);
-            TextView details = new TextView(builder.getContext());
+            String heading = L10n.t("Download board");
+            LinearLayout header = new LinearLayout(builder.getContext());
+            header.setOrientation(LinearLayout.VERTICAL);
             int side = Math.round(24 * activity.getResources().getDisplayMetrics().density);
-            details.setPaddingRelative(side, side / 3, side, 0);
+            header.setPaddingRelative(side, side * 3 / 4, side, 0);
+            TextView title = new TextView(builder.getContext());
+            title.setText(heading);
+            title.setAccessibilityHeading(true);
+            header.addView(title);
+            TextView details = new TextView(builder.getContext());
+            details.setId(android.R.id.message);
+            details.setPaddingRelative(0, side / 3, 0, 0);
             String skipped = fresh.isEmpty() ? L10n.t("Every pin loaded from this board is already in Download history.")
                     : known == 0 ? null : L10n.f("Skipped because they're already in Download history: %d", known);
             details.setText((skipped == null ? "" : skipped + "\n\n") + note());
+            header.addView(details);
+            ScrollView guidance = new ScrollView(builder.getContext()) {
+                @Override protected void onMeasure(int width, int height) {
+                    // AlertDialog measures a custom title before it reserves room for its list.
+                    // Bound the whole header so large text still leaves choices and actions visible.
+                    int limit = getResources().getDisplayMetrics().heightPixels / 3;
+                    if (MeasureSpec.getMode(height) != MeasureSpec.UNSPECIFIED) {
+                        limit = Math.min(limit, MeasureSpec.getSize(height));
+                    }
+                    super.onMeasure(width, MeasureSpec.makeMeasureSpec(limit, MeasureSpec.AT_MOST));
+                }
+            };
+            guidance.setScrollbarFadingEnabled(false);
+            guidance.addView(header);
             int[] chosen = {GridDownloads.Filter.ALL.ordinal()};
             AlertDialog picker = builder
-                    .setTitle(L10n.t("Download board"))
+                    // Keep the explanation above the native list so it can't take the list's space twice.
+                    .setCustomTitle(guidance)
                     .setSingleChoiceItems(names, chosen[0], (dialog, which) -> {
                         chosen[0] = which;
                         ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(counts[which] > 0);
                         ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_NEUTRAL)
                                 .setEnabled(!listed(board, filters[which]).isEmpty());
                     })
-                    .setView(details)
                     .setPositiveButton(L10n.t("Queue pins"), (dialog, which) -> confirm(activity, board, filters[chosen[0]]))
                     // The list has every loaded pin of the kind, Download history's too: it's a list, not a download.
                     .setNeutralButton(L10n.t("Save list"),
                             (dialog, which) -> PinManifest.export(activity, listed(board, filters[chosen[0]]), true))
                     .setNegativeButton(L10n.t("Cancel"), null).create();
             HushDialogs.prepareChoices(picker);
-            HushDialogs.paintControls(details);
+            picker.setTitle(heading);
+            HushDialogs.paintControls(header);
+            HushDialogs.paintTitle(title);
             picker.show();
             picker.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(counts[chosen[0]] > 0);
             HushDialogs.paint(picker);

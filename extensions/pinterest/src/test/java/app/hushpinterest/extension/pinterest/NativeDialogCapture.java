@@ -41,6 +41,7 @@ public final class NativeDialogCapture {
             if (parent != null) {
                 parent.measure(exact(WIDTH), exact(HEIGHT));
                 parent.layout(0, 0, WIDTH, HEIGHT);
+                parent.jumpDrawablesToCurrentState();
                 parent.draw(canvas);
             }
             for (Dialog dialog : dialogs) {
@@ -50,6 +51,7 @@ public final class NativeDialogCapture {
                 int width = content.getWidth() > 0 ? Math.min(WIDTH, content.getWidth()) : WIDTH;
                 content.measure(exact(width), View.MeasureSpec.makeMeasureSpec(HEIGHT, View.MeasureSpec.AT_MOST));
                 content.layout(0, 0, content.getMeasuredWidth(), content.getMeasuredHeight());
+                content.jumpDrawablesToCurrentState();
                 assertTrue("dialog has no height for " + name, content.getHeight() > 0);
                 assertTrue("dialog exceeds the viewport for " + name, content.getHeight() <= HEIGHT);
                 assertReadable(content);

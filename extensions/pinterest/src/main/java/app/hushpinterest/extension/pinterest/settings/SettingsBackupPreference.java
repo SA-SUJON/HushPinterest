@@ -480,7 +480,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
                 .setMessage(previewMessage(snapshot))
                 .setOnCancelListener(dialog -> answered(page));
         if (switches == 0) {
-            builder.setPositiveButton(L10n.t("OK"), (dialog, which) -> answered(page));
+            builder.setPositiveButton(L10n.t("Close"), (dialog, which) -> answered(page));
         } else {
             builder.setPositiveButton(L10n.t("Import"), (dialog, which) -> {
                 Bundle chosen = page.pendingImport;

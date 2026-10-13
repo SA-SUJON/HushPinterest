@@ -53,7 +53,6 @@ Import settings	Ayarları içe aktar
 Importing settings	Ayarlar içe aktarılıyor
 Licenses	Lisanslar
 Links	Bağlantılar
-OK	Tamam
 Pause HushPinterest	HushPinterest'i duraklat
 Reading the settings file	Ayar dosyası okunuyor
 Retry	Yeniden dene
@@ -169,25 +168,25 @@ Privacy	Gizlilik
 Pin actions	Pin işlemleri
 Interface	Arayüz
 Hide shopping and product pins	Alışveriş ve ürün Pinlerini gizle
-Hides shoppable pins, shopping stories and featured boards.	Satın alınabilir pinleri, alışveriş hikayelerini ve öne çıkan panoları gizler.
+Hides product pins, shopping stories, featured boards and Shop the look under pins. Visit and Paid link stay.	Ürün pinlerini, alışveriş hikayelerini, öne çıkan panoları ve pinlerin altındaki Shop the look bölümünü gizler. Ziyaret bağlantısı ve ücretli bağlantı etiketi kalır.
 Disable analytics	Analizleri devre dışı bırak
-Stops Pinterest from sending usage reports and running its analytics tasks. Google's analytics collection stays off until you patch again without Disable analytics.	Pinterest'in kullanım raporları göndermesini ve analiz görevlerini çalıştırmasını durdurur. Google'ın analiz verisi toplaması, Disable analytics olmadan yeniden yamalayana kadar kapalı kalır.
+Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.	Kullanım raporlarını ve analiz görevlerini durdurur. Kapattıktan veya duraklattıktan sonra yeniden başlat. Google'ın analizleri, Analizleri devre dışı bırak yaması olmadan yeniden yamalayana kadar kapalı kalır.
 Firebase and Google Analytics collection is turned off	Firebase ve Google Analytics veri toplama kapalı
 Analytics launch tasks	Analiz başlatma görevleri
 Analytics uploads	Analiz veri gönderimi
 Strip link tracking	Bağlantı takibini kaldır
-Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them unless Plain pin links is on.	Kopyaladığın veya paylaştığın bağlantılardan takip etiketlerini kaldırır. Sade pin bağlantıları kapalıysa kısa pin.it bağlantıları Pinterest'in oluşturduğu gibi kalır.
-Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them.	Kopyaladığın veya paylaştığın bağlantılardan takip etiketlerini kaldırır. Kısa pin.it bağlantıları Pinterest'in oluşturduğu gibi kalır.
+Removes tracking tags from copied and shared links. Short pin.it links stay unchanged unless Plain pin links is on.	Kopyalanan ve paylaşılan bağlantılardan takip etiketlerini kaldırır. Sade pin bağlantıları açık değilse kısa pin.it bağlantıları değişmez.
+Removes tracking tags from copied and shared links. Short pin.it links stay unchanged.	Kopyalanan ve paylaşılan bağlantılardan takip etiketlerini kaldırır. Kısa pin.it bağlantıları değişmez.
 Plain pin links	Sade pin bağlantıları
-Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. Pin links from Pinterest's country sites become that same link too. When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.	Kopyalanan ve paylaşılan pin.it bağlantıları pinin kendi pinterest.com bağlantısına dönüşür, böylece onları kimin paylaştığını göstermez. Pinterest'in ülke sitelerindeki pin bağlantıları da aynı bağlantıya dönüşür. HushPinterest pini henüz tanımıyorsa kopyalanan bağlantı arka planda Pinterest'e sorulur ve kısa bir süre sonra değiştirilir.
+Replaces short and country-site pin links with pinterest.com links that don't identify who shared them. Unknown copied short links change only if a background check finds the pin. Sharing doesn't wait for that check.	Kısa pin bağlantılarını ve ülke sitelerindeki pin bağlantılarını, kimin paylaştığını göstermeyen pinterest.com bağlantılarına dönüştürür. Tanınmayan kopyalanmış kısa bağlantılar yalnızca arka plan sorgusu pini bulursa değişir. Paylaşım bu sorguyu beklemez.
 Hide advertising ID	Reklam kimliğini gizle
 Block Store browser ID	Block Store tarayıcı kimliği
-Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your advertising ID in Android settings. Pinterest also stops keeping its browser ID in Google's Block Store, where it would outlast a reinstall.	Pinterest, reklam takibi sınırlı olarak boş bir reklam kimliği görür. Reklam kimliğini Android ayarlarından silmişsin gibi olur. Pinterest ayrıca tarayıcı kimliğini Google'ın Block Store'unda tutmayı bırakır. Orada kalsa uygulamayı yeniden yüklesen bile silinmezdi.
+Shows an empty ad ID with tracking limited, as if you deleted it in Android. Also stops Google's Block Store from keeping Pinterest's browser ID across reinstalls.	Android'de silmişsin gibi, takibi sınırlı boş bir reklam kimliği gösterir. Google'ın Block Store'unun Pinterest'in tarayıcı kimliğini yeniden yüklemelerde saklamasını da durdurur.
 Remove ad tracking permissions	Reklam izleme izinlerini kaldır
 Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Pinterest artık Google'ın reklam kimliği iznini veya Android'in reklam hizmetlerini kullanamaz. Bu, yamalarken ayarlandı. Geri getirmek için bu yama olmadan yeniden yamala.
 Pinterest's access to the ad ID and Android's ad services is removed	Pinterest'in reklam kimliğine ve Android reklam hizmetlerine erişimi kaldırıldı
 Spoof signature for Google sign-in	Google ile oturum açma için imzayı taklit et
-Tells Android this is the original Pinterest, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched. Patch again without it to take it out.	Android'e bunun orijinal Pinterest olduğunu söyler; böylece Google ile giriş microG-RE veya XSpoofSignatures modülüyle çalışabilir. Normal Google Play hizmetleri bunu yok sayar. Bu, yamalarken ayarlandı. Kaldırmak için bu yama olmadan yeniden yamala.
+Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.	Google ile girişe yalnızca microG-RE veya XSpoofSignatures ile yardımcı olur. Normal Google Play hizmetleri bunu yok sayar. Yamalarken ayarlanır. Kaldırmak için bu yama olmadan yeniden yamala.
 Pinterest's original signature is added to the app	Pinterest'in orijinal imzası uygulamaya eklendi
 Download pins	Pinleri indir
 Open links in your browser	Bağlantıları tarayıcında aç
@@ -376,15 +375,15 @@ Nothing was queued. The selection stopped or wasn't available.	Sıraya bir şey 
 Pinterest didn't supply supported media for this pin.	Pinterest bu Pin için desteklenen bir medya sağlamadı.
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Bir pini indir veya ızgaradan birkaç pin seç. Videoları ve orijinal görselleri, yoksa Pinterest'in sunduğu en büyük boyutu kaydeder.
 Save in Pinterest's folder	Pinterest klasörüne kaydet
-Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.	İndirilenleri Download yerine Pinterest'in kendi kaydettiği görsellerin klasörü olan Pictures/100PINT/Pins içine kaydeder.
+Saves to Pictures/100PINT/Pins with Pinterest's own images, instead of the Download folder.	Download klasörü yerine Pinterest'in kendi görselleriyle birlikte Pictures/100PINT/Pins içine kaydeder.
 Download on unmetered networks only	Yalnızca sayaçsız ağlarda indir
-New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.	Yeni indirmeler, Android İndirilenler'de Android'in sayaçsız saydığı bir ağı bekler, evdeki çoğu Wi-Fi gibi. Mobil veri genellikle sayaçlı sayılır, sayaçlı olarak işaretlenmiş Wi-Fi da öyle, örneğin bir telefonun hotspot'u. Zaten sıradaki indirmeler kendi kurallarını korur.
+New downloads wait for an unmetered network, usually home Wi-Fi. Metered Wi-Fi and most hotspots don't qualify. Queued downloads keep their original rule.	Yeni indirmeler sayaçsız bir ağı, genellikle ev Wi-Fi'ını bekler. Sayaçlı Wi-Fi ve çoğu hotspot sayılmaz. Sıradaki indirmeler ilk kurallarını korur.
 No downloads while roaming	Dolaşımdayken indirme yapma
-New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.	Yeni indirmeler, telefonun dolaşımdayken mobil veri kullanmaz. Wi-Fi'ı veya kendi ağını bekler. Zaten sıradaki indirmeler kendi kurallarını korur.
+New downloads avoid roaming data. They wait for Wi-Fi or your home mobile network. Queued downloads keep their original rule.	Yeni indirmeler dolaşım verisini kullanmaz. Wi-Fi'ı veya kendi mobil ağını bekler. Sıradaki indirmeler ilk kurallarını korur.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Yalnızca en son 32 indirme ve seçim sonucu listelenir. Kaydedilen dosyalar korunur.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Panoyu indir
-Adds Download board to a board's menu. It saves the pins Pinterest has loaded for that board so far and skips any already in Download history. Download pins has to be on too.	Bir panonun menüsüne Panoyu indir seçeneğini ekler. Pinterest'in o pano için şimdiye kadar yüklediği Pinleri kaydeder ve İndirme geçmişinde olanları atlar. Pinleri indir de açık olmalıdır.
+Downloads up to 500 loaded pins, skipping those in Download history. Needs Download pins on. Scroll the board to load more.	İndirme geçmişindekileri atlayarak yüklenen en fazla 500 pini indirir. Pinleri indir açık olmalı. Daha fazlasını yüklemek için panoyu kaydır.
 Skipped because they're already in Download history: %d	İndirme geçmişinde olduğu için atlananlar: %d
 Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.	Yalnızca Pinterest'in bu pano için şimdiye kadar yüklediği Pinler dahil edilir, en fazla %d. Daha fazlasını eklemek için önce panoda daha aşağı kaydır.
 This board's pins haven't loaded yet. Scroll it and try again.	Bu panonun Pinleri henüz yüklenmedi. Biraz kaydır ve tekrar dene.
@@ -394,7 +393,7 @@ board menus	pano menüleri
 loaded board pins	yüklenen pano Pinleri
 # context: Long-press download, a button added to the round menu a held pin opens, and its switch on the Pin actions page.
 Long-press download	Uzun basarak indirme
-Adds a Download button to the round menu you get when you hold a pin. Slide onto it and let go to save the pin. Download pins has to be on too.	Bir pine basılı tuttuğunda açılan yuvarlak menüye bir İndir düğmesi ekler. Parmağını düğmeye kaydırıp bırakınca pin kaydedilir. Pinleri indir de açık olmalıdır.
+Adds Download to a grid pin's long-press menu. Slide onto it and release. Needs Download pins on.	Izgaradaki bir pine basılı tutunca açılan menüye İndir'i ekler. Parmağını üzerine kaydırıp bırak. Pinleri indir açık olmalı.
 # context: Hide ads coverage in a partial build: each list holder or ad-only view the patch did or didn't hook, named in the Feed page summary. The last row adds how many of a target's hooks went in.
 promoted pins in feed pages	akış sayfalarındaki reklamlı pinler
 promoted pins in paged results	sayfalı sonuçlardaki reklamlı pinler

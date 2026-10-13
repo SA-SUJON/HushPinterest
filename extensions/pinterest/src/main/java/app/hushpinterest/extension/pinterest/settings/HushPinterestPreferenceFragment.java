@@ -278,37 +278,36 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                             + "AI images without the label still show."))), SettingsIcons.BLOCK));
             }
             patchToggle(feed, context, build, PatchFamily.HIDE_SHOPPING, Settings.HIDE_SHOPPING,
-                    L10n.t("Hide shopping and product pins"), L10n.t("Hides shoppable pins, shopping stories and "
-                        + "featured boards."), SettingsIcons.BLOCK);
+                    L10n.t("Hide shopping and product pins"), L10n.t("Hides product pins, shopping stories, featured "
+                        + "boards and Shop the look under pins. Visit and Paid link stay."), SettingsIcons.BLOCK);
         }
 
         if (!Collections.disjoint(build, PatchFamily.PRIVACY_PAGE)) {
             PreferenceCategory privacy = category(screen, L10n.t("Privacy"));
             patchToggle(privacy, context, build, PatchFamily.DISABLE_ANALYTICS, Settings.DISABLE_ANALYTICS,
-                    L10n.t("Disable analytics"), L10n.t("Stops Pinterest from sending usage reports and running its "
-                        + "analytics tasks. Google's analytics collection stays off "
+                    L10n.t("Disable analytics"), L10n.t("Stops usage reports and analytics tasks. Restart after turning "
+                        + "off or pausing. Google's analytics stays off "
                         + "until you patch again without Disable analytics."), SettingsIcons.BLOCK);
             // Its own hooks: a build where Pinterest's invite logger or direct share wasn't found has no row
             // for Plain pin links, and then the row above it doesn't point at a switch that isn't there.
             boolean plainLinks = build.contains(PatchFamily.STRIP_LINK_TRACKING) && PatchFamily.Capability.PLAIN_PIN_LINKS.installed();
             patchToggle(privacy, context, build, PatchFamily.STRIP_LINK_TRACKING, Settings.STRIP_LINK_TRACKING,
                     L10n.t("Strip link tracking"), plainLinks
-                        ? L10n.t("Removes tracking tags from links you copy or share. "
-                            + "Short pin.it links stay as Pinterest made them unless Plain pin links is on.")
-                        : L10n.t("Removes tracking tags from links you copy or share. "
-                            + "Short pin.it links stay as Pinterest made them."), SettingsIcons.LINKS);
+                        ? L10n.t("Removes tracking tags from copied and shared links. "
+                            + "Short pin.it links stay unchanged unless Plain pin links is on.")
+                        : L10n.t("Removes tracking tags from copied and shared links. "
+                            + "Short pin.it links stay unchanged."), SettingsIcons.LINKS);
             if (plainLinks) {
                 privacy.addPreference(mark(toggle(context, Settings.PLAIN_PIN_LINKS, L10n.t("Plain pin links"),
-                        L10n.t("Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. "
-                                + "Pin links from Pinterest's country sites become that same link too. "
-                                + "When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.")),
+                        L10n.t("Replaces short and country-site pin links with pinterest.com links that don't identify who shared them. "
+                                + "Unknown copied short links change only if a background check finds the pin. "
+                                + "Sharing doesn't wait for that check.")),
                         SettingsIcons.LINKS));
             }
             patchToggle(privacy, context, build, PatchFamily.HIDE_ADVERTISING_ID, Settings.HIDE_ADVERTISING_ID,
-                    L10n.t("Hide advertising ID"), L10n.t("Pinterest sees an empty advertising ID with ad tracking "
-                        + "limited, as if you deleted your advertising ID in Android "
-                        + "settings. Pinterest also stops keeping its browser ID in Google's Block Store, "
-                        + "where it would outlast a reinstall."), SettingsIcons.BLOCK);
+                    L10n.t("Hide advertising ID"), L10n.t("Shows an empty ad ID with tracking limited, as if you deleted "
+                        + "it in Android. Also stops Google's Block Store from keeping Pinterest's browser ID across reinstalls."),
+                        SettingsIcons.BLOCK);
             // A patch-time fact with no switch: an explanation, so it takes the info mark.
             if (build.contains(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS)) {
                 privacy.addPreference(mark(info(context, L10n.t("Remove ad tracking permissions"),
@@ -318,9 +317,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             }
             if (build.contains(PatchFamily.SPOOF_SIGNATURE)) {
                 privacy.addPreference(mark(info(context, L10n.t("Spoof signature for Google sign-in"),
-                        L10n.t("Tells Android this is the original Pinterest, so Google sign-in can work with "
-                            + "microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. "
-                            + "This was set when you patched. Patch again without it to take it out.")),
+                        L10n.t("Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services "
+                            + "ignores it. Set when patching. Patch again without it to remove it.")),
                         SettingsIcons.ABOUT));
             }
         }
@@ -333,29 +331,27 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             if (build.contains(PatchFamily.DOWNLOAD_PINS)) {
                 // Download pins' second switch, drawn like Plain pin links: Pause turns it off with the first.
                 actions.addPreference(mark(toggle(context, Settings.SAVE_IN_PINTEREST_FOLDER, L10n.t("Save in Pinterest's folder"),
-                        L10n.t("Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of "
-                            + "Download.")), SettingsIcons.DOWNLOADS));
+                        L10n.t("Saves to Pictures/100PINT/Pins with Pinterest's own images, instead of the Download folder.")),
+                        SettingsIcons.DOWNLOADS));
                 actions.addPreference(mark(new DownloadFolderPreference(this, context), SettingsIcons.DOWNLOADS));
                 // Android holds each download to the limits it was queued with, so the summaries say "new".
                 actions.addPreference(mark(toggle(context, Settings.DOWNLOAD_UNMETERED_ONLY,
                         L10n.t("Download on unmetered networks only"),
-                        L10n.t("New downloads wait in Android's Downloads for a network Android counts as unmetered, "
-                            + "like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked "
-                            + "as metered, such as a phone's hotspot. Downloads already queued keep their own rule.")),
+                        L10n.t("New downloads wait for an unmetered network, usually home Wi-Fi. Metered Wi-Fi and most "
+                            + "hotspots don't qualify. Queued downloads keep their original rule.")),
                         SettingsIcons.DOWNLOADS));
                 actions.addPreference(mark(toggle(context, Settings.DOWNLOAD_NO_ROAMING, L10n.t("No downloads while roaming"),
-                        L10n.t("New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi "
-                            + "or your home network. Downloads already queued keep their own rule.")),
+                        L10n.t("New downloads avoid roaming data. They wait for Wi-Fi or your home mobile network. "
+                            + "Queued downloads keep their original rule.")),
                         SettingsIcons.DOWNLOADS));
                 actions.addPreference(mark(new DownloadHistoryPreference(context), SettingsIcons.DOWNLOADS));
             }
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_BOARD, Settings.DOWNLOAD_BOARD,
-                    L10n.t("Download board"), L10n.t("Adds Download board to a board's menu. It saves the pins Pinterest "
-                        + "has loaded for that board so far and skips any already in Download history. Download pins "
-                        + "has to be on too."), SettingsIcons.DOWNLOADS);
+                    L10n.t("Download board"), L10n.t("Downloads up to 500 loaded pins, skipping those in Download history. "
+                        + "Needs Download pins on. Scroll the board to load more."), SettingsIcons.DOWNLOADS);
             patchToggle(actions, context, build, PatchFamily.LONG_PRESS_DOWNLOAD, Settings.LONG_PRESS_DOWNLOAD,
-                    L10n.t("Long-press download"), L10n.t("Adds a Download button to the round menu you get when you "
-                        + "hold a pin. Slide onto it and let go to save the pin. Download pins has to be on too."),
+                    L10n.t("Long-press download"), L10n.t("Adds Download to a grid pin's long-press menu. Slide onto it "
+                        + "and release. Needs Download pins on."),
                     SettingsIcons.DOWNLOADS);
             patchToggle(actions, context, build, PatchFamily.SYSTEM_SHARE, Settings.SYSTEM_SHARE,
                     L10n.t("System share sheet"), L10n.t("Sharing a pin link opens Android's own share menu."), SettingsIcons.EXPORT);
@@ -1197,7 +1193,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         show(new AlertDialog.Builder(context)
                 .setTitle(L10n.t("Licenses"))
                 .setView(scroll)
-                .setPositiveButton(L10n.t("OK"), null));
+                .setPositiveButton(L10n.t("Close"), null));
     }
 
     /**

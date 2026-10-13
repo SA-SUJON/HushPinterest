@@ -24,8 +24,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.RippleDrawable;
@@ -165,6 +168,113 @@ public class ScreenColorsTest {
         assertTrue(contrast(page.outline, page.card) >= 2.0);
         assertTrue(contrast(page.outline, page.background) >= 2.0);
         assertTrue(contrast(page.outline, page.dialog) >= 2.0);
+    }
+
+    @Test
+    public void interactiveBoundariesMeetAaOnEveryAdjacentSurface() {
+        ScreenColors page = ScreenColors.DEFAULT;
+        for (int surface : new int[]{page.background, page.card, page.dialog, page.selectedCard, page.statusEnd}) {
+            assertTrue("control boundary blends into " + Integer.toHexString(surface),
+                    contrast(page.controlOutline, surface) >= NON_TEXT);
+            assertTrue("focused boundary blends into " + Integer.toHexString(surface),
+                    contrast(page.heading, surface) >= NON_TEXT);
+        }
+        assertTrue("the primary action's focused boundary blends into its fill",
+                contrast(page.onAccent, page.actionFill) >= NON_TEXT);
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void preferenceFocusKeyboardSelectionAndPressHaveVisibleBoundaries() {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        View row = new View(context);
+        row.setFocusableInTouchMode(true);
+        ScreenColors.DEFAULT.paintSurface(row, new android.preference.Preference(context), true, true);
+        assertEquals(ScreenColors.DEFAULT.controlOutline, drawnEdge(row.getBackground()));
+        assertTrue(row.requestFocus());
+        assertEquals(ScreenColors.DEFAULT.heading, drawnEdge(row.getBackground()));
+        row.setFocusable(false);
+        row.clearFocus();
+        row.setSelected(true);
+        assertEquals(ScreenColors.DEFAULT.heading, drawnEdge(row.getBackground()));
+        row.setSelected(false);
+        row.setPressed(true);
+        assertEquals(ScreenColors.DEFAULT.heading, drawnEdge(row.getBackground()));
+        row.setEnabled(false);
+        assertTrue("a disabled row retained its active boundary",
+                ScreenColors.DEFAULT.heading != drawnEdge(row.getBackground()));
+        row.setPressed(false);
+        row.setEnabled(true);
+        assertEquals(ScreenColors.DEFAULT.controlOutline, drawnEdge(row.getBackground()));
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void filledAndOutlinedActionsKeepFocusSeparateFromDisabledState() {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        for (boolean primary : new boolean[]{false, true}) {
+            Button button = new Button(context);
+            button.setFocusableInTouchMode(true);
+            button.setBackground(ScreenColors.actionBackground(button, primary));
+            int normal = primary ? ScreenColors.DEFAULT.actionFill : ScreenColors.DEFAULT.controlOutline;
+            int focus = primary ? ScreenColors.DEFAULT.onAccent : ScreenColors.DEFAULT.heading;
+            assertEquals(normal, drawnEdge(button.getBackground()));
+            assertTrue(button.requestFocus());
+            assertEquals(focus, drawnEdge(button.getBackground()));
+            button.setEnabled(false);
+            assertTrue("a disabled action retained its focus boundary", focus != drawnEdge(button.getBackground()));
+            button.setEnabled(true);
+            assertTrue(button.requestFocus());
+            assertEquals(focus, drawnEdge(button.getBackground()));
+            button.setFocusable(false);
+            button.clearFocus();
+            assertEquals(normal, drawnEdge(button.getBackground()));
+        }
+    }
+
+    @Test
+    public void boundedSwitchShapesKeepTheNativeCheckedActionAndTouchTarget() {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        android.widget.LinearLayout row = new android.widget.LinearLayout(context);
+        Switch toggle = new Switch(context);
+        toggle.setId(android.R.id.switch_widget);
+        row.addView(toggle);
+        ScreenColors.DEFAULT.paintRow(row, new android.preference.SwitchPreference(context));
+        GradientDrawable thumb = (GradientDrawable) toggle.getThumbDrawable();
+        GradientDrawable track = (GradientDrawable) toggle.getTrackDrawable();
+        float density = context.getResources().getDisplayMetrics().density;
+        assertEquals(GradientDrawable.RECTANGLE, thumb.getShape());
+        assertEquals(Math.round(4 * density), thumb.getCornerRadius(), 0.01f);
+        assertEquals(Math.round(6 * density), track.getCornerRadius(), 0.01f);
+        assertTrue(toggle.getMinimumWidth() >= Math.round(48 * density));
+        assertTrue(toggle.getMinimumHeight() >= Math.round(48 * density));
+        int[] changes = {0};
+        toggle.setOnCheckedChangeListener((view, checked) -> changes[0]++);
+        toggle.performClick();
+        assertTrue(toggle.isChecked());
+        assertEquals(1, changes[0]);
+        assertTrue(toggle.createAccessibilityNodeInfo().isCheckable());
+        assertTrue(toggle.createAccessibilityNodeInfo().isChecked());
+        toggle.performClick();
+        assertFalse(toggle.isChecked());
+        assertEquals(2, changes[0]);
+    }
+
+    /** Reads the painted straight edge, outside its rounded corners and the animated ripple. */
+    private static int drawnEdge(Drawable background) {
+        return drawnPixel(background, 0);
+    }
+
+    private static int drawnPixel(Drawable background, int x) {
+        Drawable surface = background;
+        if (surface instanceof RippleDrawable) surface = ((RippleDrawable) surface).getDrawable(0);
+        if (surface instanceof InsetDrawable) surface = ((InsetDrawable) surface).getDrawable();
+        Bitmap pixels = Bitmap.createBitmap(120, 80, Bitmap.Config.ARGB_8888);
+        try {
+            surface.setBounds(0, 0, pixels.getWidth(), pixels.getHeight());
+            surface.draw(new Canvas(pixels));
+            return pixels.getPixel(x, pixels.getHeight() / 2);
+        } finally {
+            pixels.recycle();
+        }
     }
 
     /** The hero's blue gathers on the end side: the right in English, the left in a right-to-left language. */
@@ -353,6 +463,12 @@ public class ScreenColorsTest {
                 list.layout(0, 0, width, 1600);
                 CheckedTextView selected = (CheckedTextView) list.getChildAt(1);
                 assertTrue(selected.isChecked());
+                selected.setSelected(true);
+                assertEquals(ScreenColors.DEFAULT.heading, drawnEdge(selected.getBackground()));
+                assertTrue("keyboard selection changed the chosen radio option", selected.isChecked());
+                selected.setSelected(false);
+                assertEquals(ScreenColors.DEFAULT.accent, drawnEdge(selected.getBackground()));
+                assertEquals(ScreenColors.DEFAULT.selectedCard, drawnPixel(selected.getBackground(), 60));
                 assertTrue("the long choice did not wrap", selected.getLineCount() > 1);
                 assertNotNull(selected.getLayout());
                 for (int line = 0; line < selected.getLayout().getLineCount(); line++) {

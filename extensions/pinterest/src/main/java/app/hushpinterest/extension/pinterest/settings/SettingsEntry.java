@@ -61,8 +61,8 @@ import app.hushpinterest.extension.shared.Utils;
  * <p>From the home screen, a long-press shortcut on Pinterest's launcher icon opens Pinterest's launcher
  * activity with {@link #EXTRA_OPEN_SETTINGS}. From Android's App info page for Pinterest, "Additional
  * settings in the app" opens it too: the patch adds an activity alias for
- * {@link Intent#ACTION_APPLICATION_PREFERENCES} that points at the same launcher activity. Every
- * Pinterest activity reports its intent here from {@code onCreate} and {@code onNewIntent}, and the
+ * {@link Intent#ACTION_APPLICATION_PREFERENCES} that points at the same launcher activity. The launcher
+ * reports its startup intent here, and both it and the home activity report {@code onNewIntent}. The
  * next Pinterest activity to resume shows the screen as a full screen dialog. The shortcut is kept
  * first among Pinterest's own, because a launcher shows only the first few, and some launchers have no
  * shortcut menu at all.
@@ -299,7 +299,7 @@ public final class SettingsEntry {
         }
     }
 
-    /** Injected at the start of every Pinterest activity's {@code onCreate}. */
+    /** Injected at the start of Pinterest's launcher activity's {@code onCreate}. */
     public static void onActivityCreate(Activity activity) {
         try {
             noteIntent(activity.getIntent());
@@ -308,7 +308,7 @@ public final class SettingsEntry {
         }
     }
 
-    /** Injected at the start of every Pinterest activity's {@code onNewIntent}. */
+    /** Injected at the start of the launcher and home activities' {@code onNewIntent}. */
     public static void onNewIntent(Activity activity, Intent intent) {
         try {
             noteIntent(intent);

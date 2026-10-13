@@ -53,7 +53,6 @@ Import settings	Importar configurações
 Importing settings	Importando as configurações
 Licenses	Licenças
 Links	Links
-OK	OK
 Pause HushPinterest	Pausar o HushPinterest
 Reading the settings file	Lendo o arquivo de configurações
 Retry	Tentar novamente
@@ -166,25 +165,25 @@ Privacy	Privacidade
 Pin actions	Ações do Pin
 Interface	Interface
 Hide shopping and product pins	Ocultar compras e Pins de produtos
-Hides shoppable pins, shopping stories and featured boards.	Oculta pins de compra, stories de compras e pastas em destaque.
+Hides product pins, shopping stories, featured boards and Shop the look under pins. Visit and Paid link stay.	Oculta pins de produtos, stories de compras, pastas em destaque e Shop the look abaixo dos pins. O link para visitar o site e a indicação de link pago ficam.
 Disable analytics	Desativar análises
-Stops Pinterest from sending usage reports and running its analytics tasks. Google's analytics collection stays off until you patch again without Disable analytics.	Impede o Pinterest de enviar relatórios de uso e executar suas tarefas de análise. A coleta de análise do Google continua desligada até você aplicar os patches de novo sem o Disable analytics.
+Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.	Para os relatórios de uso e as tarefas de análise. Reinicie após desligar ou pausar. As análises do Google ficam desligadas até você aplicar os patches de novo sem Desativar análises.
 Firebase and Google Analytics collection is turned off	A coleta do Firebase e do Google Analytics está desativada
 Analytics launch tasks	Inicialização dos serviços de análise
 Analytics uploads	Envios de análises
 Strip link tracking	Remover rastreamento de links
-Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them unless Plain pin links is on.	Remove os códigos de rastreamento dos links que você copia ou compartilha. Os links curtos pin.it continuam como o Pinterest os criou, a menos que Links de pin simples esteja ativado.
-Removes tracking tags from links you copy or share. Short pin.it links stay as Pinterest made them.	Remove os códigos de rastreamento dos links que você copia ou compartilha. Os links curtos pin.it continuam como o Pinterest os criou.
+Removes tracking tags from copied and shared links. Short pin.it links stay unchanged unless Plain pin links is on.	Remove códigos de rastreamento de links copiados e compartilhados. Links curtos pin.it não mudam, a menos que Links de pin simples esteja ativado.
+Removes tracking tags from copied and shared links. Short pin.it links stay unchanged.	Remove códigos de rastreamento de links copiados e compartilhados. Links curtos pin.it não mudam.
 Plain pin links	Links de pin simples
-Copied and shared pin.it links become the pin's own pinterest.com link, so they don't say who shared them. Pin links from Pinterest's country sites become that same link too. When HushPinterest doesn't know the pin yet, a copied link is checked with Pinterest in the background and swapped in a moment later.	Links do pin.it copiados e compartilhados viram o link do próprio pin no pinterest.com, então não dizem quem os compartilhou. Links de pins dos sites do Pinterest de cada país também viram esse mesmo link. Quando o HushPinterest ainda não conhece o pin, um link copiado é verificado com o Pinterest em segundo plano e trocado logo depois.
+Replaces short and country-site pin links with pinterest.com links that don't identify who shared them. Unknown copied short links change only if a background check finds the pin. Sharing doesn't wait for that check.	Troca links curtos de pins e de sites de outros países por links do pinterest.com que não identificam quem os compartilhou. Links curtos copiados desconhecidos só mudam se uma consulta em segundo plano encontrar o pin. Compartilhar não espera essa consulta.
 Hide advertising ID	Ocultar ID de publicidade
 Block Store browser ID	ID de navegador no Block Store
-Pinterest sees an empty advertising ID with ad tracking limited, as if you deleted your advertising ID in Android settings. Pinterest also stops keeping its browser ID in Google's Block Store, where it would outlast a reinstall.	O Pinterest vê um ID de publicidade vazio, com o rastreamento de anúncios limitado, como se você tivesse apagado seu ID de publicidade nas configurações do Android. O Pinterest também deixa de guardar o próprio ID de navegador no Block Store do Google, onde ele sobreviveria a uma reinstalação.
+Shows an empty ad ID with tracking limited, as if you deleted it in Android. Also stops Google's Block Store from keeping Pinterest's browser ID across reinstalls.	Mostra um ID de publicidade vazio com rastreamento limitado, como se você o apagasse no Android. Também impede o Block Store do Google de manter o ID de navegador do Pinterest após reinstalar.
 Remove ad tracking permissions	Remover permissões de rastreamento de anúncios
 Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	O Pinterest não pode mais usar a permissão de ID de publicidade do Google nem os serviços de anúncios do Android. Isso foi definido ao aplicar os patches. Aplique de novo sem ele para recuperá-los.
 Pinterest's access to the ad ID and Android's ad services is removed	o acesso do Pinterest ao ID de publicidade e aos serviços de anúncios do Android foi removido
 Spoof signature for Google sign-in	Falsificar assinatura para login com Google
-Tells Android this is the original Pinterest, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched. Patch again without it to take it out.	Diz ao Android que este é o Pinterest original, para que o login com Google possa funcionar com o microG-RE ou o módulo XSpoofSignatures. O Google Play Services normal o ignora. Isso foi definido ao aplicar os patches. Aplique de novo sem ele para removê-lo.
+Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.	Ajuda no login com Google só com microG-RE ou XSpoofSignatures. O Google Play Services normal o ignora. Definido ao aplicar os patches. Aplique de novo sem ele para removê-lo.
 Pinterest's original signature is added to the app	A assinatura original do Pinterest foi adicionada ao app
 Download pins	Baixar Pins
 Open links in your browser	Abrir links no seu navegador
@@ -373,15 +372,15 @@ Nothing was queued. The selection stopped or wasn't available.	Nada foi para a f
 Pinterest didn't supply supported media for this pin.	O Pinterest não forneceu mídia compatível para este Pin.
 Download a pin, or select several pins in a grid. Saves videos and original images, or the largest size Pinterest has.	Baixe um pin ou selecione vários em uma grade. Salva vídeos e imagens originais, ou o maior tamanho que o Pinterest tiver.
 Save in Pinterest's folder	Salvar na pasta do Pinterest
-Saves downloads in Pictures/100PINT/Pins, the folder Pinterest's own image saves use, instead of Download.	Salva os downloads em Pictures/100PINT/Pins, a pasta que o próprio Pinterest usa para salvar imagens, em vez de Download.
+Saves to Pictures/100PINT/Pins with Pinterest's own images, instead of the Download folder.	Salva em Pictures/100PINT/Pins junto às imagens do Pinterest, em vez da pasta Download.
 Download on unmetered networks only	Baixar só em redes ilimitadas
-New downloads wait in Android's Downloads for a network Android counts as unmetered, like most home Wi-Fi. Mobile data usually counts as metered, and so does Wi-Fi marked as metered, such as a phone's hotspot. Downloads already queued keep their own rule.	Os downloads novos esperam nos Downloads do Android por uma rede que o Android trate como ilimitada, como a maioria dos Wi-Fi de casa. Dados móveis costumam contar como limitados, assim como um Wi-Fi marcado como limitado, por exemplo o ponto de acesso de um celular. Downloads que já estão na fila mantêm a própria regra.
+New downloads wait for an unmetered network, usually home Wi-Fi. Metered Wi-Fi and most hotspots don't qualify. Queued downloads keep their original rule.	Downloads novos esperam uma rede ilimitada, geralmente o Wi-Fi de casa. Wi-Fi limitado e a maioria dos pontos de acesso não contam. Downloads na fila mantêm a regra original.
 No downloads while roaming	Sem downloads em roaming
-New downloads don't use mobile data while your phone is roaming. They wait for Wi-Fi or your home network. Downloads already queued keep their own rule.	Os downloads novos não usam dados móveis enquanto seu celular está em roaming. Eles esperam o Wi-Fi ou sua rede de origem. Downloads que já estão na fila mantêm a própria regra.
+New downloads avoid roaming data. They wait for Wi-Fi or your home mobile network. Queued downloads keep their original rule.	Downloads novos evitam dados em roaming. Eles esperam o Wi-Fi ou sua rede móvel de origem. Downloads na fila mantêm a regra original.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Apenas os 32 downloads e resultados de seleção mais recentes são listados. Os arquivos salvos são mantidos.
 # context: Download board, a row in a board's own menu and its switch on the Pin actions page.
 Download board	Baixar pasta
-Adds Download board to a board's menu. It saves the pins Pinterest has loaded for that board so far and skips any already in Download history. Download pins has to be on too.	Adiciona Baixar pasta ao menu de uma pasta. Salva os Pins que o Pinterest carregou até agora dessa pasta e pula os que já estão no Histórico de downloads. Baixar Pins também precisa estar ativado.
+Downloads up to 500 loaded pins, skipping those in Download history. Needs Download pins on. Scroll the board to load more.	Baixa até 500 pins carregados e pula os do Histórico de downloads. Baixar Pins precisa estar ativado. Role a pasta para carregar mais.
 Skipped because they're already in Download history: %d	Pulados porque já estão no Histórico de downloads: %d
 Only the pins Pinterest has loaded for this board so far are included, up to %d. To include more, scroll further down the board first.	Só entram os Pins que o Pinterest já carregou desta pasta, no máximo %d. Para incluir mais, role a pasta mais para baixo antes.
 This board's pins haven't loaded yet. Scroll it and try again.	Os Pins desta pasta ainda não carregaram. Role e tente de novo.
@@ -391,7 +390,7 @@ board menus	menus de pastas
 loaded board pins	Pins carregados da pasta
 # context: Long-press download, a button added to the round menu a held pin opens, and its switch on the Pin actions page.
 Long-press download	Baixar com toque longo
-Adds a Download button to the round menu you get when you hold a pin. Slide onto it and let go to save the pin. Download pins has to be on too.	Adiciona um botão de download ao menu circular que aparece quando você mantém um Pin pressionado. Deslize até ele e solte para salvar o Pin. Baixar Pins também precisa estar ativado.
+Adds Download to a grid pin's long-press menu. Slide onto it and release. Needs Download pins on.	Adiciona Baixar ao menu ao manter um pin da grade pressionado. Deslize até ele e solte. Baixar Pins precisa estar ativado.
 # context: Hide ads coverage in a partial build: each list holder or ad-only view the patch did or didn't hook, named in the Feed page summary. The last row adds how many of a target's hooks went in.
 promoted pins in feed pages	pins promovidos nas páginas do feed
 promoted pins in paged results	pins promovidos nos resultados paginados

@@ -275,7 +275,7 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 3),
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
             Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
             Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3));
 
@@ -4912,8 +4912,10 @@ public class DexDiff {
             }
             Method create = actual(inherited(c.strings.get(1), "onCreate", "(Landroid/os/Bundle;)V"));
             if (create != null) prefix(create, entry + "->onActivityCreate(Landroid/app/Activity;)V", List.of(parameter(create, -1)), false);
-            Method intent = actual(inherited(c.strings.get(1), "onNewIntent", "(Landroid/content/Intent;)V"));
-            if (intent != null) {
+            Set<String> intentMethods = new HashSet<>();
+            for (String activity : List.of(c.strings.get(1), c.strings.get(3))) {
+                Method intent = actual(inherited(activity, "onNewIntent", "(Landroid/content/Intent;)V"));
+                if (intent == null || !intentMethods.add(intent.toString())) continue;
                 String hook = entry + "->onNewIntent(Landroid/app/Activity;Landroid/content/Intent;)V";
                 List<Integer> sites = calls(intent, hook, 1);
                 if (sites.size() == 1) {

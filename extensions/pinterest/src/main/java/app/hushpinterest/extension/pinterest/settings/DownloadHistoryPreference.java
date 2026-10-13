@@ -212,7 +212,8 @@ public final class DownloadHistoryPreference extends DialogPreference {
 
         void showJob(DownloadLedger.Job job) {
             if (!alive() || busy || jobDialog != null) return;
-            boolean retry = job.canRetry() && retryEnabled();
+            boolean enabled = retryEnabled();
+            boolean retry = job.canRetry() && enabled;
             List<CharSequence> names = new ArrayList<>();
             List<CharSequence> details = new ArrayList<>();
             List<Runnable> actions = new ArrayList<>();
@@ -225,7 +226,7 @@ public final class DownloadHistoryPreference extends DialogPreference {
                 actions.add(() -> change(job.id, true));
                 opens.add(false);
             }
-            if (job.canOpen() && retryEnabled()) {
+            if (job.canOpen() && enabled) {
                 names.add(L10n.t(getContext(), "Open file"));
                 details.add(L10n.t(getContext(), "Opens the saved file in an app that can show it."));
                 actions.add(() -> DownloadLedger.openFile(getContext(), job));
@@ -235,14 +236,15 @@ public final class DownloadHistoryPreference extends DialogPreference {
                 actions.add(() -> DownloadLedger.shareFile(getContext(), job));
                 opens.add(true);
             }
-            if (job.canSetAs() && retryEnabled()) {
+            if (job.canSetAs() && enabled) {
                 names.add(L10n.t(getContext(), "Set as wallpaper"));
                 details.add(L10n.t(getContext(), "Opens Android's Set as options for this saved image."));
                 actions.add(() -> DownloadLedger.setAs(getContext(), job));
                 opens.add(true);
             }
             names.add(L10n.t(getContext(), "Open pin"));
-            details.add(L10n.t(getContext(), "Open the pin again to get a fresh download link."));
+            details.add(job.state == DownloadLedger.State.FAILED
+                    ? L10n.t(getContext(), "Open the pin again to get a fresh download link.") : null);
             actions.add(() -> DownloadLedger.reopenPin(getContext(), job));
             opens.add(true);
             names.add(L10n.t(getContext(), "Remove from history"));
@@ -278,11 +280,15 @@ public final class DownloadHistoryPreference extends DialogPreference {
             status.setLineSpacing(dp(2), 1);
             status.setPaddingRelative(0, dp(6), 0, 0);
             String guidance = "";
-            if (job.canRetry() && !retryEnabled()) {
-                guidance = L10n.t(getContext(), Utils.settingsReady()
-                        && PatchFamily.Capability.PIN_DOWNLOADS.installed()
-                        ? "Resume HushPinterest and turn on Download pins to retry."
-                        : "Open the pin again to get a fresh download link.");
+            if (!enabled && (job.canRetry() || job.canOpen() || job.canSetAs())) {
+                if (!PatchFamily.Capability.PIN_DOWNLOADS.installed()) {
+                    guidance = L10n.f(getContext(), "This build doesn't include the parts that handle %1$s.",
+                            L10n.t(getContext(), "Download pins"));
+                } else {
+                    guidance = L10n.t(getContext(), job.canRetry()
+                            ? "Resume HushPinterest and turn on Download pins to retry."
+                            : "Resume HushPinterest and turn on Download pins to use this.");
+                }
             }
             status.setText(detail(job) + (guidance.isEmpty() ? "" : "\n" + guidance));
             status.setTextColor(ScreenColors.DEFAULT.summary);

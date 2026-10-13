@@ -25,7 +25,10 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.SwitchPreference;
@@ -35,6 +38,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import app.hushpinterest.extension.shared.L10n;
@@ -49,6 +53,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.util.ReflectionHelpers;
 
@@ -284,6 +289,53 @@ public class SettingsDialogTest {
         EditText search = searchOf(dialog.getView());
         assertEquals(L10n.t(controller.get(), "Search settings"), search.getHint().toString());
         assertNull("a content description would replace the typed query for TalkBack", search.getContentDescription());
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void searchFocusAndClearKeepTheFieldLabelAndResultsTogether() {
+        SettingsDialog dialog = show(controller.get());
+        EditText search = searchOf(dialog.getView());
+        ViewGroup container = (ViewGroup) search.getParent();
+        ImageButton clear = (ImageButton) container.getChildAt(container.getChildCount() - 1);
+        assertFalse("opening settings raised the search keyboard", search.hasFocus());
+        assertEquals(View.IMPORTANT_FOR_AUTOFILL_NO, search.getImportantForAutofill());
+        assertEquals(ScreenColors.DEFAULT.controlOutline, searchEdge(container));
+        assertEquals(L10n.t("Back"), SettingsL10nTest.backOf(dialog).getTooltipText());
+        assertEquals(L10n.t("Clear search"), clear.getTooltipText());
+        assertEquals(View.INVISIBLE, clear.getVisibility());
+
+        assertTrue(search.requestFocus());
+        assertEquals(ScreenColors.DEFAULT.heading, searchEdge(container));
+        search.setText("no-setting-has-this-name");
+        ShadowLooper.idleMainLooper();
+        assertEquals("no-setting-has-this-name", navigationState(pageOf(dialog)).getString("query"));
+        assertEquals(View.VISIBLE, clear.getVisibility());
+        clear.setFocusableInTouchMode(true);
+        assertTrue(clear.requestFocus());
+        assertEquals("moving to Clear lost the shared focus boundary",
+                ScreenColors.DEFAULT.heading, searchEdge(container));
+        clear.performClick();
+        ShadowLooper.idleMainLooper();
+        assertEquals("", search.getText().toString());
+        assertEquals("", navigationState(pageOf(dialog)).getString("query"));
+        assertEquals(View.INVISIBLE, clear.getVisibility());
+        assertTrue("Clear left focus on an invisible button", search.hasFocus());
+        assertEquals(ScreenColors.DEFAULT.heading, searchEdge(container));
+        assertEquals(L10n.t("Search settings"), search.getHint());
+        assertNull(search.getContentDescription());
+        assertFalse(controller.get().isFinishing());
+    }
+
+    private static int searchEdge(ViewGroup container) {
+        Drawable background = container.getBackground();
+        Bitmap pixels = Bitmap.createBitmap(120, 80, Bitmap.Config.ARGB_8888);
+        try {
+            background.setBounds(0, 0, pixels.getWidth(), pixels.getHeight());
+            background.draw(new Canvas(pixels));
+            return pixels.getPixel(0, pixels.getHeight() / 2);
+        } finally {
+            pixels.recycle();
+        }
     }
 
     @Test

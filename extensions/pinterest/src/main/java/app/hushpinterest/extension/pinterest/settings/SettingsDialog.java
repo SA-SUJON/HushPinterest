@@ -157,10 +157,11 @@ public final class SettingsDialog extends DialogFragment {
         arrow.setLayoutDirection(rightToLeft() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
         back.setImageDrawable(arrow);
         back.setPadding(dp(12), dp(12), dp(12), dp(12));
-        back.setBackground(iconButtonBackground());
+        back.setBackground(ScreenColors.iconButtonBackground(back));
         back.setMinimumWidth(dp(48));
         back.setMinimumHeight(dp(48));
         back.setContentDescription(L10n.t(getContext(), "Back"));
+        back.setTooltipText(back.getContentDescription());
         // A screen reader calls it a button, as it would the back arrow of any other screen.
         back.setAccessibilityDelegate(new View.AccessibilityDelegate() {
             @Override
@@ -211,26 +212,11 @@ public final class SettingsDialog extends DialogFragment {
         return root;
     }
 
-    /**
-     * An icon button's background: nothing at rest, the accent's ripple on a tap, and a tint while
-     * it has keyboard focus. A plain transparent colour left a D-pad or keyboard user with no sign
-     * of where focus was.
-     */
-    private android.graphics.drawable.Drawable iconButtonBackground() {
-        return new android.graphics.drawable.RippleDrawable(
-                android.content.res.ColorStateList.valueOf(ScreenColors.half(ScreenColors.DEFAULT.accent)), null,
-                new android.graphics.drawable.ShapeDrawable(new android.graphics.drawable.shapes.OvalShape()));
-    }
-
     private void buildSearch(LinearLayout root) {
         ScreenColors palette = ScreenColors.DEFAULT;
         searchBox = new LinearLayout(getContext());
         searchBox.setGravity(Gravity.CENTER_VERTICAL);
-        android.graphics.drawable.GradientDrawable surface = new android.graphics.drawable.GradientDrawable();
-        surface.setColor(palette.card);
-        surface.setCornerRadius(dp(10));
-        surface.setStroke(dp(1), palette.outline);
-        searchBox.setBackground(surface);
+        ScreenColors.searchContainer(searchBox);
         searchBox.setPaddingRelative(dp(16), 0, 0, 0);
         ImageView icon = new ImageView(getContext());
         icon.setImageDrawable(SettingsIcons.icon(getContext(), SettingsIcons.SEARCH, palette.summary));
@@ -244,17 +230,20 @@ public final class SettingsDialog extends DialogFragment {
         search.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         search.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
+        search.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
         search.setBackground(null);
         search.setTextColor(palette.title);
         search.setHintTextColor(palette.summary);
+        ScreenColors.searchField(search);
         search.setPaddingRelative(dp(12), dp(12), 0, dp(12));
         search.setMinimumHeight(dp(52));
         searchBox.addView(search, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         android.widget.ImageButton clear = new android.widget.ImageButton(getContext());
         clear.setImageDrawable(SettingsIcons.icon(getContext(), SettingsIcons.CLOSE, palette.summary));
-        clear.setBackground(iconButtonBackground());
+        clear.setBackground(ScreenColors.iconButtonBackground(clear));
         clear.setPadding(dp(12), dp(12), dp(12), dp(12));
         clear.setContentDescription(L10n.t("Clear search"));
+        clear.setTooltipText(clear.getContentDescription());
         clear.setVisibility(View.INVISIBLE);
         // The button disappears once the field is empty, so focus goes back to the field rather
         // than being dropped with it.

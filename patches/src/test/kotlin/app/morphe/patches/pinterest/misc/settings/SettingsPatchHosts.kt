@@ -34,7 +34,7 @@ internal object SettingsPatchHosts {
     fun body(registers: Int, vararg instructions: Instruction) =
         ImmutableMethodImplementation(registers, instructions.toList(), null, null)
 
-    /** The application and the launcher activity, each with the method one of the patch's hooks goes into. */
+    /** The application, launcher and home activity, each with a method the patch hooks. */
     fun appAndMainActivity(): List<ClassDef> {
         val returns = ImmutableInstruction10x(Opcode.RETURN_VOID)
         return listOf(
@@ -48,6 +48,15 @@ internal object SettingsPatchHosts {
                     ImmutableMethod(MAIN_ACTIVITY, "onCreate", parameters("Landroid/os/Bundle;"), "V", AccessFlags.PUBLIC.value, null, null, body(2, returns)),
                     ImmutableMethod(MAIN_ACTIVITY, "onNewIntent", parameters("Landroid/content/Intent;"), "V", AccessFlags.PUBLIC.value, null, null, body(2, returns)),
                 ),
+            ),
+            ImmutableClassDef(
+                "Lcom/pinterest/activityLibrary/activity/task/activity/MainActivity;",
+                AccessFlags.PUBLIC.value, "Landroid/app/Activity;", null, null, null, null,
+                listOf(ImmutableMethod(
+                    "Lcom/pinterest/activityLibrary/activity/task/activity/MainActivity;", "onNewIntent",
+                    parameters("Landroid/content/Intent;"), "V", AccessFlags.PUBLIC.value,
+                    null, null, body(2, returns),
+                )),
             ),
         )
     }
