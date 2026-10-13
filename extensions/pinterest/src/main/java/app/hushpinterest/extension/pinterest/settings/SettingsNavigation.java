@@ -162,9 +162,10 @@ final class SettingsNavigation extends BaseAdapter {
             ReopenSettingsAfterRestart.restartInto(row.getContext(), route);
             return true;
         });
-        // The row appears as the switch flips. A screen reader hears the saved message as well,
-        // since the row can land above the part of the list in view.
-        restartFeedback = (shown, message) -> list.announceForAccessibility(message);
+        // The row appears as the switch flips, and the screen's live status reads its count to a
+        // screen reader, since the row can land above the part of the list in view. This only
+        // keeps the shared fragment's toast off the screen.
+        restartFeedback = (shown, message) -> { };
         AbstractPreferenceFragment.setRestartFeedbackPresenter(restartFeedback);
         empty = new HushPinterestPreferenceFragment.Row(context);
         empty.setTitle(L10n.t("No matching settings"));
@@ -417,14 +418,19 @@ final class SettingsNavigation extends BaseAdapter {
     /**
      * The restart row, on whatever page is showing, while a change waits for a restart: under the
      * home page's status card or a page's pause line, and otherwise first. Its title counts the
-     * changes a restart applies.
+     * changes a restart applies, and the screen's live status holds the same words.
      */
     private void addRestart() {
         Context context = screen.getContext();
         int count = ReopenSettingsAfterRestart.changesWaiting(context);
-        if (count <= 0) return;
+        if (count <= 0) {
+            host.showRestartStatus(null);
+            return;
+        }
         restart.setTitle(L10n.quantity(context, count, "Restart Pinterest to apply this change",
                 "Restart Pinterest to apply %1$d changes", count));
+        // Every rebuild comes through here, and only a new count is a change to read.
+        host.showRestartStatus(restart.getTitle());
         boolean underStatus = !visible.isEmpty()
                 && (visible.get(0) == pageStatus || visible.get(0) == screen.getPreference(0));
         visible.add(underStatus ? 1 : 0, restart);

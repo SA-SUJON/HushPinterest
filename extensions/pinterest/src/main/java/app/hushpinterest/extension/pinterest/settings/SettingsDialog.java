@@ -64,6 +64,8 @@ public final class SettingsDialog extends DialogFragment {
     static final String MOUNT_ERROR = "hushpinterest_mount_error";
     static final String MOUNT_RETRY = "hushpinterest_mount_retry";
     static final String MOUNT_BACK = "hushpinterest_mount_back";
+    static final String RESTART_STATUS = "hushpinterest_restart_status";
+    static final String CHECK_STATUS = "hushpinterest_check_status";
     private static final String MOUNT_FAILED_STATE = "hushpinterest_mount_failed";
     private static final String REPLACE_CHILD_STATE = "hushpinterest_replace_failed_child";
     /** The argument naming the page the screen opens on: a route of {@link SettingsNavigation}. */
@@ -85,6 +87,10 @@ public final class SettingsDialog extends DialogFragment {
         if (!count.contentEquals(results.getText())) results.setText(count);
     };
     private boolean settingSearch;
+    /** How many changes wait for a restart, in the restart row's words. See {@link #liveStatus}. */
+    private TextView restartStatus;
+    /** What the last tapped Check now found. See {@link #liveStatus}. */
+    private TextView checkStatus;
     private FrameLayout container;
     private ScrollView recovery;
     private boolean mountFailed;
@@ -215,6 +221,8 @@ public final class SettingsDialog extends DialogFragment {
 
         buildSearch(root);
         labelBar();
+        restartStatus = liveStatus(root, RESTART_STATUS);
+        checkStatus = liveStatus(root, CHECK_STATUS);
 
         container = new FrameLayout(getContext());
         container.setId(CONTAINER_ID);
@@ -311,6 +319,40 @@ public final class SettingsDialog extends DialogFragment {
         searchBox.setVisibility(View.GONE);
     }
 
+    /**
+     * A line a screen reader reads whenever its words change, and nobody sees. It's a polite live
+     * region, so the words wait for whatever is being read and focus stays where it is. The rows
+     * that show the same words are built again on every change, and a new view's text is no change
+     * to read, so the words are kept here, in a view that stays for as long as the screen does. The
+     * line is one clear pixel laid over the top edge of the page, and takes no room.
+     */
+    private TextView liveStatus(LinearLayout root, String tag) {
+        TextView status = new TextView(getContext());
+        status.setTag(tag);
+        status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        status.setTextColor(android.graphics.Color.TRANSPARENT);
+        LinearLayout.LayoutParams place = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
+        place.bottomMargin = -1;
+        root.addView(status, place);
+        return status;
+    }
+
+    /** The restart row's title while a change waits for a restart, and null once none does. */
+    void showRestartStatus(@Nullable CharSequence title) {
+        say(restartStatus, title);
+    }
+
+    /** What a tapped Check now found, and null as the next one starts. */
+    void showCheckResult(@Nullable CharSequence result) {
+        say(checkStatus, result);
+    }
+
+    /** Words the line already holds are left alone: a screen reader reads a change, and reads it once. */
+    private static void say(TextView line, @Nullable CharSequence words) {
+        String text = words == null ? "" : words.toString();
+        if (!text.contentEquals(line.getText())) line.setText(text);
+    }
+
     /** The bar's own words and the way its arrow points, in HushPinterest's language as it is now. */
     private void labelBar() {
         backButton.getDrawable().setLayoutDirection(rightToLeft() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
@@ -334,6 +376,8 @@ public final class SettingsDialog extends DialogFragment {
         if (root == null) return;
         root.setLayoutDirection(L10n.layoutDirection());
         labelBar();
+        // The last check's result was worded in the other language. The new page counts restarts itself.
+        showCheckResult(null);
         replaceFailedChild = true;
         mountPage(true);
     }

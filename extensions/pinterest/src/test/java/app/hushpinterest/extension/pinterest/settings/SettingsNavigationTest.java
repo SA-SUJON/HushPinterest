@@ -982,32 +982,27 @@ public class SettingsNavigationTest {
     }
 
     /**
-     * A tapped Check now changes its row's text when the check ends, and a screen reader hears that
-     * text too. The daily check settings starts on its own ends through the same listener and stays
-     * quiet, since nobody is waiting on it.
+     * A tapped Check now changes its row's text when the check ends, and a screen reader is handed
+     * that text too: it's written once into a polite live region that stays with the screen, so
+     * nothing takes focus and no announcement is sent. The daily check settings starts on its own
+     * ends through the same listener and stays quiet, since nobody is waiting on it.
      */
-    @Test public void aTappedCheckNowIsAnnouncedAndTheAutomaticCheckIsNot() throws Exception {
+    @Test @Config(sdk = {29, 36})
+    public void aTappedCheckNowIsReadOnceFromALiveStatusAndTheAutomaticCheckIsNot() throws Exception {
         android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
         org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
-        java.util.List<CharSequence> announced = new java.util.ArrayList<>();
-        android.view.ViewGroup container = (android.view.ViewGroup) page.getView().getParent();
-        container.setAccessibilityDelegate(new View.AccessibilityDelegate() {
-            @Override public boolean onRequestSendAccessibilityEvent(android.view.ViewGroup host, View child,
-                    android.view.accessibility.AccessibilityEvent event) {
-                if (event.getEventType() == android.view.accessibility.AccessibilityEvent.TYPE_ANNOUNCEMENT) {
-                    announced.addAll(event.getText());
-                }
-                return super.onRequestSendAccessibilityEvent(host, child, event);
-            }
-        });
+        TextView status = dialog.getView().findViewWithTag(SettingsDialog.CHECK_STATUS);
+        List<String> read = liveReadings(status);
+        View focused = dialog.getDialog().getCurrentFocus();
         Preference checkNow = page.findPreference(HushPinterestPreferenceFragment.CHECK_NOW);
 
-        // The automatic check ending: the row changes, nothing is spoken.
+        // The automatic check ending: the row changes, nothing is read.
         page.releaseCheckFinished();
         String idle = ReleaseCheck.checkNowSummary();
         assertNotNull("Check now always has something to say", idle);
         assertEquals(idle, String.valueOf(checkNow.getSummary()));
-        assertEquals("a check nobody tapped is not spoken", java.util.Collections.emptyList(), announced);
+        assertEquals("a check nobody tapped is not read", java.util.Collections.emptyList(), read);
+        assertEquals("", status.getText().toString());
 
         // A tap: the check runs against a GitHub that answers with a newer release.
         ReleaseCheck.Transport original = ReleaseCheck.transport;
@@ -1017,14 +1012,98 @@ public class SettingsNavigationTest {
             assertTrue(checkNow.getOnPreferenceClickListener().onPreferenceClick(checkNow));
             ReleaseCheckForTests.settle();
             result = ReleaseCheck.checkNowSummary();
-            assertEquals(java.util.Collections.singletonList(result), announced);
+            assertEquals(java.util.Collections.singletonList(result), read);
             assertEquals(result, String.valueOf(checkNow.getSummary()));
             // The next automatic ending is quiet again.
             page.releaseCheckFinished();
-            assertEquals(1, announced.size());
+            assertEquals(1, read.size());
+            assertSame("the result took focus", focused, dialog.getDialog().getCurrentFocus());
+            assertNothingAnnounced(a11y);
         } finally {
             ReleaseCheck.transport = original;
             ReleaseCheckForTests.forget();
+        }
+    }
+
+    /**
+     * The changes a restart applies are counted in a polite live region that stays with the screen,
+     * because the restart row is a list row and can sit above what's in view. Each new count is read
+     * once, the list being drawn again with the same count says nothing, nothing takes focus and no
+     * announcement is sent.
+     */
+    @Test @Config(sdk = {29, 36})
+    public void theRestartCountIsReadOnceFromALiveStatusWithoutMovingFocus() {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        TextView status = dialog.getView().findViewWithTag(SettingsDialog.RESTART_STATUS);
+        List<String> read = liveReadings(status);
+        assertEquals("", status.getText().toString());
+        View focused = dialog.getDialog().getCurrentFocus();
+        SwitchPreference share = (SwitchPreference) page.findPreference(Settings.HIDE_SCREENSHOT_SHARE.key);
+        SwitchPreference analytics = (SwitchPreference) page.findPreference(Settings.DISABLE_ANALYTICS.key);
+        assertNotNull("no Hide screenshot share row", share);
+        assertNotNull("no Disable analytics row", analytics);
+        String one = "Restart Pinterest to apply this change";
+        try {
+            share.setChecked(true);
+            ShadowLooper.idleMainLooper();
+            assertEquals(java.util.Collections.singletonList(one), read);
+            assertEquals("the line and the row say different things", one,
+                    String.valueOf(((Preference) list().getItemAtPosition(position(SettingsNavigation.RESTART))).getTitle()));
+
+            // A switch that needs no restart, and the list drawn again: the count is the same, so nothing more is read.
+            ((SwitchPreference) page.findPreference(Settings.HIDE_TOPIC_SUGGESTIONS.key)).setChecked(true);
+            page.navigation.restartChanged();
+            ShadowLooper.idleMainLooper();
+            assertEquals(1, read.size());
+
+            analytics.setChecked(!Settings.DISABLE_ANALYTICS.defaultValue);
+            ShadowLooper.idleMainLooper();
+            assertEquals(Arrays.asList(one, "Restart Pinterest to apply 2 changes"), read);
+
+            // One put back: the count that's left is read. The other put back: the row goes, and an empty line says nothing.
+            analytics.setChecked(Settings.DISABLE_ANALYTICS.defaultValue);
+            ShadowLooper.idleMainLooper();
+            assertEquals(Arrays.asList(one, "Restart Pinterest to apply 2 changes", one), read);
+            share.setChecked(false);
+            ShadowLooper.idleMainLooper();
+            assertEquals(3, read.size());
+            assertEquals("", status.getText().toString());
+            assertFalse(contains(SettingsNavigation.RESTART));
+            assertSame("the count took focus", focused, dialog.getDialog().getCurrentFocus());
+            assertNothingAnnounced(a11y);
+        } finally {
+            Settings.HIDE_SCREENSHOT_SHARE.resetToDefault();
+            Settings.DISABLE_ANALYTICS.resetToDefault();
+            Settings.HIDE_TOPIC_SUGGESTIONS.resetToDefault();
+        }
+    }
+
+    /**
+     * What a screen reader is handed from [status] from here on: the line's words each time it sends
+     * the text change of a polite live region that's on show. An empty line says nothing.
+     */
+    private static List<String> liveReadings(TextView status) {
+        assertNotNull("no live status line", status);
+        assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE, status.getAccessibilityLiveRegion());
+        assertTrue("a line that isn't on show sends nothing", status.isShown());
+        assertTrue("the line is left out of what a screen reader is given", status.isImportantForAccessibility());
+        List<String> read = new ArrayList<>();
+        status.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void sendAccessibilityEventUnchecked(View host, android.view.accessibility.AccessibilityEvent event) {
+                boolean textChanged = event.getEventType() == android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                        && (event.getContentChangeTypes() & android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_TEXT) != 0;
+                if (textChanged && host.isShown() && status.length() > 0) read.add(status.getText().toString());
+                super.sendAccessibilityEventUnchecked(host, event);
+            }
+        });
+        return read;
+    }
+
+    /** Nothing was sent as an announcement, which a screen reader may ignore and Android 16 deprecates. */
+    private static void assertNothingAnnounced(android.view.accessibility.AccessibilityManager a11y) {
+        for (android.view.accessibility.AccessibilityEvent event : org.robolectric.Shadows.shadowOf(a11y).getSentAccessibilityEvents()) {
+            assertNotEquals(android.view.accessibility.AccessibilityEvent.TYPE_ANNOUNCEMENT, event.getEventType());
         }
     }
 
