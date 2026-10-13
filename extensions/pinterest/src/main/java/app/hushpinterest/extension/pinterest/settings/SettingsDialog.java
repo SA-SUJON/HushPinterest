@@ -73,6 +73,8 @@ public final class SettingsDialog extends DialogFragment {
     static volatile RuntimeException failNextMount;
 
     private TextView pageTitle;
+    private android.widget.ImageButton backButton;
+    private android.widget.ImageButton clearButton;
     private LinearLayout searchBox;
     private EditText search;
     private TextView results;
@@ -165,6 +167,8 @@ public final class SettingsDialog extends DialogFragment {
         LinearLayout root = new LinearLayout(getContext());
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(ScreenColors.DEFAULT.background);
+        // Pinterest's direction, unless a language was picked for HushPinterest alone.
+        root.setLayoutDirection(L10n.layoutDirection());
 
         LinearLayout bar = new LinearLayout(getContext());
         bar.setOrientation(LinearLayout.HORIZONTAL);
@@ -174,16 +178,14 @@ public final class SettingsDialog extends DialogFragment {
         bar.setPaddingRelative(dp(4), dp(12), pad, dp(12));
 
         android.widget.ImageButton back = new android.widget.ImageButton(getContext());
+        backButton = back;
         android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.BACK, ScreenColors.DEFAULT.title);
         arrow.setBounds(0, 0, dp(24), dp(24));
-        arrow.setLayoutDirection(rightToLeft() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
         back.setImageDrawable(arrow);
         back.setPadding(dp(12), dp(12), dp(12), dp(12));
         back.setBackground(ScreenColors.iconButtonBackground(back));
         back.setMinimumWidth(dp(48));
         back.setMinimumHeight(dp(48));
-        back.setContentDescription(L10n.t(getContext(), "Back"));
-        back.setTooltipText(back.getContentDescription());
         // A screen reader calls it a button, as it would the back arrow of any other screen.
         back.setAccessibilityDelegate(new View.AccessibilityDelegate() {
             @Override
@@ -212,6 +214,7 @@ public final class SettingsDialog extends DialogFragment {
         root.addView(bar);
 
         buildSearch(root);
+        labelBar();
 
         container = new FrameLayout(getContext());
         container.setId(CONTAINER_ID);
@@ -245,9 +248,6 @@ public final class SettingsDialog extends DialogFragment {
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         searchBox.addView(icon, new LinearLayout.LayoutParams(dp(24), dp(24)));
         search = new EditText(getContext());
-        // The hint is the field's label. A content description on top of it replaces what's typed
-        // in a screen reader's reading of the field.
-        search.setHint(L10n.t("Search settings"));
         search.setSingleLine(true);
         search.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         search.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
@@ -261,11 +261,10 @@ public final class SettingsDialog extends DialogFragment {
         search.setMinimumHeight(dp(52));
         searchBox.addView(search, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         android.widget.ImageButton clear = new android.widget.ImageButton(getContext());
+        clearButton = clear;
         clear.setImageDrawable(SettingsIcons.icon(getContext(), SettingsIcons.CLOSE, palette.summary));
         clear.setBackground(ScreenColors.iconButtonBackground(clear));
         clear.setPadding(dp(12), dp(12), dp(12), dp(12));
-        clear.setContentDescription(L10n.t("Clear search"));
-        clear.setTooltipText(clear.getContentDescription());
         clear.setVisibility(View.INVISIBLE);
         // The button disappears once the field is empty, so focus goes back to the field rather
         // than being dropped with it.
@@ -310,6 +309,33 @@ public final class SettingsDialog extends DialogFragment {
         root.setFocusableInTouchMode(true);
         root.requestFocus();
         searchBox.setVisibility(View.GONE);
+    }
+
+    /** The bar's own words and the way its arrow points, in HushPinterest's language as it is now. */
+    private void labelBar() {
+        backButton.getDrawable().setLayoutDirection(rightToLeft() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
+        backButton.setContentDescription(L10n.t(getContext(), "Back"));
+        backButton.setTooltipText(backButton.getContentDescription());
+        // The hint is the field's label. A content description on top of it replaces what's typed
+        // in a screen reader's reading of the field.
+        search.setHint(L10n.t("Search settings"));
+        clearButton.setContentDescription(L10n.t("Clear search"));
+        clearButton.setTooltipText(clearButton.getContentDescription());
+    }
+
+    /**
+     * HushPinterest's language was changed from the page on show. Every row of that page was built
+     * in the other language, so a new page takes its place on the same route and at the same place
+     * in its list, and the bar is labelled again. Nothing is restarted and no configuration changes:
+     * Pinterest's own language is the same as before.
+     */
+    void languageChanged() {
+        View root = getView();
+        if (root == null) return;
+        root.setLayoutDirection(L10n.layoutDirection());
+        labelBar();
+        replaceFailedChild = true;
+        mountPage(true);
     }
 
     void showPage(CharSequence title, boolean home, String query) {
@@ -522,8 +548,13 @@ public final class SettingsDialog extends DialogFragment {
                 getResources().getDisplayMetrics()));
     }
 
-    /** Whether the phone's language reads right to left, so the way back points right. */
+    /**
+     * Whether the screen reads right to left, so the way back points right: by the language picked
+     * for HushPinterest, and otherwise by the phone's.
+     */
     private boolean rightToLeft() {
+        int picked = L10n.layoutDirection();
+        if (picked != View.LAYOUT_DIRECTION_INHERIT) return picked == View.LAYOUT_DIRECTION_RTL;
         return getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
     }
 }

@@ -65,6 +65,7 @@ import java.util.regex.Pattern;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.Utils;
+import app.hushpinterest.extension.shared.settings.AppLanguage;
 import app.hushpinterest.extension.shared.settings.BaseSettings;
 import app.hushpinterest.extension.shared.settings.BooleanSetting;
 import app.hushpinterest.extension.shared.settings.HushPinterestPause;
@@ -107,6 +108,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
     static final String SUPPORTED_LINKS = "action_supported_links";
     /** The Android notification settings row's key, under Notifications. It stores nothing. */
     static final String NOTIFICATION_SETTINGS = "action_notification_settings";
+    /** The HushPinterest language row's key. The choice is saved by its own setting, not under this name. */
+    static final String LANGUAGE = "action_hushpinterest_language";
 
     /** Thrown by the next initialize() and then cleared: how a test reaches the recovery page. */
     static volatile RuntimeException failNextInitialization;
@@ -489,6 +492,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         hushpinterest.addPreference(mark(toggle(context, BaseSettings.PAUSED, L10n.t("Pause HushPinterest"),
                 L10n.t("Turns off every HushPinterest switch except Debug logging the next time Pinterest starts. "
                     + "What you chose when you patched stays, and your choices are saved.")), SettingsIcons.PATCHED));
+        hushpinterest.addPreference(mark(languageRow(context), SettingsIcons.SETTINGS));
         String stays = PatchFamily.staysWhilePausedSummary(build);
         // Morphe Manager can export the patch choices and the signing key, not these switches.
         hushpinterest.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.EXPORT,
@@ -898,6 +902,66 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         int changed = QuickSetups.apply(screen, values);
         Utils.showToastLong(L10n.quantity(changed, "Changed %1$d setting", "Changed %1$d settings", changed));
         return changed;
+    }
+
+    /**
+     * HushPinterest's own language: Pinterest's, or English whatever Pinterest is in. It's the
+     * extension's own state, so it works while paused and stays out of settings files and Quick
+     * setups. The row's line names the choice in force.
+     */
+    private Preference languageRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(LANGUAGE);
+        row.setTitle(L10n.t("HushPinterest language"));
+        row.setSummary(languageName(BaseSettings.HUSH_LANGUAGE.savedValue()));
+        row.setPersistent(false);
+        row.setOnPreferenceClickListener(p -> {
+            showLanguages();
+            return true;
+        });
+        return row;
+    }
+
+    private static String languageName(AppLanguage language) {
+        return language == AppLanguage.EN ? L10n.t("English") : L10n.t("Same as Pinterest");
+    }
+
+    /** The two choices, the one in force marked. A tap on one applies it and closes the list. */
+    void showLanguages() {
+        Context context = getContext();
+        if (context == null) return;
+        AppLanguage[] choices = {AppLanguage.DEFAULT, AppLanguage.EN};
+        CharSequence[] names = {languageName(AppLanguage.DEFAULT), languageName(AppLanguage.EN)};
+        show(new AlertDialog.Builder(themed(context))
+                .setTitle(L10n.t("HushPinterest language"))
+                .setSingleChoiceItems(names, BaseSettings.HUSH_LANGUAGE.savedValue() == AppLanguage.EN ? 1 : 0,
+                        (shown, which) -> {
+                            shown.dismiss();
+                            chooseLanguage(choices[which]);
+                        })
+                .setNegativeButton(L10n.t("Cancel"), null));
+    }
+
+    /**
+     * Saves [language] and draws the screen again in it at once: {@link L10n} reads the choice for
+     * every string from here on, and every row on show was built before it. Pinterest's own language
+     * is never set, so its screens and the words these rows quote from it stay as they are.
+     */
+    void chooseLanguage(AppLanguage language) {
+        if (BaseSettings.HUSH_LANGUAGE.savedValue() == language) return;
+        if (!BaseSettings.HUSH_LANGUAGE.save(language)) {
+            Utils.showToastLong(L10n.t("The setting couldn't finish updating. Its saved value is shown."));
+            return;
+        }
+        Context context = getContext();
+        // The launcher shortcut's label is HushPinterest's too.
+        if (context != null) SettingsEntry.relabelIfStale(context);
+        if (getParentFragment() instanceof SettingsDialog) {
+            ((SettingsDialog) getParentFragment()).languageChanged();
+            return;
+        }
+        Preference row = findPreference(LANGUAGE);
+        if (row != null) row.setSummary(languageName(language));
     }
 
     /**

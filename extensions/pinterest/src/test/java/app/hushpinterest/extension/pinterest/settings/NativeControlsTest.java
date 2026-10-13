@@ -7,6 +7,8 @@
 package app.hushpinterest.extension.pinterest.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -25,7 +27,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.SettingsContextRule;
+import app.hushpinterest.extension.shared.settings.AppLanguage;
+import app.hushpinterest.extension.shared.settings.BaseSettings;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -62,6 +67,34 @@ public class NativeControlsTest {
         assertEquals("Einstellungen > Datenschutz und Daten", NativeControls.path(context, controls.get(1)));
         assertEquals("Einstellungen > Notifications", NativeControls.path(context, controls.get(2)));
         assertEquals("Settings", NativeControls.label(null, new NativeControls.Step("settings_main_header_settings", "Settings")));
+    }
+
+    /**
+     * English picked for HushPinterest on a Turkish Pinterest: the row's own words turn English, and
+     * the path keeps the labels Pinterest's menus wear, read from the context its strings come from.
+     */
+    @Test @Config(qualifiers = "tr")
+    public void englishForHushPinterestLeavesThePathInPinterestsLanguage() {
+        Map<String, String> strings = new HashMap<>();
+        strings.put("settings_main_header_settings", "Ayarlar");
+        strings.put("settings_main_privacy_data", "Gizlilik ve veriler");
+        Context context = withStrings(RuntimeEnvironment.getApplication(), strings);
+        String path = "Ayarlar > Gizlilik ve veriler";
+        NativeControls.Control followed = NativeControls.controls().get(1);
+        assertEquals("Gizlilik ve veriler", followed.title);
+        assertEquals(followed.covers + "\nPinterest'te: " + L10n.isolate(path), NativeControls.summary(context, followed));
+
+        assertTrue(BaseSettings.HUSH_LANGUAGE.save(AppLanguage.EN));
+        try {
+            NativeControls.Control privacy = NativeControls.controls().get(1);
+            assertEquals("Privacy and data", privacy.title);
+            assertNotEquals(followed.covers, privacy.covers);
+            assertEquals(path, NativeControls.path(context, privacy));
+            assertEquals(privacy.covers + "\nIn Pinterest: " + L10n.isolate(path), NativeControls.summary(context, privacy));
+            assertEquals("tr", context.getResources().getConfiguration().getLocales().get(0).getLanguage());
+        } finally {
+            BaseSettings.HUSH_LANGUAGE.resetToDefault();
+        }
     }
 
     /** [base] with Pinterest's strings by name answering from [strings], and every other name missing. */

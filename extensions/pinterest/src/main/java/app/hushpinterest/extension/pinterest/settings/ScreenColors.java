@@ -46,6 +46,7 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.settings.preference.ImmediateAction;
 
 /**
@@ -255,10 +256,12 @@ final class ScreenColors {
     /**
      * Whether [row]'s text runs right to left: its own direction once it's resolved, so a row kept
      * left to right stays so, and before that the language's, only when the app lays out right to
-     * left at all.
+     * left at all. A language picked for HushPinterest decides before Pinterest's does.
      */
     static boolean rightToLeft(View row) {
         if (row.isLayoutDirectionResolved()) return row.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+        int picked = L10n.layoutDirection();
+        if (picked != View.LAYOUT_DIRECTION_INHERIT) return picked == View.LAYOUT_DIRECTION_RTL;
         boolean supported = (row.getContext().getApplicationInfo().flags & ApplicationInfo.FLAG_SUPPORTS_RTL) != 0;
         return supported && row.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
     }
@@ -587,6 +590,11 @@ final class ScreenColors {
             int width = Math.min(dialog.getContext().getResources().getDisplayMetrics().widthPixels
                     - dp(window.getDecorView(), SIDE_DP * 2), dp(window.getDecorView(), 560));
             window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+            // The direction of a language picked for HushPinterest, or Pinterest's. On the content
+            // rather than the window's top view, which Android sets itself from Pinterest's language
+            // when the window is first drawn, after this.
+            View content = window.findViewById(android.R.id.content);
+            if (content != null) content.setLayoutDirection(L10n.layoutDirection());
         }
         @SuppressWarnings("DiscouragedApi")
         int titleId = dialog.getContext().getResources().getIdentifier("alertTitle", "id", "android");

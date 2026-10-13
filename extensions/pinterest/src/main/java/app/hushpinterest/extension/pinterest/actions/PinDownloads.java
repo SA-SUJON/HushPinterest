@@ -220,7 +220,7 @@ public final class PinDownloads {
                     .append("\n").append(L10n.f("Height: %s", fromFile(L10n.f("%d pixels", checked.height))))
                     .append("\n").append(L10n.f("File type: %s", fromFile(checked.mime)))
                     .append("\n").append(L10n.f("File size: %s", checked.size == null ? L10n.t("Unknown")
-                            : fromFile(Formatter.formatFileSize(context, checked.size))))
+                            : fromFile(Formatter.formatFileSize(L10n.localized(context), checked.size))))
                     // A stand-in whose original the media host didn't give was checked as itself.
                     .append("\n").append(PinMedia.standIn(media) && checked.url.equals(media.source.url)
                             ? L10n.f("Checked file: the %s size Pinterest supplied", media.size)

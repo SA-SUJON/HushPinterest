@@ -52,6 +52,8 @@ import java.util.Set;
 
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.SettingsContextRule;
+import app.hushpinterest.extension.shared.settings.AppLanguage;
+import app.hushpinterest.extension.shared.settings.BaseSettings;
 import app.hushpinterest.extension.shared.settings.HushPinterestPause;
 import app.hushpinterest.extension.shared.settings.PauseForTests;
 import app.hushpinterest.extension.shared.settings.preference.LogBufferManager;
@@ -90,6 +92,7 @@ public class SettingsL10nTest {
         PatchFamily.staysWhilePausedForTests = null;
         PatchFamily.capabilitiesForTests = null;
         HushPinterestPreferenceFragment.failNextInitialization = null;
+        BaseSettings.HUSH_LANGUAGE.resetToDefault();
         PauseForTests.resume();
         ShadowToast.reset();
     }
@@ -253,6 +256,38 @@ public class SettingsL10nTest {
         assertEquals("shown in the activity's German: " + shownGerman, 0, shownGerman.size());
         assertTrue("the English screen lost its Back label: " + shown, shown.contains("Back"));
         assertTrue("the English screen lost its Cancel: " + shown, shown.contains("Cancel"));
+    }
+
+    /**
+     * English picked for HushPinterest on a Turkish Pinterest: nothing the Turkish table translates
+     * is on the screen in any of its states, its dialogs or its toasts, and the English is. Without
+     * the choice the same screen is Turkish, so the first half isn't empty for want of a table.
+     */
+    @Test
+    @Config(qualifiers = "tr")
+    public void englishPickedForHushPinterestLeavesNothingInPinterestsTurkish() throws Exception {
+        Map<String, String> turkish = TranslationsForTests.of("tr");
+        Set<String> turkishOnly = new java.util.HashSet<>();
+        for (Map.Entry<String, String> row : turkish.entrySet()) {
+            if (!row.getKey().equals(row.getValue())) turkishOnly.add(row.getValue());
+        }
+        Set<String> followed = everythingShown();
+        assertTrue("the control: a Turkish Pinterest doesn't show Turkish", followed.contains(turkish.get("Hide ads")));
+        assertTrue(followed.contains(turkish.get("Same as Pinterest")));
+
+        assertTrue(BaseSettings.HUSH_LANGUAGE.save(AppLanguage.EN));
+        Set<String> shown = everythingShown();
+        List<String> shownTurkish = new ArrayList<>();
+        for (String text : shown) {
+            if (turkishOnly.contains(text)) shownTurkish.add(text);
+        }
+        assertEquals("shown in Pinterest's Turkish: " + shownTurkish, 0, shownTurkish.size());
+        for (String english : new String[] {"Hide ads", "Back", "Cancel", "HushPinterest language", "English",
+                "Same as Pinterest"}) {
+            assertTrue("the English screen lost \"" + english + "\": " + shown, shown.contains(english));
+        }
+        assertEquals("Pinterest's own language changed", "tr", RuntimeEnvironment.getApplication().getResources()
+                .getConfiguration().getLocales().get(0).getLanguage());
     }
 
     /** An activity that runs in English whatever the application's language is. */
@@ -463,6 +498,18 @@ public class SettingsL10nTest {
             assertEquals(L10n.t("Cancel"), cancel);
             shown.add(cancel);
             choices.dismiss();
+
+            // The language row's list: its title, the two choices and Cancel.
+            page.showLanguages();
+            ShadowLooper.idleMainLooper();
+            AlertDialog languages = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            assertNotNull("the language row opened no dialog", languages);
+            shown.add(String.valueOf(org.robolectric.Shadows.shadowOf(languages).getTitle()));
+            android.widget.ListAdapter names = languages.getListView().getAdapter();
+            assertEquals(2, names.getCount());
+            for (int i = 0; i < names.getCount(); i++) shown.add(String.valueOf(names.getItem(i)));
+            shown.add(String.valueOf(languages.getButton(AlertDialog.BUTTON_NEGATIVE).getText()));
+            languages.dismiss();
 
             // The licences dialog's title; the notice under it stays English, as the licences do.
             Preference licenses = null;

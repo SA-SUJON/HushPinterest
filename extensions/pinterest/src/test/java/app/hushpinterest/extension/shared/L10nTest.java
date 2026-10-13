@@ -18,12 +18,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.Configuration;
 import android.os.LocaleList;
+import android.view.View;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,6 +38,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import app.hushpinterest.extension.shared.settings.AppLanguage;
+import app.hushpinterest.extension.shared.settings.BaseSettings;
 
 /**
  * How the catalog picks a language: the phone's list in order, a region falling back to its
@@ -317,6 +322,56 @@ public class L10nTest {
         assertEquals(table("tr").get(KEY), L10n.t(in(new Locale("tr", "TR")), KEY));
         assertEquals(KEY, L10n.t(in(Locale.US), KEY));
         assertNotEquals(table("de").get(KEY), KEY);
+    }
+
+    /**
+     * English picked for HushPinterest alone answers before Pinterest's language does: the text,
+     * the numbers in it, its list word, its plural form, its capital letter and the way its screens
+     * lay out. Taken back, Pinterest's language answers again at once. Neither way is anything set
+     * on the phone, on Pinterest or on the context that asked.
+     */
+    @Test
+    @Config(qualifiers = "tr")
+    public void aLanguagePickedForHushPinterestAnswersInsteadOfPinterests() {
+        Context application = RuntimeEnvironment.getApplication();
+        Locale defaultBefore = Locale.getDefault();
+        LocaleList appBefore = application.getResources().getConfiguration().getLocales();
+        Context turkish = in(new Locale("tr", "TR"));
+        List<String> three = Arrays.asList("a", "b", "c");
+        String one = "%1$d switch will change.";
+        String other = "%1$d switches will change.";
+        assertEquals(table("tr").get(KEY), L10n.t(KEY));
+        assertEquals(View.LAYOUT_DIRECTION_INHERIT, L10n.layoutDirection());
+        assertSame(turkish, L10n.localized(turkish));
+        try {
+            assertTrue(BaseSettings.HUSH_LANGUAGE.save(AppLanguage.EN));
+            assertEquals(KEY, L10n.t(KEY));
+            assertEquals(KEY, L10n.t(turkish, KEY));
+            assertEquals("Cancel", L10n.t(application, "Cancel"));
+            assertEquals("a, b, and c", L10n.join(turkish, three));
+            assertEquals("Indir", L10n.capitalize(turkish, "indir"));
+            assertEquals("4.2 MB", L10n.f(in(Locale.FRANCE), "%1$.1f MB", 4.2));
+            assertEquals("1 switch will change.", L10n.quantity(turkish, 1, one, other, 1));
+            assertEquals("2 switches will change.", L10n.quantity(turkish, 2, one, other, 2));
+            assertEquals("en", L10n.locale(turkish).getLanguage());
+            assertEquals(View.LAYOUT_DIRECTION_LTR, L10n.layoutDirection());
+            assertEquals("en", L10n.localized(turkish).getResources().getConfiguration().getLocales().get(0).getLanguage());
+            // Read, never set: the phone, Pinterest and the context that asked are where they were.
+            assertEquals(defaultBefore, Locale.getDefault());
+            assertEquals(appBefore, application.getResources().getConfiguration().getLocales());
+            assertEquals("tr", turkish.getResources().getConfiguration().getLocales().get(0).getLanguage());
+            // A label built before settings can be read follows Pinterest, as every label did.
+            SettingsContextRule.beforeThePauseIsDecided(() -> assertEquals(table("tr").get(KEY), L10n.t(KEY)));
+            // The direction is the picked language's own, not left to right whatever it is.
+            assertTrue(BaseSettings.HUSH_LANGUAGE.save(AppLanguage.AR));
+            assertEquals(View.LAYOUT_DIRECTION_RTL, L10n.layoutDirection());
+        } finally {
+            BaseSettings.HUSH_LANGUAGE.resetToDefault();
+        }
+        assertEquals(table("tr").get(KEY), L10n.t(KEY));
+        assertEquals("a, b ve c", L10n.join(turkish, three));
+        assertEquals(String.format(table("tr").get(other), 2), L10n.quantity(turkish, 2, one, other, 2));
+        assertEquals(View.LAYOUT_DIRECTION_INHERIT, L10n.layoutDirection());
     }
 
     private static Map<String, String> table(String language) {

@@ -113,8 +113,9 @@ public final class DownloadHistoryPreference extends DialogPreference {
 
     private String detail(DownloadLedger.Job job) {
         Date created = new Date(job.createdAt);
-        String time = DateFormat.getDateFormat(getContext()).format(created) + " "
-                + DateFormat.getTimeFormat(getContext()).format(created);
+        Context dated = L10n.localized(getContext());
+        String time = DateFormat.getDateFormat(dated).format(created) + " "
+                + DateFormat.getTimeFormat(dated).format(created);
         String reason = job.reasonText();
         return L10n.isolate(time) + "\n" + job.statusText() + (reason.isEmpty() ? "" : "\n" + reason);
     }

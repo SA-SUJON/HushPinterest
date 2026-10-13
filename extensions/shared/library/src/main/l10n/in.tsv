@@ -524,3 +524,9 @@ Puts every feature switch back the way it started.	Mengembalikan setiap sakelar 
 Changed %1$d setting	%1$d pengaturan diubah
 # context: the same toast for any other count, zero included; %1$d is how many
 Changed %1$d settings	%1$d pengaturan diubah
+# context: row on the Pause, backup and diagnostics page, and the title of its list of choices: the language HushPinterest's own pages, menus and messages use. Pinterest's language isn't changed
+HushPinterest language	Bahasa HushPinterest
+# context: the first language choice and the row's line while it's in force: HushPinterest uses whatever language Pinterest is in
+Same as Pinterest	Sama dengan Pinterest
+# context: the second language choice and the row's line while it's in force: the English language, by its name in this language
+English	Bahasa Inggris

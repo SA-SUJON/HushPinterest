@@ -40,6 +40,7 @@ import java.util.TreeMap;
 import app.hushpinterest.extension.pinterest.NativeDialogCapture;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.SettingsContextRule;
+import app.hushpinterest.extension.shared.settings.AppLanguage;
 import app.hushpinterest.extension.shared.settings.BaseSettings;
 import app.hushpinterest.extension.shared.settings.FailingStore;
 import app.hushpinterest.extension.shared.settings.HushPinterestPause;
@@ -84,6 +85,7 @@ public class SettingsNavigationTest {
         Settings.HIDE_ADS.resetToDefault();
         Settings.HIDE_AI_PINS.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
+        BaseSettings.HUSH_LANGUAGE.resetToDefault();
         app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.remove(
                 Settings.HIDE_ADS.key);
         app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.remove(
@@ -1240,6 +1242,163 @@ public class SettingsNavigationTest {
         assertNull(page.navigation);
         assertEquals(3, list().getCount());
         assertUncutText(dialog.getView());
+    }
+
+    /**
+     * English for HushPinterest is picked from its row and the open screen is drawn again in it at
+     * once: the same page, the same activity, no restart owed, and Pinterest still in Turkish. The
+     * choice is there after the screen is rebuilt, and following Pinterest again brings the Turkish
+     * back the same way.
+     */
+    @Test @Config(qualifiers = "tr-w390dp-h844dp-night-xhdpi")
+    public void pickingEnglishDrawsTheOpenPageAgainAtOnceAndPinterestStaysTurkish() throws Exception {
+        Map<String, String> turkish = SettingsL10nTest.TranslationsForTests.of("tr");
+        Activity activity = controller.get();
+        java.util.Locale phone = java.util.Locale.getDefault();
+        page.navigation.navigate("Pause, backup and diagnostics");
+        int rows = list().getCount();
+        assertEquals(turkish.get("Pause, backup and diagnostics"), screenTitle());
+        assertEquals(turkish.get("Pause HushPinterest"), titleOf(BaseSettings.PAUSED.key));
+        assertEquals(turkish.get("HushPinterest language"), titleOf(HushPinterestPreferenceFragment.LANGUAGE));
+        assertEquals(turkish.get("Same as Pinterest"), summaryOf(HushPinterestPreferenceFragment.LANGUAGE));
+
+        pickLanguage(1);
+        assertSame("the activity was recreated", activity, controller.get());
+        assertFalse(activity.isFinishing());
+        assertTrue(dialog.getDialog().isShowing());
+        assertEquals("Pause, backup and diagnostics", screenTitle());
+        assertEquals("the page changed under the choice", rows, list().getCount());
+        assertEquals("Pause HushPinterest", titleOf(BaseSettings.PAUSED.key));
+        assertEquals("HushPinterest language", titleOf(HushPinterestPreferenceFragment.LANGUAGE));
+        assertEquals("English", summaryOf(HushPinterestPreferenceFragment.LANGUAGE));
+        assertEquals("Back", String.valueOf(SettingsL10nTest.backOf(dialog).getContentDescription()));
+        assertEquals("Search settings", String.valueOf(findSearch(dialog.getView()).getHint()));
+        assertFalse("a language change asked for a restart", contains(SettingsNavigation.RESTART));
+        assertEquals(AppLanguage.EN, BaseSettings.HUSH_LANGUAGE.persistedValue());
+        // Pinterest's language and the phone's are where they were, and the rows are still built
+        // on Pinterest's own context, which is where a path's menu labels are read from.
+        assertEquals("tr", org.robolectric.RuntimeEnvironment.getApplication().getResources().getConfiguration()
+                .getLocales().get(0).getLanguage());
+        assertEquals("tr", activity.getResources().getConfiguration().getLocales().get(0).getLanguage());
+        assertEquals(phone, java.util.Locale.getDefault());
+        assertEquals("tr", page.findPreference(HushPinterestPreferenceFragment.LANGUAGE).getContext().getResources()
+                .getConfiguration().getLocales().get(0).getLanguage());
+
+        recreate();
+        assertEquals("Pause, backup and diagnostics", screenTitle());
+        assertEquals("English", summaryOf(HushPinterestPreferenceFragment.LANGUAGE));
+        while (page.navigation.back()) { }
+        assertTrue(titles().toString(), titles().contains("Quick setups"));
+        assertEquals("HushPinterest", screenTitle());
+
+        page.navigation.navigate("Pause, backup and diagnostics");
+        pickLanguage(0);
+        assertEquals(turkish.get("Pause, backup and diagnostics"), screenTitle());
+        assertEquals(turkish.get("Pause HushPinterest"), titleOf(BaseSettings.PAUSED.key));
+        assertEquals(turkish.get("Same as Pinterest"), summaryOf(HushPinterestPreferenceFragment.LANGUAGE));
+        assertEquals(turkish.get("Back"), String.valueOf(SettingsL10nTest.backOf(dialog).getContentDescription()));
+        assertFalse("following Pinterest left a choice in the store",
+                Setting.preferences.preferences.contains(BaseSettings.HUSH_LANGUAGE.key));
+        recreate();
+        assertEquals(turkish.get("Same as Pinterest"), summaryOf(HushPinterestPreferenceFragment.LANGUAGE));
+        app.hushpinterest.extension.shared.Utils.awaitBackgroundTasksForTests();
+    }
+
+    /**
+     * On a phone where Pinterest is already in English the two choices read the same, so Android has
+     * no configuration change to report. The choice is saved, shown and kept all the same, and the
+     * page stays where it was. Paused, the row still works: the choice is HushPinterest's own state.
+     */
+    @Test public void pickingEnglishWherePinterestIsEnglishIsSavedWithNoConfigurationChange() throws Exception {
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        recreate();
+        Activity activity = controller.get();
+        android.content.res.Configuration before = new android.content.res.Configuration(
+                activity.getResources().getConfiguration());
+        page.navigation.navigate("Pause, backup and diagnostics");
+        int rows = list().getCount();
+        assertEquals("Same as Pinterest", summaryOf(HushPinterestPreferenceFragment.LANGUAGE));
+
+        pickLanguage(1);
+        assertEquals("English", summaryOf(HushPinterestPreferenceFragment.LANGUAGE));
+        assertEquals("Pause, backup and diagnostics", screenTitle());
+        assertEquals(rows, list().getCount());
+        assertEquals(AppLanguage.EN, BaseSettings.HUSH_LANGUAGE.persistedValue());
+        assertEquals("a paused HushPinterest ignored its own language", AppLanguage.EN, BaseSettings.HUSH_LANGUAGE.get());
+        assertEquals("the phone's configuration changed", 0, before.diff(activity.getResources().getConfiguration()));
+        assertSame(activity, controller.get());
+        assertTrue("Pause was changed by the language", BaseSettings.PAUSED.savedValue());
+
+        recreate();
+        assertEquals("English", summaryOf(HushPinterestPreferenceFragment.LANGUAGE));
+        pickLanguage(0);
+        assertEquals("Same as Pinterest", summaryOf(HushPinterestPreferenceFragment.LANGUAGE));
+        assertEquals(AppLanguage.DEFAULT, BaseSettings.HUSH_LANGUAGE.persistedValue());
+        app.hushpinterest.extension.shared.Utils.awaitBackgroundTasksForTests();
+    }
+
+    /**
+     * English picked on a phone that reads right to left lays HushPinterest's screen and its dialogs
+     * out left to right, with the way back pointing left. Pinterest's own window keeps its direction,
+     * and following Pinterest again mirrors the screen back.
+     */
+    @Test @Config(qualifiers = "ar-rXB-ldrtl-w390dp-h844dp-night-xhdpi")
+    public void englishPickedOnARightToLeftPhoneLaysTheScreenOutLeftToRight() throws Exception {
+        page.navigation.navigate("Pause, backup and diagnostics");
+        layout(dialog.getView());
+        assertEquals("the control: Pinterest's direction before the choice", View.LAYOUT_DIRECTION_RTL,
+                SettingsL10nTest.backOf(dialog).getDrawable().getLayoutDirection());
+
+        pickLanguage(1);
+        layout(dialog.getView());
+        assertEquals("Pause HushPinterest", titleOf(BaseSettings.PAUSED.key));
+        assertEquals(View.LAYOUT_DIRECTION_LTR, dialog.getView().getLayoutDirection());
+        assertEquals(View.LAYOUT_DIRECTION_LTR, list().getLayoutDirection());
+        assertEquals(View.LAYOUT_DIRECTION_LTR, SettingsL10nTest.backOf(dialog).getDrawable().getLayoutDirection());
+        tap(HushPinterestPreferenceFragment.LANGUAGE);
+        AlertDialog choices = (AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        ShadowLooper.idleMainLooper();
+        assertEquals(View.LAYOUT_DIRECTION_LTR, choices.getListView().getLayoutDirection());
+        assertEquals("Android's own window direction was changed", View.LAYOUT_DIRECTION_RTL,
+                choices.getWindow().getDecorView().getLayoutDirection());
+        choices.dismiss();
+        assertEquals("Pinterest's direction changed", View.LAYOUT_DIRECTION_RTL,
+                controller.get().getResources().getConfiguration().getLayoutDirection());
+
+        pickLanguage(0);
+        layout(dialog.getView());
+        assertEquals(View.LAYOUT_DIRECTION_RTL, SettingsL10nTest.backOf(dialog).getDrawable().getLayoutDirection());
+        assertEquals(View.LAYOUT_DIRECTION_RTL, list().getLayoutDirection());
+        app.hushpinterest.extension.shared.Utils.awaitBackgroundTasksForTests();
+    }
+
+    /** Taps the language row, then the choice at [which] in its list. The page is a new one afterwards. */
+    private void pickLanguage(int which) {
+        tap(HushPinterestPreferenceFragment.LANGUAGE);
+        AlertDialog choices = (AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        ListView options = choices.getListView();
+        assertEquals("the choice in force isn't the marked one", 1 - which, options.getCheckedItemPosition());
+        assertTrue(options.performItemClick(options.getAdapter().getView(which, null, options), which,
+                options.getAdapter().getItemId(which)));
+        ShadowLooper.idleMainLooper();
+        assertFalse("the list of languages stayed open", choices.isShowing());
+        HushPinterestPreferenceFragment drawn = page(dialog);
+        assertNotSame("the page wasn't drawn again", page, drawn);
+        page = drawn;
+    }
+
+    private String screenTitle() {
+        android.view.ViewGroup bar = (android.view.ViewGroup) SettingsL10nTest.backOf(dialog).getParent();
+        return String.valueOf(((TextView) bar.getChildAt(1)).getText());
+    }
+
+    private String titleOf(String key) {
+        return String.valueOf(page.findPreference(key).getTitle());
+    }
+
+    private String summaryOf(String key) {
+        return String.valueOf(page.findPreference(key).getSummary());
     }
 
     private static void assertUncutText(View view) {

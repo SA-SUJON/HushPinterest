@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** HushPinterest can show its own settings, menus and messages in English while Pinterest stays in your language. Tap HushPinterest language on the Pause, backup and diagnostics page and pick English. The screen changes right away with no restart, and Same as Pinterest switches it back. The choice works while HushPinterest is paused and isn't written to exported settings files.
+
 * **Pinterest:** Hide header buttons keeps the Settings gear in Saved visible, including when Pinterest uses another language. Optional icons still hide, and turning the switch off or pausing restores them.
 
 * **Pinterest:** HushPinterest has its own row in Pinterest's Settings list. It opens while HushPinterest is paused and works alongside the Morphe settings entry. The logo long press, app shortcut and App info entry still work.

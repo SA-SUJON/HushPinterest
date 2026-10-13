@@ -19,8 +19,13 @@
 package app.hushpinterest.extension.shared;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.LocaleList;
+import android.text.TextUtils;
+import android.view.View;
+
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,10 +35,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import app.hushpinterest.extension.shared.settings.AppLanguage;
+import app.hushpinterest.extension.shared.settings.BaseSettings;
+
 /**
  * HushPinterest's own text in the language Pinterest shows: the one picked for Pinterest, or the
  * phone's when none was picked. It's read from the application's configuration, so every string
- * on a screen comes out in one language whichever context builds it.
+ * on a screen comes out in one language whichever context builds it. A language picked for
+ * HushPinterest alone ({@link BaseSettings#HUSH_LANGUAGE}) answers instead of Pinterest's, for the
+ * text, its numbers, its list word, its plural rule and the direction its screens lay out in.
  *
  * <p>The English string in the code is the lookup key. The translations are generated into
  * {@link L10nTranslations} from extensions/shared/library/src/main/l10n by scripts/gen-l10n.py,
@@ -42,7 +52,8 @@ import java.util.regex.Pattern;
  *
  * <p>A language with no table, or a string nobody translated yet, falls back to the English
  * text, so nothing here can leave a label empty. Nothing here changes Pinterest's own language
- * either: the phone's languages are read, never set.
+ * either: the phone's languages are read, never set, and a language picked for HushPinterest is
+ * only read back here.
  *
  * <p>Android's two pseudo-locales work here as they do for resources. en-XA draws every string
  * accented, bracketed and about a third longer, and ar-XB draws it mirrored, right to left, so
@@ -281,7 +292,10 @@ public final class L10n {
         return locale(context());
     }
 
-    /** The first language Pinterest runs in, or the default when there is no context to ask. */
+    /**
+     * The language picked for HushPinterest, else the first one Pinterest runs in, or the default
+     * when there is no context to ask.
+     */
     public static Locale locale(Context context) {
         return locales(context).get(0);
     }
@@ -336,13 +350,56 @@ public final class L10n {
     }
 
     /**
-     * The languages Pinterest runs in, from the application's configuration whichever context
+     * The language picked for HushPinterest's own text, or null to follow Pinterest. Read from the
+     * saved choice each time, so a change shows in the next string built with nothing to tell.
+     * Null as well until settings can be read: a label built that early follows Pinterest.
+     */
+    @Nullable
+    private static Locale chosen() {
+        if (!Utils.settingsReady()) return null;
+        try {
+            AppLanguage language = BaseSettings.HUSH_LANGUAGE.savedValue();
+            return language == AppLanguage.DEFAULT ? null : language.getLocale();
+        } catch (Throwable ignored) {
+            // The settings classes are still loading on this thread.
+            return null;
+        }
+    }
+
+    /**
+     * The direction HushPinterest's own screens lay out in: the picked language's, or
+     * {@link View#LAYOUT_DIRECTION_INHERIT} to take Pinterest's. English picked on a phone that
+     * reads right to left would otherwise keep its rows mirrored under left-to-right words.
+     */
+    public static int layoutDirection() {
+        Locale chosen = chosen();
+        return chosen == null ? View.LAYOUT_DIRECTION_INHERIT : TextUtils.getLayoutDirectionFromLocale(chosen);
+    }
+
+    /**
+     * [base] for Android's own formatters, a file size or a date, which take their language from
+     * the context they're handed: in the picked language, or [base] itself when following
+     * Pinterest. Nothing of [base] changes.
+     */
+    public static Context localized(Context base) {
+        Locale chosen = chosen();
+        if (chosen == null || base == null) return base;
+        Configuration configuration = new Configuration(base.getResources().getConfiguration());
+        configuration.setLocale(chosen);
+        return base.createConfigurationContext(configuration);
+    }
+
+    /**
+     * The languages the text comes out in: the one picked for HushPinterest alone, and otherwise
+     * the languages Pinterest runs in, from the application's configuration whichever context
      * asks, or the default when there is no context to ask. Pinterest can set its own language on
      * the application once it has started, and an activity's or a dialog's context can carry
      * another one. Read from each caller's own context, a Back label built from the activity
      * and a title built from the application came out in two languages on one screen.
      */
     private static List<Locale> locales(Context context) {
+        Locale chosen = chosen();
+        if (chosen != null) return Collections.singletonList(chosen);
         try {
             Context application = context == null ? null : context.getApplicationContext();
             Context source = application != null ? application : context;

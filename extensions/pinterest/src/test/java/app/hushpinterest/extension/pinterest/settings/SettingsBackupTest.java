@@ -87,6 +87,7 @@ import app.hushpinterest.extension.shared.SettingsContextRule;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.WorkerPoolForTests;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
+import app.hushpinterest.extension.shared.settings.AppLanguage;
 import app.hushpinterest.extension.shared.settings.BaseSettings;
 import app.hushpinterest.extension.shared.settings.BooleanSetting;
 import app.hushpinterest.extension.shared.settings.FailingStore;
@@ -125,7 +126,7 @@ public class SettingsBackupTest {
                 BaseSettings.DEBUG_LOG_FILTERS, BaseSettings.DEBUG_STACKTRACE, BaseSettings.DEBUG_TOAST_ON_ERROR,
                 BaseSettings.CAPTURE_JAVA_CRASHES, BaseSettings.MORPHE_LANGUAGE, BaseSettings.SHOW_MENU_ICONS,
                 BaseSettings.FIRST_TIME_APP_LAUNCHED, BaseSettings.EXPERIMENTAL_APP_CONFIRMED,
-                BaseSettings.CHECK_ENVIRONMENT_WARNINGS_ISSUED);
+                BaseSettings.CHECK_ENVIRONMENT_WARNINGS_ISSUED, BaseSettings.HUSH_LANGUAGE);
     }
 
     private static final String EXPORT_ROW = "action_export_settings";
@@ -299,6 +300,45 @@ public class SettingsBackupTest {
         for (String leak : new String[]{"sentinel", "sessionid", "ds_user_id", "100012345678901", "secret-session",
                 app.getPackageName(), FamilyNames.HIDE_ADS, "feed"}) {
             assertFalse("the file carries " + leak + ":\n" + text, text.contains(leak));
+        }
+    }
+
+    /**
+     * The language picked for HushPinterest's own text belongs to the phone, and a file carries
+     * switches: one written with English picked says nothing about it, still at schema 1. A file
+     * from before the choice existed imports the way it always did and leaves the choice alone, and
+     * so does one that names it.
+     */
+    @Test
+    public void theLanguageChoiceStaysOutOfFilesAndOldFilesImportUnchanged() throws Exception {
+        assertTrue(BaseSettings.HUSH_LANGUAGE.save(AppLanguage.EN));
+        try {
+            String written = SettingsBackup.create();
+            assertFalse(written, written.contains(BaseSettings.HUSH_LANGUAGE.key));
+            assertFalse(written, written.toLowerCase(java.util.Locale.ROOT).contains("language"));
+            assertEquals(1, new JSONObject(written).get("schema"));
+            assertEquals(keys(SettingsBackup.ALLOWLIST), names(new JSONObject(written).getJSONObject("settings")));
+
+            SettingsBackup.Snapshot old = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false,
+                    Settings.STRIP_LINK_TRACKING, false));
+            assertEquals(0, old.unknown);
+            assertEquals(2, old.changes().size());
+            assertEquals(2, SettingsBackup.apply(old));
+            assertFalse(Settings.HIDE_ADS.savedValue());
+            assertFalse(Settings.STRIP_LINK_TRACKING.savedValue());
+            assertEquals(AppLanguage.EN, BaseSettings.HUSH_LANGUAGE.persistedValue());
+            assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+            assertTrue(Settings.HIDE_ADS.savedValue());
+            assertEquals(AppLanguage.EN, BaseSettings.HUSH_LANGUAGE.persistedValue());
+
+            JSONObject naming = new JSONObject(fileWith(Settings.HIDE_ADS, false));
+            naming.getJSONObject("settings").put(BaseSettings.HUSH_LANGUAGE.key, "DEFAULT");
+            SettingsBackup.Snapshot named = SettingsBackup.parse(naming.toString());
+            assertEquals(1, named.unknown);
+            assertEquals(1, SettingsBackup.apply(named));
+            assertEquals("a file changed HushPinterest's language", AppLanguage.EN, BaseSettings.HUSH_LANGUAGE.persistedValue());
+        } finally {
+            BaseSettings.HUSH_LANGUAGE.resetToDefault();
         }
     }
 

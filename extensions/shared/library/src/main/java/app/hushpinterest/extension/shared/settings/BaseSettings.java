@@ -69,11 +69,21 @@ public class BaseSettings {
     /** Set by {@link HushPinterestPause} after three starts in a row crashed within a minute. */
     public static final BooleanSetting SAFE_MODE = new BooleanSetting("hushpinterest_safe_mode", FALSE, true, false, null, null);
 
+    /**
+     * The language of HushPinterest's own text: {@link AppLanguage#DEFAULT} follows Pinterest, and
+     * {@link AppLanguage#EN} reads English whatever Pinterest is in. Only {@code L10n} reads it, so
+     * Pinterest's own language and {@link #MORPHE_LANGUAGE}, which changes the context Pinterest's
+     * strings are read from, are left alone. It takes effect on the next string built, so no
+     * restart, and it stays out of settings files: a file carries switches.
+     */
+    public static final EnumSetting<AppLanguage> HUSH_LANGUAGE =
+            new EnumSetting<>("hushpinterest_language", AppLanguage.DEFAULT, false, false);
+
     static {
         // HushPinterest's own state and its diagnostics, which keep working while it is paused.
         Setting.keepWhenPaused(DEBUG, DEBUG_LOG_FILTERS, CAPTURE_JAVA_CRASHES, DEBUG_STACKTRACE,
                 DEBUG_TOAST_ON_ERROR, CHECK_ENVIRONMENT_WARNINGS_ISSUED, MORPHE_LANGUAGE, SHOW_MENU_ICONS,
-                FIRST_TIME_APP_LAUNCHED, EXPERIMENTAL_APP_CONFIRMED, PAUSED, SAFE_MODE);
+                FIRST_TIME_APP_LAUNCHED, EXPERIMENTAL_APP_CONFIRMED, PAUSED, SAFE_MODE, HUSH_LANGUAGE);
 
         final long now = System.currentTimeMillis();
 

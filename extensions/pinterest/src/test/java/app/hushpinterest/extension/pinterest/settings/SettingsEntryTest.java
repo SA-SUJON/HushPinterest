@@ -116,6 +116,32 @@ public class SettingsEntryTest {
         }
     }
 
+    /**
+     * The shortcut's label is HushPinterest's own text. English picked for HushPinterest alone
+     * labels it in English on a Turkish phone as it's picked, and following Pinterest again brings
+     * the Turkish back.
+     */
+    @Test @Config(qualifiers = "tr")
+    public void theShortcutFollowsALanguagePickedForHushPinterest() throws Exception {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        android.content.pm.ShortcutManager manager = context.getSystemService(android.content.pm.ShortcutManager.class);
+        String turkish = app.hushpinterest.extension.shared.L10nTablesForTests.of("tr").get("HushPinterest settings");
+        SettingsEntry.publishShortcutNow(context);
+        org.junit.Assert.assertEquals(turkish, longLabel(manager));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            SettingsDialog dialog = SettingsL10nTest.show(controller.get());
+            SettingsL10nTest.pageOf(dialog).chooseLanguage(app.hushpinterest.extension.shared.settings.AppLanguage.EN);
+            app.hushpinterest.extension.shared.Utils.awaitBackgroundTasksForTests();
+            org.junit.Assert.assertEquals("HushPinterest settings", longLabel(manager));
+            SettingsL10nTest.pageOf(dialog).chooseLanguage(app.hushpinterest.extension.shared.settings.AppLanguage.DEFAULT);
+            app.hushpinterest.extension.shared.Utils.awaitBackgroundTasksForTests();
+            org.junit.Assert.assertEquals(turkish, longLabel(manager));
+            org.junit.Assert.assertEquals(1, manager.getDynamicShortcuts().size());
+        } finally {
+            app.hushpinterest.extension.shared.settings.BaseSettings.HUSH_LANGUAGE.resetToDefault();
+        }
+    }
+
     private static String longLabel(android.content.pm.ShortcutManager manager) {
         for (android.content.pm.ShortcutInfo shortcut : manager.getDynamicShortcuts()) {
             if (SettingsEntry.SHORTCUT_ID.equals(shortcut.getId())) return String.valueOf(shortcut.getLongLabel());
