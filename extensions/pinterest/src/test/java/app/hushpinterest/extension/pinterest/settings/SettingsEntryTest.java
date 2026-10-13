@@ -362,6 +362,67 @@ public class SettingsEntryTest {
         assertNull("the screen came back after the person closed it with the arrow", dialogOver(loggedOut.get()));
     }
 
+    /** A long press on the Pinterest logo opens the screen over the logo's own activity. */
+    @Test public void longPressingThePinterestLogoOpensTheScreen() {
+        ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup();
+        View logo = logoIn(activity.get());
+        SettingsEntry.watchLogo(logo);
+
+        assertTrue("the logo took no long press", logo.performLongClick());
+        ShadowLooper.idleMainLooper();
+        assertNotNull("the logo's long press didn't open the screen", dialogOver(activity.get()));
+    }
+
+    /** The header is bound again when the home screen comes back, and the logo keeps opening the screen. */
+    @Test public void aHeaderBoundAgainKeepsTheLogosLongPress() {
+        ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup();
+        View logo = logoIn(activity.get());
+        SettingsEntry.watchLogo(logo);
+        SettingsEntry.watchLogo(logo);
+
+        assertTrue("the logo lost its long press", logo.performLongClick());
+        ShadowLooper.idleMainLooper();
+        assertNotNull(dialogOver(activity.get()));
+    }
+
+    /** A logo Pinterest already presses itself is left to Pinterest. */
+    @Test public void aLogoPinterestHandlesStaysPinterests() {
+        ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup();
+        View tapped = logoIn(activity.get());
+        tapped.setOnClickListener(view -> { });
+        SettingsEntry.watchLogo(tapped);
+        org.junit.Assert.assertFalse("a tapped logo got a long press", tapped.performLongClick());
+
+        View held = logoIn(activity.get());
+        View.OnLongClickListener pinterests = view -> true;
+        held.setOnLongClickListener(pinterests);
+        SettingsEntry.watchLogo(held);
+        held.performLongClick();
+        ShadowLooper.idleMainLooper();
+        assertNull("Pinterest's own long press opened the screen", dialogOver(activity.get()));
+    }
+
+    /** No header, or a header without the logo, changes nothing. */
+    @Test public void aHomeScreenWithoutTheLogoIsLeftAlone() {
+        ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup();
+        SettingsEntry.onGreetingHeader(null);
+        android.widget.FrameLayout header = new android.widget.FrameLayout(activity.get());
+        View other = new View(activity.get());
+        header.addView(other);
+        SettingsEntry.onGreetingHeader(header);
+
+        org.junit.Assert.assertFalse(other.isLongClickable());
+        assertNull(dialogOver(activity.get()));
+    }
+
+    private static View logoIn(Activity activity) {
+        android.widget.ImageView logo = new android.widget.ImageView(activity);
+        android.widget.FrameLayout header = new android.widget.FrameLayout(activity);
+        header.addView(logo);
+        activity.setContentView(header);
+        return logo;
+    }
+
     @SuppressWarnings("deprecation")
     private static HushPinterestPreferenceFragment pageOver(Activity activity) {
         SettingsDialog dialog = (SettingsDialog) dialogOver(activity);

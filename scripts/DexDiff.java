@@ -3834,7 +3834,11 @@ public class DexDiff {
 
         /** True when the instruction at [at] can be reached only by falling through from [from]. */
         boolean onlyFrom(Method m, int at, int from) {
-            FeatureFlow graph = flow(m);
+            return onlyFrom(flow(m), at, from);
+        }
+
+        /** [onlyFrom] on a graph built outside the cache, which keys by signature and so can't hold a clean method too. */
+        static boolean onlyFrom(FeatureFlow graph, int at, int from) {
             for (int k = 0; k < graph.normal.size(); k++) {
                 if (k != from && graph.normal.get(k).contains(at)) return false;
                 if (graph.handlers.get(k).contains(at)) return false;
@@ -4925,6 +4929,45 @@ public class DexDiff {
                 String answer = name.equals("pushDynamicShortcut") || name.equals("removeAllDynamicShortcuts") ? "V" : "Z";
                 replacement(manager + "->" + name + "(" + parameters + ")" + answer, entry + "->" + name + "(" + manager + parameters + ")" + answer, null, true);
             }
+            greetingHeader(entry + "->onGreetingHeader(Landroid/view/View;)V");
+        }
+
+        static final String GREETING_HEADER_ID = "home_feed_greeting_header_view";
+
+        record HeaderSite(Method method, int at, int register) {}
+
+        /**
+         * The home feed header goes to the settings entry right after Pinterest finds it (its R field
+         * read, findViewById with it, move-result-object), so the Pinterest logo's long press opens the
+         * screen. The patch hooks only a single such site that nothing else branches into, and leaves
+         * a build without one as it was. Found in the clean target, never from the hook.
+         */
+        void greetingHeader(String hook) {
+            List<HeaderSite> sites = new ArrayList<>();
+            for (Method m : clean.methods.values()) {
+                if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null) continue;
+                List<Instruction> body = instructions(m);
+                for (int k = 0; k + 2 < body.size(); k++) {
+                    if (!readsId(body.get(k), GREETING_HEADER_ID) || !(body.get(k + 1) instanceof FiveRegisterInstruction find)
+                            || find.getOpcode() != Opcode.INVOKE_VIRTUAL || !FIND_VIEW.equals(String.valueOf(reference(find)))
+                            || find.getRegisterCount() != 2 || find.getRegisterD() != firstRegister(body.get(k))
+                            || body.get(k + 2).getOpcode() != Opcode.MOVE_RESULT_OBJECT) continue;
+                    sites.add(new HeaderSite(m, k + 3, firstRegister(body.get(k + 2))));
+                }
+            }
+            if (sites.size() != 1 || !onlyFrom(new FeatureFlow(sites.get(0).method()), sites.get(0).at(), sites.get(0).at() - 1)) return;
+            HeaderSite site = sites.get(0);
+            Method m = actual(site.method());
+            List<Integer> at = calls(m, hook, 1);
+            if (m == null || at.size() != 1) return;
+            int k = at.get(0);
+            List<Instruction> body = instructions(m), was = instructions(site.method());
+            if (k != site.at() || !arguments(body.get(k)).equals(List.of(site.register())) || k + 1 >= body.size()
+                    || body.get(k + 1).getOpcode() != was.get(site.at()).getOpcode() || !onlyFrom(m, k + 1, k) || !onlyFrom(m, k, k - 1)) {
+                fail(hook + " doesn't hand over the home feed header in front of instruction " + site.at() + " of " + m);
+                return;
+            }
+            remove(m, k, k + 1);
         }
 
         List<String> normalized(Method m, FeatureEdits e) {

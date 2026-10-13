@@ -122,19 +122,21 @@ internal val settingsManifestPatch = resourcePatch {
 }
 
 /**
- * Makes the HushPinterest screen reachable two ways. From the home screen, a long-press shortcut on
- * Pinterest's launcher icon opens Pinterest with an extra; from Android's App info page for Pinterest,
- * "Additional settings in the app" opens it with [APPLICATION_PREFERENCES]. Pinterest's launcher
- * activity reports its intent, and the screen opens over the next Pinterest activity to resume.
- * Every name hooked here is a manifest component or a framework override or call. It also has
+ * Makes the HushPinterest screen reachable three ways. Inside Pinterest, a long press on the
+ * Pinterest logo at the top of the home feed opens it (see [hookLogoLongPress]). From the home
+ * screen, a long-press shortcut on Pinterest's launcher icon opens Pinterest with an extra; from
+ * Android's App info page for Pinterest, "Additional settings in the app" opens it with
+ * [APPLICATION_PREFERENCES]. Pinterest's launcher activity reports its intent, and the screen opens
+ * over the next Pinterest activity to resume. Apart from the logo's header, found by its R field,
+ * every name hooked here is a manifest component or a framework override or call. It also has
  * HushPinterest's messages show as Pinterest's own toasts, which only fills in extension stubs.
  */
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "HushPinterest settings",
     description = "Adds a HushPinterest page to Pinterest where you turn features on or off, pause HushPinterest, " +
-        "back up your settings and read the licenses. Open it by long-pressing the Pinterest icon. Works " +
-        "as soon as you patch it in, with no switch.",
+        "back up your settings and read the licenses. Open it by long-pressing the Pinterest logo at the top " +
+        "of your home feed or Pinterest's app icon. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Settings")
@@ -175,5 +177,10 @@ val settingsPatch = bytecodePatch(
         // HushPinterest's messages as Pinterest's own toasts. Only the extension's stubs change,
         // and a build whose toast code reads differently keeps Android toasts.
         routeToastsToPinterest()
+
+        // The Pinterest logo at the top of the home feed: once Pinterest finds the header it sits
+        // in, the extension gives the logo a long press that opens the screen. A build that finds
+        // the header differently keeps its logo as it was.
+        hookLogoLongPress()
     }
 }

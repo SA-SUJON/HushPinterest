@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** Long-press the Pinterest logo at the top of your home feed to open HushPinterest settings. It works even while HushPinterest is paused. The app icon shortcut and Android's App info page still open them too.
+
 * **Pinterest:** Share file in Download history shows a frame of a saved video in Android's share sheet on Android 11 and later, where it used to show a plain file icon. The app you share to still gets the video itself with its name. Images already had a preview and work as before.
 
 * **Tooling:** The script tests stopped failing now and then under Windows PowerShell when two device builds run at once. Both builds logged to the same stand-in build queue file, which Windows PowerShell can't append to from two processes at the same moment. That test now also reports the exact line where a build failed.
