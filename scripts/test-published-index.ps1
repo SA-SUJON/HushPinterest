@@ -321,6 +321,21 @@ Add-PublishEvent 'verify-index'
     $factsReadme = Join-Path $global:PublishContract.FactsRoot 'README.md'
     [IO.File]::WriteAllText($factsReadme, ([IO.File]::ReadAllText($factsReadme) -replace
         '(?i)(\blatest (?:published )?release is [^\r\n]*?, with )\d+( patches)', "`${1}$listed`$2"))
+    # Between a release's prepare commit and its publish, the source names the new version while the
+    # index, README's latest release sentence and the bug form still name the last one. Publishing
+    # moves all three to the source version, so the fixture does too.
+    $sourceVersion = [regex]::Match([IO.File]::ReadAllText((Join-Path $global:PublishContract.FactsRoot 'gradle.properties')),
+        '(?m)^version\s*=\s*(\S+)').Groups[1].Value
+    $publishedVersion = ([IO.File]::ReadAllText($factsBundle) | ConvertFrom-Json).version
+    if ($sourceVersion -and $publishedVersion -and $sourceVersion -ne $publishedVersion) {
+        $old = '(?<![\d.])' + [regex]::Escape($publishedVersion) + '(?!\.?\d)'
+        [IO.File]::WriteAllText($factsBundle, ([IO.File]::ReadAllText($factsBundle) -replace $old, $sourceVersion))
+        [IO.File]::WriteAllText($factsReadme, ([regex]::Replace([IO.File]::ReadAllText($factsReadme),
+            '(?i)\blatest (?:published )?release is [^\r\n]*?, with \d+ patches', { param($m) $m.Value -replace $old, $sourceVersion })))
+        $factsForm = Join-Path $global:PublishContract.FactsRoot '.github/ISSUE_TEMPLATE/bug_report.yml'
+        [IO.File]::WriteAllText($factsForm, ([IO.File]::ReadAllText($factsForm) -replace
+            ('(HushPinterest )' + [regex]::Escape($publishedVersion) + '(?!\.?\d)'), "`${1}$sourceVersion"))
+    }
     function Assert-RealFactsRefused([string]$Pattern, [switch]$SkipCount) {
         $problem = $null
         try {

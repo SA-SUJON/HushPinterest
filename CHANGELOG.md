@@ -106,6 +106,8 @@ Every HushPinterest release, newest first.
 
 * **Tooling:** The published index check finds git when the pre-push hook's PATH lists more than one copy of it. Inside the hook it used to get all three paths as one name and stop the release gate.
 
+* **Tooling:** The published index check also runs on a release's prepare commit. Its copy of the index, README's latest release sentence and the bug form now move to the version being prepared, the way publishing moves them, instead of failing on the old one.
+
 ## 0.0.7 (2026-10-10)
 
 * **Pinterest:** Pinterest 14.39.0 is now the supported version. All 27 patches apply to it, and 14.38.0 is no longer a target.
