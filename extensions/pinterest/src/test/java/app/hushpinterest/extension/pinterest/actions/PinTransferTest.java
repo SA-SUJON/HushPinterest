@@ -19,12 +19,16 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** The pin.it lookup Plain pin links makes: one HEAD request, no redirect followed, no body read. */
 public class PinTransferTest {
@@ -230,6 +234,119 @@ public class PinTransferTest {
             response.headers = Collections.singletonMap("Set-Cookie", Collections.singletonList(setCookie));
             return response;
         };
+    }
+
+    @Test(timeout = 4000) public void aHeadDeadlineIncludesTheWaitForHeaders() throws Exception {
+        CountDownLatch released = new CountDownLatch(1);
+        Response head = new Response(SHORT_LINK, 308, "/late") {
+            @Override public int getResponseCode() {
+                try {
+                    released.await(2, TimeUnit.SECONDS);
+                } catch (InterruptedException stopped) {
+                    Thread.currentThread().interrupt();
+                }
+                return super.getResponseCode();
+            }
+
+            @Override public void disconnect() {
+                super.disconnect();
+                released.countDown();
+            }
+        };
+        long started = System.nanoTime();
+        try {
+            PinTransfer.location(SHORT_LINK, 80, uri -> head);
+            fail("a stalled HEAD returned its late redirect");
+        } catch (SocketTimeoutException expected) {
+            assertTrue("the timed-out connection was dropped", head.disconnected);
+            assertTrue("socket timeouts must not extend the total deadline",
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started) < 1800);
+        } finally {
+            released.countDown();
+        }
+    }
+
+    @Test(timeout = 4000) public void aHeadDeadlineIncludesOpeningTheConnection() throws Exception {
+        Response head = new Response(SHORT_LINK, 308, "/late");
+        try {
+            PinTransfer.location(SHORT_LINK, 80, uri -> {
+                try {
+                    new CountDownLatch(1).await(2, TimeUnit.SECONDS);
+                } catch (InterruptedException stopped) {
+                    Thread.currentThread().interrupt();
+                }
+                return head;
+            });
+            fail("a blocked opener escaped the HEAD deadline");
+        } catch (SocketTimeoutException expected) {
+            assertTrue("a connection opened after cancellation must be dropped", head.disconnected);
+        }
+    }
+
+    @Test(timeout = 4000) public void progressingHeadersCannotKeepExtendingTheDeadline() throws Exception {
+        AtomicInteger progress = new AtomicInteger();
+        Response head = new Response(SHORT_LINK, 308, "/late") {
+            @Override public int getResponseCode() {
+                while (!disconnected && progress.incrementAndGet() < 100) {
+                    try {
+                        new CountDownLatch(1).await(5, TimeUnit.MILLISECONDS);
+                    } catch (InterruptedException stopped) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+                return super.getResponseCode();
+            }
+        };
+        try {
+            PinTransfer.location(SHORT_LINK, 80, uri -> head);
+            fail("progressing headers escaped the total deadline");
+        } catch (SocketTimeoutException expected) {
+            assertTrue("headers progressed before the deadline", progress.get() > 1);
+            assertTrue(head.disconnected);
+        }
+    }
+
+    @Test(timeout = 5000) public void stuckOpenersAdmitOnlyTwoTransportWorkers() throws Exception {
+        CountDownLatch release = new CountDownLatch(1);
+        CountDownLatch closed = new CountDownLatch(2);
+        AtomicInteger opened = new AtomicInteger();
+        PinTransfer.Connection factory = uri -> {
+            opened.incrementAndGet();
+            boolean waiting = true;
+            while (waiting) {
+                try {
+                    release.await();
+                    waiting = false;
+                } catch (InterruptedException ignored) {
+                    // Model a resolver which doesn't support interruption.
+                }
+            }
+            return new Response(SHORT_LINK, 308, "/late") {
+                @Override public void disconnect() {
+                    super.disconnect();
+                    closed.countDown();
+                }
+            };
+        };
+        try {
+            for (int i = 0; i < 2; i++) {
+                try {
+                    PinTransfer.location(SHORT_LINK, 40, factory);
+                    fail("a stuck opener returned");
+                } catch (SocketTimeoutException expected) { }
+            }
+            try {
+                PinTransfer.location(SHORT_LINK, 40, factory);
+                fail("a third stuck transport worker was admitted");
+            } catch (IOException expected) {
+                assertEquals("No media lookup worker is free", expected.getMessage());
+            }
+            assertEquals(2, opened.get());
+        } finally {
+            release.countDown();
+            assertTrue("late connections are closed", closed.await(1, TimeUnit.SECONDS));
+        }
     }
 
     private interface Request {

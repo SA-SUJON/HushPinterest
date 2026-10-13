@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** Original-image searches now share a 10-second deadline, including connection setup and slow headers. Short-link HEAD requests also stop at their deadline. A stalled host keeps the supplied image or clipboard text, and repeated attempts can't create unlimited network workers.
+
 * **Tooling:** The README is much shorter now. It keeps what you need to install, set up, troubleshoot and verify HushPinterest, and the longer version with its test notes and internals is still in the repository history. The Ko-fi link that dropped out of it on October 12 is back above the title.
 * **Pinterest:** When a change needs Pinterest to restart, a Restart row shows up near the top of the settings page right away and counts the changes waiting. Tapping it closes Pinterest and reopens it on the same settings page. The old line that only said a restart was needed is gone.
 * **Pinterest:** Disable analytics, Hide screenshot share and Fix push notifications now bring up the Restart row when you flip them, since each one takes effect on Pinterest's next start.

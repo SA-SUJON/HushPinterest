@@ -20,6 +20,7 @@ import org.robolectric.annotation.Config;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -83,6 +84,23 @@ public class OriginalLookupTest {
         assertTrue("four 403s are an answer", refused.settled);
         host.answer(ORIGINALS + ".png", 200, "image/png");
         assertTrue(OriginalLookup.look(standIn).settled);
+    }
+
+    @Test public void allCandidatesShareOneDeadlineAndATimeoutCanBeRetried() {
+        AtomicLong clock = new AtomicLong();
+        OriginalLookup.connection = uri -> {
+            clock.addAndGet(6000);
+            return host.open(uri);
+        };
+        OriginalLookup.Found timedOut = OriginalLookup.look(standIn, clock::get, 10000);
+        assertSame(standIn, timedOut.source);
+        assertFalse("a deadline is not evidence that originals are absent", timedOut.settled);
+        assertEquals(List.of(ORIGINALS + ".jpg", ORIGINALS + ".png"), addresses());
+        assertTrue(host.asked.stream().allMatch(head -> head.disconnected));
+
+        OriginalLookup.connection = host;
+        host.answer(ORIGINALS + ".png", 200, "image/png");
+        assertEquals(ORIGINALS + ".png", OriginalLookup.look(standIn).source.url);
     }
 
     @Test public void anAddressWithoutTheHashPathIsNeverAskedAbout() {

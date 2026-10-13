@@ -7,6 +7,7 @@
 package app.hushpinterest.extension.pinterest.actions;
 
 import java.io.IOException;
+import java.util.function.LongSupplier;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
@@ -22,6 +23,8 @@ final class OriginalLookup {
 
     /** Tests replace it so they never reach the network. */
     static volatile PinTransfer.Connection connection = PinTransfer.NETWORK;
+    /** One budget for every candidate, including slow headers and opening the connection. */
+    static final long DEADLINE_MS = 10000;
 
     /** What a lookup chose, and whether the media host's answers settled it. */
     static final class Found {
@@ -42,9 +45,14 @@ final class OriginalLookup {
 
     /** {@link #find}, saying too whether the answer would hold if asked again. */
     static Found look(PinMedia.Source standIn) {
+        return look(standIn, PinTransfer.CLOCK, DEADLINE_MS);
+    }
+
+    static Found look(PinMedia.Source standIn, LongSupplier clock, long budgetMs) {
+        long deadline = clock.getAsLong() + budgetMs;
         for (PinMedia.Source original : PinMedia.originals(standIn)) {
             try {
-                if (PinTransfer.present(original, connection)) {
+                if (PinTransfer.present(original, connection, clock, deadline)) {
                     HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "original image found on media host");
                     return new Found(original, true);
                 }

@@ -20,13 +20,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongSupplier;
 
 import app.hushpinterest.extension.pinterest.settings.NoCookies;
+import app.hushpinterest.extension.shared.Logger;
 
 /**
  * HEAD requests for downloads and Plain pin links: whether the media host has an original behind a
@@ -43,6 +50,26 @@ public final class PinTransfer {
     }
 
     static final Connection NETWORK = uri -> (HttpURLConnection) uri.toURL().openConnection();
+    static final LongSupplier CLOCK = () -> TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+
+    // A stuck resolver cannot consume the shared app workers or create a new thread on every tap.
+    private static final ThreadPoolExecutor exchanges = workers("hushpinterest-media-request");
+    private static final ThreadPoolExecutor disconnects = workers("hushpinterest-media-close");
+
+    private static ThreadPoolExecutor workers(String name) {
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(2, 2, 1, TimeUnit.MINUTES,
+                new SynchronousQueue<>(), runnable -> {
+                    Thread thread = new Thread(runnable, name);
+                    thread.setDaemon(true);
+                    return thread;
+                }, new ThreadPoolExecutor.AbortPolicy());
+        pool.allowCoreThreadTimeOut(true);
+        return pool;
+    }
+
+    private interface Answer<T> {
+        T read(HttpURLConnection connection, int status) throws IOException;
+    }
 
     /**
      * The connection for a HEAD request, unless the process's cookie handler would put a cookie on
@@ -50,8 +77,7 @@ public final class PinTransfer {
      * pinterest.com hop of the short-link redirector, where Pinterest's sign-in lives: a cookie
      * there stops the request instead.
      */
-    private static HttpURLConnection open(URI uri, Connection factory) throws IOException {
-        CookieHandler cookies = CookieHandler.getDefault();
+    private static HttpURLConnection open(URI uri, Connection factory, CookieHandler cookies) throws IOException {
         if (forgettable(uri)) NoCookies.forget(cookies, uri);
         String refusal = NoCookies.refusal(cookies, uri);
         if (refusal != null) throw new IOException(refusal);
@@ -63,11 +89,14 @@ public final class PinTransfer {
      * on a pinterest.com hop only what the answer set ([answered]) over what was [kept], or that
      * cookie would stop every later lookup.
      */
-    private static void close(HttpURLConnection head, URI uri, @Nullable List<HttpCookie> kept, Set<String> answered) {
-        head.disconnect();
-        CookieHandler cookies = CookieHandler.getDefault();
-        if (forgettable(uri)) NoCookies.forget(cookies, uri);
-        else NoCookies.forgetSince(cookies, uri, kept, answered);
+    private static void close(HttpURLConnection head, URI uri, @Nullable CookieHandler cookies,
+                              @Nullable List<HttpCookie> kept, Set<String> answered) {
+        try {
+            head.disconnect();
+        } finally {
+            if (forgettable(uri)) NoCookies.forget(cookies, uri);
+            else NoCookies.forgetSince(cookies, uri, kept, answered);
+        }
     }
 
     private static boolean forgettable(URI uri) {
@@ -81,27 +110,19 @@ public final class PinTransfer {
      * connection: the host couldn't answer now, which doesn't say the file isn't there.
      */
     static boolean present(PinMedia.Source source, Connection factory) throws IOException {
+        return present(source, factory, CLOCK, CLOCK.getAsLong() + OriginalLookup.DEADLINE_MS);
+    }
+
+    /** A HEAD sharing its caller's monotonic deadline across all original candidates. */
+    static boolean present(PinMedia.Source source, Connection factory, LongSupplier clock, long deadline) throws IOException {
         URI uri = PinMedia.mediaUri(source.url);
         if (uri == null) throw new IOException("Not a public Pinterest media URL");
-        List<HttpCookie> kept = NoCookies.kept(CookieHandler.getDefault(), uri);
-        HttpURLConnection head = open(uri, factory);
-        Set<String> answered = Collections.emptySet();
-        try {
-            head.setRequestMethod("HEAD");
-            head.setInstanceFollowRedirects(false);
-            head.setUseCaches(false);
-            head.setConnectTimeout(5000);
-            head.setReadTimeout(5000);
-            head.setRequestProperty("Accept-Encoding", "identity");
-            int status = head.getResponseCode();
-            answered = NoCookies.setBy(head.getHeaderFields());
+        return exchange(uri, factory, clock, deadline, 5000, false, (head, status) -> {
             if (status >= 500 || status == 429) throw new IOException("The media host couldn't answer now: " + status);
             if (status != HttpURLConnection.HTTP_OK) return false;
             String type = head.getContentType();
             return type != null && type.split(";", 2)[0].trim().equalsIgnoreCase(source.mime);
-        } finally {
-            close(head, uri, kept, answered);
-        }
+        });
     }
 
     /**
@@ -114,23 +135,11 @@ public final class PinTransfer {
     }
 
     static String location(URI uri, int timeoutMs, Connection factory) throws IOException {
-        List<HttpCookie> kept = NoCookies.kept(CookieHandler.getDefault(), uri);
-        HttpURLConnection head = open(uri, factory);
-        Set<String> answered = Collections.emptySet();
-        try {
-            head.setRequestMethod("HEAD");
-            head.setInstanceFollowRedirects(false);
-            head.setUseCaches(false);
-            head.setConnectTimeout(timeoutMs);
-            head.setReadTimeout(timeoutMs);
-            head.setRequestProperty("Accept-Encoding", "identity");
-            int status = head.getResponseCode();
-            answered = NoCookies.setBy(head.getHeaderFields());
+        if (timeoutMs <= 0) throw new SocketTimeoutException("The media host took too long");
+        return exchange(uri, factory, CLOCK, CLOCK.getAsLong() + timeoutMs, timeoutMs, false, (head, status) -> {
             if (status != 301 && status != 302 && status != 303 && status != 307 && status != 308) return null;
             return head.getHeaderField("Location");
-        } finally {
-            close(head, uri, kept, answered);
-        }
+        });
     }
 
     /** The most of a file a check reads. Image headers sit well inside it. */
@@ -179,28 +188,93 @@ public final class PinTransfer {
         URI uri = PinMedia.mediaUri(source.url);
         if (uri == null) throw new IOException("Not a public Pinterest media URL");
         long deadline = clock.getAsLong() + deadlineMs;
-        List<HttpCookie> kept = NoCookies.kept(CookieHandler.getDefault(), uri);
-        HttpURLConnection get = open(uri, factory);
-        // A thread of its own, so the deadline holds while a connect, the headers or a read is still
-        // waiting: at the deadline the connection is dropped, which ends the wait, and the check
-        // gives up without it.
-        FutureTask<Prefix> exchange = new FutureTask<>(() -> exchange(get, uri, kept, clock, deadline));
-        Thread thread = new Thread(exchange, "hushpinterest-file-check");
-        thread.setDaemon(true);
-        thread.start();
+        return exchange(uri, factory, clock, deadline, 5000, true, (get, status) -> {
+            if (status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_PARTIAL) {
+                return new Prefix(status, null, -1, null, new byte[0]);
+            }
+            return new Prefix(status, get.getHeaderField("Content-Range"), get.getContentLengthLong(),
+                    get.getContentEncoding(), read(get.getInputStream(), clock, deadline));
+        });
+    }
+
+    /** All three exchanges include opening, headers, reading and cleanup in one caller budget. */
+    private static <T> T exchange(URI uri, Connection factory, LongSupplier clock, long deadline,
+                                  int socketTimeout, boolean prefix, Answer<T> answer) throws IOException {
+        if (clock.getAsLong() >= deadline) throw new SocketTimeoutException("The media host took too long");
+        CookieHandler cookies = CookieHandler.getDefault();
+        AtomicReference<HttpURLConnection> opened = new AtomicReference<>();
+        AtomicBoolean expired = new AtomicBoolean();
+        CountDownLatch closed = new CountDownLatch(1);
+        FutureTask<T> request = new FutureTask<>(() -> {
+            HttpURLConnection connection = null;
+            List<HttpCookie> kept = NoCookies.kept(cookies, uri);
+            Set<String> answered = Collections.emptySet();
+            try {
+                if (expired.get()) throw new SocketTimeoutException("The media host took too long");
+                connection = open(uri, factory, cookies);
+                opened.set(connection);
+                if (expired.get() || clock.getAsLong() >= deadline) {
+                    throw new SocketTimeoutException("The media host took too long");
+                }
+                connection.setRequestMethod(prefix ? "GET" : "HEAD");
+                connection.setInstanceFollowRedirects(false);
+                connection.setUseCaches(false);
+                connection.setConnectTimeout(socketTimeout);
+                connection.setReadTimeout(socketTimeout);
+                connection.setRequestProperty("Accept-Encoding", "identity");
+                if (prefix) connection.setRequestProperty("Range", "bytes=0-" + (PREFIX_BYTES - 1));
+                int status = connection.getResponseCode();
+                answered = NoCookies.setBy(connection.getHeaderFields());
+                if (expired.get() || clock.getAsLong() >= deadline) {
+                    throw new SocketTimeoutException("The media host took too long");
+                }
+                T result = answer.read(connection, status);
+                if (expired.get() || clock.getAsLong() >= deadline) {
+                    throw new SocketTimeoutException("The media host took too long");
+                }
+                return result;
+            } finally {
+                try {
+                    if (connection != null) close(connection, uri, cookies, kept, answered);
+                } finally {
+                    closed.countDown();
+                }
+            }
+        });
         try {
-            return exchange.get(deadlineMs, TimeUnit.MILLISECONDS);
+            exchanges.execute(request);
+        } catch (RejectedExecutionException busy) {
+            throw new IOException("No media lookup worker is free", busy);
+        }
+        try {
+            long left = deadline - clock.getAsLong();
+            if (left <= 0) throw new TimeoutException();
+            return request.get(left, TimeUnit.MILLISECONDS);
         } catch (TimeoutException | InterruptedException stopped) {
             boolean interrupted = stopped instanceof InterruptedException;
-            get.disconnect();
-            // Dropping the connection ends the wait, and the request then puts the phone's cookies
-            // back as it closes. A moment for that keeps a check started right after from seeing
-            // this one's cookies as the phone's own. An address lookup no drop can end isn't waited out.
+            expired.set(true);
+            HttpURLConnection connection = opened.get();
+            if (connection != null) {
+                try {
+                    disconnects.execute(() -> {
+                        try {
+                            connection.disconnect();
+                        } catch (RuntimeException failure) {
+                            Logger.printInfo(() -> "Timed-out media connection didn't close", failure);
+                        }
+                    });
+                } catch (RejectedExecutionException busy) {
+                    Logger.printInfo(() -> "Media connection cleanup is busy");
+                }
+            }
+            request.cancel(true);
+            // Future cancellation completes before its running task's finally. Wait for the actual
+            // cookie cleanup, without waiting forever on a resolver or a blocked disconnect.
             if (!interrupted) {
                 try {
-                    exchange.get(CLOSE_GRACE_MS, TimeUnit.MILLISECONDS);
-                } catch (TimeoutException | ExecutionException | InterruptedException | RuntimeException gone) {
-                    if (gone instanceof InterruptedException) interrupted = true;
+                    closed.await(CLOSE_GRACE_MS, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException gone) {
+                    interrupted = true;
                 }
             }
             if (interrupted) Thread.currentThread().interrupt();
@@ -211,30 +285,6 @@ public final class PinTransfer {
             if (cause instanceof RuntimeException) throw (RuntimeException) cause;
             if (cause instanceof Error) throw (Error) cause;
             throw new IOException(cause);
-        }
-    }
-
-    private static Prefix exchange(HttpURLConnection get, URI uri, List<HttpCookie> kept, LongSupplier clock,
-                                   long deadline) throws IOException {
-        Set<String> answered = Collections.emptySet();
-        try {
-            get.setRequestMethod("GET");
-            get.setInstanceFollowRedirects(false);
-            get.setUseCaches(false);
-            get.setConnectTimeout(5000);
-            get.setReadTimeout(5000);
-            get.setRequestProperty("Accept-Encoding", "identity");
-            get.setRequestProperty("Range", "bytes=0-" + (PREFIX_BYTES - 1));
-            int status = get.getResponseCode();
-            answered = NoCookies.setBy(get.getHeaderFields());
-            if (status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_PARTIAL) {
-                return new Prefix(status, null, -1, null, new byte[0]);
-            }
-            return new Prefix(status, get.getHeaderField("Content-Range"), get.getContentLengthLong(),
-                    get.getContentEncoding(), read(get.getInputStream(), clock, deadline));
-        } finally {
-            // Disconnecting drops what a 200 answer still had to send, without reading it.
-            close(get, uri, kept, answered);
         }
     }
 
