@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** A switch that needs a restart could have trouble saving on its way back to its starting value and still end up there. The restart row kept counting it anyway, and the next time you flipped that switch it could snap back. Now the row's count is right and the switch stays where you put it.
+
 * **Pinterest:** With a screen reader on, the settings screen now reads how many changes are waiting for a restart whenever that number changes, and reads the result of a Check now you tapped. Each is read once, after whatever is already being read, and focus stays where it was. The daily check that runs on its own stays quiet.
 
 * **Pinterest:** Quick setups now counts only the switches that really changed. If one can't be changed, the message also says how many were left as they were, and whether the page already shows their saved values or needs opening again first.

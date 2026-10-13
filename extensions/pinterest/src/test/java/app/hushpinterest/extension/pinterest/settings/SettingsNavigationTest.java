@@ -712,10 +712,50 @@ public class SettingsNavigationTest {
             for (BooleanSetting setting : QuickSetupKeys.QUIET) assertHolds(setting, setting.defaultValue);
         } finally {
             for (BooleanSetting setting : QuickSetupKeys.DEFAULTS) setting.resetToDefault();
-            // The recovered switch is the one that waits on a restart, and a recovery never gets as far as its debt.
-            app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.remove(
-                    Settings.HIDE_SCREENSHOT_SHARE.key);
         }
+    }
+
+    /**
+     * A switch that waits on a restart is put back on the value Pinterest runs with, and the
+     * setting's own clearing of its stored value fails, so the page's listener has to put the row
+     * and the store right. The change landed all the same: the restart it no longer needs comes
+     * off the row's count, and the switch's next flip is taken like any other.
+     */
+    @Test public void aRecoveredChangeThatLandedKeepsTheRestartCountAndItsNextFlipHolds() {
+        BooleanSetting share = Settings.HIDE_SCREENSHOT_SHARE;
+        SwitchPreference row = (SwitchPreference) page.findPreference(share.key);
+        SwitchPreference analytics = (SwitchPreference) page.findPreference(Settings.DISABLE_ANALYTICS.key);
+        try {
+            row.setChecked(true);
+            analytics.setChecked(!Settings.DISABLE_ANALYTICS.defaultValue);
+            assertEquals("Restart Pinterest to apply 2 changes", restartTitle());
+
+            ShadowToast.reset();
+            // Going back to a default has the setting clear its stored value, and that write is lost.
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.LOST)) {
+                row.setChecked(false);
+            }
+            assertTrue("the control: the change didn't go through the listener's recovery",
+                    ShadowToast.showedToast("The setting couldn't finish updating. Its saved value is shown."));
+            assertHolds(share, false);
+            assertEquals("a restart the recovered change no longer needs is still counted",
+                    "Restart Pinterest to apply this change", restartTitle());
+
+            row.setChecked(true);
+            assertHolds(share, true);
+            assertEquals("Restart Pinterest to apply 2 changes", restartTitle());
+        } finally {
+            share.resetToDefault();
+            Settings.DISABLE_ANALYTICS.resetToDefault();
+        }
+    }
+
+    /** The restart row's title, which counts the changes a restart applies. */
+    private String restartTitle() {
+        ShadowLooper.idleMainLooper();
+        int at = position(SettingsNavigation.RESTART);
+        assertTrue("no restart row", at >= 0);
+        return String.valueOf(((Preference) list().getItemAtPosition(at)).getTitle());
     }
 
     /** [setting] answers [expected] in its row on the open page, in the typed setting and in the store. */
@@ -993,7 +1033,7 @@ public class SettingsNavigationTest {
         org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
         TextView status = dialog.getView().findViewWithTag(SettingsDialog.CHECK_STATUS);
         List<String> read = liveReadings(status);
-        View focused = dialog.getDialog().getCurrentFocus();
+        View focused = focusOnTheList();
         Preference checkNow = page.findPreference(HushPinterestPreferenceFragment.CHECK_NOW);
 
         // The automatic check ending: the row changes, nothing is read.
@@ -1038,7 +1078,7 @@ public class SettingsNavigationTest {
         TextView status = dialog.getView().findViewWithTag(SettingsDialog.RESTART_STATUS);
         List<String> read = liveReadings(status);
         assertEquals("", status.getText().toString());
-        View focused = dialog.getDialog().getCurrentFocus();
+        View focused = focusOnTheList();
         SwitchPreference share = (SwitchPreference) page.findPreference(Settings.HIDE_SCREENSHOT_SHARE.key);
         SwitchPreference analytics = (SwitchPreference) page.findPreference(Settings.DISABLE_ANALYTICS.key);
         assertNotNull("no Hide screenshot share row", share);
@@ -1077,6 +1117,17 @@ public class SettingsNavigationTest {
             Settings.DISABLE_ANALYTICS.resetToDefault();
             Settings.HIDE_TOPIC_SUGGESTIONS.resetToDefault();
         }
+    }
+
+    /**
+     * Asks the list to take input focus, as it has while a row in it is being read, and answers
+     * whatever holds focus then. Something has to: a focus that's nowhere can't be seen to stay put.
+     */
+    private View focusOnTheList() {
+        list().requestFocus();
+        View focused = dialog.getDialog().getCurrentFocus();
+        assertNotNull("nothing holds focus, so nothing could be seen to keep it", focused);
+        return focused;
     }
 
     /**
