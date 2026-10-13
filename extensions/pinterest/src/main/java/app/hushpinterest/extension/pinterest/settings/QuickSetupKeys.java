@@ -2,7 +2,7 @@
  * Copyright 2026 HushPinterest contributors
  * https://github.com/SysAdminDoc/HushPinterest
  *
- * Built on SysAdminDoc/hushfeed (GPL-3.0).
+ * Built on https://github.com/SysAdminDoc/hushfeed (GPL-3.0).
  */
 package app.hushpinterest.extension.pinterest.settings;
 
