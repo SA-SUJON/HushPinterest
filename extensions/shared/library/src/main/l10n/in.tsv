@@ -450,6 +450,12 @@ Queue pins	Antrekan Pin
 Download history already has each pin chosen from this board.	Riwayat unduhan sudah memiliki setiap Pin pilihan dari papan ini.
 Resume HushPinterest, turn on Download pins and Download board.	Lanjutkan HushPinterest, aktifkan Unduh Pin dan Unduh papan.
 Save list	Simpan daftar
+# context: Save list, the title of the choice between a bookmarks file and a JSON file, and the two rows under it
+Save list as	Simpan daftar sebagai
+Bookmarks file (HTML)	File bookmark (HTML)
+Imports into browsers and bookmark apps.	Bisa diimpor ke browser dan aplikasi bookmark.
+JSON file	File JSON
+Keeps every detail, for other tools.	Menyimpan semua detail, untuk alat lain.
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Daftar ini hanya berisi Pin dari jenis yang dipilih yang sudah dimuat Pinterest untuk papan saat daftar disimpan, maksimal %d. Pin yang lebih bawah di papan tidak ada di dalamnya.
 This list has only the pins chosen from those on screen when it was saved.	Daftar ini hanya berisi Pin yang dipilih dari Pin di layar saat daftar disimpan.
 A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Tautan sumber bernilai "missing" jika Pin tidak punya tautan, dan "omitted" jika tautan tidak bisa disimpan persis seperti aslinya, misalnya tautan dengan data pelacakan atau tautan ke jaringan pribadi.

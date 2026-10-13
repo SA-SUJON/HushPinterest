@@ -138,6 +138,13 @@ public class PinManifestTest {
         settle();
     }
 
+    /** Taps [format]'s row in the Save list as choice, the dialog in front. */
+    private static void pick(PinManifest.Format format) {
+        ListView kinds = ShadowAlertDialog.getLatestAlertDialog().getListView();
+        kinds.performItemClick(kinds.getChildAt(format.ordinal()), format.ordinal(), format.ordinal());
+        shadowOf(Looper.getMainLooper()).idle();
+    }
+
     private static JSONObject read(Uri file) throws Exception {
         byte[] bytes = PinListProvider.get(file);
         assertNotNull("nothing was written", bytes);
@@ -238,6 +245,96 @@ public class PinManifestTest {
         assertEquals(0, board.getJSONArray("pins").length());
     }
 
+    /** The bookmarks file has the JSON list's pins, link rules and notes, one bookmark a pin. */
+    @Test public void theBookmarksFileHoldsTheSamePinsLinksAndNotes() {
+        List<PinManifest.Entry> entries = PinManifest.entries(List.of(
+                pin("1", "Rye & wheat", "https://example.com/a"),
+                pin("2", null, "https://example.com/b?utm_source=pinterest"),
+                pin("3", "Third", null)));
+        Instant made = Instant.parse("2026-10-12T08:30:15.987Z");
+        long added = made.getEpochSecond();
+        String html = PinManifest.bookmarks(entries, false, made.toEpochMilli());
+        assertTrue(html, html.startsWith("<!DOCTYPE NETSCAPE-Bookmark-file-1>\n"));
+        assertTrue(html, html.contains("CONTENT=\"text/html; charset=UTF-8\""));
+        assertTrue(html, html.contains("<DT><H3 ADD_DATE=\"" + added + "\">HushPinterest pins</H3>\n"));
+
+        String[] lines = html.split("\n");
+        List<String> marks = new ArrayList<>();
+        for (int i = 0; i < lines.length; i++) {
+            if (lines[i].contains("<DT><A ")) marks.add(lines[i].trim() + "|" + lines[i + 1].trim());
+        }
+        assertEquals(List.of(
+                "<DT><A HREF=\"https://www.pinterest.com/pin/1/\" ADD_DATE=\"" + added + "\">Rye &amp; wheat</A>"
+                        + "|<DD>Source: https://example.com/a",
+                "<DT><A HREF=\"https://www.pinterest.com/pin/2/\" ADD_DATE=\"" + added + "\">https://www.pinterest.com/pin/2/</A>"
+                        + "|<DD>Source link: omitted",
+                "<DT><A HREF=\"https://www.pinterest.com/pin/3/\" ADD_DATE=\"" + added + "\">Third</A>"
+                        + "|<DD>Source link: missing"), marks);
+        assertTrue("the partial note is gone",
+                html.contains(L10n.t("This list has only the pins chosen from those on screen when it was saved.")));
+        assertTrue("the link note is gone", html.contains("&quot;omitted&quot;"));
+        assertFalse("a media address got in", html.contains("pinimg"));
+        assertFalse("an omitted link got in", html.contains("utm_source"));
+
+        String board = PinManifest.bookmarks(entries.subList(0, 0), true, 0);
+        assertTrue(board, board.contains("up to " + BoardDownloads.PINS + ","));
+        assertFalse("an empty list still has a bookmark", board.contains("<A "));
+    }
+
+    /** A title or a link can't add markup, a script or a second bookmark of its own. */
+    @Test public void aTitleWithMarkupInItStaysTextInTheBookmarksFile() {
+        String title = "</A><script>alert(1)</script><A HREF=\"https://evil.example/\" onclick='x()'>&lt;";
+        String html = PinManifest.bookmarks(List.of(new PinManifest.Entry("1", title,
+                "https://example.com/it's\"><b>", PinManifest.LinkStatus.INCLUDED)), false, 0);
+        assertTrue(html, html.contains(">&lt;/A&gt;&lt;script&gt;alert(1)&lt;/script&gt;&lt;A HREF=&quot;https://evil.example/&quot; "
+                + "onclick=&#39;x()&#39;&gt;&amp;lt;</A>\n"));
+        assertTrue(html, html.contains("<DD>Source: https://example.com/it&#39;s&quot;&gt;&lt;b&gt;\n"));
+        assertEquals("one bookmark", 1, html.split("<A ", -1).length - 1);
+        // With the file's own tags taken out, no bracket or quote is left to start another.
+        String rest = html.replaceAll("</?(?:!DOCTYPE NETSCAPE-Bookmark-file-1"
+                + "|META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=UTF-8\""
+                + "|TITLE|H1|DL|p|DT|DD|H3 ADD_DATE=\"\\d+\"|H3"
+                + "|A HREF=\"https://www\\.pinterest\\.com/pin/\\d+/\" ADD_DATE=\"\\d+\"|A)>", "");
+        assertFalse(rest, rest.contains("<") || rest.contains(">") || rest.contains("\""));
+    }
+
+    /** Save list asks which kind of file to write, and the bookmarks kind goes to an HTML file. */
+    @Test public void saveListAsksForTheKindOfFileAndWritesBookmarks() throws Exception {
+        View origin = cell(pin("101", "Rye bread", "https://example.com/rye"), 0);
+        cell(pin("102", null, "https://example.com/sourdough?utm_source=pinterest"), 100);
+        assertTrue(GridDownloads.show(origin));
+        AlertDialog chooser = ShadowAlertDialog.getLatestAlertDialog();
+        ListView list = chooser.getListView();
+        for (int position : new int[]{0, 1}) list.performItemClick(list.getChildAt(position), position, position);
+        chooser.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertNull("the picker opened before a kind was chosen", shadowOf(activity).getNextStartedActivityForResult());
+        AlertDialog kinds = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotSame(chooser, kinds);
+        assertEquals(PinManifest.Format.values().length, kinds.getListView().getCount());
+        pick(PinManifest.Format.BOOKMARKS);
+        assertFalse("the choice stayed open", kinds.isShowing());
+
+        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
+        assertNotNull(started);
+        assertEquals(Intent.ACTION_CREATE_DOCUMENT, started.intent.getAction());
+        assertEquals("text/html", started.intent.getType());
+        assertTrue(started.intent.getStringExtra(Intent.EXTRA_TITLE),
+                started.intent.getStringExtra(Intent.EXTRA_TITLE).matches("hushpinterest-pins-\\d{8}-\\d{6}\\.html"));
+
+        Uri file = PinListProvider.put("pins.html", null);
+        answer(started, file);
+        assertEquals("Saved a list of 2 pins.", ShadowToast.getTextOfLatestToast());
+        String html = new String(PinListProvider.get(file), StandardCharsets.UTF_8);
+        assertTrue(html, html.startsWith("<!DOCTYPE NETSCAPE-Bookmark-file-1>\n"));
+        assertTrue(html, html.contains("<A HREF=\"https://www.pinterest.com/pin/101/\""));
+        assertTrue(html, html.contains("<DD>Source: https://example.com/rye\n"));
+        assertTrue(html, html.contains("<A HREF=\"https://www.pinterest.com/pin/102/\""));
+        assertEquals(0, shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+        assertNull(activity.getFragmentManager().findFragmentByTag(PICKER));
+        assertNull(pending().get());
+    }
+
     /** Save list writes the chosen pins, in the chooser's order, to the file picked, and downloads nothing. */
     @Test public void saveListWritesTheChosenPinsToThePickedFile() throws Exception {
         View origin = cell(pin("101", "Rye bread", "https://example.com/rye"), 0);
@@ -251,6 +348,7 @@ public class PinManifestTest {
         assertTrue(chooser.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
         chooser.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
         shadowOf(Looper.getMainLooper()).idle();
+        pick(PinManifest.Format.JSON);
 
         ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
         assertNotNull(started);

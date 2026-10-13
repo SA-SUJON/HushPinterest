@@ -7,6 +7,7 @@
 package app.hushpinterest.extension.pinterest.actions;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.ActivityNotFoundException;
@@ -37,22 +38,39 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
+import app.hushpinterest.extension.pinterest.settings.HushDialogs;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 import app.hushpinterest.extension.shared.settings.preference.LogBufferManager;
 
 /**
- * Save list: the pins a batch chooser holds, written as a JSON list to a file picked through
- * Android's file picker. Each pin is its id, its pin address, its title when it has one, and the
- * source link Pinterest supplied in its {@code link} field when that link can be kept exactly as
- * given. Nothing is fetched to fill it in, and it holds no account, cookie or media address. It's
- * separate from the settings file and the diagnostic report.
+ * Save list: the pins a batch chooser holds, written to a file picked through Android's file
+ * picker, as a bookmarks file browsers and bookmark apps import or as a JSON list. Each pin is
+ * its id, its pin address, its title when it has one, and the source link Pinterest supplied in
+ * its {@code link} field when that link can be kept exactly as given. Nothing is fetched to fill
+ * it in, and it holds no account, cookie or media address. It's separate from the settings file
+ * and the diagnostic report.
  */
 public final class PinManifest {
     private PinManifest() {}
 
     static final String MIME_TYPE = "application/json";
+
+    /** The file a list is saved as, in the order the choice offers them. */
+    enum Format {
+        /** A Netscape bookmarks file: every pin a bookmark, its source link in the description. */
+        BOOKMARKS("text/html", ".html"),
+        JSON(MIME_TYPE, ".json");
+
+        final String mime;
+        final String extension;
+
+        Format(String mime, String extension) {
+            this.mime = mime;
+            this.extension = extension;
+        }
+    }
     static final int REQUEST = 0x4850;
     static final String FORMAT = "hushpinterest-pin-list";
     private static final String TAG = "hushpinterest-pin-list";
@@ -144,13 +162,8 @@ public final class PinManifest {
         out.append("  \"created\": ").append(quote(Instant.ofEpochMilli(now).truncatedTo(ChronoUnit.SECONDS).toString())).append(",\n");
         out.append("  \"scope\": ").append(quote(board ? "board_loaded_pins" : "chosen_visible_pins")).append(",\n");
         out.append("  \"complete\": false,\n");
-        out.append("  \"note\": ").append(quote(board
-                ? L10n.f("This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, "
-                        + "of the kind chosen. Pins further down the board aren't in it.", BoardDownloads.PINS)
-                : L10n.t("This list has only the pins chosen from those on screen when it was saved."))).append(",\n");
-        out.append("  \"links_note\": ").append(quote(L10n.t("A source link is \"missing\" when the pin had none, and "
-                + "\"omitted\" when it couldn't be kept exactly as given, such as a link with tracking details "
-                + "or one to a private network."))).append(",\n");
+        out.append("  \"note\": ").append(quote(note(board))).append(",\n");
+        out.append("  \"links_note\": ").append(quote(linksNote())).append(",\n");
         out.append("  \"pins\": [");
         for (int i = 0; i < entries.size(); i++) {
             Entry entry = entries.get(i);
@@ -163,6 +176,63 @@ public final class PinManifest {
                     .append('}');
         }
         return out.append(entries.isEmpty() ? "]\n}\n" : "\n  ]\n}\n").toString();
+    }
+
+    /** What the list leaves out, said in the file itself whichever kind it is. */
+    private static String note(boolean board) {
+        return board
+                ? L10n.f("This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, "
+                        + "of the kind chosen. Pins further down the board aren't in it.", BoardDownloads.PINS)
+                : L10n.t("This list has only the pins chosen from those on screen when it was saved.");
+    }
+
+    private static String linksNote() {
+        return L10n.t("A source link is \"missing\" when the pin had none, and "
+                + "\"omitted\" when it couldn't be kept exactly as given, such as a link with tracking details "
+                + "or one to a private network.");
+    }
+
+    /**
+     * The list as a Netscape bookmarks file, made at [now] from [entries]: one folder holding a
+     * bookmark per pin, with the same pins and the same notes as {@link #json}. A pin's bookmark is
+     * its pin address under its title, or under the address when it has none. Its description is
+     * the source link when the list can keep it, as text rather than a second bookmark, or the
+     * status word the JSON list uses. Everything that came from Pinterest is escaped, so a title
+     * can't add markup of its own.
+     */
+    static String bookmarks(List<Entry> entries, boolean board, long now) {
+        long added = now / 1000;
+        StringBuilder out = new StringBuilder("<!DOCTYPE NETSCAPE-Bookmark-file-1>\n")
+                .append("<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=UTF-8\">\n")
+                .append("<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n<DL><p>\n")
+                .append("    <DT><H3 ADD_DATE=\"").append(added).append("\">HushPinterest pins</H3>\n")
+                .append("    <DD>").append(escape(note(board) + " " + linksNote())).append('\n')
+                .append("    <DL><p>\n");
+        for (Entry entry : entries) {
+            String url = "https://www.pinterest.com/pin/" + entry.id + "/";
+            out.append("        <DT><A HREF=\"").append(escape(url)).append("\" ADD_DATE=\"").append(added).append("\">")
+                    .append(escape(entry.title != null ? entry.title : url)).append("</A>\n")
+                    .append("        <DD>").append(escape(entry.status == LinkStatus.INCLUDED
+                            ? "Source: " + entry.link : "Source link: " + entry.status.code())).append('\n');
+        }
+        return out.append("    </DL><p>\n</DL><p>\n").toString();
+    }
+
+    /** [text] as HTML text or a quoted attribute value, kept on one line. */
+    private static String escape(String text) {
+        StringBuilder out = new StringBuilder(text.length() + 16);
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            switch (c) {
+                case '&': out.append("&amp;"); break;
+                case '<': out.append("&lt;"); break;
+                case '>': out.append("&gt;"); break;
+                case '"': out.append("&quot;"); break;
+                case '\'': out.append("&#39;"); break;
+                default: out.append(c < 0x20 || c == 0x7f || c == 0x2028 || c == 0x2029 ? ' ' : c);
+            }
+        }
+        return out.toString();
     }
 
     private static String quote(String text) {
@@ -202,16 +272,46 @@ public final class PinManifest {
 
     private static final AtomicReference<Pending> PENDING = new AtomicReference<>();
 
-    /**
-     * Makes the list from [entries] now and opens Android's picker to save it. The answer comes to a
-     * fragment of [activity]'s own, so Pinterest's screen needs no change. Returns whether the
-     * picker opened.
-     */
+    /** Asks which kind of file [entries] should be saved as, then opens the picker for that kind. */
+    static void choose(Activity activity, List<Entry> entries, boolean board) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed() || entries.isEmpty()) return;
+        try {
+            Format[] formats = Format.values();
+            CharSequence[] names = new CharSequence[formats.length];
+            names[Format.BOOKMARKS.ordinal()] = L10n.t("Bookmarks file (HTML)") + "\n"
+                    + L10n.t("Imports into browsers and bookmark apps.");
+            names[Format.JSON.ordinal()] = L10n.t("JSON file") + "\n" + L10n.t("Keeps every detail, for other tools.");
+            AlertDialog kinds = HushDialogs.builder(activity)
+                    .setTitle(L10n.t("Save list as"))
+                    .setSingleChoiceItems(names, -1, (dialog, which) -> {
+                        dialog.dismiss();
+                        export(activity, entries, board, formats[which]);
+                    })
+                    .setNegativeButton(L10n.t("Cancel"), null).create();
+            HushDialogs.prepareChoices(kinds);
+            kinds.show();
+            HushDialogs.paint(kinds);
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "ask how to save the pin list", failure);
+        }
+    }
+
     static boolean export(Activity activity, List<Entry> entries, boolean board) {
+        return export(activity, entries, board, Format.JSON);
+    }
+
+    /**
+     * Makes the list from [entries] now and opens Android's picker to save it as [format]. The
+     * answer comes to a fragment of [activity]'s own, so Pinterest's screen needs no change.
+     * Returns whether the picker opened.
+     */
+    static boolean export(Activity activity, List<Entry> entries, boolean board, Format format) {
         if (activity == null || activity.isFinishing() || activity.isDestroyed() || entries.isEmpty()) return false;
         Picker picker = null;
         try {
-            byte[] bytes = json(entries, board, System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8);
+            long now = System.currentTimeMillis();
+            byte[] bytes = (format == Format.BOOKMARKS ? bookmarks(entries, board, now) : json(entries, board, now))
+                    .getBytes(StandardCharsets.UTF_8);
             String token = UUID.randomUUID().toString();
             PENDING.set(new Pending(token, bytes, entries.size()));
             FragmentManager fragments = activity.getFragmentManager();
@@ -224,7 +324,8 @@ public final class PinManifest {
             if (old != null) change.remove(old);
             change.add(picker, TAG).commitNow();
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
-                    .setType(MIME_TYPE).putExtra(Intent.EXTRA_TITLE, "hushpinterest-pins-" + LogBufferManager.fileTimestamp() + ".json");
+                    .setType(format.mime)
+                    .putExtra(Intent.EXTRA_TITLE, "hushpinterest-pins-" + LogBufferManager.fileTimestamp() + format.extension);
             try {
                 picker.startActivityForResult(intent, REQUEST);
                 return true;

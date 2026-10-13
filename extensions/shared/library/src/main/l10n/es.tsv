@@ -450,6 +450,12 @@ Queue pins	Poner pines en cola
 Download history already has each pin chosen from this board.	El Historial de descargas ya tiene cada pin elegido de este tablero.
 Resume HushPinterest, turn on Download pins and Download board.	Reanuda HushPinterest y activa Descargar pines y Descargar tablero.
 Save list	Guardar lista
+# context: Save list, the title of the choice between a bookmarks file and a JSON file, and the two rows under it
+Save list as	Guardar lista como
+Bookmarks file (HTML)	Archivo de marcadores (HTML)
+Imports into browsers and bookmark apps.	Se importa en navegadores y apps de marcadores.
+JSON file	Archivo JSON
+Keeps every detail, for other tools.	Conserva todos los detalles, para otras herramientas.
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Esta lista solo tiene los pines del tipo elegido que Pinterest había cargado del tablero al guardarla, hasta %d. Los pines que están más abajo en el tablero no están incluidos.
 This list has only the pins chosen from those on screen when it was saved.	Esta lista solo tiene los pines elegidos entre los que había en pantalla al guardarla.
 A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Un enlace de origen es "missing" cuando el pin no tenía ninguno, y "omitted" cuando no se pudo guardar tal como venía, como un enlace con datos de seguimiento o uno a una red privada.

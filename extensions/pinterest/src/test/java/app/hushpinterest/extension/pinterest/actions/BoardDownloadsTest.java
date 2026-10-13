@@ -435,6 +435,11 @@ public class BoardDownloadsTest {
         kinds.performItemClick(kinds.getChildAt(1), 1, 1);
         choice.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
+        // Save list asks for the kind of file first. This list is the JSON one.
+        int json = PinManifest.Format.JSON.ordinal();
+        android.widget.ListView formats = ShadowAlertDialog.getLatestAlertDialog().getListView();
+        formats.performItemClick(formats.getChildAt(json), json, json);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
 
         ShadowActivity.IntentForResult started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
         assertEquals(Intent.ACTION_CREATE_DOCUMENT, started.intent.getAction());

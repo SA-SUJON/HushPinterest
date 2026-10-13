@@ -450,6 +450,12 @@ Queue pins	Pins einreihen
 Download history already has each pin chosen from this board.	Der Download-Verlauf hat schon jeden gewählten Pin dieser Pinnwand.
 Resume HushPinterest, turn on Download pins and Download board.	Fortsetzen, dann „Pins herunterladen“ und „Pinnwand herunterladen“ einschalten.
 Save list	Liste speichern
+# context: Save list, the title of the choice between a bookmarks file and a JSON file, and the two rows under it
+Save list as	Liste speichern als
+Bookmarks file (HTML)	Lesezeichendatei (HTML)
+Imports into browsers and bookmark apps.	Lässt sich in Browser und Lesezeichen-Apps importieren.
+JSON file	JSON-Datei
+Keeps every detail, for other tools.	Enthält alle Angaben, für andere Tools.
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Diese Liste enthält nur die Pins der gewählten Art, die Pinterest beim Speichern für die Pinnwand geladen hatte, bis zu %d. Pins weiter unten auf der Pinnwand sind nicht enthalten.
 This list has only the pins chosen from those on screen when it was saved.	Diese Liste enthält nur die Pins, die beim Speichern aus den Pins auf dem Bildschirm gewählt wurden.
 A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Ein Quelllink ist "missing", wenn der Pin keinen hatte, und "omitted", wenn er nicht genau so behalten werden konnte, wie er war, etwa ein Link mit Tracking-Angaben oder einer in ein privates Netzwerk.

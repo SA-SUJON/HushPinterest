@@ -177,7 +177,7 @@ final class GridDownloads {
                         if (!chosen.isEmpty()) queue(activity, chosen, L10n.t("Download visible pins"), null, 0, true);
                     })
                     .setNeutralButton(L10n.t("Save list"),
-                            (dialog, which) -> PinManifest.export(activity, PinManifest.entries(choices.chosen()), false))
+                            (dialog, which) -> PinManifest.choose(activity, PinManifest.entries(choices.chosen()), false))
                     .setNegativeButton(L10n.t("Cancel"), null).create();
             ListView list = picker.getListView();
             list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);

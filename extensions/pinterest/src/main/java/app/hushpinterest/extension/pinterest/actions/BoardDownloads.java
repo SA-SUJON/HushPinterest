@@ -424,7 +424,7 @@ public final class BoardDownloads {
                     .setPositiveButton(L10n.t("Queue pins"), (dialog, which) -> confirm(activity, board, filters[chosen[0]]))
                     // The list has every loaded pin of the kind, Download history's too: it's a list, not a download.
                     .setNeutralButton(L10n.t("Save list"),
-                            (dialog, which) -> PinManifest.export(activity, listed(board, filters[chosen[0]]), true))
+                            (dialog, which) -> PinManifest.choose(activity, listed(board, filters[chosen[0]]), true))
                     .setNegativeButton(L10n.t("Cancel"), null).create();
             HushDialogs.prepareChoices(picker);
             picker.setTitle(heading);

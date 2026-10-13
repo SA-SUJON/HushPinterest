@@ -450,6 +450,12 @@ Queue pins	Pinleri sıraya al
 Download history already has each pin chosen from this board.	İndirme geçmişinde bu panodan seçilen her Pin zaten var.
 Resume HushPinterest, turn on Download pins and Download board.	HushPinterest'i sürdür, Pinleri indir ve Panoyu indir'i aç.
 Save list	Listeyi kaydet
+# context: Save list, the title of the choice between a bookmarks file and a JSON file, and the two rows under it
+Save list as	Listeyi farklı kaydet
+Bookmarks file (HTML)	Yer imleri dosyası (HTML)
+Imports into browsers and bookmark apps.	Tarayıcılara ve yer imi uygulamalarına aktarılabilir.
+JSON file	JSON dosyası
+Keeps every detail, for other tools.	Tüm ayrıntıları saklar, başka araçlar için.
 This list has only the pins Pinterest had loaded for the board when it was saved, up to %d, of the kind chosen. Pins further down the board aren't in it.	Bu liste yalnızca kaydedildiği sırada Pinterest'in panodan yüklediği, seçilen türdeki en fazla %d Pin'i içerir. Panonun daha aşağısındaki Pinler listede yok.
 This list has only the pins chosen from those on screen when it was saved.	Bu liste yalnızca kaydedildiği sırada ekrandakiler arasından seçilen Pinleri içerir.
 A source link is "missing" when the pin had none, and "omitted" when it couldn't be kept exactly as given, such as a link with tracking details or one to a private network.	Pin'in kaynak bağlantısı yoksa bağlantı "missing", olduğu gibi saklanamadıysa "omitted" olarak yazılır. Örneğin izleme bilgisi taşıyan ya da özel bir ağa giden bağlantılar saklanmaz.
