@@ -130,7 +130,8 @@ public class SettingsNavigationTest {
         Preference row = (Preference) list().getItemAtPosition(last);
         assertEquals(HushPinterestPreferenceFragment.SUPPORT, row.getKey());
         assertEquals("Support HushPinterest", String.valueOf(row.getTitle()));
-        assertEquals("Buy me a coffee on Ko-fi", String.valueOf(row.getSummary()));
+        // The row is its name alone. It had "Buy me a coffee on Ko-fi" under it until that line was dropped.
+        assertNull("the support row has a line under its name again", row.getSummary());
         assertEquals("Report a problem", String.valueOf(((Preference) list().getItemAtPosition(last - 1)).getTitle()));
         // More settings is a heading now, over its six pages, and About is the last of them.
         assertEquals("About", String.valueOf(((Preference) list().getItemAtPosition(last - 2)).getTitle()));

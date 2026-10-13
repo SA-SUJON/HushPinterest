@@ -43,6 +43,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Section headings in HushPinterest settings no longer pick up a dotted capital I ("SETTİNGS") when HushPinterest is set to English and Pinterest is in Turkish. Capitals now follow the language the heading is written in.
 
+* **Pinterest:** The Support HushPinterest row at the bottom of settings is now just its name. The "Buy me a coffee on Ko-fi" line under it is gone, and the row still opens the Ko-fi page.
+
 ## 0.0.8 (2026-10-13)
 
 * **Pinterest:** Long-press the Pinterest logo at the top of your home feed to open HushPinterest settings. It works even while HushPinterest is paused. The app icon shortcut and Android's App info page still open them too.
