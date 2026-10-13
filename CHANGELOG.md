@@ -6,6 +6,8 @@ Every HushPinterest release, newest first.
 
 * **Pinterest:** Share file in Download history shows a frame of a saved video in Android's share sheet on Android 11 and later, where it used to show a plain file icon. The app you share to still gets the video itself with its name. Images already had a preview and work as before.
 
+* **Tooling:** The script tests stopped failing now and then under Windows PowerShell when two device builds run at once. Both builds logged to the same stand-in build queue file, which Windows PowerShell can't append to from two processes at the same moment. That test now also reports the exact line where a build failed.
+
 * **Tooling:** Picking a release back up after something went wrong got easier. The build stage takes the signed files back from GitHub when the release is already up there and the local copies are gone, instead of stopping. The gate stage notices a gate that passed right before the network dropped. A failed publication puts the old GitHub description back, and a repair note under a fresh Unreleased heading no longer reads as an edit to released notes. Pushes also keep going in Windows PowerShell when a release's output goes to a log file.
 
 * **Pinterest:** Disable update nag checks that the spot it guards still comes before Pinterest's call to the Play Store update prompt. A future Pinterest build that asks Play Store first now stops patching with a clear message, rather than getting a guard that would run too late to stop the pop-up.
