@@ -113,7 +113,7 @@ Hide shopping starts off and is broader than paid-ad filtering. It recognizes `i
 
 Hide AI-labeled pins starts off. It requires a nonempty `ai_disclosures` List. It doesn't infer AI from an image, caption or creator. Unlabeled content stays. See [AiPins.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/AiPins.java#L17).
 
-The shared filter keeps order and object identity for retained entries. It returns the original List when nothing changes and allocates a replacement only after the first removal. An unexpected exception returns the original page. Removal counters are assigned to the first matching family in the order ads, AI, shopping; they don't represent unique pins or network bytes saved. Counts are currently published during the loop, so a later exception can restore the original page after a removal has already been counted. See [FeedFilter.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/FeedFilter.java#L45).
+The shared filter keeps order and object identity for retained entries. It returns the original List when nothing changes and allocates a replacement only after the first removal. An unexpected exception returns the original page. Removal counters are assigned to the first matching family in the order ads, AI, shopping; they don't represent unique pins or network bytes saved. The counts for top-level removals are staged during the loop and published only after the whole list has gone through, so a later exception returns the original page without counting a removal that never happened. Counts for entries taken out of a module work differently. Each is published as soon as that module's shorter list is in place, so if the outer list then fails and the original page is shown, the module keeps the removals it already made and their counts stay. See [FeedFilter.java](../extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/FeedFilter.java#L45).
 
 ### Pins inside a module (#6)
 
@@ -149,7 +149,7 @@ Pause makes runtime switches answer off. Future list constructions retain native
 
 ### Prioritized patch work
 
-Three items from the first version of this list have shipped and are gone from it. Hide ads matches the typed spotlight story (0.0.7), removal counts are published only after a whole list passes, and a fixture contract checks the pin fields the filters read. Feed modules are now filtered by their item lists, and a module left empty is dropped, so the nested-module row below is about pages a filter empties.
+Three items from the first version of this list have shipped and are gone from it. Hide ads matches the typed spotlight story (0.0.7), removal counts are published only after a whole list passes, and a fixture contract checks the pin fields the filters read. Feed modules are now filtered by their item lists, and a module left empty is dropped, so the nested-module row below is about pages a filter empties. Partial-coverage reporting has shipped too: `HookTargets` records each holder's and view's installed targets, so that row below is kept only for the rule it sets (a single holder isn't reported as full coverage).
 
 | Priority | Work item | Proposed hook or investigation | Acceptance conditions |
 |---|---|---|---|

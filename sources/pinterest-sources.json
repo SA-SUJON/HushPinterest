@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "Public sources reviewed for com.pinterest, with pinned commits, licenses and dispositions. scripts/pinterest-sources.ps1 validates schema version 1, scripts/audit-pinterest-sources.ps1 reports changes, and a local release needs a census from the last 14 days. docs/sources.md is the readable version. The 2026-10-12 audit settled every change it found since 2026-10-05 and restamped the census: browzomje's 14.39.0 work, Oyasumi removing its Pinterest target, D-moniak's refactor, a new SouBryan fork, the new sabopura bundle, and Jman's index moving to Jman-Github/Patch-Bundle-Registry. GitLab code search was skipped because no GitLab token was available, and the census records the skip. On 2026-10-03, GitHub repository search for pinterest org:Xposed-Modules-Repo returned 0. Indexed code searches for \"com.pinterest\" IXposedHookLoadPackage and \"com.pinterest\" XposedHelpers returned 1 and 4 files respectively, all from this project's audit or ktlint build catalogs. All three responses reported incomplete_results=false. No Pinterest hook implementation was identified in those results. These query results do not establish global absence of Xposed or LSPosed modules. No code from any outside Pinterest source has been adopted.",
+  "note": "Public sources reviewed for com.pinterest, with pinned commits, licenses and dispositions. scripts/pinterest-sources.ps1 validates schema version 1, scripts/audit-pinterest-sources.ps1 reports changes, and a local release needs a census from the last 14 days. docs/sources.md is the readable version. The 2026-10-12 audit settled every change it found since 2026-10-05 and restamped the census: browzomje's 14.39.0 work, Oyasumi removing its Pinterest target, D-moniak's refactor, a new SouBryan fork, the new sabopura bundle, and Jman's index moving to Jman-Github/Patch-Bundle-Registry. GitLab code search was skipped because no GitLab token was available, and the census records the skip. On 2026-10-03, GitHub repository search for pinterest org:Xposed-Modules-Repo returned 0. Indexed code searches for \"com.pinterest\" IXposedHookLoadPackage and \"com.pinterest\" XposedHelpers returned 1 and 4 files respectively, all from this project's audit or ktlint build catalogs. All three responses reported incomplete_results=false. No Pinterest hook implementation was identified in those results. These query results do not establish global absence of Xposed or LSPosed modules. On 2026-10-13 read-only compares moved the browzomje (5fa5c61), D-moniak (1.52.0, f7b506a) and sabopura (1.14.1, a45010d) pins to their current heads. None of those commits touched a watched Pinterest path or a LICENSE, and sabopura's 1.14.1 is a Reddit fix. The lastChecked dates and the census stay at the 2026-10-12 audit. No code from any outside Pinterest source has been adopted.",
   "census": {
     "checkedAt": "2026-10-12",
     "skipped": [
@@ -119,15 +119,15 @@
       "branches": [
         {
           "name": "main",
-          "commit": "81ca49405abb37241b9dd5a1dd5da313dc3a694c"
+          "commit": "5fa5c61905db70f1120b8e371cb855621a40a417"
         },
         {
           "name": "dev",
-          "commit": "44c965ef82066bd03fd507b9eca077b2adde78b6"
+          "commit": "1808c6f62217d38a61f1918ff46e57c4f853da3a"
         },
         {
           "name": "codex/pinterest-14-39",
-          "commit": "432b535dd31e632ab197508a6c38649c0263225b"
+          "commit": "2254b420f99e960d823aef8b3962c2a6bb6d6f82"
         }
       ],
       "watchPaths": [
@@ -141,7 +141,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "The most complete Pinterest source found: 31 Pinterest patches in a 36-patch bundle, release v1.12.0 on 2026-10-11, targeting 14.23.0 through 14.39.0. The 14.39.0 port (166c974, 432b535) landed on the codex/pinterest-14-39 branch and is merged into main. Main's newest Pinterest change, 81ca494, labels its settings and shares verified image metadata across high-quality downloads (7f2ff26). The dev branch (v1.13.0-dev.2, 44c965e) adds a file size read from cached download headers. It filters sponsored pins by Gson field name through reflection instead of naming obfuscated classes, which is why its anchors have survived five builds. The license is GPL-3.0 with Morphe's section 7 name restriction. HushPinterest hasn't ported anything from it. Its verified image facts (issue 42 and the resolver on dev) are the reference for our own verified image facts item, read for behavior only. Link rewriting and the download patches are candidates only after review. The Morphe settings row it reports as untappable on Android 15 (issue 41) is a warning for our own settings patch.",
+      "reason": "The most complete Pinterest source found: 31 Pinterest patches in a 36-patch bundle, release v1.12.0 on 2026-10-11, targeting 14.23.0 through 14.39.0. The 14.39.0 port (166c974, 432b535) landed on the codex/pinterest-14-39 branch and is merged into main. Main's newest Pinterest source change, 81ca494, labels its settings and shares verified image metadata across high-quality downloads (7f2ff26). Main is pinned at 5fa5c61, the v1.12.0 release commit, which sits three commits past 81ca494 and adds tests, docs and release metadata but no change under the watched Pinterest paths. The dev branch (v1.13.0-dev.2, pinned at its release commit 1808c6f) adds a file size read from cached download headers, with no other source change past 44c965e. The codex/pinterest-14-39 branch is pinned at 2254b42, a docs-only commit past 432b535. It filters sponsored pins by Gson field name through reflection instead of naming obfuscated classes, which is why its anchors have survived five builds. The license is GPL-3.0 with Morphe's section 7 name restriction. HushPinterest hasn't ported anything from it. Its verified image facts (issue 42 and the resolver on dev) were the behavior reference for HushPinterest's own Media details and Check the file, which have shipped and were written independently. Link rewriting and the download patches are candidates only after review. The Morphe settings row it reports as untappable on Android 15 (issue 41) is a warning for our own settings patch.",
       "archived": false,
       "forks": [],
       "contentHashes": [],
@@ -215,7 +215,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "Fourteen Pinterest patches, release v1.7.0 on 2026-08-09, with 14.25.0 (14258020) as its recommended build, the build HushPinterest first targeted. It pins the Pinterest signing certificate and anchors on Gson field names and Pinterest-owned class names. Nothing newer since August, and its open issue 10 reports push notifications broken after patching on 14.25.0, which we'll want to compare against. The Google login signature spoofing patch is off by default and isn't something HushPinterest will ship. Its two compiled-APK mirrors are recorded below. Nothing has been ported from it. On 2026-10-05 the audit found two new branches, both Dependabot dependency bumps (setup-node and semantic-release). Dependabot cut both from an older dev commit (822dbc4784d8550df35aa8733d1a43ddc520feee, 2026-07-15, a Firebase services patch), so the Pinterest code they carry is that old dev work and nothing new. Both are pinned at that commit. MarshMeadow/pinterest-morphed, forked 2026-10-10, is an unchanged copy (0 commits ahead of main).",
+      "reason": "Fourteen Pinterest patches, release v1.7.0 on 2026-08-09, with 14.25.0 (14258020) as its recommended build, the build HushPinterest first targeted. It pins the Pinterest signing certificate and anchors on Gson field names and Pinterest-owned class names. Nothing newer since August, and its open issue 10 reports push notifications broken after patching on 14.25.0, which we'll want to compare against. Its Google login signature spoofing patch is off by default. HushPinterest ships its own Spoof signature for Google sign-in, also off by default, written independently. It only helps with microG-RE or XSpoofSignatures and hasn't been confirmed end to end. Its two compiled-APK mirrors are recorded below. Nothing has been ported from it. On 2026-10-05 the audit found two new branches, both Dependabot dependency bumps (setup-node and semantic-release). Dependabot cut both from an older dev commit (822dbc4784d8550df35aa8733d1a43ddc520feee, 2026-07-15, a Firebase services patch), so the Pinterest code they carry is that old dev work and nothing new. Both are pinned at that commit. MarshMeadow/pinterest-morphed, forked 2026-10-10, is an unchanged copy (0 commits ahead of main).",
       "archived": false,
       "forks": [
         "MarshMeadow/pinterest-morphed"
@@ -485,11 +485,11 @@
       "branches": [
         {
           "name": "main",
-          "commit": "f662c82d670879fe1efa6d5f755e5036fc5c0a36"
+          "commit": "f7b506a03516940a5d16af28dad24f1fb67bce3b"
         },
         {
           "name": "dev",
-          "commit": "f662c82d670879fe1efa6d5f755e5036fc5c0a36"
+          "commit": "f7b506a03516940a5d16af28dad24f1fb67bce3b"
         }
       ],
       "watchPaths": [
@@ -502,7 +502,7 @@
       },
       "contaminatedBy": null,
       "disposition": "rejected",
-      "reason": "A large multi-app bundle (v1.36.0). Its three Pinterest patches are marked experimental and untested in its own README, and they scan every class for unobfuscated method names that don't exist in a minified Pinterest build (isCreatorToolsEnabled, canDownloadOriginalImage) or for generic SDK names like show and loadAd. They'd hook nothing or the wrong thing. No versions are declared. Its Unlock Creator & Pro Tools patch is also one HushPinterest wouldn't ship. Two forks (imsahilansarii and tikkamasalla) were recorded on 2026-10-05 as part of this lineage. Neither was reviewed as a source of its own. On 2026-10-10 f662c82 moved every patch to a shared replaceMethod helper, and a dev branch now matches main. The three Pinterest patches still match unobfuscated method names such as isMediaDownloadAllowed, which a minified build doesn't have, so the rejection stands.",
+      "reason": "A large multi-app bundle (v1.52.0 at f7b506a, which changes nothing under its Pinterest patch path or its LICENSE since f662c82). Its three Pinterest patches are marked experimental and untested in its own README, and they scan every class for unobfuscated method names that don't exist in a minified Pinterest build (isCreatorToolsEnabled, canDownloadOriginalImage) or for generic SDK names like show and loadAd. They'd hook nothing or the wrong thing. No versions are declared. Its Unlock Creator & Pro Tools patch is also one HushPinterest wouldn't ship. Two forks (imsahilansarii and tikkamasalla) were recorded on 2026-10-05 as part of this lineage. Neither was reviewed as a source of its own. On 2026-10-10 f662c82 moved every patch to a shared replaceMethod helper, and a dev branch now matches main. The three Pinterest patches still match unobfuscated method names such as isMediaDownloadAllowed, which a minified build doesn't have, so the rejection stands.",
       "archived": false,
       "forks": [
         "imsahilansarii/D-moniakPatches",
@@ -539,7 +539,7 @@
       "branches": [
         {
           "name": "main",
-          "commit": "1946e5488963d485530d07017ae4179c6be3d21a"
+          "commit": "a45010d991dde3628b41b337658dc6b1aca5489d"
         }
       ],
       "watchPaths": [
@@ -552,7 +552,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "A multi-app Morphe bundle created 2026-10-11, release v1.14.0, GPL-3.0. Its three Pinterest patches say they're a rewrite of Binarymend Patches 1.3.1 (GPL-3.0): the originals pin obfuscated 14.11.0 names, and this version finds the pin model and telemetry tasks by annotations and SDK strings instead, targeting 14.11.0, 14.38.0 and 14.39.0. All three overlap what Hide ads and Disable analytics already do, Bugsnag transport included, so it is a reference for anchoring rather than for features. Nothing ported.",
+      "reason": "A multi-app Morphe bundle created 2026-10-11, release v1.14.1, GPL-3.0. Its three Pinterest patches say they're a rewrite of Binarymend Patches 1.3.1 (GPL-3.0): the originals pin obfuscated 14.11.0 names, and this version finds the pin model and telemetry tasks by annotations and SDK strings instead, targeting 14.11.0, 14.38.0 and 14.39.0. All three overlap what Hide ads and Disable analytics already do, Bugsnag transport included, so it is a reference for anchoring rather than for features. Its v1.14.1 (a45010d) changed only the Reddit auto-translate patch, so the Pinterest patches, their targets and the LICENSE are as reviewed at 1946e54. Nothing ported.",
       "archived": false,
       "forks": [],
       "contentHashes": [],

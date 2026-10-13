@@ -176,19 +176,19 @@ Floating navigation can cover part of a card in a still image, and gray secondar
 
 ## Priorities for patch work
 
-These are proposed work items, not completed features. The linked chapters contain concrete native anchors, risks and acceptance conditions.
+These were proposed work items when the table was written, so it is a historical list. Where a row says part of it has shipped, that part is current behavior, and what's left in the row is still only a proposal. The linked chapters contain concrete native anchors, risks and acceptance conditions.
 
 | Priority | Work | Why it comes first |
 |---|---|---|
-| P1 | Verify nested shopping modules in search and closeups | Both were directly observed. Check wrapper/headline removal, preserved organic content and list pagination |
+| P1 | Verify nested shopping modules in search and closeups | Both were directly observed. Hide ads, Hide AI-labeled pins and Hide shopping now look one level inside feed modules and drop a module left empty, and Hide shopping also hides Shop the look under a pin. What's still proposed is checking wrapper/headline removal, preserved organic content and list pagination on a device |
 | P1 | Trace GMA headers and lifecycle after toggles | Startup suppression does not tear down an already initialized SDK. Measure cold/warm starts and preserve native header cleanup before guarding additions |
 | P1 | Compare patches against the measured factory network baseline | Guest capture now records app traffic and Android UID counters. Repeat equivalent workloads with patched configurations before claiming suppression or savings |
 | P2 | Diff endpoints, SDK transports, startup tags and identifier readers on each APK update | Existing fingerprints can still match while upstream adds new telemetry |
 | P2 | Trace APP_START, first-party referrer storage and optional request headers | The source constructs attribution data outside AppsFlyer. Determine whether final delivery is already covered before adding redundant blocks |
-| P2 | Extend regional-host link handling | Plain pin links already gives canonical pin links. Country-site hosts and the remaining attribution keys still need exact trusted domains, and signed URLs and board or invite routes stay as they are |
+| P2 | Extend regional-host link handling | Plain pin links (off by default) already gives canonical pin links, resolves `pin.it` short links and covers the country-site hosts from the 14.39.0 app-link list. The APP_START attribution keys `mweb_unauth_id` and `amp_client_id` are still outside the removal set, and signed URLs and board or invite routes stay as they are |
 | P2 | Check Hide survey prompts on a device | It landed in 0.0.6 and declines the invite through Pinterest's own Maybe later path. Keep security/account dialogs and user-initiated surveys intact |
 | P2 | Make original image quality network-aware | Original-media choices can increase data use. Downloads now have optional unmetered and roaming limits, but feed image quality doesn't |
-| P2 | Extend native controls with clear scope | Native settings navigation, independent save/follow-up messages, autoplay/prefetch control and notification categories are concrete leads |
+| P2 | Extend native controls with clear scope | Pinterest's own settings page with info rows for its native controls has shipped. Independent save/follow-up messages, autoplay/prefetch control and notification categories are still concrete leads |
 | P3 | Check native toasts on a device | They landed after 0.0.6 in the settings patch, with Android toasts whenever Pinterest's toast layer isn't showing. Download board and Long-press download, the other two leads here, landed in 0.0.6 |
 
 The repository's open issue intake was also checked. [Issue #3](https://github.com/SysAdminDoc/HushPinterest/issues/3) concerns release structure and update discovery, and [issue #4](https://github.com/SysAdminDoc/HushPinterest/issues/4) concerns combining patch sources. Neither is evidence of an ad or privacy defect. The historical version mismatch in #3 is not the current index state. The published index reported v0.0.5 at the first survey, then v0.0.6 on October 10 and v0.0.7 on October 11. Issue status and reporter confirmation should remain independent of this documentation work.

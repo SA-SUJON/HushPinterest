@@ -81,8 +81,8 @@ foreach ($package in Get-SourcePackages) {
 # candidate and a historical reference. None changes a source's adoption status or the commit in
 # an adopted provenance rule.
 $browz = @($entries | Where-Object { $_.id -eq 'browzomje' })[0]
-Assert-True ($browz.branches[0].name -eq 'main' -and $browz.branches[0].commit -eq '81ca49405abb37241b9dd5a1dd5da313dc3a694c' -and
-    @($browz.branches | Where-Object { $_.name -eq 'dev' -and $_.commit -eq '44c965ef82066bd03fd507b9eca077b2adde78b6' }).Count -eq 1 -and
+Assert-True ($browz.branches[0].name -eq 'main' -and $browz.branches[0].commit -eq '5fa5c61905db70f1120b8e371cb855621a40a417' -and
+    @($browz.branches | Where-Object { $_.name -eq 'dev' -and $_.commit -eq '1808c6f62217d38a61f1918ff46e57c4f853da3a' }).Count -eq 1 -and
     $browz.patchCounts.'com.pinterest' -eq 31 -and $browz.targetVersions.'com.pinterest' -contains '14.39.0' -and
     @($browz.features).Count -eq 24 -and $browz.disposition -eq 'candidate') `
     'browzomje must keep its pinned main and dev commits and its 31 Pinterest patches, as a candidate and not an adopted source.'
@@ -109,7 +109,7 @@ Assert-True ($stale.Count -eq 2 -and @($stale | Where-Object { $_.disposition -n
     'binarymend and satanmerde have no usable anchors and must stay rejected.'
 $sabopura = @($entries | Where-Object { $_.id -eq 'sabopura' })[0]
 Assert-True ($sabopura.upstream -eq 'https://github.com/binarymend/morphe-patches' -and $sabopura.lineage -eq 'sabopura' -and
-    $sabopura.branches[0].commit -eq '1946e5488963d485530d07017ae4179c6be3d21a' -and $sabopura.patchCounts.'com.pinterest' -eq 3 -and
+    $sabopura.branches[0].commit -eq 'a45010d991dde3628b41b337658dc6b1aca5489d' -and $sabopura.patchCounts.'com.pinterest' -eq 3 -and
     $sabopura.license.sha256 -eq '230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809' -and $sabopura.disposition -eq 'candidate') `
     'sabopura must keep its reviewed commit, its CRLF GPL-3.0 hash and its Binarymend upstream, as a candidate.'
 $nagramRepository = 'https://github.com/authorisation/xterest'
