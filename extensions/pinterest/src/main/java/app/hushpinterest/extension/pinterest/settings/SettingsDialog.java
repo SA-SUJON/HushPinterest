@@ -339,16 +339,16 @@ public final class SettingsDialog extends DialogFragment {
 
     /** The restart row's title while a change waits for a restart, and null once none does. */
     void showRestartStatus(@Nullable CharSequence title) {
-        say(restartStatus, title);
+        setLiveText(restartStatus, title);
     }
 
     /** What a tapped Check now found, and null as the next one starts. */
     void showCheckResult(@Nullable CharSequence result) {
-        say(checkStatus, result);
+        setLiveText(checkStatus, result);
     }
 
     /** Words the line already holds are left alone: a screen reader reads a change, and reads it once. */
-    private static void say(TextView line, @Nullable CharSequence words) {
+    private static void setLiveText(TextView line, @Nullable CharSequence words) {
         String text = words == null ? "" : words.toString();
         if (!text.contentEquals(line.getText())) line.setText(text);
     }

@@ -66,11 +66,11 @@ public final class L10nTranslations {
         table.put("%1$d items in that file aren't settings this version of HushPinterest knows, so they'll be left out.",
                 "%1$d Eintr\u00e4ge in dieser Datei sind keine Einstellungen, die diese Version von HushPinterest kennt, und werden deshalb ausgelassen.");
         table.put("%1$d setting couldn't be changed. Its saved value is shown.",
-                "%1$d Einstellung konnte nicht ge\u00e4ndert werden. Der gespeicherte Wert wird angezeigt.");
+                "%1$d Einstellung blieb unver\u00e4ndert. Der gespeicherte Wert wird angezeigt.");
         table.put("%1$d setting found",
                 "%1$d Einstellung gefunden");
         table.put("%1$d settings couldn't be changed. Their saved values are shown.",
-                "%1$d Einstellungen konnten nicht ge\u00e4ndert werden. Die gespeicherten Werte werden angezeigt.");
+                "%1$d Einstellungen blieben unver\u00e4ndert. Gespeicherte Werte werden angezeigt.");
         table.put("%1$d settings found",
                 "%1$d Einstellungen gefunden");
         table.put("%1$d switch will change.",

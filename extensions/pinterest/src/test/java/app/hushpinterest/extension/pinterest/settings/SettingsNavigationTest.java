@@ -1475,6 +1475,8 @@ public class SettingsNavigationTest {
         org.robolectric.RuntimeEnvironment.setFontScale(2f);
         try {
             recreate();
+            // The screen comes back on Feed, the page it was left on. One Back is home.
+            assertTrue("the screen didn't come back on the page it was left on", page.navigation.back());
             captureWholeHome("pt-br-large-overview");
             for (Preference section : page.sections()) {
                 page.navigation.open(section);
