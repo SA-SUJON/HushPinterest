@@ -104,6 +104,8 @@ Every HushPinterest release, newest first.
 
 * **Tooling:** The script contract tests keep the published bug report form as it is when they build a tree whose index lags the source, the way the release check expects, and now also check that a form moved to the catalog's newer Pinterest build is refused there. They used to move the form's build along with the catalog, which went unnoticed until the published form named the catalog's newest build and held up the 0.0.7 index push.
 
+* **Tooling:** The published index check finds git when the pre-push hook's PATH lists more than one copy of it. Inside the hook it used to get all three paths as one name and stop the release gate.
+
 ## 0.0.7 (2026-10-10)
 
 * **Pinterest:** Pinterest 14.39.0 is now the supported version. All 27 patches apply to it, and 14.38.0 is no longer a target.

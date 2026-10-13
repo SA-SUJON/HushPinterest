@@ -2709,7 +2709,7 @@ try {
     $savedNewBranchActor = $env:GITHUB_ACTOR
     $savedNewBranchToken = $env:GITHUB_TOKEN
     try {
-        $env:PATH = Split-Path -Parent (Get-Command git).Source
+        $env:PATH = Split-Path -Parent (Get-Command git -CommandType Application -TotalCount 1).Source
         $env:GITHUB_ACTOR = $null
         $env:GITHUB_TOKEN = $null
         Assert-Throws { & $prePushScript -Root $hookRoot -PushedRefs $newBranchRefs 6> $null } `

@@ -119,7 +119,7 @@ $savedContract = Get-Variable -Name PublishContract -Scope Global -ErrorAction S
 $global:PublishContract = @{
     Root = Join-Path $publishWork 'checkout'; Origin = Join-Path $publishWork 'origin.git'
     FactsRoot = Join-Path $publishWork 'facts'; FactsScript = Join-Path $PSScriptRoot 'validate-release-facts.ps1'
-    Git = (Get-Command git -CommandType Application).Source; FailPush = $false; ReleaseExists = $true
+    Git = (Get-Command git -CommandType Application -TotalCount 1).Source; FailPush = $false; ReleaseExists = $true
 }
 function Add-PublishEvent([string]$Event) {
     [IO.File]::AppendAllText((Join-Path $global:PublishContract.Root 'build/events.txt'), "$Event`n")
