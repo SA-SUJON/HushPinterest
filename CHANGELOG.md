@@ -2,6 +2,10 @@
 
 Every HushPinterest release, newest first.
 
+## Unreleased
+
+* **Tooling:** The README is much shorter now. It keeps what you need to install, set up, troubleshoot and verify HushPinterest, and the longer version with its test notes and internals is still in the repository history. The Ko-fi link that dropped out of it on October 12 is back above the title.
+
 ## 0.0.8 (2026-10-13)
 
 * **Pinterest:** Long-press the Pinterest logo at the top of your home feed to open HushPinterest settings. It works even while HushPinterest is paused. The app icon shortcut and Android's App info page still open them too.
