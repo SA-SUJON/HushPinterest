@@ -5,6 +5,10 @@ Every HushPinterest release, newest first.
 ## Unreleased
 
 * **Tooling:** The README is much shorter now. It keeps what you need to install, set up, troubleshoot and verify HushPinterest, and the longer version with its test notes and internals is still in the repository history. The Ko-fi link that dropped out of it on October 12 is back above the title.
+* **Pinterest:** When a change needs Pinterest to restart, a Restart row shows up near the top of the settings page right away and counts the changes waiting. Tapping it closes Pinterest and reopens it on the same settings page. The old line that only said a restart was needed is gone.
+* **Pinterest:** Disable analytics, Hide screenshot share and Fix push notifications now bring up the Restart row when you flip them, since each one takes effect on Pinterest's next start.
+* **Pinterest:** Report a problem sits just above Support HushPinterest on the settings home. It opens GitHub's bug form with your HushPinterest and Pinterest versions, your phone model, its Android version and the switches you have on already filled in, and leaves room for what happened and what you expected. Nothing is sent until you submit it on GitHub.
+* **Pinterest:** Quick setups on the settings home turns on the Quiet or Privacy switches in one tap, or puts every feature switch back the way it started. A message says how many settings it changed.
 * **Tooling:** Compiled APK checks cover settings requests delivered to Pinterest's home screen and reject a missing entry hook. Their small test APKs now include that activity too.
 * **Tooling:** The runtime reference now includes the original Pinterest 14.39.0 survey and four measurement intervals. It keeps those network counters and memory snapshots separate from the older 14.38.0 packet study. Four native settings screenshots were refreshed too.
 * **Pinterest:** Settings search, buttons and choices have clearer focus outlines and consistent control borders. Back and Clear search also have labels when you hover or hold them.

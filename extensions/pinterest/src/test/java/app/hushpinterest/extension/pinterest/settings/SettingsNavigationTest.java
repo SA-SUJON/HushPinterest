@@ -94,8 +94,9 @@ public class SettingsNavigationTest {
     @Test @Config(sdk = {29, 30, 33, 36})
     public void homeAndEveryCategoryAreReachableWithoutRemovingTheModel() {
         assertNotNull(page.navigation);
-        // Status, Browse settings, four feature categories, More settings and Support HushPinterest.
-        assertEquals(8, list().getCount());
+        // Status, Quick setups, Browse settings, four feature categories, More settings, Report a
+        // problem and Support HushPinterest.
+        assertEquals(10, list().getCount());
         assertEquals(10, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
@@ -106,7 +107,7 @@ public class SettingsNavigationTest {
             assertTrue(page.navigation.back());
             while (page.navigation.back()) { }
         }
-        assertEquals(8, list().getCount());
+        assertEquals(10, list().getCount());
     }
 
     @Test public void theHomePageEndsWithSupportWhichOpensKoFi() {
@@ -116,7 +117,8 @@ public class SettingsNavigationTest {
         assertEquals(HushPinterestPreferenceFragment.SUPPORT, row.getKey());
         assertEquals("Support HushPinterest", String.valueOf(row.getTitle()));
         assertEquals("Buy me a coffee on Ko-fi", String.valueOf(row.getSummary()));
-        assertEquals("More settings", String.valueOf(((Preference) list().getItemAtPosition(last - 1)).getTitle()));
+        assertEquals("Report a problem", String.valueOf(((Preference) list().getItemAtPosition(last - 1)).getTitle()));
+        assertEquals("More settings", String.valueOf(((Preference) list().getItemAtPosition(last - 2)).getTitle()));
         assertTrue(list().getAdapter().isEnabled(last));
 
         tap(HushPinterestPreferenceFragment.SUPPORT);
@@ -364,7 +366,7 @@ public class SettingsNavigationTest {
         assertFalse(HushPinterestPause.isPaused());
         assertEquals(position, list().getFirstVisiblePosition());
         assertEquals(offset, list().getChildAt(0).getTop());
-        if (restart) assertEquals("A change here applies after Pinterest restarts.",
+        if (restart) assertEquals("Restart Pinterest to apply this change",
                 String.valueOf(((Preference) list().getItemAtPosition(0)).getTitle()));
         else assertFalse(titles().contains("HushPinterest is on"));
         capture("undo-pending-" + (restart ? "restart" : search == null ? "category" : "search"), 1200);
@@ -421,7 +423,8 @@ public class SettingsNavigationTest {
         PatchFamily.inBuildForTests = EnumSet.noneOf(PatchFamily.class);
         recreate();
         assertFalse(hasHomeRow("Feed"));
-        assertEquals(4, list().getCount());
+        // Status, Quick setups, Browse settings, More settings, Report a problem and Support.
+        assertEquals(6, list().getCount());
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS, PatchFamily.Capability.AD_VIEWS);
         recreate();
@@ -442,34 +445,178 @@ public class SettingsNavigationTest {
     }
 
     /**
-     * Pause switched on from its own page is owed a restart: the page says so and Undo takes it
-     * back, after which the line goes. A restart owed for a setting a page shows is said there too.
+     * Pause switched on from its own page is owed a restart: the page says so, the restart row
+     * sits under that line, and Undo takes both back. A change owed a restart brings the row up
+     * on every page, first on a page without a pause line and under the home page's status card.
      */
-    @Test public void aPauseOrAChangeWaitingOnARestartIsSaidOnItsPage() {
+    @Test public void aPauseOrAChangeWaitingOnARestartBringsUpTheRestartRow() {
         page.navigation.navigate("Pause, backup and diagnostics");
         tap(BaseSettings.PAUSED.key);
         layout(dialog.getView());
         Preference line = (Preference) list().getItemAtPosition(0);
         assertEquals("HushPinterest is on", String.valueOf(line.getTitle()));
         assertEquals("HushPinterest pauses when Pinterest restarts.", String.valueOf(line.getSummary()));
+        Preference restart = (Preference) list().getItemAtPosition(1);
+        assertEquals(SettingsNavigation.RESTART, restart.getKey());
+        assertEquals("Restart Pinterest to apply this change", String.valueOf(restart.getTitle()));
+        assertEquals("Pinterest closes and reopens on this page.", String.valueOf(restart.getSummary()));
+        assertTrue("the restart row can't be tapped", list().getAdapter().isEnabled(1));
+        assertNull("a restart saved message went to a toast instead of the row", ShadowToast.getLatestToast());
         pageAction().performClick();
         ShadowLooper.idleMainLooper();
         layout(dialog.getView());
         assertFalse(BaseSettings.PAUSED.savedValue());
         assertEquals(BaseSettings.PAUSED.key, ((Preference) list().getItemAtPosition(0)).getKey());
+        assertFalse(contains(SettingsNavigation.RESTART));
 
         page.navigation.back();
         app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.add(
                 Settings.HIDE_ADS.key);
         page.navigation.navigate("Feed");
         layout(dialog.getView());
-        line = (Preference) list().getItemAtPosition(0);
-        assertEquals("A change here applies after Pinterest restarts.", String.valueOf(line.getTitle()));
-        android.view.ViewGroup frame = list().getChildAt(0).findViewById(android.R.id.widget_frame);
-        assertTrue("a restart line offered an action", frame == null || frame.getChildCount() == 0);
+        assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(0)).getKey());
+        assertEquals(categoryCount("Feed") + 1, list().getCount());
         page.navigation.back();
         page.navigation.navigate("Links");
-        assertEquals("a restart owed elsewhere was said here", categoryCount("Links"), list().getCount());
+        assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(0)).getKey());
+        assertEquals(categoryCount("Links") + 1, list().getCount());
+        while (page.navigation.back()) { }
+        assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(1)).getKey());
+        assertEquals(11, list().getCount());
+
+        // Two changes are counted, and the row goes once neither is owed.
+        app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.add(
+                Settings.FIX_PUSH_NOTIFICATIONS.key);
+        page.navigation.restartChanged();
+        assertEquals("Restart Pinterest to apply 2 changes",
+                String.valueOf(((Preference) list().getItemAtPosition(1)).getTitle()));
+        app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.clear();
+        page.navigation.restartChanged();
+        assertFalse(contains(SettingsNavigation.RESTART));
+        assertEquals(10, list().getCount());
+    }
+
+    /** A switch that needs a restart brings the row up the moment it's flipped, and flipping it back takes it away. */
+    @Test public void flippingARestartGatedSwitchShowsTheRowAtOnce() {
+        page.navigation.navigate("Interface");
+        assertFalse(contains(SettingsNavigation.RESTART));
+        tap(Settings.HIDE_SCREENSHOT_SHARE.key);
+        assertTrue(Settings.HIDE_SCREENSHOT_SHARE.savedValue());
+        assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(0)).getKey());
+        assertNull("the restart was said in a toast with nothing to tap", ShadowToast.getLatestToast());
+        tap(Settings.HIDE_SCREENSHOT_SHARE.key);
+        assertFalse(Settings.HIDE_SCREENSHOT_SHARE.savedValue());
+        assertFalse(contains(SettingsNavigation.RESTART));
+        Settings.HIDE_SCREENSHOT_SHARE.resetToDefault();
+    }
+
+    /** The row restarts Pinterest and leaves a marker that opens the screen again on this page. */
+    @Test public void theRestartRowRestartsIntoThePageItWasTappedOn() {
+        List<android.content.Context> restarted = new ArrayList<>();
+        app.hushpinterest.extension.shared.settings.preference.ReopenSettingsAfterRestart.setRestarterForTests(restarted::add);
+        app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.add(
+                Settings.FIX_PUSH_NOTIFICATIONS.key);
+        page.navigation.navigate("Notifications");
+        Map<String, Object> before = savedValues();
+        tap(SettingsNavigation.RESTART);
+        assertEquals(1, restarted.size());
+        assertEquals(before, savedValues());
+        assertEquals("Notifications", app.hushpinterest.extension.shared.settings.preference.ReopenSettingsAfterRestart
+                .takeFresh(Setting.preferences.preferences, android.os.SystemClock.elapsedRealtime()));
+    }
+
+    /** Asked to open on a page, as after that restart, the screen starts there with its title and no search. */
+    @Test public void aScreenAskedToStartOnAPageOpensThere() {
+        dialog.dismissAllowingStateLoss();
+        ShadowLooper.idleMainLooper();
+        dialog = SettingsDialog.onPage("Links");
+        dialog.show(controller.get().getFragmentManager(), "hushpinterest_settings");
+        controller.get().getFragmentManager().executePendingTransactions();
+        ShadowLooper.idleMainLooper();
+        page = page(dialog);
+        assertTrue(contains(Settings.EXTERNAL_BROWSER.key));
+        assertEquals(categoryCount("Links"), list().getCount());
+        assertEquals(View.GONE, ((View) findSearch(dialog.getView()).getParent()).getVisibility());
+        assertTrue(page.navigation.back());
+        assertTrue("Back from a More settings page goes to More settings", contains("section_Links"));
+
+        // A page this build doesn't have opens the first page.
+        dialog.dismissAllowingStateLoss();
+        ShadowLooper.idleMainLooper();
+        dialog = SettingsDialog.onPage("No such page");
+        dialog.show(controller.get().getFragmentManager(), "hushpinterest_settings");
+        controller.get().getFragmentManager().executePendingTransactions();
+        ShadowLooper.idleMainLooper();
+        page = page(dialog);
+        assertEquals(10, list().getCount());
+    }
+
+    /** Each Quick setups choice changes its switches through their rows and says how many changed. */
+    @Test public void quickSetupsChangeTheirSwitchesAndSayHowMany() {
+        Preference row = (Preference) list().getItemAtPosition(1);
+        assertEquals(SettingsNavigation.QUICK_SETUPS, row.getKey());
+        assertEquals("Quick setups", String.valueOf(row.getTitle()));
+        tap(SettingsNavigation.QUICK_SETUPS);
+        AlertDialog choices = (AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        assertNotNull("Quick setups opened no dialog", choices);
+        android.widget.ListAdapter cards = choices.getListView().getAdapter();
+        assertEquals(3, cards.getCount());
+        assertTrue(String.valueOf(cards.getItem(0)).startsWith("Quiet\n"));
+        assertTrue(String.valueOf(cards.getItem(1)).startsWith("Privacy\n"));
+        assertTrue(String.valueOf(cards.getItem(2)).startsWith("Back to defaults\n"));
+        try {
+            // Hide ads starts on, so Quiet turns on the other six.
+            choices.getListView().performItemClick(null, 0, 0);
+            ShadowLooper.idleMainLooper();
+            for (app.hushpinterest.extension.shared.settings.BooleanSetting setting : QuickSetupKeys.QUIET) {
+                assertTrue(setting.key, setting.savedValue());
+            }
+            assertEquals("Changed 6 settings", ShadowToast.getTextOfLatestToast());
+            // No screenshot share menu waits for a restart, so the row is up under the status card.
+            assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(1)).getKey());
+
+            assertEquals(0, page.applyQuickSetup(QuickSetupKeys.quiet()));
+            assertEquals("Changed 0 settings", ShadowToast.getTextOfLatestToast());
+            assertEquals(6, page.applyQuickSetup(QuickSetupKeys.defaults()));
+            for (app.hushpinterest.extension.shared.settings.BooleanSetting setting : QuickSetupKeys.DEFAULTS) {
+                assertEquals(setting.key, setting.defaultValue, setting.savedValue());
+            }
+            assertFalse("putting the switch back left the restart owed", contains(SettingsNavigation.RESTART));
+        } finally {
+            for (app.hushpinterest.extension.shared.settings.BooleanSetting setting : QuickSetupKeys.DEFAULTS) {
+                setting.resetToDefault();
+            }
+        }
+    }
+
+    /** Report a problem opens GitHub's bug form in a browser with the versions and switches filled in. */
+    @Test public void reportAProblemOpensAFilledInGitHubForm() throws Exception {
+        Map<String, Object> before = savedValues();
+        tap(SettingsNavigation.REPORT);
+        Intent started = org.robolectric.Shadows.shadowOf(controller.get()).getNextStartedActivity();
+        assertNotNull("nothing opened", started);
+        assertEquals(Intent.ACTION_VIEW, started.getAction());
+        assertTrue(started.hasCategory(Intent.CATEGORY_BROWSABLE));
+        assertTrue((started.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) != 0);
+        String url = started.getDataString();
+        assertTrue(url, url.startsWith("https://github.com/SysAdminDoc/HushPinterest/issues/new?template=bug_report.yml&"));
+        assertTrue(url, url.length() <= app.hushpinterest.extension.shared.settings.preference.ReportProblem.MAX_LENGTH);
+        String decoded = java.net.URLDecoder.decode(url, "UTF-8");
+        assertTrue(decoded, decoded.contains("&versions=HushPinterest "));
+        assertTrue(decoded, decoded.contains(" on Pinterest "));
+        assertTrue(decoded, decoded.contains("&device="));
+        assertTrue(decoded, decoded.contains("What happened:"));
+        assertTrue(decoded, decoded.contains("What I expected:"));
+        // Hide ads starts on, Hide AI-labeled pins starts off.
+        assertTrue(decoded, decoded.contains("Switches on: Hide ads"));
+        assertFalse(decoded, decoded.contains("Hide AI-labeled pins"));
+        assertEquals(before, savedValues());
+
+        org.robolectric.Shadows.shadowOf(org.robolectric.RuntimeEnvironment.getApplication()).checkActivities(true);
+        tap(SettingsNavigation.REPORT);
+        assertEquals("No app can open " + L10n.isolate("github.com/SysAdminDoc/HushPinterest") + ".",
+                ShadowToast.getTextOfLatestToast());
+        assertFalse(controller.get().isFinishing());
     }
 
     /** The paused line on real pages, dark and light, for a look before the phone does. */
@@ -596,7 +743,7 @@ public class SettingsNavigationTest {
         assertEquals("No matching settings", ((Preference) list().getItemAtPosition(0)).getTitle());
         assertTrue(page.navigation.back());
         assertEquals("", search.getText().toString());
-        assertEquals(8, list().getCount());
+        assertEquals(10, list().getCount());
     }
 
     /** A row with no summary used to carry the word "null" into the search text and come up for it. */
@@ -641,7 +788,7 @@ public class SettingsNavigationTest {
         assertEquals("", search.getText().toString());
         assertEquals(View.INVISIBLE, clear.getVisibility());
         assertTrue("the field has focus after Clear", search.isFocused());
-        assertEquals(8, list().getCount());
+        assertEquals(10, list().getCount());
     }
 
     /**
@@ -875,14 +1022,14 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.HIDE_ADS.key));
         SettingsL10nTest.backOf(dialog).performClick();
         assertTrue(dialog.getDialog().isShowing());
-        assertEquals(8, list().getCount());
+        assertEquals(10, list().getCount());
         page.navigation.navigate("About");
         dialog.getDialog().onBackPressed();
         // More settings: Links, Notifications, Pinterest's own settings, Updates, Pause, backup and diagnostics,
         // and About.
         assertEquals(6, list().getCount());
         dialog.getDialog().onBackPressed();
-        assertEquals(8, list().getCount());
+        assertEquals(10, list().getCount());
         dialog.getDialog().onBackPressed();
         ShadowLooper.idleMainLooper();
         assertFalse(controller.get().isFinishing());
@@ -934,9 +1081,9 @@ public class SettingsNavigationTest {
 
     @Test public void visibleNavigationAndSearchKeepTheirAccessibilityRoles() {
         layout(dialog.getView());
-        View heading = list().getChildAt(1);
+        View heading = list().getChildAt(2);
         assertTrue(heading.createAccessibilityNodeInfo().isHeading());
-        View feed = list().getChildAt(2);
+        View feed = list().getChildAt(3);
         assertEquals(android.widget.Button.class.getName(), feed.createAccessibilityNodeInfo().getClassName());
         assertTrue(feed.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK, null));
         assertEquals("Hide ads", ((Preference) list().getItemAtPosition(0)).getTitle());

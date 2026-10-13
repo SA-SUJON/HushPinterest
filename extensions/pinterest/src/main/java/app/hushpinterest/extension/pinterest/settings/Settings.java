@@ -54,8 +54,9 @@ public class Settings extends BaseSettings {
 
     public static final BooleanSetting HIDE_SHOPPING =
             new BooleanSetting("hushpinterest_hide_shopping", FALSE);
+    /** Its row asks for a restart after turning it off, so a change brings up the restart row. */
     public static final BooleanSetting DISABLE_ANALYTICS =
-            new BooleanSetting("hushpinterest_disable_analytics", TRUE);
+            new BooleanSetting("hushpinterest_disable_analytics", TRUE, true);
     public static final BooleanSetting STRIP_LINK_TRACKING =
             new BooleanSetting("hushpinterest_strip_link_tracking", TRUE);
     public static final BooleanSetting PLAIN_PIN_LINKS =
@@ -87,8 +88,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_external_browser", FALSE);
     public static final BooleanSetting SYSTEM_SHARE =
             new BooleanSetting("hushpinterest_system_share", FALSE);
+    /** Its row says a change shows after Pinterest restarts, so a change brings up the restart row. */
     public static final BooleanSetting HIDE_SCREENSHOT_SHARE =
-            new BooleanSetting("hushpinterest_hide_screenshot_share", FALSE);
+            new BooleanSetting("hushpinterest_hide_screenshot_share", FALSE, true);
     public static final BooleanSetting HIDE_SEARCH_HISTORY =
             new BooleanSetting("hushpinterest_hide_search_history", FALSE);
     public static final BooleanSetting HIDE_NAV_CREATE =
@@ -129,10 +131,11 @@ public class Settings extends BaseSettings {
     /**
      * Firebase gets Pinterest's own certificate fingerprint when it signs this install up for push
      * notifications ({@link app.hushpinterest.extension.pinterest.notifications.PushNotifications}). On to
-     * start: a patched build gets no push notifications at all without it.
+     * start: a patched build gets no push notifications at all without it. A change applies the
+     * next time Pinterest starts, so it brings up the restart row.
      */
     public static final BooleanSetting FIX_PUSH_NOTIFICATIONS =
-            new BooleanSetting("hushpinterest_fix_push_notifications", TRUE);
+            new BooleanSetting("hushpinterest_fix_push_notifications", TRUE, true);
 
     /**
      * Once a day, when Pinterest starts, ask api.github.com whether a newer HushPinterest release is

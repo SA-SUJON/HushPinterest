@@ -56,7 +56,7 @@ Android hands a pinterest.com or pin.it link to the Pinterest app only when the 
 
 Inside Pinterest, long-press the Pinterest logo at the top of your home feed. From your home screen, long-press the Pinterest icon and tap **HushPinterest**. Pinterest's App info page has it too, under **Additional settings in the app** (Samsung calls it **Configure in Pinterest**).
 
-Switches take effect without patching again. A screen that's already open may need reopening, and the screenshot suggestions switch needs a restart of Pinterest. **Pause** puts everything back to Pinterest's own behavior without forgetting your choices. You can export your switches to a file and import them later, with a preview of every change and one Undo. The file holds settings only, never your account, media or signing key. **Setup and backup guide** under About explains all of this, and **Pinterest's own settings** under More settings says where Pinterest keeps the options HushPinterest leaves alone.
+Switches take effect without patching again. A screen that's already open may need reopening, and a few switches need Pinterest to restart. When you flip one of those, a **Restart** row shows up at the top of the page, and tapping it reopens Pinterest on the same settings page. **Quick setups** on the home page turns on the Quiet or Privacy switches in one tap, or puts every switch back the way it started. **Pause** puts everything back to Pinterest's own behavior without forgetting your choices. You can export your switches to a file and import them later, with a preview of every change and one Undo. The file holds settings only, never your account, media or signing key. **Setup and backup guide** under About explains all of this, and **Pinterest's own settings** under More settings says where Pinterest keeps the options HushPinterest leaves alone.
 
 <p>
   <img src="assets/screenshots/settings-home.png" width="240" alt="Settings home with a Pause button below its status summary">
@@ -120,7 +120,7 @@ Every patch but Spoof signature for Google sign-in is in Manager's default selec
 
 ### Reporting a problem
 
-Open an [issue](https://github.com/SysAdminDoc/HushPinterest/issues) and say what you did and what you saw. A diagnostic report helps a lot. In HushPinterest settings tap **Export diagnostic report**, then **Copy quick report** or **Save full report**, which goes to the shared `Download/Morphe` folder. It carries Pinterest's version, your Android version and what each patch did. HushPinterest takes out the account, pin and board IDs it recognizes, but give it a read before you share it. Nothing is sent anywhere unless you paste or attach it yourself.
+Open an [issue](https://github.com/SysAdminDoc/HushPinterest/issues) and say what you did and what you saw. **Report a problem** at the bottom of the settings home opens the form with your versions, phone and switches already filled in. A diagnostic report helps a lot. In HushPinterest settings tap **Export diagnostic report**, then **Copy quick report** or **Save full report**, which goes to the shared `Download/Morphe` folder. It carries Pinterest's version, your Android version and what each patch did. HushPinterest takes out the account, pin and board IDs it recognizes, but give it a read before you share it. Nothing is sent anywhere unless you paste or attach it yourself.
 
 ## Privacy
 
@@ -130,7 +130,7 @@ HushPinterest doesn't collect anything and has no server. Its own code only reac
 - `pinimg.com`, Pinterest's media host, when you download a pin. Looking for an original image adds up to four HEAD requests to that host, and **Check the file** in Media details reads the first 64 KB of a file, only when you tap it.
 - `pin.it` and `api.pinterest.com`, only with **Plain pin links** on, to find out which pin a copied short link points to. It reads where they redirect and nothing else.
 
-Shared pin links use `www.pinterest.com`. The About, Licenses and setup guide screens link to `github.com`, `gitlab.com`, `www.gnu.org`, `help.pinterest.com` and `ko-fi.com`, which open in your browser only when you tap one. Browser discovery asks Android which apps handle `example.com` without ever loading it.
+Shared pin links use `www.pinterest.com`. The About, Licenses and setup guide screens link to `github.com`, `gitlab.com`, `www.gnu.org`, `help.pinterest.com` and `ko-fi.com`, which open in your browser only when you tap one. **Report a problem** opens a new issue form on `github.com` with your versions, phone model and the switches you have on filled in, and nothing is sent until you submit it there. Browser discovery asks Android which apps handle `example.com` without ever loading it.
 
 Disable analytics stops Pinterest's usage uploads, the AppsFlyer and Bugsnag transports and Google's Engage publishing, and turns off Firebase Analytics, Crashlytics and Performance collection in the manifest. Hide advertising ID gives Pinterest an empty ad ID with tracking limited. It doesn't touch the ad ID other apps see. Fix push notifications only swaps the certificate fingerprint in Firebase's own sign-up request and opens no connection itself.
 

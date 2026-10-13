@@ -51,6 +51,7 @@ import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.ResourceType;
 import app.hushpinterest.extension.shared.ResourceUtils;
 import app.hushpinterest.extension.shared.Utils;
+import app.hushpinterest.extension.shared.settings.preference.ReopenSettingsAfterRestart;
 
 /**
  * How the HushPinterest screen is reached.
@@ -90,6 +91,12 @@ public final class SettingsEntry {
 
     private static volatile boolean openPending;
     private static volatile long requestedAt;
+    /**
+     * The page the next open lands on, or null for the first page. Set by a restart from the
+     * restart row, kept while the screen is opened again over a later activity, and dropped
+     * once the person closes it or asks for it another way.
+     */
+    private static volatile String requestedPage;
     private static volatile boolean callbacksRegistered;
     /** The activity the screen was last shown over, while the person hasn't closed it. */
     private static WeakReference<Activity> host;
@@ -107,7 +114,8 @@ public final class SettingsEntry {
      * startup. Watches every Pinterest activity, so a pending open lands on whichever one resumes
      * next: signed out, the launcher hands straight over to the login screen. Also where the
      * release check, when it's on, asks at most once a day, on a worker. From here on HushPinterest's
-     * messages use Pinterest's own toasts where they can.
+     * messages use Pinterest's own toasts where they can. A start that the settings screen's
+     * restart row asked for opens the screen again, on the page it was on.
      */
     public static void onApplicationCreate(Context context) {
         PinterestToasts.install();
@@ -117,6 +125,7 @@ public final class SettingsEntry {
                 ((Application) context).registerActivityLifecycleCallbacks(new OpenWhenResumed());
                 callbacksRegistered = true;
             }
+            ReopenSettingsAfterRestart.reopenIfPending(SettingsEntry::reopenOn);
         } catch (Exception ex) {
             Logger.printException(() -> "Settings entry: could not watch activities", ex);
         }
@@ -361,6 +370,7 @@ public final class SettingsEntry {
                 return false;
             }
             requestedAt = SystemClock.elapsedRealtime();
+            requestedPage = null;
             Logger.printInfo(() -> "Settings requested by a long press on the Pinterest logo");
             return open(activity);
         } catch (Throwable t) {
@@ -459,7 +469,7 @@ public final class SettingsEntry {
                 return false;
             }
             closedByUser = false;
-            new SettingsDialog().show(fragments, DIALOG_TAG);
+            SettingsDialog.onPage(requestedPage).show(fragments, DIALOG_TAG);
             host = new WeakReference<>(activity);
             Logger.printInfo(() -> "Settings opened over " + name);
             return true;
@@ -473,6 +483,7 @@ public final class SettingsEntry {
     static void onClosedByUser() {
         closedByUser = true;
         host = null;
+        requestedPage = null;
     }
 
     /**
@@ -494,8 +505,23 @@ public final class SettingsEntry {
 
     private static void request(String from) {
         requestedAt = SystemClock.elapsedRealtime();
+        requestedPage = null;
         openPending = true;
         Logger.printInfo(() -> "Settings requested by " + from);
+    }
+
+    /**
+     * The screen again after the restart row restarted Pinterest, on [page], over the first
+     * Pinterest screen to resume: the same open the logo's long press and the shortcut lead to.
+     */
+    static void reopenOn(String page) {
+        request("a restart from the settings screen");
+        requestedPage = page;
+    }
+
+    /** The page the next open lands on. Package-visible for tests. */
+    static String requestedPage() {
+        return requestedPage;
     }
 
     /**

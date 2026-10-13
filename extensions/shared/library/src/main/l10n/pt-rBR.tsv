@@ -124,7 +124,6 @@ Opening supported links is off for this app in Android's settings. Tap to turn i
 Android didn't say which links open here. Tap to check in Android's settings.	O Android não informou quais links abrem aqui. Toque para conferir nas configurações do Android.
 Selecting links by hand	Selecionar links manualmente
 
-A change here applies after Pinterest restarts.	Uma alteração daqui vale depois que o Pinterest reiniciar.
 Android verified this app for Pinterest's web addresses, so their links open here.	O Android verificou este app para os endereços web do Pinterest, então os links deles abrem aqui.
 Couldn't show Open by default. It's in Pinterest's App info.	A tela Abrir por padrão não abriu. Fica nas Informações do app do Pinterest.
 HushPinterest %1$s on Pinterest %2$s	HushPinterest %1$s no Pinterest %2$s
@@ -488,3 +487,31 @@ Hides the visual search button in the corner of a pin you open. Search image in 
 File left alone. If it's empty, delete it in your files app.	O arquivo ficou como estava. Se estiver vazio, apague-o no app de arquivos.
 # context: the toast at the end of a pin download selection when its progress dialog has closed. %1$s is the selection's title, Download visible pins or Download board
 %1$s: queued %2$d, skipped %3$d, unsupported %4$d, failed %5$d.	%1$s: na fila %2$d, ignorados %3$d, não compatíveis %4$d, falhas %5$d.
+# context: the restart row's title while one change waits for a restart; a tap restarts Pinterest
+Restart Pinterest to apply this change	Reinicie o Pinterest para aplicar esta alteração
+# context: the same row with several changes waiting; %1$d is how many
+Restart Pinterest to apply %1$d changes	Reinicie o Pinterest para aplicar %1$d alterações
+# context: the restart row's summary; the settings screen comes back on the page it was on
+Pinterest closes and reopens on this page.	O Pinterest fecha e abre de novo nesta página.
+# context: home page row just above Support; a tap opens a new bug report on GitHub in a browser
+Report a problem	Relatar um problema
+# context: that row's summary
+Opens a GitHub report with your versions and settings filled in. Add what happened.	Abre um relato no GitHub com suas versões e configurações já preenchidas. Conte o que aconteceu.
+# context: home page row under the status card, and the title of the dialog it opens
+Quick setups	Configurações rápidas
+# context: that row's summary
+Turn on a set of switches in one tap, or put every switch back the way it started.	Ative um conjunto de opções com um toque ou volte todas as opções ao estado inicial.
+# context: Quick setups choice that turns on the switches that hide ads, suggestions and nags
+Quiet	Tranquilo
+# context: what Quiet does, under its name
+Hides ads, suggestions, nags and pop-ups.	Oculta anúncios, sugestões, lembretes insistentes e pop-ups.
+# context: what the Privacy choice does, under its name
+Strips tracking from links and stops usage reports and the ad ID.	Remove o rastreamento dos links e para os relatórios de uso e o ID de publicidade.
+# context: Quick setups choice that puts every feature switch back to its starting value
+Back to defaults	Voltar ao padrão
+# context: what Back to defaults does, under its name
+Puts every feature switch back the way it started.	Volta cada opção de recurso ao estado inicial.
+# context: toast after a Quick setups choice changed exactly one switch
+Changed %1$d setting	%1$d configuração alterada
+# context: the same toast for any other count, zero included; %1$d is how many
+Changed %1$d settings	%1$d configurações alteradas

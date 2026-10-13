@@ -127,7 +127,6 @@ Opening supported links is off for this app in Android's settings. Tap to turn i
 Android didn't say which links open here. Tap to check in Android's settings.	Android tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk memeriksanya di pengaturan Android.
 Selecting links by hand	Memilih tautan secara manual
 
-A change here applies after Pinterest restarts.	Perubahan di sini berlaku setelah Pinterest dimulai ulang.
 Android verified this app for Pinterest's web addresses, so their links open here.	Android telah memverifikasi aplikasi ini untuk alamat web Pinterest, jadi tautannya terbuka di sini.
 Couldn't show Open by default. It's in Pinterest's App info.	Buka secara default tidak terbuka. Ada di Info aplikasi Pinterest.
 HushPinterest %1$s on Pinterest %2$s	HushPinterest %1$s di Pinterest %2$s
@@ -491,3 +490,31 @@ Hides the visual search button in the corner of a pin you open. Search image in 
 File left alone. If it's empty, delete it in your files app.	File dibiarkan. Jika kosong, hapus di aplikasi file.
 # context: the toast at the end of a pin download selection when its progress dialog has closed. %1$s is the selection's title, Download visible pins or Download board
 %1$s: queued %2$d, skipped %3$d, unsupported %4$d, failed %5$d.	%1$s: dalam antrean %2$d, dilewati %3$d, tidak didukung %4$d, gagal %5$d.
+# context: the restart row's title while one change waits for a restart; a tap restarts Pinterest
+Restart Pinterest to apply this change	Mulai ulang Pinterest untuk menerapkan perubahan ini
+# context: the same row with several changes waiting; %1$d is how many
+Restart Pinterest to apply %1$d changes	Mulai ulang Pinterest untuk menerapkan %1$d perubahan
+# context: the restart row's summary; the settings screen comes back on the page it was on
+Pinterest closes and reopens on this page.	Pinterest ditutup lalu dibuka lagi di halaman ini.
+# context: home page row just above Support; a tap opens a new bug report on GitHub in a browser
+Report a problem	Laporkan masalah
+# context: that row's summary
+Opens a GitHub report with your versions and settings filled in. Add what happened.	Membuka laporan GitHub dengan versi dan pengaturan Anda yang sudah terisi. Tambahkan apa yang terjadi.
+# context: home page row under the status card, and the title of the dialog it opens
+Quick setups	Penyiapan cepat
+# context: that row's summary
+Turn on a set of switches in one tap, or put every switch back the way it started.	Nyalakan sekumpulan sakelar dengan sekali ketuk, atau kembalikan semua sakelar seperti semula.
+# context: Quick setups choice that turns on the switches that hide ads, suggestions and nags
+Quiet	Tenang
+# context: what Quiet does, under its name
+Hides ads, suggestions, nags and pop-ups.	Menyembunyikan iklan, saran, pengingat yang mengganggu, dan pop-up.
+# context: what the Privacy choice does, under its name
+Strips tracking from links and stops usage reports and the ad ID.	Menghapus pelacakan dari tautan serta menghentikan laporan penggunaan dan ID iklan.
+# context: Quick setups choice that puts every feature switch back to its starting value
+Back to defaults	Kembali ke bawaan
+# context: what Back to defaults does, under its name
+Puts every feature switch back the way it started.	Mengembalikan setiap sakelar fitur seperti semula.
+# context: toast after a Quick setups choice changed exactly one switch
+Changed %1$d setting	%1$d pengaturan diubah
+# context: the same toast for any other count, zero included; %1$d is how many
+Changed %1$d settings	%1$d pengaturan diubah

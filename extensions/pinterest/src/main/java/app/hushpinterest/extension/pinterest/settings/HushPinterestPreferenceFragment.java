@@ -54,8 +54,10 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,6 +73,7 @@ import app.hushpinterest.extension.shared.settings.preference.ClearLogBufferPref
 import app.hushpinterest.extension.shared.settings.preference.ExportDiagnosticReportPreference;
 import app.hushpinterest.extension.shared.settings.preference.ImmediateAction;
 import app.hushpinterest.extension.shared.settings.preference.LogBufferManager;
+import app.hushpinterest.extension.shared.settings.preference.QuickSetups;
 
 /**
  * The preference list, built in code rather than from an XML resource so the bundle adds no
@@ -589,13 +592,15 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
      * shows once the view is gone or the activity is finishing: the dialog would come up over a
      * window that's gone.
      */
-    private void show(AlertDialog.Builder builder) {
+    @Nullable
+    private AlertDialog show(AlertDialog.Builder builder) {
         Activity activity = getActivity();
-        if (getView() == null || activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+        if (getView() == null || activity == null || activity.isFinishing() || activity.isDestroyed()) return null;
         AlertDialog dialog = builder.show();
         ScreenColors.dialog(dialog);
         shownDialogs.add(dialog);
         dialog.setOnDismissListener(shownDialogs::remove);
+        return dialog;
     }
 
     /** The section headings on the page, in order. */
@@ -846,12 +851,53 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         Utils.showToastLong(L10n.t("Couldn't show Notifications. It's in Pinterest's App info."));
     }
 
-    /** A switch whose change waits for a restart: the card says what the next start brings. */
+    /**
+     * A switch whose change waits for a restart: the card says what the next start brings, and the
+     * restart row comes, goes or counts again.
+     */
     @Override
     protected void onRestartPendingChanged() {
         Preference card = statusCard;
         Context context = getContext();
         if (card != null && context != null) showStatus(card, context);
+        if (navigation != null) navigation.restartChanged();
+    }
+
+    /**
+     * Quick setups: Quiet, Privacy or Back to defaults, each changing its switches at once
+     * ({@link QuickSetupKeys}), then a toast saying how many changed. A switch that needs a restart
+     * brings up the restart row the way a tap on it would.
+     */
+    void showQuickSetups() {
+        Context context = getContext();
+        if (context == null) return;
+        List<Map<BooleanSetting, Boolean>> choices = Arrays.asList(
+                QuickSetupKeys.quiet(), QuickSetupKeys.privacy(), QuickSetupKeys.defaults());
+        CharSequence[] names = {L10n.t("Quiet"), L10n.t("Privacy"), L10n.t("Back to defaults")};
+        CharSequence[] details = {
+                L10n.t("Hides ads, suggestions, nags and pop-ups."),
+                L10n.t("Strips tracking from links and stops usage reports and the ad ID."),
+                L10n.t("Puts every feature switch back the way it started.")};
+        AlertDialog dialog = show(new AlertDialog.Builder(themed(context))
+                .setTitle(L10n.t("Quick setups"))
+                .setAdapter(new ChoiceCards(ScreenColors.DEFAULT, names, details, new boolean[]{false, false, false}),
+                        (shown, which) -> applyQuickSetup(choices.get(which)))
+                .setNegativeButton(L10n.t("Cancel"), null));
+        ListView list = dialog == null ? null : dialog.getListView();
+        if (list != null) {
+            // The cards bring their own spacing and press ripple, as in the diagnostic report's choices.
+            list.setDivider(null);
+            list.setSelector(new ColorDrawable(Color.TRANSPARENT));
+        }
+    }
+
+    /** Applies one Quick setups choice to the switches on this page and says how many changed. */
+    int applyQuickSetup(Map<BooleanSetting, Boolean> values) {
+        PreferenceScreen screen = getPreferenceScreen();
+        if (screen == null) return 0;
+        int changed = QuickSetups.apply(screen, values);
+        Utils.showToastLong(L10n.quantity(changed, "Changed %1$d setting", "Changed %1$d settings", changed));
+        return changed;
     }
 
     /**
