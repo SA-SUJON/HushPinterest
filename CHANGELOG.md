@@ -41,6 +41,8 @@ Every HushPinterest release, newest first.
 * **Pinterest:** Searching settings for AMOLED or dark theme now finds Black comments and Black pin menu as well as Black bottom bar. On a Pinterest build where one of the three can't be patched, the Interface page shows only the switches that work, each with its own description.
 * **Tooling:** Compiled APK checks now cover what Hide save toasts writes for the board picker's toast, and they hold the save toasts flag to every kind of confirmation the patch looks for. A build without one of AMOLED black's three surfaces is checked for the ones it has. Patching says so in its log when a build has no board picker confirmation it can tell apart.
 
+* **Pinterest:** Section headings in HushPinterest settings no longer pick up a dotted capital I ("SETTİNGS") when HushPinterest is set to English and Pinterest is in Turkish. Capitals now follow the language the heading is written in.
+
 ## 0.0.8 (2026-10-13)
 
 * **Pinterest:** Long-press the Pinterest logo at the top of your home feed to open HushPinterest settings. It works even while HushPinterest is paused. The app icon shortcut and Android's App info page still open them too.

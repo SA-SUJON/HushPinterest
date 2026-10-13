@@ -373,6 +373,9 @@ final class ScreenColors {
             title.setTextColor(heading);
             title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             title.setLetterSpacing(0.07f);
+            // Capitals follow the view's text language, which is Pinterest's. The words can be in
+            // another one: English picked on a Turkish Pinterest read "MORE SETT\u0130NGS".
+            title.setTextLocale(L10n.textLocale(title.getContext()));
             title.setAllCaps(true);
         }
         row.setPaddingRelative(dp(row, SIDE_DP + 4), dp(row, 20), dp(row, SIDE_DP + 4), dp(row, 8));

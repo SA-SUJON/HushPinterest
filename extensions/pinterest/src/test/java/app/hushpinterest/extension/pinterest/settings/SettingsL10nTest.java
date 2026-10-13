@@ -290,6 +290,39 @@ public class SettingsL10nTest {
                 .getConfiguration().getLocales().get(0).getLanguage());
     }
 
+    /**
+     * A section heading is shown in capitals, raised the way the language of its words does it.
+     * Turkish raises i to a dotted capital, so English picked on a Turkish Pinterest read
+     * "MORE SETT\u0130NGS". Following Pinterest, the Turkish heading keeps its dotted capital.
+     */
+    @Test
+    @Config(qualifiers = "tr")
+    public void aHeadingIsRaisedTheWayItsOwnLanguageDoesIt() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        assertEquals("the control: Turkish headings lost their dotted capital",
+                "D\u0130\u011eER AYARLAR", headingShown(activity, L10n.t("More settings")));
+
+        assertTrue(BaseSettings.HUSH_LANGUAGE.save(AppLanguage.EN));
+        assertEquals("More settings", L10n.t("More settings"));
+        assertEquals("MORE SETTINGS", headingShown(activity, L10n.t("More settings")));
+        assertEquals("BROWSE SETTINGS", headingShown(activity, L10n.t("Browse settings")));
+    }
+
+    /** [words] as a heading row shows them, painted before and after the words are set. */
+    private static String headingShown(Activity activity, String words) {
+        android.widget.FrameLayout row = new android.widget.FrameLayout(activity);
+        android.widget.TextView title = new android.widget.TextView(activity);
+        title.setId(android.R.id.title);
+        row.addView(title);
+        ScreenColors.DEFAULT.paintHeading(row);
+        title.setText(words);
+        String after = String.valueOf(title.getTransformationMethod().getTransformation(title.getText(), title));
+        ScreenColors.DEFAULT.paintHeading(row);
+        assertEquals("a heading painted again reads differently", after,
+                String.valueOf(title.getTransformationMethod().getTransformation(title.getText(), title)));
+        return after;
+    }
+
     /** An activity that runs in English whatever the application's language is. */
     public static class ActivityInEnglish extends Activity {
         @Override
