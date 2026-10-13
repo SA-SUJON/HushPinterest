@@ -273,7 +273,7 @@ public class DexDiff {
             "once-call", "once-call <method reference>");
 
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
-            Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2),
+            Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2), Map.entry("drawWash", 4),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
             Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
@@ -2677,6 +2677,7 @@ public class DexDiff {
         /**
          * A view whose dispatchDraw starts with the hook on the view itself and then draws as before.
          * It has a method of its own, so it can't collide with an onMeasure refresh on the same class.
+         * A drawWash rule names a second hook and view as well, checked by [wash].
          */
         void draw(Contract c) {
             String type = c.strings.get(1);
@@ -2689,7 +2690,41 @@ public class DexDiff {
                 prefix(m, c.strings.get(0), List.of(parameter(m, -1)), false);
                 inherited(cd, m, "dispatchDraw", shape);
             }
-            capability(c.callee, overridable);
+            boolean washed = c.strings.size() < 4 || wash(c.strings.get(2), c.strings.get(3));
+            capability(c.callee, overridable && washed);
+        }
+
+        /**
+         * A view whose draw() washes its canvas with one color, once. The hook goes right in front of
+         * that wash: it takes the view and the color about to be used, and its answer goes back in
+         * the color's register for the wash to read.
+         */
+        boolean wash(String hook, String type) {
+            String canvas = "Landroid/graphics/Canvas;->drawColor(I)V";
+            Method draw = clean.methods.get(type + "->draw(Landroid/graphics/Canvas;)V");
+            if (draw == null || draw.getImplementation() == null || AccessFlags.STATIC.isSet(draw.getAccessFlags())) {
+                fail("missing draw method on " + type); return false;
+            }
+            List<Instruction> was = instructions(draw);
+            List<Integer> washes = callSites(was, canvas);
+            if (washes.size() != 1 || arguments(was.get(washes.get(0))).size() != 2) {
+                fail(type + " washes its canvas " + washes.size() + " times, expected one plain call"); return false;
+            }
+            int wash = washes.get(0), view = parameter(draw, -1), color = arguments(was.get(wash)).get(1);
+            for (int at = 0; at < wash; at++) if (writes(was.get(at), view)) {
+                fail(type + " writes over itself before it washes its canvas"); return false;
+            }
+            Method m = actual(draw);
+            List<Integer> sites = calls(m, hook, 1);
+            if (m == null || sites.size() != 1) return false;
+            List<Instruction> body = instructions(m);
+            int at = sites.get(0);
+            boolean inPlace = at == wash && at + 2 < body.size() && arguments(body.get(at)).equals(List.of(view, color))
+                    && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT && firstRegister(body.get(at + 1)) == color
+                    && callSites(body, canvas).equals(List.of(at + 2)) && arguments(body.get(at + 2)).equals(arguments(was.get(wash)));
+            if (!inPlace) { fail(hook + " does not answer the wash color in place in " + m); return false; }
+            remove(m, at, at + 2);
+            return true;
         }
 
         void feed(Contract c) {
@@ -5161,6 +5196,7 @@ public class DexDiff {
                     case "guard": simpleGuard(c); break;
                     case "refresh": refresh(c); break;
                     case "draw": draw(c); break;
+                    case "drawWash": draw(c); break;
                     case "navigation": navigation(c); break;
                     case "menu": menu(c); break;
                     case "downloads": downloads(c); break;

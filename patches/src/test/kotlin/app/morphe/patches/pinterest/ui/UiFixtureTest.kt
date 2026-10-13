@@ -21,6 +21,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -132,6 +133,26 @@ class UiFixtureTest {
             assertEquals("${build.name}: the bar still draws through its own superclass",
                 classes.single { it.type == BOTTOM_BAR }.superclass,
                 ((drawn[1] as ReferenceInstruction).reference as MethodReference).definingClass)
+            // Glass tabs have no fill to recolor, so the glass asks for its wash color right where it used it.
+            val isCall = { instruction: Instruction, owner: String, name: String ->
+                ((instruction as? ReferenceInstruction)?.reference as? MethodReference)
+                    ?.let { it.definingClass == owner && it.name == name } == true
+            }
+            val wasGlass = classes.single { it.type == BLUR_VIEW }.methods.single { it.name == "draw" }
+            val glass = context.mutableClassDefBy(BLUR_VIEW).methods.single { it.name == "draw" }.instructions()
+            val asked = glass.indexOfFirst { isCall(it, AMOLED_BLACK, "blurFill") }
+            assertEquals("${build.name}: the glass asks for its color where it washed",
+                wasGlass.instructions().indexOfFirst { isCall(it, "Landroid/graphics/Canvas;", "drawColor") }, asked)
+            assertEquals("${build.name}: the glass gained the question and its answer, nothing else",
+                wasGlass.instructions().size + 2, glass.size)
+            assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.INVOKE_VIRTUAL), glass.subList(asked, asked + 3).map { it.opcode })
+            assertTrue("${build.name}: the wash comes right after the answer", isCall(glass[asked + 2], "Landroid/graphics/Canvas;", "drawColor"))
+            val question = glass[asked] as FiveRegisterInstruction
+            val color = (glass[asked + 2] as FiveRegisterInstruction).registerD
+            assertEquals("${build.name}: the glass hands over itself", wasGlass.implementation!!.registerCount - 2, question.registerC)
+            assertEquals("${build.name}: the glass hands over the color it was about to use", color, question.registerD)
+            assertEquals("${build.name}: the answer lands where the wash reads its color", color,
+                (glass[asked + 1] as OneRegisterInstruction).registerA)
             val original = classes.flatMap { it.methods }.single { "inAppUpdateManager" in it.strings() }
             val modified = context.mutable(original)
             assertEquals("the shared coroutine's other task must keep its dispatcher", original.instructions()[0].opcode,
@@ -210,7 +231,7 @@ class UiFixtureTest {
         val anchors = setOf("sg_android_new_screenshot_api_14", "BottomNavTabModel(type=",
             "BottomNavBar tab insertion out of range", "confirmEmailButton", "inAppUpdateManager",
             "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=")
-        val required = (SEARCH_HISTORY_VIEWS + COMMENT_PREVIEW + HEADER_BAR + BOTTOM_BAR + PIN_MENU +
+        val required = (SEARCH_HISTORY_VIEWS + COMMENT_PREVIEW + HEADER_BAR + BOTTOM_BAR + BLUR_VIEW + PIN_MENU +
             "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;").toSet()
         val found = mutableMapOf<String, ClassDef>()
         FixtureDex.forEach(build) { dex ->

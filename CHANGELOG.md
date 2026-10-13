@@ -32,6 +32,7 @@ Every HushPinterest release, newest first.
 * **Pinterest:** Download board keeps its explanation above the choices, so large text doesn't squeeze out the actions. Download history explains why finished files can't be opened while downloads are off or paused, and no longer suggests getting a fresh link for a finished download.
 * **Pinterest:** Settings opens again from Android's App info page or the launcher shortcut when Pinterest's home screen is already running. Those requests used to miss the settings hook on that screen.
 * **Pinterest:** Hide save toasts now catches two confirmations it used to let through. One is the Saved to your board message with a "Tap here to discover more ideas" line, which Pinterest swaps in from your third save in a row to the same board. The other is the board picker's Saved to message when you save to several boards or to your profile. With Debug logging on, the log also names every toast Pinterest shows and says whether it was hidden.
+* **Pinterest:** Black bottom bar now paints the bar's buttons in the layouts where they stayed gray. That covers frosted glass buttons and the search pill, plus any button Pinterest rebuilds after the bar first appears. Icons, outlines and the selected marker keep their colors, and Pinterest's gray comes back when the switch is off, HushPinterest is paused or the phone is in light mode.
 
 ## 0.0.8 (2026-10-13)
 

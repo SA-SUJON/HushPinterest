@@ -47,6 +47,8 @@ public class AmoledBlackTest {
         Settings.BLACK_BOTTOM_BAR.resetToDefault();
         HookStatus.clear();
         AmoledBlack.tabRoot = -1;
+        AmoledBlack.searchText = -1;
+        AmoledBlack.searchContainer = -1;
         AmoledBlack.gestureStrip = -1;
     }
 
@@ -66,6 +68,63 @@ public class AmoledBlackTest {
         Settings.BLACK_BOTTOM_BAR.save(false);
         AmoledBlack.bottomBar(bar);
         assertEquals(ELEVATION, pill.getBackgroundTintList().getDefaultColor());
+    }
+
+    @Test public void aTabBuiltAfterTheBarsLastDrawTurnsBlackOnTheNextLayout() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.tabRoot = View.generateViewId();
+        LinearLayout bar = bar(true);
+        LinearLayout row = (LinearLayout) bar.getChildAt(0);
+        AmoledBlack.bottomBar(bar);
+        // Pinterest builds a tab on a navigation change. Only the row redraws, so the bar's draw hook doesn't run.
+        View late = tab(row, ELEVATION);
+        bar.layout(0, 0, 320, 64);
+        assertEquals(Color.BLACK, late.getBackgroundTintList().getDefaultColor());
+        Settings.BLACK_BOTTOM_BAR.save(false);
+        bar.layout(0, 0, 320, 72);
+        assertEquals("a layout pass with the switch off gives the tint back", ELEVATION, late.getBackgroundTintList().getDefaultColor());
+    }
+
+    @Test public void glassUnderTheBarWashesBlackAndOtherGlassKeepsItsColor() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        int wash = 0x80242421;
+        LinearLayout bar = bar(true);
+        FrameLayout tab = new FrameLayout(bar.getContext());
+        View glass = new View(bar.getContext());
+        tab.addView(glass);
+        ((LinearLayout) bar.getChildAt(0)).addView(tab);
+        assertEquals("a bar that hasn't drawn yet isn't known", wash, AmoledBlack.blurFill(glass, wash));
+        AmoledBlack.bottomBar(bar);
+        assertEquals(Color.BLACK, AmoledBlack.blurFill(glass, wash));
+        assertEquals("glass anywhere else keeps Pinterest's wash", wash, AmoledBlack.blurFill(new View(bar.getContext()), wash));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals("Pause gives the wash back on the next frame", wash, AmoledBlack.blurFill(glass, wash));
+        PauseForTests.resume();
+        LinearLayout light = bar(false);
+        View lightGlass = new View(light.getContext());
+        light.addView(lightGlass);
+        AmoledBlack.bottomBar(light);
+        assertEquals("light mode is left alone", wash, AmoledBlack.blurFill(lightGlass, wash));
+        Settings.BLACK_BOTTOM_BAR.save(false);
+        assertEquals("off gives the wash back on the next frame", wash, AmoledBlack.blurFill(glass, wash));
+    }
+
+    @Test public void aSearchTabsPillTurnsBlackWhereverItKeepsItsFill() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.tabRoot = View.generateViewId();
+        AmoledBlack.searchText = View.generateViewId();
+        AmoledBlack.searchContainer = View.generateViewId();
+        LinearLayout bar = bar(true);
+        LinearLayout row = (LinearLayout) bar.getChildAt(0);
+        GradientDrawable onPill = searchTab(row, false);
+        GradientDrawable onContainer = searchTab(row, true);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(Color.BLACK, onPill.getColor().getDefaultColor());
+        assertEquals(Color.BLACK, onContainer.getColor().getDefaultColor());
+        Settings.BLACK_BOTTOM_BAR.save(false);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(ELEVATION, onPill.getColor().getDefaultColor());
+        assertEquals(ELEVATION, onContainer.getColor().getDefaultColor());
     }
 
     @Test public void theStripUnderTheBarTurnsBlackAndOffGivesItsColorBack() {
@@ -203,6 +262,28 @@ public class AmoledBlackTest {
 
     private static GradientDrawable rowFill(LinearLayout bar) {
         return (GradientDrawable) bar.getChildAt(0).getBackground();
+    }
+
+    /**
+     * A search tab like Pinterest's: a plain frame around the search pill, whose gray sits on the
+     * pill itself or on the container inside it. Answers the shape that carries it.
+     */
+    private static GradientDrawable searchTab(LinearLayout row, boolean inContainer) {
+        FrameLayout tab = new FrameLayout(row.getContext());
+        FrameLayout pill = new FrameLayout(row.getContext());
+        FrameLayout container = new FrameLayout(row.getContext());
+        container.setId(AmoledBlack.searchContainer);
+        View text = new View(row.getContext());
+        text.setId(AmoledBlack.searchText);
+        GradientDrawable shape = new GradientDrawable();
+        shape.setCornerRadius(24f);
+        shape.setColor(ELEVATION);
+        (inContainer ? container : pill).setBackground(shape);
+        container.addView(text);
+        pill.addView(container);
+        tab.addView(pill);
+        row.addView(tab);
+        return shape;
     }
 
     /** A tab like those of the bar that shows them apart: a white rounded shape under a tint. */
