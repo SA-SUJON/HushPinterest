@@ -192,6 +192,24 @@ class SaveToastsFixtureTest {
             context.mutableClassDefBy(UI_HOOKS).methods.single { it.name == "isMessageToast" }.implementation!!.instructions.map { it.opcode })
     }
 
+    /**
+     * The board picker's toast is told by the class that built its text. Take those classes away
+     * and nothing can tell its save from its removal, so the patch has to say the build is short
+     * of one kind of confirmation instead of leaving the question unasked and claiming them all.
+     */
+    @Test
+    fun `a build with no class that builds a save text for the board picker claims no more than it covers`() {
+        val (classes, model, _, screens) = read(Fixtures.declaredBuilds().last())
+        val context = PatchContexts.of(ExtensionDex.classes() + classes + screens)
+        assertTrue("the fake build still has a toast told by its text builder", context.saveTextToasts(model).isEmpty())
+        hideSaveToastsPatch.execute(context)
+        assertEquals("the patch is on", 1, flag(context, "hideSaveToasts"))
+        assertEquals("the save toasts aren't all there", 0, flag(context, "saveToasts"))
+        assertTrue("the toasts it has are still named", checked(context, "isSaveToast").isNotEmpty())
+        assertEquals("no toast is asked what built its text", listOf(Opcode.CONST_4, Opcode.RETURN),
+            context.mutableClassDefBy(UI_HOOKS).methods.single { it.name == "isSaveTextToast" }.implementation!!.instructions.map { it.opcode })
+    }
+
     @Test
     fun `missing container or status stub refuses before any change`() {
         val (classes, _, _) = read(Fixtures.declaredBuilds().last())

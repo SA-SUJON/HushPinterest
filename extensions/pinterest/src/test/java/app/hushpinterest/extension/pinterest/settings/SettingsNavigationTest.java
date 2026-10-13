@@ -1239,6 +1239,19 @@ public class SettingsNavigationTest {
         }
     }
 
+    @Test public void theAmoledWordsFindTheBlackSurfacesABuildWithoutTheBarStillHas() {
+        EnumSet<PatchFamily.Capability> withoutBar = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutBar.remove(PatchFamily.Capability.BOTTOM_BAR);
+        PatchFamily.capabilitiesForTests = withoutBar;
+        recreate();
+        assertNull(page.findPreference(Settings.BLACK_BOTTOM_BAR.key));
+        findSearch(dialog.getView()).setText("theme amoled");
+        ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
+        assertTrue(contains(Settings.BLACK_COMMENTS.key));
+        assertTrue(contains(Settings.BLACK_PIN_MENU.key));
+        assertFalse(contains(Settings.BLACK_BOTTOM_BAR.key));
+    }
+
     @Test public void alternateSearchWordsFindTheActualRowsInEveryShippedLanguage() {
         String[][] languages = {{"en", null}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
         Map<String, String> english = SettingsNavigation.localizedSearchAliases();

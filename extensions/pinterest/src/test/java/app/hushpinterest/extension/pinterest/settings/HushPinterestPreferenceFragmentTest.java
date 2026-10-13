@@ -269,6 +269,21 @@ public class HushPinterestPreferenceFragmentTest {
             PatchFamily.capabilitiesForTests = installed;
             try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
                 HushPinterestPreferenceFragment page = pageOf(controller);
+                Map<PatchFamily.Capability, BooleanSetting> own = blackSurfaceRows();
+                if (own.containsKey(missing)) {
+                    // A surface with a switch to itself promises nothing for the others, so no row
+                    // is rewritten: its own row goes, and each one that's left keeps what it says.
+                    assertNull(missing.label + " kept a switch with no hook behind it", page.findPreference(own.get(missing).key));
+                    for (Map.Entry<PatchFamily.Capability, BooleanSetting> other : own.entrySet()) {
+                        if (other.getKey() == missing) continue;
+                        Preference row = page.findPreference(other.getValue().key);
+                        assertTrue(other.getKey().label + " was disabled", row.isEnabled());
+                        String kept = String.valueOf(row.getSummary());
+                        assertTrue(kept, kept.startsWith("In dark mode, paints "));
+                        assertFalse(kept, kept.contains("This build"));
+                    }
+                    continue;
+                }
                 String summary = String.valueOf(page.findPreference(missing.family.switches.get(0).key).getSummary());
                 if (missing.family.expectedCapabilities().size() == 1) {
                     assertEquals("This build doesn't include the parts that handle " + missing.label + ".", summary);
@@ -348,6 +363,55 @@ public class HushPinterestPreferenceFragmentTest {
             assertEquals(bar + 1, indexOfKey(rows, Settings.BLACK_COMMENTS.key));
             assertEquals(bar + 2, indexOfKey(rows, Settings.BLACK_PIN_MENU.key));
         }
+    }
+
+    /**
+     * Black bottom bar has a hook of its own as well. A build where the bar or the glass under it
+     * wasn't found has no switch for it, and losing one of the other two surfaces takes nothing
+     * from the bar's own row.
+     */
+    @Test
+    public void theBlackBottomBarRowShowsOnlyWhereItsHookWentIn() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Set<PatchFamily.Capability> withoutBar = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutBar.remove(PatchFamily.Capability.BOTTOM_BAR);
+        PatchFamily.capabilitiesForTests = withoutBar;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            assertNull("a switch with no hook behind it", page.findPreference(Settings.BLACK_BOTTOM_BAR.key));
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            int comments = indexOfKey(rows, Settings.BLACK_COMMENTS.key);
+            assertTrue("Black comments is still drawn", comments >= 0);
+            assertEquals(comments + 1, indexOfKey(rows, Settings.BLACK_PIN_MENU.key));
+            assertEquals("In dark mode, paints the comments sheet and its reply bar pure black. Light mode stays as it is. "
+                    + "The change shows the next time you open comments.", String.valueOf(rows.get(comments).getSummary()));
+        }
+        Set<PatchFamily.Capability> withoutComments = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutComments.remove(PatchFamily.Capability.BLACK_COMMENTS);
+        PatchFamily.capabilitiesForTests = withoutComments;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            SwitchPreference bar = (SwitchPreference) page.findPreference(Settings.BLACK_BOTTOM_BAR.key);
+            assertNotNull(bar);
+            assertTrue(bar.isEnabled());
+            assertEquals("In dark mode, paints the bottom bar pure black to match the page, which also saves a little battery on "
+                    + "OLED screens. Light mode stays as it is. The change shows the next time the bar redraws.", String.valueOf(bar.getSummary()));
+        }
+        // Search's other words for the bar name the two sheets as well, so a build without the bar still finds them.
+        Map<String, String> words = SettingsNavigation.localizedSearchAliases();
+        assertNotNull(words.get(Settings.BLACK_BOTTOM_BAR.key));
+        assertEquals(words.get(Settings.BLACK_BOTTOM_BAR.key), words.get(Settings.BLACK_COMMENTS.key));
+        assertEquals(words.get(Settings.BLACK_BOTTOM_BAR.key), words.get(Settings.BLACK_PIN_MENU.key));
+    }
+
+    /** The three black surfaces, each with the switch that's its own. */
+    private static Map<PatchFamily.Capability, BooleanSetting> blackSurfaceRows() {
+        Map<PatchFamily.Capability, BooleanSetting> rows = new LinkedHashMap<>();
+        rows.put(PatchFamily.Capability.BOTTOM_BAR, Settings.BLACK_BOTTOM_BAR);
+        rows.put(PatchFamily.Capability.BLACK_COMMENTS, Settings.BLACK_COMMENTS);
+        rows.put(PatchFamily.Capability.BLACK_PIN_MENU, Settings.BLACK_PIN_MENU);
+        return rows;
     }
 
     @Test

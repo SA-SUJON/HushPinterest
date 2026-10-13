@@ -130,6 +130,7 @@ val hideSaveToastsPatch = bytecodePatch(
         val found = handleTargets(PATCH, "save toasts", listOf(
             "no saved to board toast was found".takeIf { saved.isEmpty() },
             "no follow suggestion toast was found".takeIf { follow.isEmpty() },
+            "no save confirmation in a toast that asks another class for its text was found".takeIf { texts.isEmpty() },
             "no save confirmation in a toast that's handed its text was found".takeIf { messages.isEmpty() },
             when {
                 android.sites.isEmpty() -> "no save confirmation shown as an Android toast was found"
@@ -174,7 +175,7 @@ val hideSaveToastsPatch = bytecodePatch(
             if-eqz v$register, :hush_show_toast
             return-void
         """, ExternalLabel("hush_show_toast", method.getInstruction(0)))
-        if (found == 4) enableCapability("saveToasts")
+        if (found == 5) enableCapability("saveToasts")
         enableStatus("hideSaveToasts")
     }
 }

@@ -716,6 +716,14 @@ try {
         'feature-shortcuts-branch-good' = $true
         'feature-optional-absent' = $true
         'feature-optional-unrelated' = $true
+        'feature-save-toasts-good' = $true
+        'feature-save-toasts-bad-text-stub' = $false
+        'feature-save-toasts-no-text' = $true
+        'feature-save-toasts-no-text-claimed' = $false
+        'feature-amoled-partial' = $true
+        'feature-amoled-partial-claimed' = $false
+        'feature-amoled-no-glass' = $true
+        'feature-amoled-doubled' = $false
     }
     foreach ($family in $families) {
         if ($family.Caps.Count -eq 0) {
@@ -751,6 +759,10 @@ try {
             elseif ($name -like 'feature-native-settings-*') { 'feature-native-settings-clean' }
             elseif ($name -like 'feature-browser-id-*') { 'feature-browser-id-clean' }
             elseif ($name -like 'feature-guard-interior-*') { 'feature-guard-interior-clean' }
+            elseif ($name -like 'feature-save-toasts-no-text*') { 'feature-save-toasts-no-text-clean' }
+            elseif ($name -like 'feature-save-toasts-*') { 'feature-save-toasts-clean' }
+            elseif ($name -like 'feature-amoled-partial*') { 'feature-amoled-partial-clean' }
+            elseif ($name -like 'feature-amoled-*') { "$name-clean" }
             elseif ($name -eq 'feature-optional-unrelated') { 'feature-optional-unrelated-clean' }
             elseif ($name -eq 'feature-optional-absent') { 'feature-optional-clean' } else { 'feature-clean' }
         $result = Invoke-DexDiff -Clean (Get-FeatureApk $cleanName) -Patched (Get-FeatureApk $name) `
@@ -783,6 +795,15 @@ try {
         }
         if ($name -eq 'feature-links-disabled-misses-fallback' -or $name -like 'feature-links-copied-*-bad' -or $name -like 'feature-links-integer-*-bad') {
             Assert-True ($text.Contains('fallback after its disabled family control')) "An original call disconnected from the disabled family path passed as a fallback.`n$text"
+        }
+        $shortBuildReason = switch ($name) {
+            'feature-save-toasts-bad-text-stub' { "text toast stub doesn't ask each of" }
+            'feature-save-toasts-no-text-claimed' { 'saveToasts flag is true, clean target requires false' }
+            'feature-amoled-partial-claimed' { 'blackComments flag is true, clean target requires false' }
+            'feature-amoled-doubled' { 'has 2 clean targets, expected 1' }
+        }
+        if ($shortBuildReason) {
+            Assert-True ($text.Contains($shortBuildReason)) "The fixture $name wasn't refused for its own fault ($shortBuildReason).`n$text"
         }
         $browserIdReason = switch ($name) {
             'feature-browser-id-missing' { 'skipBrowserId(Ljava/lang/String;)Z has 0 calls' }

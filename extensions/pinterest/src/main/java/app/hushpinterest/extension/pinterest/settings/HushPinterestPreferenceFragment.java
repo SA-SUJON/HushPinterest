@@ -385,12 +385,14 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hide header buttons"),
                     L10n.t("Hides the small icon buttons at the end of the top bar. Back, text buttons and account "
                         + "controls stay. The change shows the next time the bar updates."), SettingsIcons.BLOCK);
-            patchToggle(ui, context, build, PatchFamily.AMOLED_BLACK, Settings.BLACK_BOTTOM_BAR,
-                    L10n.t("Black bottom bar"),
-                    L10n.t("In dark mode, paints the bottom bar pure black to match the page, which also saves a "
-                        + "little battery on OLED screens. Light mode stays as it is. The change shows the next time "
-                        + "the bar redraws."), SettingsIcons.DARK_MODE);
-            // Each has its own hook, so a build where Pinterest's comments or pin menu wasn't found has no row for it.
+            // Each of the three has its own hook and its own switch, so a build where Pinterest's bottom bar,
+            // comments or pin menu wasn't found has no row for it, and the rows it does have keep their own words.
+            if (build.contains(PatchFamily.AMOLED_BLACK) && PatchFamily.Capability.BOTTOM_BAR.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.BLACK_BOTTOM_BAR, L10n.t("Black bottom bar"),
+                        L10n.t("In dark mode, paints the bottom bar pure black to match the page, which also saves a "
+                            + "little battery on OLED screens. Light mode stays as it is. The change shows the next time "
+                            + "the bar redraws.")), SettingsIcons.DARK_MODE));
+            }
             if (build.contains(PatchFamily.AMOLED_BLACK) && PatchFamily.Capability.BLACK_COMMENTS.installed()) {
                 ui.addPreference(mark(toggle(context, Settings.BLACK_COMMENTS, L10n.t("Black comments"),
                         L10n.t("In dark mode, paints the comments sheet and its reply bar pure black. Light mode stays "

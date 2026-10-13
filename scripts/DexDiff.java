@@ -2687,7 +2687,10 @@ public class DexDiff {
             String type = c.strings.get(1);
             String shape = "(Landroid/graphics/Canvas;)V";
             ClassDef cd = clean.classes.get(type);
-            if (cd == null) { fail("missing view " + type); capability(c.callee, false); return; }
+            // A build without the view, or without the one a drawWash rule washes, doesn't have this
+            // surface. The patch changes neither there and keeps its others, so only the flag is held to it.
+            boolean glass = c.strings.size() < 4 || clean.methods.containsKey(c.strings.get(3) + "->draw" + shape);
+            if (cd == null || !glass) { capability(c.callee, false); return; }
             boolean overridable = canOverride(type, "dispatchDraw", shape);
             Method m = overridable ? actual(type + "->dispatchDraw" + shape) : null;
             if (m != null) {
@@ -2706,8 +2709,9 @@ public class DexDiff {
         boolean wash(String hook, String type) {
             String canvas = "Landroid/graphics/Canvas;->drawColor(I)V";
             Method draw = clean.methods.get(type + "->draw(Landroid/graphics/Canvas;)V");
-            if (draw == null || draw.getImplementation() == null || AccessFlags.STATIC.isSet(draw.getAccessFlags())) {
-                fail("missing draw method on " + type); return false;
+            if (draw == null) return false;
+            if (draw.getImplementation() == null || AccessFlags.STATIC.isSet(draw.getAccessFlags())) {
+                fail(type + " has a draw method with no body of its own to wash in"); return false;
             }
             List<Instruction> was = instructions(draw);
             List<Integer> washes = callSites(was, canvas);
@@ -2745,6 +2749,9 @@ public class DexDiff {
                 if (anchor.startsWith("L") ? m.getDefiningClass().equals(anchor)
                         : instructions(m).stream().anyMatch(i -> readsId(i, anchor))) builders.add(m);
             }
+            // No builder at all is a surface this build doesn't have: the patch warns, keeps its
+            // others and leaves the capability off. Two builders are a build to look at.
+            if (builders.isEmpty()) { capability(c.callee, false); return; }
             Method builder = unique(builders, "builder of the view for " + hook);
             boolean shaped = false;
             if (builder != null) {
@@ -2945,10 +2952,14 @@ public class DexDiff {
          * The save toast stub: one instance check per concrete toast model that reads a save
          * confirmation's text or names the follow suggestion or the "more ideas" confirmation, then
          * false, then the shared true. The message stub is the same for the toast models that show
-         * a text they were handed. Answers whether this build has one of those.
+         * a text they were handed, and [textStub] checks the one for models that ask a field for
+         * their text. Answers whether this build has a toast of every kind: a save confirmation, the
+         * follow suggestion, one that asks for its text and one that's handed it. The patch sets
+         * the capability only then.
          */
         boolean saveToastStub(String model) {
             Set<String> expected = new TreeSet<>();
+            boolean saved = false, follow = false;
             for (ClassDef owner : clean.classes.values()) {
                 if (AccessFlags.ABSTRACT.isSet(owner.getAccessFlags()) || AccessFlags.INTERFACE.isSet(owner.getAccessFlags())
                         || owner.getType().equals(model)) continue;
@@ -2959,17 +2970,74 @@ public class DexDiff {
                 if (!toast) continue;
                 for (Method m : owner.getMethods()) for (Instruction i : instructions(m)) if (reference(i) instanceof FieldReference) {
                     FieldReference f = (FieldReference) reference(i);
-                    if (f.getType().equals("I") && SAVE_TOAST_STRINGS.contains(f.getName())
-                            || (f.getName().equals("FollowUpsellToast") || f.getName().equals("BOARD_MORE_IDEAS_UPSELL_TOAST"))
-                            && f.getType().equals(f.getDefiningClass())) expected.add(owner.getType());
+                    boolean kind = f.getType().equals(f.getDefiningClass());
+                    boolean save = f.getType().equals("I") && SAVE_TOAST_STRINGS.contains(f.getName())
+                            || kind && f.getName().equals("BOARD_MORE_IDEAS_UPSELL_TOAST");
+                    boolean suggestion = kind && f.getName().equals("FollowUpsellToast");
+                    if (save || suggestion) expected.add(owner.getType());
+                    saved |= save;
+                    follow |= suggestion;
                 }
             }
             instanceStub("isSaveToast", expected, "save toast");
+            Map<String, List<String>> texts = textToasts(model);
+            textStub(texts);
             Set<String> told = new HashSet<>(expected);
-            for (String field : textToasts(model).keySet()) told.add(field.substring(0, field.indexOf("->")));
+            for (String field : texts.keySet()) told.add(field.substring(0, field.indexOf("->")));
             Set<String> messages = messageToasts(model, told);
             instanceStub("isMessageToast", messages, "message toast");
-            return !messages.isEmpty();
+            return saved && follow && !texts.isEmpty() && !messages.isEmpty();
+        }
+
+        /**
+         * The stub for the toast models that ask a field for their text. For each of [texts] in turn:
+         * is the toast that model, and if it is, does its field hold one of the classes that read a
+         * save text. Then false, then the shared true. A model whose field holds anything else falls
+         * through to the next, so a removal shown by the same model is never called a save. With no
+         * such model the stub must still be the extension's own body, which answers false.
+         */
+        void textStub(Map<String, List<String>> texts) {
+            Method stub = actual(BASE + "ui/UiHooks;->isSaveTextToast(Ljava/lang/Object;)Z");
+            if (stub == null) return;
+            List<Instruction> body = instructions(stub);
+            if (texts.isEmpty()) {
+                if (body.size() != 2 || body.get(0).getOpcode() != Opcode.CONST_4 || ((NarrowLiteralInstruction) body.get(0)).getNarrowLiteral() != 0
+                        || body.get(1).getOpcode() != Opcode.RETURN || firstRegister(body.get(1)) != firstRegister(body.get(0)))
+                    fail("text toast stub names toasts this build doesn't have");
+                return;
+            }
+            int size = 4, input = parameter(stub, 0), at = 0;
+            for (List<String> sources : texts.values()) size += 4 + 2 * sources.size();
+            boolean shaped = body.size() == size;
+            Layout code = new Layout(stub.getImplementation());
+            for (Map.Entry<String, List<String>> text : texts.entrySet()) {
+                if (!shaped) break;
+                String model = text.getKey().substring(0, text.getKey().indexOf("->"));
+                List<String> sources = text.getValue();
+                int next = at + 4 + 2 * sources.size();
+                Instruction is = body.get(at), skip = body.get(at + 1), cast = body.get(at + 2), read = body.get(at + 3);
+                shaped = is.getOpcode() == Opcode.INSTANCE_OF && ((TwoRegisterInstruction) is).getRegisterB() == input
+                        && firstRegister(is) != input && model.equals(String.valueOf(reference(is)))
+                        && skip.getOpcode() == Opcode.IF_EQZ && firstRegister(skip) == firstRegister(is)
+                        && code.addresses.get(at + 1) + ((OffsetInstruction) skip).getCodeOffset() == code.addresses.get(next)
+                        && cast.getOpcode() == Opcode.CHECK_CAST && firstRegister(cast) == input && model.equals(String.valueOf(reference(cast)))
+                        && read.getOpcode() == Opcode.IGET_OBJECT && ((TwoRegisterInstruction) read).getRegisterB() == input
+                        && firstRegister(read) != input && text.getKey().equals(String.valueOf(reference(read)));
+                for (int k = 0; shaped && k < sources.size(); k++) {
+                    Instruction check = body.get(at + 4 + 2 * k), branch = body.get(at + 5 + 2 * k);
+                    shaped = check.getOpcode() == Opcode.INSTANCE_OF && ((TwoRegisterInstruction) check).getRegisterB() == firstRegister(read)
+                            && firstRegister(check) != firstRegister(read) && sources.get(k).equals(String.valueOf(reference(check)))
+                            && branch.getOpcode() == Opcode.IF_NEZ && firstRegister(branch) == firstRegister(check)
+                            && code.addresses.get(at + 5 + 2 * k) + ((OffsetInstruction) branch).getCodeOffset() == code.addresses.get(size - 2);
+                }
+                at = next;
+            }
+            if (shaped) for (int k = 0; k < 2; k++) {
+                Instruction literal = body.get(size - 4 + 2 * k), exit = body.get(size - 3 + 2 * k);
+                shaped &= literal.getOpcode() == Opcode.CONST_4 && ((NarrowLiteralInstruction) literal).getNarrowLiteral() == k
+                        && exit.getOpcode() == Opcode.RETURN && firstRegister(exit) == firstRegister(literal);
+            }
+            if (!shaped) fail("text toast stub doesn't ask each of " + texts + " in turn");
         }
 
         /** Pinterest's methods that read a save confirmation's text, found once. */
