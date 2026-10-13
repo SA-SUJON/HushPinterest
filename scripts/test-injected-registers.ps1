@@ -649,6 +649,7 @@ try {
     }
     $featureCases = [ordered]@{
         'feature-unselected' = $true
+        'feature-settings-missing-home-intent' = $false
         'feature-internal-dependencies' = $true
         'feature-unknown-public' = $false
         'feature-no-status' = $false

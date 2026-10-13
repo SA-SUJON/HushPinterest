@@ -50,6 +50,7 @@ public final class FeatureDexFixture {
     private static final String UTILS = "Lapp/hushpinterest/extension/shared/Utils;";
     private static final String APP = "Lcom/pinterest/ReleaseHiltApplication;";
     private static final String ACTIVITY = "Lcom/pinterest/activity/PinterestActivity;";
+    private static final String HOME_ACTIVITY = "Lcom/pinterest/activityLibrary/activity/task/activity/MainActivity;";
     private static final String OBSERVER = "Lfixture/ScreenshotObserver;";
     private static final String FEED = "Lfixture/FeedPage;";
     private static final String SENDER = "Lfixture/OutgoingText;";
@@ -175,6 +176,8 @@ public final class FeatureDexFixture {
         classes.put(ACTIVITY, new ArrayList<>(List.of(
                 method(ACTIVITY, "onCreate", VOID, false, 2, create, "Landroid/os/Bundle;"),
                 method(ACTIVITY, "onNewIntent", VOID, false, 2, intent, INTENT))));
+        classes.put(HOME_ACTIVITY, new ArrayList<>(List.of(
+                method(HOME_ACTIVITY, "onNewIntent", VOID, false, 2, intent, INTENT))));
         shortcuts(classes, patched, "good");
         return classes;
     }
@@ -592,6 +595,9 @@ public final class FeatureDexFixture {
         reset();
         Map<String, List<Method>> settings = new LinkedHashMap<>(clean); settings.putAll(hosts(true));
         write(root, "feature-unselected", settings, true);
+        Map<String, List<Method>> missingHomeIntent = new LinkedHashMap<>(settings);
+        missingHomeIntent.put(HOME_ACTIVITY, clean.get(HOME_ACTIVITY));
+        write(root, "feature-settings-missing-home-intent", missingHomeIntent, true);
         write(root, "feature-internal-dependencies", new LinkedHashMap<>(settings), true);
         Files.write(new File(root, "feature-internal-dependencies.selected").toPath(),
                 List.of("HushPinterest settings", "BytecodePatch", "ResourcePatch"), StandardCharsets.UTF_8);
