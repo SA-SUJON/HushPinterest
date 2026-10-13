@@ -19,6 +19,7 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21s;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22b;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22s;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22t;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22x;
@@ -47,6 +48,15 @@ public final class FeatureDexFixture {
     private static final String BASE = "Lapp/hushpinterest/extension/pinterest/";
     private static final String STATUS = BASE + "settings/SettingsStatus;";
     private static final String ENTRY = BASE + "settings/SettingsEntry;";
+    private static final String NATIVE_ROW = BASE + "settings/NativeSettingsItem;";
+    private static final String NATIVE_MARKER = "Lfixture/NativeSettingsRow;";
+    private static final String NATIVE_BASE = "Lfixture/NativeExternalRow;";
+    private static final String NATIVE_EXTERNAL = "Lfixture/SafetyRow;";
+    private static final String NATIVE_TEXT = "Lfixture/NativeText;";
+    private static final String NATIVE_HEADER = "Lfixture/NativeHeader;";
+    private static final String NATIVE_IDS = "Lfixture/SettingsStrings;";
+    private static final String NATIVE_LIST = "Lfixture/SettingsList;";
+    private static final String NATIVE_CLICK = "Lfixture/SettingsClick;";
     private static final String UTILS = "Lapp/hushpinterest/extension/shared/Utils;";
     private static final String APP = "Lcom/pinterest/ReleaseHiltApplication;";
     private static final String ACTIVITY = "Lcom/pinterest/activity/PinterestActivity;";
@@ -106,7 +116,11 @@ public final class FeatureDexFixture {
         var fields = owner.equals("Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;")
                 ? List.of(new ImmutableField(owner, "pin", "Lcom/pinterest/api/model/FixturePin;", AccessFlags.PUBLIC.getValue(), null, Set.of(), Set.of()))
                 : List.<ImmutableField>of();
-        return new ImmutableClassDef(owner, AccessFlags.PUBLIC.getValue(), OBJECT, List.of(), null, Set.of(), fields, methods);
+        if (owner.equals(NATIVE_BASE)) fields = List.of(new ImmutableField(owner, "text", NATIVE_TEXT, AccessFlags.PUBLIC.getValue(), null, Set.of(), Set.of()));
+        String parent = owner.equals(NATIVE_ROW) || owner.equals(NATIVE_EXTERNAL) ? NATIVE_BASE : OBJECT;
+        var interfaces = owner.equals(NATIVE_ROW) || owner.equals(NATIVE_EXTERNAL) ? List.of(NATIVE_MARKER) : List.<String>of();
+        int flags = AccessFlags.PUBLIC.getValue() | (owner.equals(NATIVE_MARKER) ? AccessFlags.INTERFACE.getValue() | AccessFlags.ABSTRACT.getValue() : 0);
+        return new ImmutableClassDef(owner, flags, parent, interfaces, null, Set.of(), fields, methods);
     }
 
     private static void profileWebsites(Map<String, List<Method>> classes, String variant) {
@@ -194,11 +208,84 @@ public final class FeatureDexFixture {
                 method(ENTRY, "onApplicationCreate", VOID, true, 1, List.of(end()), CONTEXT),
                 method(ENTRY, "onActivityCreate", VOID, true, 1, List.of(end()), "Landroid/app/Activity;"),
                 method(ENTRY, "onNewIntent", VOID, true, 2, List.of(end()), "Landroid/app/Activity;", INTENT)));
-        for (Method m : classes.getOrDefault(ENTRY, List.of())) if (SHORTCUTS.contains(m.getName())) entry.add(m);
+        for (Method m : classes.getOrDefault(ENTRY, List.of()))
+            if (SHORTCUTS.contains(m.getName()) || m.getName().equals("open") || m.getName().equals("nativeTitleId")) entry.add(m);
         classes.put(ENTRY, entry);
     }
 
     private static Instruction readiness() { return invoke(Opcode.INVOKE_STATIC, ref(UTILS, "settingsReady", "Z")); }
+
+    private static void nativeSettings(Map<String, List<Method>> classes, String variant) {
+        boolean patched = !variant.equals("clean"), rowPresent = patched && !variant.equals("missing-row");
+        boolean clickPresent = patched && !variant.equals("missing-click");
+        String fragment = "Landroidx/fragment/app/Fragment;", array = "Ljava/util/ArrayList;";
+        var add = ref(array, "add", "Z", OBJECT);
+        var parentInit = ref(NATIVE_BASE, "<init>", VOID, "I", NATIVE_TEXT);
+        var title = new ImmutableFieldReference(NATIVE_IDS, "settings_menu_teen_safety_resources", "I");
+        classes.put(NATIVE_MARKER, List.of());
+        classes.put(NATIVE_EXTERNAL, List.of(method(NATIVE_EXTERNAL, "<init>", VOID, false, 3, List.of(
+                new ImmutableInstruction21c(Opcode.SGET, 0, title), new ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
+                invoke(Opcode.INVOKE_DIRECT, parentInit, 2, 0, 1), end()))));
+        classes.put(NATIVE_BASE, List.of(method(NATIVE_BASE, "<init>", VOID, false, 3,
+                List.of(invoke(Opcode.INVOKE_DIRECT, ref(OBJECT, "<init>", VOID), 0), end()), "I", NATIVE_TEXT)));
+        classes.put(NATIVE_TEXT, List.of(method(NATIVE_TEXT, "<init>", VOID, false, 4,
+                List.of(invoke(Opcode.INVOKE_DIRECT, ref(OBJECT, "<init>", VOID), 0), end()), "I", "Ljava/lang/Integer;", STRING)));
+        classes.put(NATIVE_HEADER, List.of(method(NATIVE_HEADER, "<init>", VOID, false, 2,
+                List.of(invoke(Opcode.INVOKE_DIRECT, ref(OBJECT, "<init>", VOID), 0), end()), "I")));
+        List<Instruction> builder = new ArrayList<>(List.of(
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 5),
+                new ImmutableInstruction21c(Opcode.SGET, 1, new ImmutableFieldReference(NATIVE_IDS, "settings_main_header_settings", "I")),
+                new ImmutableInstruction10t(Opcode.GOTO, 3),
+                new ImmutableInstruction21c(Opcode.SGET, 1, new ImmutableFieldReference(NATIVE_IDS, "settings_main_header_account", "I")),
+                new ImmutableInstruction21c(Opcode.NEW_INSTANCE, 2, new ImmutableTypeReference(NATIVE_HEADER)),
+                invoke(Opcode.INVOKE_DIRECT, ref(NATIVE_HEADER, "<init>", VOID, "I"), 2, 1),
+                invoke(Opcode.INVOKE_VIRTUAL, add, 3, 2)));
+        if (rowPresent) for (int n = 0; n < (variant.equals("duplicate-row") ? 2 : 1); n++) {
+            builder.add(new ImmutableInstruction21c(Opcode.NEW_INSTANCE, 0, new ImmutableTypeReference(NATIVE_ROW)));
+            builder.add(invoke(Opcode.INVOKE_DIRECT, ref(NATIVE_ROW, "<init>", VOID), 0));
+            builder.add(invoke(Opcode.INVOKE_VIRTUAL, add, 3, 0));
+        }
+        builder.add(end());
+        classes.put(NATIVE_LIST, List.of(method(NATIVE_LIST, "build", VOID, true, 4, builder, array)));
+        List<Instruction> click = new ArrayList<>(List.of(
+                new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 3, new ImmutableTypeReference(NATIVE_BASE)),
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 0, clickPresent ? 28 : 13)));
+        var unit = new ImmutableFieldReference("Lkotlin/Unit;", "a", "Lkotlin/Unit;");
+        if (clickPresent) click.addAll(List.of(
+                new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 3,
+                        new ImmutableTypeReference(variant.equals("wrong-identity") ? NATIVE_BASE : NATIVE_ROW)),
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 12),
+                invoke(Opcode.INVOKE_VIRTUAL, ref(fragment, "requireActivity", "Landroidx/fragment/app/FragmentActivity;"), 4),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                invoke(Opcode.INVOKE_STATIC, ref(ENTRY, "open", "Z", "Landroid/app/Activity;"), 0),
+                new ImmutableInstruction21c(Opcode.SGET_OBJECT, 0, unit),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0), new ImmutableInstruction10x(Opcode.NOP)));
+        click.addAll(List.of(new ImmutableInstruction12x(Opcode.MOVE_OBJECT, 0, 3),
+                new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference(NATIVE_BASE)),
+                new ImmutableInstruction22c(Opcode.IGET_OBJECT, 0, 0, new ImmutableFieldReference(NATIVE_BASE, "text", NATIVE_TEXT)),
+                invoke(Opcode.INVOKE_VIRTUAL, ref(fragment, "requireContext", CONTEXT), 4),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1),
+                new ImmutableInstruction21c(Opcode.SGET_OBJECT, 2, new ImmutableFieldReference("Lfixture/Events;", "TEEN_SAFETY_RESOURCES_LINK", OBJECT)),
+                new ImmutableInstruction21c(Opcode.SGET_OBJECT, 0, unit), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)));
+        classes.put(NATIVE_CLICK, List.of(method(NATIVE_CLICK, "invoke", OBJECT, true, 5, click, OBJECT, fragment)));
+        if (!patched) return;
+        List<Instruction> ctor = new ArrayList<>(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 1),
+                new ImmutableInstruction11n(Opcode.CONST_4, 1, 0), literal("", 2),
+                new ImmutableInstruction21c(Opcode.NEW_INSTANCE, 3, new ImmutableTypeReference(NATIVE_TEXT)),
+                invoke(Opcode.INVOKE_DIRECT, ref(NATIVE_TEXT, "<init>", VOID, "I", "Ljava/lang/Integer;", STRING), 3, 0, 1, 2),
+                invoke(Opcode.INVOKE_STATIC, ref(ENTRY, "nativeTitleId", "I")), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                invoke(Opcode.INVOKE_DIRECT, parentInit, 4, variant.equals("wrong-title") ? 1 : 0, 3), end()));
+        classes.put(NATIVE_ROW, List.of(method(NATIVE_ROW, "<init>", VOID, false, 5, ctor),
+                method(NATIVE_ROW, "getViewType", "I", false, 2, List.of(
+                        new ImmutableInstruction21s(Opcode.CONST_16, 0, variant.equals("wrong-view-type") ? 14 : 13),
+                        new ImmutableInstruction11x(Opcode.RETURN, 0)))));
+        List<Method> entry = new ArrayList<>(classes.get(ENTRY));
+        entry.add(method(ENTRY, "open", "Z", true, 1, List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 1),
+                new ImmutableInstruction11x(Opcode.RETURN, 0)), "Landroid/app/Activity;"));
+        entry.add(method(ENTRY, "nativeTitleId", "I", true, 1, List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 1),
+                new ImmutableInstruction11x(Opcode.RETURN, 0))));
+        classes.put(ENTRY, entry);
+    }
 
     private static void shortcuts(Map<String, List<Method>> classes, boolean patched, String variant) {
         List<Instruction> publisher = new ArrayList<>();
@@ -254,7 +341,13 @@ public final class FeatureDexFixture {
             classes.put(STATUS, status);
         }
         List<ClassDef> defs = new ArrayList<>();
-        classes.forEach((owner, methods) -> defs.add(type(owner, methods)));
+        classes.forEach((owner, methods) -> {
+            ClassDef definition = type(owner, methods);
+            if (name.equals("feature-native-settings-missing-interface") && owner.equals(NATIVE_ROW))
+                definition = new ImmutableClassDef(owner, definition.getAccessFlags(), definition.getSuperclass(), List.of(),
+                        null, definition.getAnnotations(), definition.getFields(), definition.getMethods());
+            defs.add(definition);
+        });
         DexPool.writeTo(new File(root, name + ".dex").getPath(), new ImmutableDexFile(Opcodes.getDefault(), defs));
         if (patched) {
             List<String> names = new ArrayList<>(List.of("HushPinterest settings"));
@@ -598,6 +691,15 @@ public final class FeatureDexFixture {
         Map<String, List<Method>> missingHomeIntent = new LinkedHashMap<>(settings);
         missingHomeIntent.put(HOME_ACTIVITY, clean.get(HOME_ACTIVITY));
         write(root, "feature-settings-missing-home-intent", missingHomeIntent, true);
+        Map<String, List<Method>> nativeClean = new LinkedHashMap<>(clean);
+        nativeSettings(nativeClean, "clean");
+        write(root, "feature-native-settings-clean", nativeClean, false);
+        for (String variant : List.of("good", "missing-row", "duplicate-row", "missing-click", "wrong-identity", "wrong-title", "wrong-view-type", "missing-interface")) {
+            reset();
+            Map<String, List<Method>> nativePatched = new LinkedHashMap<>(settings);
+            nativeSettings(nativePatched, variant);
+            write(root, "feature-native-settings-" + variant, nativePatched, true);
+        }
         write(root, "feature-internal-dependencies", new LinkedHashMap<>(settings), true);
         Files.write(new File(root, "feature-internal-dependencies.selected").toPath(),
                 List.of("HushPinterest settings", "BytecodePatch", "ResourcePatch"), StandardCharsets.UTF_8);

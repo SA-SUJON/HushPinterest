@@ -11,8 +11,10 @@ package app.morphe.patches.pinterest.misc.settings
 import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
+import app.morphe.patcher.resource.ResourceMode
 import com.reandroid.apk.ApkModule
 import com.reandroid.arsc.chunk.xml.AndroidManifestBlock
+import com.reandroid.arsc.chunk.TableBlock
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -118,6 +120,12 @@ class SettingsManifestTest {
         val work = temporary.newFolder()
         val apk = File(work, "input.apk")
         ApkModule().use { module ->
+            module.setTableBlock(TableBlock().apply {
+                getOrCreatePackage(0x7f, "com.pinterest")
+                    .getOrCreate("", "string", "settings_menu_teen_safety_resources")
+                    .setValueAsString("Safety resources")
+                refreshFull()
+            })
             module.setManifest(AndroidManifestBlock.empty().apply {
                 setPackageName("com.pinterest")
                 setVersionName("14.39.0")
@@ -128,6 +136,9 @@ class SettingsManifestTest {
         val config = PatcherConfig(apkFile = apk, temporaryFilesPath = File(work, "patcher"))
         // The constructor is Kotlin-internal; this is the JVM signature pinned to patcher 1.14.1.
         ResourcePatchContext::class.java.getConstructor(PatcherConfig::class.java).newInstance(config).use { context ->
+            // Unlike manifest-only tests, a values document needs the real FULL resource initialization.
+            ResourcePatchContext::class.java.getMethod("decodeResources\$morphe_patcher", ResourceMode::class.java)
+                .invoke(context, ResourceMode.FULL)
             val manifest = context["AndroidManifest.xml"]
             manifest.parentFile.mkdirs()
             manifest.writeText(
@@ -142,7 +153,16 @@ class SettingsManifestTest {
                 </manifest>
                 """.trimIndent(),
             )
+            val strings = context["res/values/strings.xml"]
+            strings.parentFile.mkdirs()
+            strings.writeText("""<resources><string name="settings_menu_teen_safety_resources">Safety resources</string></resources>""")
             settingsManifestPatch.execute(context)
+            val titles = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(strings)
+                .getElementsByTagName("string")
+            assertEquals("one owned title added", 2, titles.length)
+            assertEquals("Pinterest's safety title is unchanged", "Safety resources", titles.item(0).textContent)
+            assertEquals(NATIVE_SETTINGS_TITLE, (titles.item(1) as Element).getAttribute("name"))
+            assertEquals("HushPinterest", titles.item(1).textContent)
             return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(manifest)
         }
     }

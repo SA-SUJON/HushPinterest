@@ -4932,6 +4932,99 @@ public class DexDiff {
                 replacement(manager + "->" + name + "(" + parameters + ")" + answer, entry + "->" + name + "(" + manager + parameters + ")" + answer, null, true);
             }
             greetingHeader(entry + "->onGreetingHeader(Landroid/view/View;)V");
+            nativeSettings(entry);
+        }
+
+        /** The owned row and click are anchored in the clean native list, never a shared URL or safety label. */
+        void nativeSettings(String entry) {
+            List<Method> builders = clean.methods.values().stream().filter(m -> instructions(m).stream().anyMatch(i ->
+                    readsId(i, "settings_main_header_settings")) && instructions(m).stream().anyMatch(i ->
+                    readsId(i, "settings_main_header_account"))).toList();
+            if (builders.isEmpty()) return; // Framework-only verifier fixtures have no native settings model.
+            Method originalBuilder = unique(builders, "native settings list");
+            if (originalBuilder == null) return;
+            List<ClassDef> external = clean.classes.values().stream().filter(cd -> {
+                for (Method m : cd.getMethods()) if (m.getName().equals("<init>") && instructions(m).stream().anyMatch(i ->
+                        readsId(i, "settings_menu_teen_safety_resources"))) return true;
+                return false;
+            }).toList();
+            ClassDef externalClass = uniqueClass(external, "native external settings row");
+            if (externalClass == null) return;
+            String parent = externalClass.getSuperclass(), owned = BASE + "settings/NativeSettingsItem;";
+            ClassDef row = patched.classes.get(owned);
+            Method constructor = actual(owned + "-><init>()V"), viewType = actual(owned + "->getViewType()I");
+            if (row == null || !parent.equals(row.getSuperclass()) || !AccessFlags.PUBLIC.isSet(row.getAccessFlags())
+                    || !row.getInterfaces().containsAll(externalClass.getInterfaces())) {
+                fail("native settings row has no owned public identity with its native superclass"); return;
+            }
+            List<Instruction> viewBody = instructions(viewType);
+            if (viewBody.size() != 2 || !(viewBody.get(0) instanceof NarrowLiteralInstruction literal) || literal.getNarrowLiteral() != 13
+                    || viewBody.get(1).getOpcode() != Opcode.RETURN || firstRegister(viewBody.get(0)) != firstRegister(viewBody.get(1))) {
+                fail("owned settings row does not use native external-row view type 13");
+            }
+            calls(constructor, entry + "->nativeTitleId()I", 1);
+            List<Instruction> ctorBody = instructions(constructor);
+            if (ctorBody.size() != 9 || !ctorBody.get(5).getOpcode().name.startsWith("invoke-static")
+                    || !String.valueOf(reference(ctorBody.get(5))).equals(entry + "->nativeTitleId()I")
+                    || ctorBody.get(6).getOpcode() != Opcode.MOVE_RESULT || ctorBody.get(7).getOpcode() != Opcode.INVOKE_DIRECT
+                    || !(reference(ctorBody.get(7)) instanceof MethodReference baseInit) || !baseInit.getDefiningClass().equals(parent)
+                    || !baseInit.getName().equals("<init>") || baseInit.getParameterTypes().size() != 2
+                    || !baseInit.getParameterTypes().get(0).equals("I")
+                    || !arguments(ctorBody.get(7)).equals(List.of(parameter(constructor, -1), firstRegister(ctorBody.get(6)), firstRegister(ctorBody.get(3))))
+                    || ctorBody.get(8).getOpcode() != Opcode.RETURN_VOID) {
+                fail("native settings constructor doesn't supply its owned title to the native superclass");
+            }
+            Method builder = actual(originalBuilder);
+            List<Instruction> body = instructions(builder);
+            int header = -1;
+            for (int at = 0; at < body.size(); at++) if (readsId(body.get(at), "settings_main_header_account")) header = at;
+            int at = header + 4;
+            String init = owned + "-><init>()V";
+            List<Integer> constructors = callSites(body, init);
+            for (int site : constructors) claimed.add(builder + "@" + site);
+            if (header < 0 || at + 2 >= body.size() || constructors.size() != 1 || constructors.get(0) != at + 1
+                    || body.get(at).getOpcode() != Opcode.NEW_INSTANCE || !owned.equals(String.valueOf(reference(body.get(at))))
+                    || body.get(at + 1).getOpcode() != Opcode.INVOKE_DIRECT
+                    || !arguments(body.get(at + 1)).equals(List.of(firstRegister(body.get(at))))
+                    || body.get(at + 2).getOpcode() != Opcode.INVOKE_VIRTUAL
+                    || !"Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z".equals(String.valueOf(reference(body.get(at + 2))))
+                    || !arguments(body.get(at + 2)).equals(List.of(arguments(body.get(header + 3)).get(0), firstRegister(body.get(at))))) {
+                fail("native settings row is missing, duplicated or detached from the guaranteed header");
+            } else remove(builder, at, at + 3);
+
+            List<Method> clickers = clean.methods.values().stream().filter(m -> instructions(m).stream().anyMatch(i ->
+                    reference(i) instanceof FieldReference field && field.getName().equals("TEEN_SAFETY_RESOURCES_LINK"))
+                    && instructions(m).stream().anyMatch(i -> i.getOpcode() == Opcode.INSTANCE_OF && parent.equals(String.valueOf(reference(i))))).toList();
+            Method oldClick = unique(clickers, "native external settings click");
+            if (oldClick == null) return;
+            Method click = actual(oldClick);
+            List<Integer> sites = calls(click, entry + "->open(Landroid/app/Activity;)Z", 1);
+            body = instructions(click);
+            int checkAt = -1;
+            for (int k = 0; k < body.size(); k++) if (body.get(k).getOpcode() == Opcode.INSTANCE_OF
+                    && parent.equals(String.valueOf(reference(body.get(k))))) checkAt = k;
+            at = checkAt + 2;
+            if (checkAt < 0 || at + 8 >= body.size() || sites.size() != 1 || sites.get(0) != at + 4) {
+                fail("owned settings click is not confined to the native external-row branch"); return;
+            }
+            int scratch = firstRegister(body.get(at));
+            Layout layout = new Layout(click.getImplementation());
+            Instruction guard = body.get(at + 1);
+            if (body.get(at).getOpcode() != Opcode.INSTANCE_OF || !owned.equals(String.valueOf(reference(body.get(at))))
+                    || ((TwoRegisterInstruction) body.get(at)).getRegisterB() != ((TwoRegisterInstruction) body.get(checkAt)).getRegisterB()
+                    || guard.getOpcode() != Opcode.IF_EQZ || firstRegister(guard) != scratch
+                    || layout.addresses.get(at + 1) + ((OffsetInstruction) guard).getCodeOffset() != layout.addresses.get(at + 7)
+                    || !"Landroidx/fragment/app/Fragment;->requireActivity()Landroidx/fragment/app/FragmentActivity;".equals(String.valueOf(reference(body.get(at + 2))))
+                    || !arguments(body.get(at + 2)).equals(arguments(instructions(oldClick).get(checkAt + 5)))
+                    || body.get(at + 3).getOpcode() != Opcode.MOVE_RESULT_OBJECT || firstRegister(body.get(at + 3)) != scratch
+                    || !arguments(body.get(at + 4)).equals(List.of(scratch))
+                    || body.get(at + 5).getOpcode() != Opcode.SGET_OBJECT || firstRegister(body.get(at + 5)) != scratch
+                    || !(reference(body.get(at + 5)) instanceof FieldReference unit) || !unit.getType().equals("Lkotlin/Unit;")
+                    || body.get(at + 6).getOpcode() != Opcode.RETURN_OBJECT || firstRegister(body.get(at + 6)) != scratch
+                    || body.get(at + 7).getOpcode() != Opcode.NOP) {
+                fail("owned settings click lost its identity guard, Activity argument or native fallback"); return;
+            }
+            remove(click, at, at + 8);
         }
 
         static final String GREETING_HEADER_ID = "home_feed_greeting_header_view";

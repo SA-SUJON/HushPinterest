@@ -650,6 +650,14 @@ try {
     $featureCases = [ordered]@{
         'feature-unselected' = $true
         'feature-settings-missing-home-intent' = $false
+        'feature-native-settings-good' = $true
+        'feature-native-settings-missing-row' = $false
+        'feature-native-settings-duplicate-row' = $false
+        'feature-native-settings-missing-click' = $false
+        'feature-native-settings-wrong-identity' = $false
+        'feature-native-settings-wrong-title' = $false
+        'feature-native-settings-wrong-view-type' = $false
+        'feature-native-settings-missing-interface' = $false
         'feature-internal-dependencies' = $true
         'feature-unknown-public' = $false
         'feature-no-status' = $false
@@ -740,6 +748,7 @@ try {
         $cleanName = if ($name -eq 'feature-links-partial') { 'feature-links-partial-clean' }
             elseif ($name -eq 'feature-links-doubled-host-good') { 'feature-links-doubled-clean' }
             elseif ($name -like 'feature-profile-*') { 'feature-profile-clean' }
+            elseif ($name -like 'feature-native-settings-*') { 'feature-native-settings-clean' }
             elseif ($name -like 'feature-browser-id-*') { 'feature-browser-id-clean' }
             elseif ($name -like 'feature-guard-interior-*') { 'feature-guard-interior-clean' }
             elseif ($name -eq 'feature-optional-unrelated') { 'feature-optional-unrelated-clean' }

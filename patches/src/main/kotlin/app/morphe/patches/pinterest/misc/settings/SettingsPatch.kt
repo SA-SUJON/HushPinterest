@@ -121,11 +121,23 @@ internal val settingsManifestPatch = resourcePatch {
             alias.appendChild(filter)
             application.appendChild(alias)
         }
+        document("res/values/strings.xml").use { document ->
+            val strings = document.getElementsByTagName("string")
+            if ((0 until strings.length).any { (strings.item(it) as Element).getAttribute("name") == NATIVE_SETTINGS_TITLE }) {
+                throw PatchException("HushPinterest settings title already exists")
+            }
+            document.documentElement.appendChild(document.createElement("string").apply {
+                setAttribute("name", NATIVE_SETTINGS_TITLE)
+                setAttribute("translatable", "false")
+                textContent = "HushPinterest"
+            })
+        }
     }
 }
 
 /**
- * Makes the HushPinterest screen reachable three ways. Inside Pinterest, a long press on the
+ * Makes the HushPinterest screen reachable four ways. Its owned row opens it from native settings.
+ * Inside Pinterest, a long press on the
  * Pinterest logo at the top of the home feed opens it (see [hookLogoLongPress]). From the home
  * screen, a long-press shortcut on Pinterest's launcher icon opens Pinterest with an extra; from
  * Android's App info page for Pinterest, "Additional settings in the app" opens it with
@@ -139,8 +151,8 @@ internal val settingsManifestPatch = resourcePatch {
 val settingsPatch = bytecodePatch(
     name = "HushPinterest settings",
     description = "Adds a HushPinterest page to Pinterest where you turn features on or off, pause HushPinterest, " +
-        "back up your settings and read the licenses. Open it by long-pressing the Pinterest logo at the top " +
-        "of your home feed or Pinterest's app icon. Works as soon as you patch it in, with no switch.",
+        "back up your settings and read the licenses. Open it from Pinterest's settings, or by long-pressing " +
+        "the Pinterest logo at the top of your home feed or Pinterest's app icon. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Settings")
@@ -148,6 +160,7 @@ val settingsPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.pinterest())
 
     execute {
+        hookNativeSettingsEntry()
         // Before each return of the application's onCreate, after Pinterest's own startup: the
         // extension registers activity lifecycle callbacks there, and that's only safe once Pinterest
         // has set itself up.

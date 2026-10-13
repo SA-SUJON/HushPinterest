@@ -449,6 +449,12 @@ public final class SettingsEntry {
         }
     }
 
+    /** The row's own resource. Native settings resolves it without changing any Pinterest label. */
+    public static int nativeTitleId() {
+        return app.hushpinterest.extension.shared.ResourceUtils.getIdentifierOrThrow(
+                app.hushpinterest.extension.shared.ResourceType.STRING, "hushpinterest_settings_entry");
+    }
+
     /**
      * Shows the screen over the given activity.
      *

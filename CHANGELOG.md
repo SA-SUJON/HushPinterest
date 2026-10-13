@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** HushPinterest has its own row in Pinterest's Settings list. It opens while HushPinterest is paused and works alongside the Morphe settings entry. The logo long press, app shortcut and App info entry still work.
+
 * **Pinterest:** Original-image searches now share a 10-second deadline, including connection setup and slow headers. Short-link HEAD requests also stop at their deadline. A stalled host keeps the supplied image or clipboard text, and repeated attempts can't create unlimited network workers.
 
 * **Tooling:** The README is much shorter now. It keeps what you need to install, set up, troubleshoot and verify HushPinterest, and the longer version with its test notes and internals is still in the repository history. The Ko-fi link that dropped out of it on October 12 is back above the title.
