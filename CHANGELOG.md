@@ -4,6 +4,8 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** Hide header buttons keeps the Settings gear in Saved visible, including when Pinterest uses another language. Optional icons still hide, and turning the switch off or pausing restores them.
+
 * **Pinterest:** HushPinterest has its own row in Pinterest's Settings list. It opens while HushPinterest is paused and works alongside the Morphe settings entry. The logo long press, app shortcut and App info entry still work.
 
 * **Pinterest:** Original-image searches now share a 10-second deadline, including connection setup and slow headers. Short-link HEAD requests also stop at their deadline. A stalled host keeps the supplied image or clipboard text, and repeated attempts can't create unlimited network workers.

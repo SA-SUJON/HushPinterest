@@ -13,6 +13,9 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.view.View;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.res.Resources;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -272,6 +275,65 @@ public class UiHooksTest {
         assertFalse(InterfaceControls.headerAction("end_container_text_button"));
         assertFalse(InterfaceControls.headerAction("end_container_avatar"));
         assertFalse(InterfaceControls.headerAction("header_static_search_bar"));
+    }
+
+    @Test public void nativeSettingsSurvivesNestedHeaderFilteringInItsOwnLanguage() {
+        for (String title : new String[] {"Settings", "Ayarlar", "Einstellungen", "設定"}) {
+            Context application = RuntimeEnvironment.getApplication();
+            Resources original = application.getResources();
+            Resources nativeResources = new Resources(application.getAssets(), original.getDisplayMetrics(),
+                    original.getConfiguration()) {
+                @Override public int getIdentifier(String name, String type, String pkg) {
+                    return "settings".equals(name) && "string".equals(type) ? 100 : 0;
+                }
+                @Override public CharSequence getText(int id) {
+                    return id == 100 ? title : original.getText(id);
+                }
+                @Override public String getResourceEntryName(int id) {
+                    if (id == 1) return "end_container_icon_buttons";
+                    if (id == 2 || id == 3) return "end_container_icon_bt";
+                    if (id == 4) return "start_container_icon_bt";
+                    return original.getResourceEntryName(id);
+                }
+            };
+            Context nativeContext = new ContextWrapper(application) {
+                @Override public Resources getResources() { return nativeResources; }
+            };
+            LinearLayout root = new LinearLayout(nativeContext);
+            LinearLayout trailing = new LinearLayout(nativeContext);
+            trailing.setId(1);
+            View gear = new View(nativeContext);
+            gear.setId(2);
+            gear.setContentDescription(title);
+            View optional = new View(nativeContext);
+            optional.setId(3);
+            optional.setContentDescription("Create");
+            View back = new View(nativeContext);
+            back.setId(4);
+            trailing.addView(gear);
+            trailing.addView(optional);
+            root.addView(trailing);
+            root.addView(back);
+            Settings.HIDE_HEADER_BUTTONS.save(true);
+            InterfaceControls.headerButtons(root);
+            assertEquals(title, View.VISIBLE, trailing.getVisibility());
+            assertEquals(title, View.VISIBLE, gear.getVisibility());
+            assertEquals(View.GONE, optional.getVisibility());
+            assertEquals(View.VISIBLE, back.getVisibility());
+            // A native bind can reuse a formerly optional icon for Settings.
+            optional.setContentDescription(title);
+            InterfaceControls.headerButtons(root);
+            assertEquals(View.VISIBLE, optional.getVisibility());
+            optional.setContentDescription("Create");
+            InterfaceControls.headerButtons(root);
+            PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+            InterfaceControls.headerButtons(root);
+            assertEquals(View.VISIBLE, optional.getVisibility());
+            PauseForTests.resume();
+            Settings.HIDE_HEADER_BUTTONS.save(false);
+            InterfaceControls.headerButtons(root);
+            assertEquals(View.VISIBLE, optional.getVisibility());
+        }
     }
 
     @Test public void menuChoicesAreIndependentAndKeepDownloadShareCopyReportAndSave() {

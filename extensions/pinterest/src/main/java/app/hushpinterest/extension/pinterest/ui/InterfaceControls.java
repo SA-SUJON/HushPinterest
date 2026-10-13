@@ -14,6 +14,8 @@ import java.util.WeakHashMap;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.Settings;
+import app.hushpinterest.extension.shared.ResourceType;
+import app.hushpinterest.extension.shared.ResourceUtils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 
 /** Keeps host tab models and menu actions intact while folding away selected views. */
@@ -64,9 +66,21 @@ public final class InterfaceControls {
     /** Only the trailing icon action containers. Back, leading actions, text and avatars remain. */
     public static void headerButtons(View root) {
         try {
+            if (root == null) return;
             boolean hide = UiHooks.enabled(FamilyNames.HIDE_HEADER_BUTTONS, Settings.HIDE_HEADER_BUTTONS);
+            // The native Saved header builds its COG action with R.string.settings (14.39.0,
+            // profile/n0.y3). Read through the host view, never Hush's language context.
+            int titleId = ResourceUtils.getIdentifier(root.getContext(), ResourceType.STRING, "settings");
+            String settingsTitle = titleId == 0 ? null : root.getResources().getText(titleId).toString();
             visit(root, view -> {
-                if (headerAction(resourceName(view))) collapse(view, hide);
+                if (!headerAction(resourceName(view))) return;
+                boolean[] containsSettings = {false};
+                if (hide && settingsTitle != null) visit(view, child -> {
+                    CharSequence label = child.getContentDescription();
+                    if (label != null && settingsTitle.contentEquals(label)) containsSettings[0] = true;
+                });
+                // Keep the ancestor group as well. Optional siblings still get their own visit.
+                collapse(view, hide && !containsSettings[0]);
             });
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_HEADER_BUTTONS, "header layout", failure);
