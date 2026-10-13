@@ -20,6 +20,7 @@ import java.util.WeakHashMap;
 import app.hushpinterest.extension.pinterest.ads.ModelFields;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.Settings;
+import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 import app.hushpinterest.extension.shared.settings.BooleanSetting;
@@ -73,18 +74,39 @@ public final class UiHooks {
 
     /** True drops a save confirmation or follow suggestion before Pinterest's toast container builds it. */
     public static boolean hideSaveToast(Object toast) {
-        if (!enabled(FamilyNames.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS) || !saveToast(toast)) return false;
+        boolean on = enabled(FamilyNames.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS);
+        boolean hide = on && saveToast(toast);
+        // With Debug logging on, every toast that reaches the container is named with what became
+        // of it. A save toast that still shows then either prints as shown, which names a model
+        // patching didn't know, or prints nothing, which means Pinterest showed it some other way.
+        Logger.printDebug(() -> "Toast " + (toast == null ? "null" : toast.getClass().getName())
+                + (hide ? " hidden" : on ? " shown" : " shown, switch off or paused"));
+        if (!hide) return false;
         HookStatus.counted(FamilyNames.HIDE_SAVE_TOASTS, "save toast hidden");
         return true;
     }
 
     private static boolean saveToast(Object toast) {
         Class<?> forced = saveToastForTests;
-        return forced != null ? forced.isInstance(toast) : isSaveToast(toast);
+        if (forced != null) return forced.isInstance(toast);
+        try {
+            return isSaveToast(toast) || isSaveTextToast(toast);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_SAVE_TOASTS, "toast model", failure);
+            return false;
+        }
     }
 
     /** Answers false here. Patching writes instance checks for the save toast models found in that build. */
     public static boolean isSaveToast(Object toast) {
+        return false;
+    }
+
+    /**
+     * Answers false here. Patching writes checks for the toast models that show whatever text an
+     * object they hold builds, true when that object is one that builds a save confirmation.
+     */
+    public static boolean isSaveTextToast(Object toast) {
         return false;
     }
 

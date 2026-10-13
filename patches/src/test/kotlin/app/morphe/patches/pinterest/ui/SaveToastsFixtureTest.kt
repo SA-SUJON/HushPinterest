@@ -40,8 +40,8 @@ class SaveToastsFixtureTest {
     @Test
     fun `each declared original APK drops only the save toasts before the container builds them`() {
         for (build in Fixtures.declaredBuilds()) {
-            val (classes, model) = read(build)
-            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            val (classes, model, builders) = read(build)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes + builders)
             hideSaveToastsPatch.execute(context)
             for (flag in listOf("hideSaveToasts", "saveToasts")) {
                 val first = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.implementation!!.instructions.first()
@@ -52,11 +52,33 @@ class SaveToastsFixtureTest {
                     ((it as? ReferenceInstruction)?.reference as? FieldReference)?.let(names) == true } == true } }.map { it.type }.toSet() }
             val saved = readers { it.type == "I" && it.name in SAVE_TOAST_STRINGS }
             val follow = readers { it.name == FOLLOW_UPSELL && it.type == it.definingClass }
+            // The confirmation Pinterest shows from the third save in a row to one board reads no save text itself.
+            val moreIdeas = readers { it.name == MORE_IDEAS_UPSELL && it.type == it.definingClass }
             assertTrue("${build.name}: saved-to toasts $saved", saved.size >= 3)
             assertEquals("${build.name}: follow suggestion", 1, follow.size)
+            assertEquals("${build.name}: more ideas confirmation", 1, moreIdeas.size)
+            assertTrue("${build.name}: the more ideas confirmation was already named $saved", (moreIdeas - saved).isNotEmpty())
             val stub = context.mutableClassDefBy(UI_HOOKS).methods.single { it.name == "isSaveToast" }.implementation!!.instructions.toList()
             val checked = stub.filter { it.opcode == Opcode.INSTANCE_OF }.map { ((it as ReferenceInstruction).reference as TypeReference).type }
-            assertEquals(build.name, (saved + follow).sorted(), checked.sorted())
+            assertEquals(build.name, (saved + follow + moreIdeas).sorted(), checked.sorted())
+
+            // The board picker's toast shows whatever its text builder hands it, a save or a removal.
+            // Only the two builders that read a save text count: Saved to a board, and Saved to profile.
+            val text = context.saveTextToasts(model).one("${build.name}: toast model that asks a field for its text")
+            val reads = { type: String, name: String -> builders.single { it.type == type }.methods.any { method ->
+                method.fields().any { it.type == "I" && it.name == name } } }
+            assertEquals("${build.name}: ${text.sources}", 2, text.sources.size)
+            assertTrue(build.name, text.sources.any { reads(it, "saved_onto_board_bold") })
+            assertTrue(build.name, text.sources.any { reads(it, "multi_board_save_saved_to_profile") })
+            assertTrue("${build.name}: a text builder that reads no save text stays out",
+                builders.any { owner -> owner.type !in text.sources && owner.interfaces.any { text.field.endsWith(":$it") } })
+            val asks = context.mutableClassDefBy(UI_HOOKS).methods.single { it.name == "isSaveTextToast" }.implementation!!.instructions.toList()
+            assertEquals(build.name, listOf(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.INSTANCE_OF,
+                Opcode.IF_NEZ, Opcode.INSTANCE_OF, Opcode.IF_NEZ, Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN), asks.map { it.opcode })
+            assertEquals(build.name, listOf(text.model, text.model) + text.sources, asks.filter { it.opcode == Opcode.INSTANCE_OF ||
+                it.opcode == Opcode.CHECK_CAST }.map { ((it as ReferenceInstruction).reference as TypeReference).type })
+            val held = (asks[3] as ReferenceInstruction).reference as FieldReference
+            assertEquals(build.name, text.field, "${held.definingClass}->${held.name}:${held.type}")
             val show = context.mutableClassDefBy(TOAST_CONTAINER).methods.single { method ->
                 method.parameterTypes.singleOrNull()?.toString() == model }
             val body = show.implementation!!.instructions.toList()
@@ -70,7 +92,7 @@ class SaveToastsFixtureTest {
 
     @Test
     fun `missing container or status stub refuses before any change`() {
-        val (classes, _) = read(Fixtures.declaredBuilds().last())
+        val (classes, _, _) = read(Fixtures.declaredBuilds().last())
         val extension = ExtensionDex.classes()
         val cases = linkedMapOf(
             "missing container" to extension + classes.filterNot { it.type == TOAST_CONTAINER },
@@ -99,8 +121,11 @@ class SaveToastsFixtureTest {
         }
     }
 
-    /** The container, the toast model base and every class extending it. */
-    private fun read(build: File): Pair<List<ClassDef>, String> {
+    /**
+     * The container, the toast model base and every class extending it, then the classes behind
+     * each interface a model's view builder asks for its text.
+     */
+    private fun read(build: File): Triple<List<ClassDef>, String, List<ClassDef>> {
         val all = mutableMapOf<String, ClassDef>()
         FixtureDex.forEach(build) { dex -> dex.classes.forEach { all[it.type] = it } }
         val container = all.getValue(TOAST_CONTAINER)
@@ -117,6 +142,11 @@ class SaveToastsFixtureTest {
             return false
         }
         val selected = all.values.filter { it.type == TOAST_CONTAINER || extends(it.type) }.map { ImmutableClassDef.of(it) }
-        return selected to model
+        val asked = selected.filter { it.type != TOAST_CONTAINER }.flatMap { owner ->
+            owner.methods.filter { it.returnType == TOAST_VIEW && it.parameters() == listOf(TOAST_CONTAINER) }.flatMap { it.calls() }
+                .filter { it.returnType == "Ljava/lang/CharSequence;" }.map { it.definingClass }
+        }.toSet()
+        val builders = all.values.filter { owner -> owner.interfaces.any { it in asked } && !extends(owner.type) }.map { ImmutableClassDef.of(it) }
+        return Triple(selected, model, builders)
     }
 }

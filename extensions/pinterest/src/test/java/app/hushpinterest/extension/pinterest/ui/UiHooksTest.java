@@ -38,11 +38,13 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.SettingsContextRule;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
+import app.hushpinterest.extension.shared.settings.BaseSettings;
 import app.hushpinterest.extension.shared.settings.BooleanSetting;
 import app.hushpinterest.extension.shared.settings.HushPinterestPause;
 import app.hushpinterest.extension.shared.settings.PauseForTests;
@@ -142,6 +144,35 @@ public class UiHooksTest {
             UiHooks.saveToastForTests = null;
         }
         assertFalse("the unpatched stub names no toast", UiHooks.hideSaveToast(saved));
+    }
+
+    @Test public void debugLoggingNamesEachToastAndWhatBecameOfIt() {
+        UiHooks.saveToastForTests = StringBuilder.class;
+        try {
+            Settings.HIDE_SAVE_TOASTS.save(true);
+            UiHooks.hideSaveToast(new StringBuilder());
+            assertTrue("nothing is logged while Debug logging is off", toastLines().isEmpty());
+            BaseSettings.DEBUG.save(true);
+            UiHooks.hideSaveToast(new StringBuilder());
+            UiHooks.hideSaveToast("a toast patching didn't name");
+            Settings.HIDE_SAVE_TOASTS.save(false);
+            UiHooks.hideSaveToast(new StringBuilder());
+            String lines = toastLines();
+            assertTrue(lines, lines.contains("Toast java.lang.StringBuilder hidden\n"));
+            assertTrue(lines, lines.contains("Toast java.lang.String shown\n"));
+            assertTrue(lines, lines.contains("Toast java.lang.StringBuilder shown, switch off or paused\n"));
+        } finally {
+            UiHooks.saveToastForTests = null;
+            BaseSettings.DEBUG.resetToDefault();
+        }
+    }
+
+    private static String toastLines() {
+        StringBuilder lines = new StringBuilder();
+        for (ShadowLog.LogItem item : ShadowLog.getLogs()) {
+            if (item.msg != null && item.msg.startsWith("Toast ")) lines.append(item.msg).append('\n');
+        }
+        return lines.toString();
     }
 
     @Test public void topicRowsFoldToZeroAndComeBackWhenBoundWithTheSwitchOff() {

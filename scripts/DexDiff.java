@@ -2344,7 +2344,8 @@ public class DexDiff {
         static final String PIN_MENU = "Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;";
         static final String TOAST_CONTAINER = "Lcom/pinterest/gestalt/toast/PinterestToastContainer;";
         static final String TOAST_VIEW = "Lcom/pinterest/gestalt/toast/BaseGestaltToast;";
-        static final Set<String> SAVE_TOAST_STRINGS = Set.of("saved_to", "saved_onto_board_bold", "pinned", "pinned_multiple", "pinned_multiple_to_board");
+        static final Set<String> SAVE_TOAST_STRINGS = Set.of("saved_to", "saved_onto_board_bold", "pinned", "pinned_multiple", "pinned_multiple_to_board",
+                "multi_board_save_saved_to_profile");
         final FeatureIndex clean;
         final FeatureIndex patched;
         final List<String> findings = new ArrayList<>();
@@ -2864,7 +2865,8 @@ public class DexDiff {
 
         /**
          * The save toast stub: one instance check per concrete toast model that reads a save
-         * confirmation's text or names the follow suggestion, then false, then the shared true.
+         * confirmation's text or names the follow suggestion or the "more ideas" confirmation, then
+         * false, then the shared true.
          */
         void saveToastStub(String model) {
             Set<String> expected = new TreeSet<>();
@@ -2879,7 +2881,8 @@ public class DexDiff {
                 for (Method m : owner.getMethods()) for (Instruction i : instructions(m)) if (reference(i) instanceof FieldReference) {
                     FieldReference f = (FieldReference) reference(i);
                     if (f.getType().equals("I") && SAVE_TOAST_STRINGS.contains(f.getName())
-                            || f.getName().equals("FollowUpsellToast") && f.getType().equals(f.getDefiningClass())) expected.add(owner.getType());
+                            || (f.getName().equals("FollowUpsellToast") || f.getName().equals("BOARD_MORE_IDEAS_UPSELL_TOAST"))
+                            && f.getType().equals(f.getDefiningClass())) expected.add(owner.getType());
                 }
             }
             Method stub = actual(BASE + "ui/UiHooks;->isSaveToast(Ljava/lang/Object;)Z");
