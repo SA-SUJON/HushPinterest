@@ -18,8 +18,8 @@ ideas and implementations. The Pinterest patches themselves are written here,
 from Pinterest's own code. The notices below are reproduced from those
 projects. Morphe requires its text to be carried in derivative works and shown
 to the person using the software, so it is also reachable in the app itself:
-long-press Pinterest's launcher icon, open HushPinterest, then More settings,
-About and Licenses.
+long-press Pinterest's launcher icon, open HushPinterest, then About and
+Licenses.
 
   HushPinterest               https://github.com/SysAdminDoc/HushPinterest
   HushTelegram                https://github.com/SysAdminDoc/HushTelegram

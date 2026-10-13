@@ -79,7 +79,7 @@
     },
     {
       "name": "Disable update nag",
-      "description": "Stops Pinterest's pop-ups asking you to update from the Play Store. You can still update Pinterest yourself. Good if the reminders get annoying. Starts off. Turn it on in HushPinterest settings > More settings > Updates.",
+      "description": "Stops Pinterest's pop-ups asking you to update from the Play Store. You can still update Pinterest yourself. Good if the reminders get annoying. Starts off. Turn it on in HushPinterest settings > Updates.",
       "category": "Updates",
       "use": true,
       "dependencies": [
@@ -224,7 +224,7 @@
     },
     {
       "name": "Fix push notifications",
-      "description": "Lets the patched app sign up for push notifications. Google's Firebase service only signs Pinterest up when the request names Pinterest's original signature, so this sends that signature's fingerprint and changes nothing else in the request. On by default. Turn it off in HushPinterest settings > More settings > Notifications.",
+      "description": "Lets the patched app sign up for push notifications. Google's Firebase service only signs Pinterest up when the request names Pinterest's original signature, so this sends that signature's fingerprint and changes nothing else in the request. On by default. Turn it off in HushPinterest settings > Notifications.",
       "category": "Notifications",
       "use": true,
       "dependencies": [
@@ -801,7 +801,7 @@
     },
     {
       "name": "Open links in your browser",
-      "description": "Opens a pin's Visit link and profile websites in your web browser. Pinterest links and sign-in work as before. Good if you prefer your own browser. Starts off. Turn it on in HushPinterest settings > More settings > Links.",
+      "description": "Opens a pin's Visit link and profile websites in your web browser. Pinterest links and sign-in work as before. Good if you prefer your own browser. Starts off. Turn it on in HushPinterest settings > Links.",
       "category": "Interface",
       "use": true,
       "dependencies": [

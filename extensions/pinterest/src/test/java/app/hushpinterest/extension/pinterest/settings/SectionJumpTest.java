@@ -72,18 +72,27 @@ public class SectionJumpTest {
         // Quick setups sits between the status card and the sections.
         assertEquals(SettingsNavigation.QUICK_SETUPS, ((Preference) list.getItemAtPosition(1)).getKey());
         assertEquals("Browse settings", ((Preference) list.getItemAtPosition(2)).getTitle());
+        // More settings is a heading on the same page, after the four feature pages, and its
+        // pages follow it: every section is one row on the home page, in the page's own order.
         List<String> titles = new ArrayList<>();
-        for (int i = 3; i < list.getCount() - 3; i++) titles.add(((Preference) list.getItemAtPosition(i)).getTitle().toString());
+        int more = -1;
+        for (int i = 3; i < list.getCount() - 2; i++) {
+            Preference row = (Preference) list.getItemAtPosition(i);
+            if (row instanceof android.preference.PreferenceCategory) {
+                assertEquals("More settings", row.getTitle());
+                assertEquals("a second heading among the page rows", -1, more);
+                more = i;
+                continue;
+            }
+            assertNotNull(row.getTitle() + " opens nothing", row.getOnPreferenceClickListener());
+            titles.add(row.getTitle().toString());
+        }
+        assertEquals(7, more);
         assertEquals(HushPinterestPreferenceFragment.SUPPORT, ((Preference) list.getItemAtPosition(list.getCount() - 1)).getKey());
         assertEquals(SettingsNavigation.REPORT, ((Preference) list.getItemAtPosition(list.getCount() - 2)).getKey());
-        Preference more = (Preference) list.getItemAtPosition(list.getCount() - 3);
-        assertEquals("More settings", more.getTitle());
-        assertTrue(more.getOnPreferenceClickListener().onPreferenceClick(more));
-        for (int i = 0; i < list.getCount(); i++) titles.add(((Preference) list.getItemAtPosition(i)).getTitle().toString());
         List<String> expected = new ArrayList<>();
         for (Preference section : page.sections()) expected.add(section.getTitle().toString());
-        assertEquals(new java.util.HashSet<>(expected), new java.util.HashSet<>(titles));
-        assertEquals(expected.size(), titles.size());
+        assertEquals(expected, titles);
         assertTrue(titles.contains("Updates"));
         assertTrue(titles.contains("Links"));
     }

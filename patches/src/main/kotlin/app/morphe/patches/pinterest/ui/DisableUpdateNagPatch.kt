@@ -35,7 +35,7 @@ val disableUpdateNagPatch = bytecodePatch(
     name = "Disable update nag",
     description = "Stops Pinterest's pop-ups asking you to update from the Play Store. You can still update " +
         "Pinterest yourself. Good if the reminders get annoying. Starts off. Turn it on in HushPinterest " +
-        "settings > More settings > Updates.",
+        "settings > Updates.",
 ) {
     category("Updates")
     dependsOn(settingsPatch, pinterestExtensionPatch)

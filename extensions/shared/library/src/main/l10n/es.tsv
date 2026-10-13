@@ -33,7 +33,6 @@ Export diagnostic report	Exportar informe de diagnóstico
 Export settings	Exportar configuración
 Turns off every HushPinterest switch except Debug logging the next time Pinterest starts. What you chose when you patched stays, and your choices are saved.	Desactiva todos los interruptores de HushPinterest, salvo el Registro de depuración, la próxima vez que se abra Pinterest. Lo que elegiste al parchear se mantiene y tus preferencias quedan guardadas.
 Hide ads	Ocultar anuncios
-Links, updates, backup and more	Enlaces, actualizaciones, copia de seguridad y más
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Guarda tus interruptores en un archivo. Cubren todas las cuentas de esta app de Pinterest. La pausa y el Registro de depuración no se incluyen, y la búsqueda de nuevas versiones tampoco.
 Settings exported, but the app holding it blocked the check.	Configuración exportada, pero la app del archivo impidió comprobarlo.
 The file's app is too slow. Nothing was changed.	La app del archivo tarda demasiado. No se cambió nada.

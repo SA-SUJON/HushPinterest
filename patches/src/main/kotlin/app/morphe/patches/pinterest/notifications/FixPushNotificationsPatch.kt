@@ -70,8 +70,7 @@ val fixPushNotificationsPatch = bytecodePatch(
     name = PATCH,
     description = "Lets the patched app sign up for push notifications. Google's Firebase service only signs Pinterest " +
         "up when the request names Pinterest's original signature, so this sends that signature's fingerprint and " +
-        "changes nothing else in the request. On by default. Turn it off in HushPinterest settings > More settings > " +
-        "Notifications.",
+        "changes nothing else in the request. On by default. Turn it off in HushPinterest settings > Notifications.",
     default = true,
 ) {
     category("Notifications")

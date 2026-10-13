@@ -33,7 +33,6 @@ Export diagnostic report	Tanılama raporunu dışa aktar
 Export settings	Ayarları dışa aktar
 Turns off every HushPinterest switch except Debug logging the next time Pinterest starts. What you chose when you patched stays, and your choices are saved.	Pinterest bir sonraki açılışında Hata ayıklama günlüğü dışındaki tüm HushPinterest anahtarlarını kapatır. Yamalarken seçtiklerin kalır ve tercihlerin kayıtlı kalır.
 Hide ads	Reklamları gizle
-Links, updates, backup and more	Bağlantılar, güncellemeler, yedekleme ve daha fazlası
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Anahtarlarını bir dosyaya kaydet. Anahtarlar bu Pinterest uygulamasındaki tüm hesaplar için geçerlidir. Duraklatma ve Hata ayıklama günlüğü dahil edilmez, sürüm denetimi de edilmez.
 Settings exported, but the app holding it blocked the check.	Ayarlar dışa aktarıldı ama dosyayı tutan uygulama kontrolü engelledi.
 The file's app is too slow. Nothing was changed.	Dosyanın uygulaması çok yavaş. Hiçbir şey değiştirilmedi.

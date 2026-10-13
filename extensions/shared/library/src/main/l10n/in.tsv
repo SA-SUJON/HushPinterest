@@ -33,7 +33,6 @@ Export diagnostic report	Ekspor laporan diagnostik
 Export settings	Ekspor pengaturan
 Turns off every HushPinterest switch except Debug logging the next time Pinterest starts. What you chose when you patched stays, and your choices are saved.	Mematikan semua sakelar HushPinterest kecuali Pencatatan debug saat Pinterest dibuka berikutnya. Yang Anda pilih saat menambal tetap berlaku, dan pilihan Anda tersimpan.
 Hide ads	Sembunyikan iklan
-Links, updates, backup and more	Tautan, pembaruan, cadangan, dan lainnya
 Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Simpan sakelar Anda ke sebuah file. Sakelar ini mencakup semua akun di aplikasi Pinterest ini. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.
 Settings exported, but the app holding it blocked the check.	Pengaturan diekspor, tetapi aplikasi penyimpannya menolak pemeriksaan.
 The file's app is too slow. Nothing was changed.	Aplikasi file itu terlalu lambat. Tidak ada yang diubah.

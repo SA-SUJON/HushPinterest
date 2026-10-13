@@ -93,23 +93,34 @@ public class SettingsNavigationTest {
         PauseForTests.resume();
     }
 
+    /** The route IDs, which stay English whatever language the titles are in, in home page order. */
+    private static final String[] PAGES = {"Feed", "Privacy", "Pin actions", "Interface", "Links", "Notifications",
+            "Pinterest's own settings", "Updates", "Pause, backup and diagnostics", "About"};
+
     @Test @Config(sdk = {29, 30, 33, 36})
     public void homeAndEveryCategoryAreReachableWithoutRemovingTheModel() {
         assertNotNull(page.navigation);
-        // Status, Quick setups, Browse settings, four feature categories, More settings, Report a
-        // problem and Support HushPinterest.
-        assertEquals(10, list().getCount());
+        // Status, Quick setups, Browse settings and its four feature pages, More settings and its
+        // six pages, Report a problem and Support HushPinterest.
+        assertEquals(16, list().getCount());
         assertEquals(10, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
-            assertTrue(page.navigation.open(section));
+            // Every page has its own row on the home page, so it's one tap away.
+            String row = null;
+            for (String id : PAGES) if (L10n.t(id).contentEquals(section.getTitle())) row = "section_" + id;
+            assertTrue(section.getTitle() + " has no row on the home page", row != null && contains(row));
+            tap(row);
+            assertEquals(String.valueOf(section.getTitle()), screenTitle());
             assertEquals(((PreferenceCategory) section).getPreferenceCount(), list().getCount());
             assertEquals(total, page.getPreferenceScreen().getRootAdapter().getCount());
             assertNotNull(page.findPreference(Settings.HIDE_ADS.key));
+            // And one Back from it: no page sits behind another.
             assertTrue(page.navigation.back());
-            while (page.navigation.back()) { }
+            assertEquals(16, list().getCount());
+            assertFalse(section.getTitle() + " wasn't opened from the home page", page.navigation.back());
         }
-        assertEquals(10, list().getCount());
+        assertEquals(16, list().getCount());
     }
 
     @Test public void theHomePageEndsWithSupportWhichOpensKoFi() {
@@ -120,7 +131,13 @@ public class SettingsNavigationTest {
         assertEquals("Support HushPinterest", String.valueOf(row.getTitle()));
         assertEquals("Buy me a coffee on Ko-fi", String.valueOf(row.getSummary()));
         assertEquals("Report a problem", String.valueOf(((Preference) list().getItemAtPosition(last - 1)).getTitle()));
-        assertEquals("More settings", String.valueOf(((Preference) list().getItemAtPosition(last - 2)).getTitle()));
+        // More settings is a heading now, over its six pages, and About is the last of them.
+        assertEquals("About", String.valueOf(((Preference) list().getItemAtPosition(last - 2)).getTitle()));
+        Preference more = (Preference) list().getItemAtPosition(last - 8);
+        assertEquals("More settings", String.valueOf(more.getTitle()));
+        assertTrue("More settings is still a row to tap", more instanceof PreferenceCategory);
+        assertFalse(list().getAdapter().isEnabled(last - 8));
+        assertEquals("Links", String.valueOf(((Preference) list().getItemAtPosition(last - 7)).getTitle()));
         assertTrue(list().getAdapter().isEnabled(last));
 
         tap(HushPinterestPreferenceFragment.SUPPORT);
@@ -425,8 +442,12 @@ public class SettingsNavigationTest {
         PatchFamily.inBuildForTests = EnumSet.noneOf(PatchFamily.class);
         recreate();
         assertFalse(hasHomeRow("Feed"));
-        // Status, Quick setups, Browse settings, More settings, Report a problem and Support.
-        assertEquals(6, list().getCount());
+        // Status, Quick setups, More settings and the five pages every build has (Links,
+        // Pinterest's own settings, Updates, Pause, backup and diagnostics, About), Report a problem
+        // and Support. Browse settings has no page under it, so the heading isn't drawn.
+        assertEquals(10, list().getCount());
+        assertFalse("an empty Browse settings heading", titles().contains("Browse settings"));
+        assertEquals("More settings", String.valueOf(((Preference) list().getItemAtPosition(2)).getTitle()));
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS, PatchFamily.Capability.AD_VIEWS);
         recreate();
@@ -484,7 +505,7 @@ public class SettingsNavigationTest {
         assertEquals(categoryCount("Links") + 1, list().getCount());
         while (page.navigation.back()) { }
         assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(1)).getKey());
-        assertEquals(11, list().getCount());
+        assertEquals(17, list().getCount());
 
         // Two changes are counted, and the row goes once neither is owed.
         app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.add(
@@ -495,7 +516,7 @@ public class SettingsNavigationTest {
         app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.clear();
         page.navigation.restartChanged();
         assertFalse(contains(SettingsNavigation.RESTART));
-        assertEquals(10, list().getCount());
+        assertEquals(16, list().getCount());
     }
 
     /** A switch that needs a restart brings the row up the moment it's flipped, and flipping it back takes it away. */
@@ -540,17 +561,24 @@ public class SettingsNavigationTest {
         assertEquals(categoryCount("Links"), list().getCount());
         assertEquals(View.GONE, ((View) findSearch(dialog.getView()).getParent()).getVisibility());
         assertTrue(page.navigation.back());
-        assertTrue("Back from a More settings page goes to More settings", contains("section_Links"));
+        assertTrue("Back from Links didn't go home", contains(SettingsNavigation.QUICK_SETUPS) && contains("section_Links"));
+        assertFalse(page.navigation.back());
 
-        // A page this build doesn't have opens the first page.
-        dialog.dismissAllowingStateLoss();
-        ShadowLooper.idleMainLooper();
-        dialog = SettingsDialog.onPage("No such page");
-        dialog.show(controller.get().getFragmentManager(), "hushpinterest_settings");
-        controller.get().getFragmentManager().executePendingTransactions();
-        ShadowLooper.idleMainLooper();
-        page = page(dialog);
-        assertEquals(10, list().getCount());
+        // A page this build doesn't have opens the first page. So does "more", which a restart from
+        // the More settings page left in its marker before that page's rows moved to the home page.
+        for (String gone : new String[] {"No such page", "more"}) {
+            dialog.dismissAllowingStateLoss();
+            ShadowLooper.idleMainLooper();
+            dialog = SettingsDialog.onPage(gone);
+            dialog.show(controller.get().getFragmentManager(), "hushpinterest_settings");
+            controller.get().getFragmentManager().executePendingTransactions();
+            ShadowLooper.idleMainLooper();
+            page = page(dialog);
+            assertEquals(gone, 16, list().getCount());
+            assertEquals(gone, "HushPinterest", screenTitle());
+            assertEquals(gone, View.VISIBLE, ((View) findSearch(dialog.getView()).getParent()).getVisibility());
+            assertFalse(gone, page.navigation.back());
+        }
     }
 
     /** Each Quick setups choice changes its switches through their rows and says how many changed. */
@@ -745,7 +773,7 @@ public class SettingsNavigationTest {
         assertEquals("No matching settings", ((Preference) list().getItemAtPosition(0)).getTitle());
         assertTrue(page.navigation.back());
         assertEquals("", search.getText().toString());
-        assertEquals(10, list().getCount());
+        assertEquals(16, list().getCount());
     }
 
     /** A row with no summary used to carry the word "null" into the search text and come up for it. */
@@ -790,7 +818,7 @@ public class SettingsNavigationTest {
         assertEquals("", search.getText().toString());
         assertEquals(View.INVISIBLE, clear.getVisibility());
         assertTrue("the field has focus after Clear", search.isFocused());
-        assertEquals(10, list().getCount());
+        assertEquals(16, list().getCount());
     }
 
     /**
@@ -971,16 +999,18 @@ public class SettingsNavigationTest {
         page.navigation.back();
         layout(dialog.getView());
         assertEquals("Feed", focusedTitle(a11y));
-        page.navigation.navigate("more");
+        // About sits under the More settings heading, further down the home page than Feed. The
+        // list goes back to where it was scrolled when the row was tapped, so the row is there to
+        // take the focus.
+        list().setSelection(position("section_About"));
         layout(dialog.getView());
-        page.navigation.navigate("About");
+        tap("section_About");
         layout(dialog.getView());
+        assertEquals("About", screenTitle());
         page.navigation.back();
         layout(dialog.getView());
         assertEquals("About", focusedTitle(a11y));
-        page.navigation.back();
-        layout(dialog.getView());
-        assertEquals("More settings", focusedTitle(a11y));
+        assertEquals("HushPinterest", screenTitle());
     }
 
     /** The first text of the last row that took accessibility focus. */
@@ -1024,21 +1054,20 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.HIDE_ADS.key));
         SettingsL10nTest.backOf(dialog).performClick();
         assertTrue(dialog.getDialog().isShowing());
-        assertEquals(10, list().getCount());
+        assertEquals(16, list().getCount());
         page.navigation.navigate("About");
         dialog.getDialog().onBackPressed();
-        // More settings: Links, Notifications, Pinterest's own settings, Updates, Pause, backup and diagnostics,
-        // and About.
-        assertEquals(6, list().getCount());
-        dialog.getDialog().onBackPressed();
-        assertEquals(10, list().getCount());
+        // About opens from the home page like every other page, so one Back is home again.
+        assertTrue(dialog.getDialog().isShowing());
+        assertEquals(16, list().getCount());
+        assertEquals("HushPinterest", screenTitle());
         dialog.getDialog().onBackPressed();
         ShadowLooper.idleMainLooper();
         assertFalse(controller.get().isFinishing());
     }
 
     // A window as short as the layouts below, 400 px, so the window's own layout leaves both the
-    // overview and More settings taller than the list and neither snaps back to the top.
+    // overview and the page opened from it taller than the list and neither snaps back to the top.
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Config(qualifiers = "w390dp-h200dp-night-xhdpi")
     public void aNewPageStartsAtTheTopAfterThePreviousPageWasScrolled() {
@@ -1053,24 +1082,23 @@ public class SettingsNavigationTest {
             int homePosition = list().getFirstVisiblePosition();
             int homeOffset = list().getChildAt(0).getTop();
             assertTrue(homePosition > 0 || homeOffset < 0);
-            page.navigation.navigate("more");
-            layout(dialog.getView(), 400);
-            assertEquals(0, list().getFirstVisiblePosition());
-            assertEquals(list().getPaddingTop(), list().getChildAt(0).getTop());
-            list().scrollListBy(100);
-            int morePosition = list().getFirstVisiblePosition();
-            int moreOffset = list().getChildAt(0).getTop();
-            assertTrue(morePosition > 0 || moreOffset < 0);
             page.navigation.navigate("Pause, backup and diagnostics");
             // Preference updates can arrive after navigation but before the next layout.
             ((android.widget.BaseAdapter) page.getPreferenceScreen().getRootAdapter()).notifyDataSetChanged();
             layout(dialog.getView(), 400);
             assertEquals(0, list().getFirstVisiblePosition());
             assertEquals(list().getPaddingTop(), list().getChildAt(0).getTop());
+            list().scrollListBy(100);
+            assertTrue(list().getFirstVisiblePosition() > 0 || list().getChildAt(0).getTop() < 0);
+            // Back is home, where the list was left, and the next page starts at its top again.
             assertTrue(page.navigation.back());
             layout(dialog.getView(), 400);
-            assertEquals(morePosition, list().getFirstVisiblePosition());
-            assertEquals(moreOffset, list().getChildAt(0).getTop());
+            assertEquals(homePosition, list().getFirstVisiblePosition());
+            assertEquals(homeOffset, list().getChildAt(0).getTop());
+            page.navigation.navigate("About");
+            layout(dialog.getView(), 400);
+            assertEquals(0, list().getFirstVisiblePosition());
+            assertEquals(list().getPaddingTop(), list().getChildAt(0).getTop());
             assertTrue(page.navigation.back());
             layout(dialog.getView(), 400);
             assertEquals(homePosition, list().getFirstVisiblePosition());
@@ -1135,9 +1163,13 @@ public class SettingsNavigationTest {
             page.navigation.open(section);
             capture(section.getTitle().toString().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z]+", "-"));
         }
-        page.navigation.navigate("more");
-        capture("more-settings");
-        page.navigation.back();
+        // Back from the last page is home, which runs past a phone's height now that the More
+        // settings pages are listed on it.
+        assertTrue(page.navigation.back());
+        assertEquals(16, list().getCount());
+        list().setSelection(list().getCount() - 1);
+        capture("00-overview-bottom");
+        list().setSelectionFromTop(0, 0);
         findSearch(dialog.getView()).setText("links");
         ShadowLooper.idleMainLooper(1, java.util.concurrent.TimeUnit.SECONDS);
         capture("search-results");
@@ -1174,7 +1206,7 @@ public class SettingsNavigationTest {
         org.robolectric.RuntimeEnvironment.setFontScale(2f);
         try {
             recreate();
-            capture("large-rtl-overview");
+            captureWholeHome("large-rtl-overview");
             for (Preference section : page.sections()) {
                 page.navigation.open(section);
                 layout(dialog.getView());
@@ -1202,6 +1234,7 @@ public class SettingsNavigationTest {
         org.robolectric.RuntimeEnvironment.setFontScale(2f);
         try {
             recreate();
+            captureWholeHome("pt-br-large-overview");
             for (Preference section : page.sections()) {
                 page.navigation.open(section);
                 layout(dialog.getView());
@@ -1217,6 +1250,22 @@ public class SettingsNavigationTest {
         } finally {
             org.robolectric.RuntimeEnvironment.setFontScale(1f);
         }
+    }
+
+    /**
+     * The home page from its status card to Support, a screen at a time: both headings and every
+     * page row keep their whole text, and the last rows are drawn as well as the first.
+     */
+    private void captureWholeHome(String name) throws Exception {
+        assertEquals(16, list().getCount());
+        for (int i = 0; i < list().getCount(); i++) {
+            list().setSelectionFromTop(i, 0);
+            layout(dialog.getView());
+            assertUncutText(dialog.getView());
+        }
+        capture(name + "-bottom");
+        list().setSelectionFromTop(0, 0);
+        capture(name);
     }
 
     private void captureWholeInterface(String name) throws Exception {

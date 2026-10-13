@@ -443,8 +443,9 @@ public class SettingsEntryTest {
             }
             assertTrue("the screen didn't open on Links", onLinks);
 
+            // Links opens from the home page, so the arrow goes home and then closes the screen.
             SettingsL10nTest.backOf(dialog).performClick();
-            SettingsL10nTest.backOf(dialog).performClick();
+            assertTrue("one Back from Links closed the screen", dialog.getDialog().isShowing());
             SettingsL10nTest.backOf(dialog).performClick();
             ShadowLooper.idleMainLooper();
             assertNull("the screen stayed open", dialogOver(activity.get()));
