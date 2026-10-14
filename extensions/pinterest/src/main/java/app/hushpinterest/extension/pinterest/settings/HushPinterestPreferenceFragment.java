@@ -992,7 +992,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
     /** The home row's long press: Quick setups leaves the home page, and a toast says where it comes back from. */
     void hideQuickSetups() {
         if (setQuickSetupsHidden(true)) {
-            Utils.showToastLong(L10n.t("Quick setups hidden. Bring it back from Pause, backup and diagnostics."));
+            Utils.showToastLong(L10n.t("Quick setups hidden. Show it from Pause, backup and diagnostics."));
         }
     }
 

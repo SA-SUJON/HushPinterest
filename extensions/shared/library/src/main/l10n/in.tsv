@@ -513,7 +513,7 @@ Quick setups	Penyiapan cepat
 # context: that row's summary
 Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	Nyalakan sekumpulan sakelar dengan sekali ketuk, atau kembalikan semua sakelar seperti semula. Tekan lama baris ini untuk menyembunyikannya.
 # context: toast after a long press hides the Quick setups row; names the page whose row brings it back
-Quick setups hidden. Bring it back from Pause, backup and diagnostics.	Penyiapan cepat disembunyikan. Tampilkan lagi dari Jeda, cadangan, dan diagnostik.
+Quick setups hidden. Show it from Pause, backup and diagnostics.	Penyiapan cepat disembunyikan. Tampilkan dari Jeda, cadangan, dan diagnostik.
 # context: Quick setups choice that turns on the switches that hide ads, suggestions and nags
 Quiet	Tenang
 # context: what Quiet does, under its name

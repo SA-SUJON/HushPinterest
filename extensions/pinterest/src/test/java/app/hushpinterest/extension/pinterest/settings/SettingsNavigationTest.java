@@ -475,6 +475,13 @@ public class SettingsNavigationTest {
      * on every page, first on a page without a pause line and under the home page's status card.
      */
     @Test public void aPauseOrAChangeWaitingOnARestartBringsUpTheRestartRow() {
+        // A finger tap puts the window in touch mode. Out of it the list keeps its key selection
+        // in view, the new restart row, and the line above it scrolls off once the page is taller
+        // than the list.
+        Object root = org.robolectric.util.ReflectionHelpers.callInstanceMethod(
+                dialog.getDialog().getWindow().getDecorView(), "getViewRootImpl");
+        org.robolectric.util.ReflectionHelpers.callInstanceMethod(root, "ensureTouchMode",
+                org.robolectric.util.ReflectionHelpers.ClassParameter.from(boolean.class, true));
         page.navigation.navigate("Pause, backup and diagnostics");
         tap(BaseSettings.PAUSED.key);
         layout(dialog.getView());
@@ -597,7 +604,7 @@ public class SettingsNavigationTest {
         assertTrue(list().getOnItemLongClickListener().onItemLongClick(list(), null, 1, 0));
         ShadowLooper.idleMainLooper();
         assertTrue(BaseSettings.HIDE_QUICK_SETUPS.savedValue());
-        assertEquals("Quick setups hidden. Bring it back from Pause, backup and diagnostics.", ShadowToast.getTextOfLatestToast());
+        assertEquals("Quick setups hidden. Show it from Pause, backup and diagnostics.", ShadowToast.getTextOfLatestToast());
         assertFalse(contains(SettingsNavigation.QUICK_SETUPS));
         assertEquals(home - 1, list().getCount());
 

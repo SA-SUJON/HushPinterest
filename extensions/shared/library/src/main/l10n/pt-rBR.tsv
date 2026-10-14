@@ -510,7 +510,7 @@ Quick setups	Configurações rápidas
 # context: that row's summary
 Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	Ative um conjunto de opções com um toque ou volte todas as opções ao estado inicial. Toque e segure esta linha para ocultá-la.
 # context: toast after a long press hides the Quick setups row; names the page whose row brings it back
-Quick setups hidden. Bring it back from Pause, backup and diagnostics.	Configurações rápidas ocultas. Traga de volta em Pausa, backup e diagnóstico.
+Quick setups hidden. Show it from Pause, backup and diagnostics.	Configurações rápidas ocultas. Traga de volta em Pausa, backup e diagnóstico.
 # context: Quick setups choice that turns on the switches that hide ads, suggestions and nags
 Quiet	Tranquilo
 # context: what Quiet does, under its name

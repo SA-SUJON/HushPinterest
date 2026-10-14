@@ -742,8 +742,8 @@ public final class L10nTranslations {
                 "Eingereiht: %d\n\u00dcbersprungen: %d\nNicht unterst\u00fctzt: %d\nFehlgeschlagen: %d");
         table.put("Quick setups",
                 "Schnelleinstellungen");
-        table.put("Quick setups hidden. Bring it back from Pause, backup and diagnostics.",
-                "Schnelleinstellungen ausgeblendet. Unter Pause, Sicherung und Diagnose holst du sie zur\u00fcck.");
+        table.put("Quick setups hidden. Show it from Pause, backup and diagnostics.",
+                "Schnelleinstellungen ausgeblendet. Zur\u00fcck \u00fcber Pause, Sicherung und Diagnose.");
         table.put("Quick setups on the home page",
                 "Schnelleinstellungen auf der Startseite");
         table.put("Quiet",
@@ -1797,8 +1797,8 @@ public final class L10nTranslations {
                 "En cola: %d\nOmitidos: %d\nNo compatibles: %d\nFallidos: %d");
         table.put("Quick setups",
                 "Configuraci\u00f3n r\u00e1pida");
-        table.put("Quick setups hidden. Bring it back from Pause, backup and diagnostics.",
-                "Configuraci\u00f3n r\u00e1pida oculta. Puedes recuperarla en Pausa, copia de seguridad y diagn\u00f3stico.");
+        table.put("Quick setups hidden. Show it from Pause, backup and diagnostics.",
+                "Configuraci\u00f3n r\u00e1pida oculta. Ve a Pausa, copia de seguridad y diagn\u00f3stico.");
         table.put("Quick setups on the home page",
                 "Configuraci\u00f3n r\u00e1pida en la p\u00e1gina de inicio");
         table.put("Quiet",
@@ -2852,8 +2852,8 @@ public final class L10nTranslations {
                 "Dalam antrean: %d\nDilewati: %d\nTidak didukung: %d\nGagal: %d");
         table.put("Quick setups",
                 "Penyiapan cepat");
-        table.put("Quick setups hidden. Bring it back from Pause, backup and diagnostics.",
-                "Penyiapan cepat disembunyikan. Tampilkan lagi dari Jeda, cadangan, dan diagnostik.");
+        table.put("Quick setups hidden. Show it from Pause, backup and diagnostics.",
+                "Penyiapan cepat disembunyikan. Tampilkan dari Jeda, cadangan, dan diagnostik.");
         table.put("Quick setups on the home page",
                 "Penyiapan cepat di halaman utama");
         table.put("Quiet",
@@ -3907,7 +3907,7 @@ public final class L10nTranslations {
                 "Na fila: %d\nIgnorados: %d\nN\u00e3o compat\u00edveis: %d\nFalhas: %d");
         table.put("Quick setups",
                 "Configura\u00e7\u00f5es r\u00e1pidas");
-        table.put("Quick setups hidden. Bring it back from Pause, backup and diagnostics.",
+        table.put("Quick setups hidden. Show it from Pause, backup and diagnostics.",
                 "Configura\u00e7\u00f5es r\u00e1pidas ocultas. Traga de volta em Pausa, backup e diagn\u00f3stico.");
         table.put("Quick setups on the home page",
                 "Configura\u00e7\u00f5es r\u00e1pidas na p\u00e1gina inicial");
@@ -4962,8 +4962,8 @@ public final class L10nTranslations {
                 "S\u0131rada: %d\nAtlanan: %d\nDesteklenmeyen: %d\nBa\u015far\u0131s\u0131z: %d");
         table.put("Quick setups",
                 "H\u0131zl\u0131 kurulumlar");
-        table.put("Quick setups hidden. Bring it back from Pause, backup and diagnostics.",
-                "H\u0131zl\u0131 kurulumlar gizlendi. Duraklatma, yedekleme ve tan\u0131lama sayfas\u0131ndan geri getirebilirsin.");
+        table.put("Quick setups hidden. Show it from Pause, backup and diagnostics.",
+                "H\u0131zl\u0131 kurulumlar gizlendi. Duraklatma, yedekleme ve tan\u0131lama'dan geri getir.");
         table.put("Quick setups on the home page",
                 "Ana sayfada h\u0131zl\u0131 kurulumlar");
         table.put("Quiet",
