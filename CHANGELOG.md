@@ -2,39 +2,23 @@
 
 Every HushPinterest release, newest first.
 
-## Unreleased
+## 0.0.9 (2026-10-14)
 
 * **Pinterest:** HushPinterest now patches Pinterest 14.40.0, the newest release, in place of 14.39.0. Download pins, Long-press download, Hide topic suggestions and Open links in your browser couldn't find their spots in the new build until they were updated. Hide closeup buttons still hides the lens on both pin screens, though 14.40.0 builds one of those lenses differently.
-
-* **Tooling:** The gate's own dex checks find the pin menu's close event, the topic row and a lens built in place the way 14.40.0 lays them out, and the fixture tests pin 14.40.0's class names.
-
 * **Pinterest:** When a Quick setup can't change some of its switches, you now get one short message that says how many changed and how many didn't. Before, each of those switches could show a message of its own and crowd out the summary, and the summary itself ran past the two lines a message gets.
-
 * **Pinterest:** A switch that needs a restart could have trouble saving on its way back to its starting value and still end up there. The restart row kept counting it anyway, and the next time you flipped that switch it could snap back. Now the row's count is right and the switch stays where you put it.
-
 * **Pinterest:** With a screen reader on, the settings screen now reads how many changes are waiting for a restart whenever that number changes, and reads the result of a Check now you tapped. Each is read once, after whatever is already being read, and focus stays where it was. The daily check that runs on its own stays quiet.
-
 * **Pinterest:** Quick setups now counts only the switches that really changed. If one can't be changed, the message also says how many were left as they were, and whether the page already shows their saved values or needs opening again first.
-
 * **Pinterest:** More settings is now a heading on the settings home page, with its six pages listed under it from Links to About. Every page is one tap from home and Back always goes home. Report a problem and Support HushPinterest are still the last two rows. Patch descriptions and the bug report form point to the shorter paths.
-
 * **Pinterest:** HushPinterest can show its own settings, menus and messages in English while Pinterest stays in your language. Tap HushPinterest language on the Pause, backup and diagnostics page and pick English. The screen changes right away with no restart, and Same as Pinterest switches it back. The choice works while HushPinterest is paused and isn't written to exported settings files.
-
 * **Pinterest:** Hide header buttons keeps the Settings gear in Saved visible, including when Pinterest uses another language. Optional icons still hide, and turning the switch off or pausing restores them.
-
 * **Pinterest:** HushPinterest has its own row in Pinterest's Settings list. It opens while HushPinterest is paused and works alongside the Morphe settings entry. The logo long press, app shortcut and App info entry still work.
-
 * **Pinterest:** Original-image searches now share a 10-second deadline, including connection setup and slow headers. Short-link HEAD requests also stop at their deadline. A stalled host keeps the supplied image or clipboard text, and repeated attempts can't create unlimited network workers.
-
-* **Tooling:** The README is much shorter now. It keeps what you need to install, set up, troubleshoot and verify HushPinterest, and the longer version with its test notes and internals is still in the repository history. The Ko-fi link that dropped out of it on October 12 is back above the title.
 * **Pinterest:** Save list can write a bookmarks file now. Tap Save list in Download visible pins or Download board and pick Bookmarks file (HTML) or JSON file. The bookmarks file opens in any browser and imports into browsers and bookmark apps, with each pin as a bookmark and its source link in the description. It follows the JSON list's rules: only the pins you chose or the board had loaded, no account details or media addresses, and a source link is left out when it can't be kept exactly as given. The JSON list is unchanged.
-* **Tooling:** The help link on GitHub's new issue page now opens the README's Help section. It used to point at Discussions, which this repository doesn't have, so it led nowhere.
 * **Pinterest:** When a change needs Pinterest to restart, a Restart row shows up near the top of the settings page right away and counts the changes waiting. Tapping it closes Pinterest and reopens it on the same settings page. The old line that only said a restart was needed is gone.
 * **Pinterest:** Disable analytics, Hide screenshot share and Fix push notifications now bring up the Restart row when you flip them, since each one takes effect on Pinterest's next start.
 * **Pinterest:** Report a problem sits just above Support HushPinterest on the settings home. It opens GitHub's bug form with your HushPinterest and Pinterest versions, your phone model, its Android version and the switches you have on already filled in, and leaves room for what happened and what you expected. Nothing is sent until you submit it on GitHub.
 * **Pinterest:** Quick setups on the settings home turns on the Quiet or Privacy switches in one tap, or puts every feature switch back the way it started. A message says how many settings it changed.
-* **Tooling:** Compiled APK checks cover settings requests delivered to Pinterest's home screen and reject a missing entry hook. Their small test APKs now include that activity too.
-* **Tooling:** The runtime reference now includes the original Pinterest 14.39.0 survey and four measurement intervals. It keeps those network counters and memory snapshots separate from the older 14.38.0 packet study. Four native settings screenshots were refreshed too, and the README's settings home picture now shows Quick setups and Report a problem.
 * **Pinterest:** Settings search, buttons and choices have clearer focus outlines and consistent control borders. Back and Clear search also have labels when you hover or hold them.
 * **Pinterest:** Settings summaries are shorter, with the same restart and download limits explained in all five translations. Switches use squared corners, and Licenses and a no-change import preview close with Close.
 * **Pinterest:** Download board keeps its explanation above the choices, so large text doesn't squeeze out the actions. Download history explains why finished files can't be opened while downloads are off or paused, and no longer suggests getting a fresh link for a finished download.
@@ -44,11 +28,14 @@ Every HushPinterest release, newest first.
 * **Pinterest:** AMOLED black has two new switches on the Interface page, Black comments and Black pin menu. In dark mode, Black comments paints the comments sheet and its reply bar pure black, and Black pin menu does the same for a pin's menu. While either one is open, the strip behind the gesture bar at the bottom of the screen is black too, so the sheet doesn't end in a gray band. Both start off. Text and icons keep their colors, and so do the divider lines. Pinterest's gray comes back when a switch is off or HushPinterest is paused, and light mode is left alone.
 * **Pinterest:** The band along the bottom edge, behind the navigation buttons or gesture handle, now stays black with Black bottom bar, Black comments and Black pin menu. On phones with the three navigation buttons, Pinterest gives that band its page's gray twice over, once on its own strip and once on the window behind the buttons, so a black bar or sheet still ended in a gray stripe. Both turn black now, they're turned back on the very next frame whenever Pinterest grays them again, and they get the page's color back once nothing black is showing.
 * **Pinterest:** Searching settings for AMOLED or dark theme now finds Black comments and Black pin menu as well as Black bottom bar. On a Pinterest build where one of the three can't be patched, the Interface page shows only the switches that work, each with its own description.
-* **Tooling:** Compiled APK checks now cover what Hide save toasts writes for the board picker's toast, and they hold the save toasts flag to every kind of confirmation the patch looks for. A build without one of AMOLED black's three surfaces is checked for the ones it has. Patching says so in its log when a build has no board picker confirmation it can tell apart.
-
 * **Pinterest:** Section headings in HushPinterest settings no longer pick up a dotted capital I ("SETTİNGS") when HushPinterest is set to English and Pinterest is in Turkish. Capitals now follow the language the heading is written in.
-
 * **Pinterest:** The Support HushPinterest row at the bottom of settings is now just its name. The "Buy me a coffee on Ko-fi" line under it is gone, and the row still opens the Ko-fi page.
+* **Tooling:** The gate's own dex checks find the pin menu's close event, the topic row and a lens built in place the way 14.40.0 lays them out, and the fixture tests pin 14.40.0's class names.
+* **Tooling:** The README is much shorter now. It keeps what you need to install, set up, troubleshoot and verify HushPinterest, and the longer version with its test notes and internals is still in the repository history. The Ko-fi link that dropped out of it on October 12 is back above the title.
+* **Tooling:** The help link on GitHub's new issue page now opens the README's Help section. It used to point at Discussions, which this repository doesn't have, so it led nowhere.
+* **Tooling:** Compiled APK checks cover settings requests delivered to Pinterest's home screen and reject a missing entry hook. Their small test APKs now include that activity too.
+* **Tooling:** The runtime reference now includes the original Pinterest 14.39.0 survey and four measurement intervals. It keeps those network counters and memory snapshots separate from the older 14.38.0 packet study. Four native settings screenshots were refreshed too, and the README's settings home picture now shows Quick setups and Report a problem.
+* **Tooling:** Compiled APK checks now cover what Hide save toasts writes for the board picker's toast, and they hold the save toasts flag to every kind of confirmation the patch looks for. A build without one of AMOLED black's three surfaces is checked for the ones it has. Patching says so in its log when a build has no board picker confirmation it can tell apart.
 
 ## 0.0.8 (2026-10-13)
 
