@@ -2874,7 +2874,7 @@ public class DexDiff {
                 List<String> pins = new ArrayList<>();
                 if (menu != null) for (Field field : menu.getFields()) if (field.getName().equals("pin") && field.getType().startsWith("Lcom/pinterest/api/model/")) pins.add(field.getType());
                 if (pins.size() != 1) fail("Visit has no unique native pin model field"); else pin = pins.get(0);
-                for (Method m : clean.holding("android_client_tracking_params_consistency")) if (clean.texts.get(m.toString()).contains("_url")
+                for (Method m : clean.holding("com.pinterest.EXTRA_URL")) if (clean.texts.get(m.toString()).contains("_url")
                         && m.getReturnType().equals("V") && m.getParameterTypes().size() >= 2
                         && m.getParameterTypes().get(0).toString().equals("Ljava/lang/String;") && m.getParameterTypes().get(1).toString().equals(pin)) targets.add(m);
             } else if (selector.equals("screenshot")) {
@@ -3603,8 +3603,7 @@ public class DexDiff {
                         List<Method> dismissals = new ArrayList<>();
                         ClassDef presenterType = presenter == null ? null : clean.classes.get(presenter.getType());
                         if (presenterType != null) for (Method method : presenterType.getMethods()) if (descriptor(method).equals("()V")
-                                && AccessFlags.PUBLIC.isSet(method.getAccessFlags()) && instructions(method).stream().map(Instruction::getOpcode).toList().equals(
-                                        List.of(Opcode.NEW_INSTANCE, Opcode.CONST_4, Opcode.INVOKE_DIRECT, Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID))) dismissals.add(method);
+                                && AccessFlags.PUBLIC.isSet(method.getAccessFlags()) && dismissal(instructions(method).stream().map(Instruction::getOpcode).toList())) dismissals.add(method);
                         if (dismissals.size() != 1 || body.size() != 4 || body.get(1).getOpcode() != Opcode.IF_EQZ
                                 || !dismissals.get(0).toString().equals(String.valueOf(reference(body.get(2))))
                                 || !arguments(body.get(2)).equals(List.of(firstRegister(body.get(0)))) || body.get(3).getOpcode() != Opcode.RETURN_VOID)
@@ -4535,51 +4534,89 @@ public class DexDiff {
         }
 
         static final String TOPIC_BINDER = "Presenter bound to BubblesListView must be of type BubblesListPresenter";
+        static final String TOPIC_ROW = "Lcom/pinterest/feature/search/typeahead/view/SearchTypeaheadAutoCompleteUpsellCell;";
 
         /**
          * Pinterest's topic suggestion row. The binder that logs the row's presenter error reads an
-         * int field of its own class from this and packed-switches on it, and that switch has no arm
-         * for the row, so the row runs from the fall-through: the row hook goes first there with the
-         * binder's view parameter, reached only from the switch, and the original first instruction
-         * follows it. The row's view, the one class implementing the interface that fall-through casts
-         * the parameter to, gains an onMeasure passing itself and each spec through the measure hook
-         * before its superclass measures. Both are found in the clean target, never from the hooks.
+         * int field of its own class from this and packed-switches on it. Every arm the switch starts,
+         * the fall-through or a case, begins by casting the binder's view parameter to an interface, and
+         * the row's arm casts it to the one TOPIC_ROW implements (the fall-through in 14.39.0, a case in
+         * 14.40.0). The row hook goes right after that cast with the view parameter, reached only from
+         * the cast. The row's view, the one class implementing that interface, gains an onMeasure
+         * passing itself and each spec through the measure hook before its superclass measures. Both
+         * are found in the clean target, never from the hooks.
          */
         void topicSuggestions(Contract c) {
             String rowHook = c.strings.get(0), measureHook = c.strings.get(1);
             List<Method> binders = new ArrayList<>();
             for (Method m : clean.holding(TOPIC_BINDER)) if (topicBinder(m)) binders.add(m);
             Method binder = unique(binders, "topic row binder");
+            ClassDef rowClass = clean.classes.get(TOPIC_ROW);
+            if (rowClass == null) fail("the topic row view " + TOPIC_ROW + " is missing");
             boolean row = false, measured = false;
-            if (binder != null) {
+            if (binder != null && rowClass != null) {
                 List<Instruction> was = instructions(binder);
                 int view = parameter(binder, 0);
-                Instruction start = was.get(2);
-                String face = start.getOpcode() == Opcode.CHECK_CAST && firstRegister(start) == view ? String.valueOf(reference(start)) : null;
-                if (face == null || writes(was.get(0), view) || writes(was.get(1), view)) {
-                    fail("the topic row binder " + binder + " no longer starts the row arm by casting its untouched view parameter");
-                    face = null;
+                List<Integer> arms = new ArrayList<>();
+                for (int start : topicArms(binder)) {
+                    Instruction cast = was.get(start);
+                    if (cast.getOpcode() == Opcode.CHECK_CAST && firstRegister(cast) == view
+                            && rowClass.getInterfaces().contains(String.valueOf(reference(cast)))) arms.add(start);
+                }
+                String face = null;
+                int arm = -1;
+                if (arms.size() != 1 || writes(was.get(0), view) || writes(was.get(1), view)) {
+                    fail("the topic row binder " + binder + " has no one arm casting its untouched view parameter to the row's interface");
+                } else {
+                    arm = arms.get(0);
+                    face = String.valueOf(reference(was.get(arm)));
                 }
                 Method m = actual(binder);
                 List<Integer> sites = calls(m, rowHook, 1);
                 if (face != null && m != null && sites.size() == 1) {
                     List<Instruction> body = instructions(m);
                     int at = sites.get(0);
-                    row = at == 2 && at + 1 < body.size() && body.get(1).getOpcode() == Opcode.PACKED_SWITCH
-                            && arguments(body.get(at)).equals(List.of(view))
-                            && body.get(at + 1).getOpcode() == Opcode.CHECK_CAST && firstRegister(body.get(at + 1)) == view
-                            && face.equals(String.valueOf(reference(body.get(at + 1))))
-                            && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 1, at);
-                    if (!row) fail(rowHook + " does not take the view first on the topic row's switch fall-through in " + m);
+                    row = at == arm + 1 && arguments(body.get(at)).equals(List.of(view))
+                            && body.get(arm).getOpcode() == Opcode.CHECK_CAST && firstRegister(body.get(arm)) == view
+                            && face.equals(String.valueOf(reference(body.get(arm)))) && onlyFrom(m, at, arm);
+                    if (!row) fail(rowHook + " does not take the view right after the topic row arm's cast in " + m);
                     else remove(m, at, at + 1);
                 }
                 List<ClassDef> implementers = new ArrayList<>();
                 if (face != null) for (ClassDef cd : clean.classes.values())
                     if (!cd.getType().startsWith(OWN) && cd.getInterfaces().contains(face)) implementers.add(cd);
                 ClassDef rowView = face == null ? null : uniqueClass(implementers, "topic row view");
+                if (rowView != null && !rowView.getType().equals(TOPIC_ROW)) {
+                    fail("the topic row's interface " + face + " is implemented by " + rowView.getType() + ", not " + TOPIC_ROW);
+                    rowView = null;
+                }
                 if (rowView != null) measured = topicMeasure(rowView, measureHook);
             }
             capability(c.callee, row && measured);
+        }
+
+        /** Where the binder's switch starts an arm: right after the switch, then at each of its cases. */
+        List<Integer> topicArms(Method m) {
+            Layout layout = new Layout(m.getImplementation());
+            List<Integer> starts = new ArrayList<>(List.of(2));
+            int switchAt = layout.addresses.get(1);
+            Instruction payload = layout.byAddress.get(switchAt + ((OffsetInstruction) layout.instructions.get(1)).getCodeOffset());
+            if (payload instanceof SwitchPayload) for (SwitchElement element : ((SwitchPayload) payload).getSwitchElements()) {
+                int index = layout.addresses.indexOf(switchAt + element.getOffset());
+                if (index >= 0 && !starts.contains(index)) starts.add(index);
+            }
+            return starts;
+        }
+
+        /**
+         * The presenter's dismissal: a new event built from one or two constants (14.40.0 added its
+         * slide-out flag), then posted to the presenter's event bus.
+         */
+        boolean dismissal(List<Opcode> opcodes) {
+            int size = opcodes.size();
+            if (size < 6 || size > 7 || opcodes.get(0) != Opcode.NEW_INSTANCE) return false;
+            for (int at = 1; at < size - 4; at++) if (opcodes.get(at) != Opcode.CONST_4) return false;
+            return opcodes.subList(size - 4, size).equals(List.of(Opcode.INVOKE_DIRECT, Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID));
         }
 
         /** The topic row binder's shape, as the patch finds it. */
@@ -4639,7 +4676,7 @@ public class DexDiff {
          * from the move-result, and the check-cast after it, past a getClass null check, names the
          * button's class. Built: a method answering one of the APK's own framework views through a
          * single return-object, with the hook on the answered register as the only way into the
-         * return. Each button class then gains, or starts its own, setVisibility with the visibility
+         * return. Constructed: see constructedButtons. Each button class then gains, or starts its own, setVisibility with the visibility
          * hook taking the view and the request and answering into the request.
          */
         void closeupButtons(Contract c) {
@@ -4712,11 +4749,35 @@ public class DexDiff {
                 List<Integer> returns = new ArrayList<>();
                 for (int k = 0; k < body.size(); k++) if (body.get(k).getOpcode() == Opcode.RETURN_OBJECT) returns.add(k);
                 String type = m.getReturnType();
-                if (returns.size() != 1 || !clean.classes.containsKey(type) || !frameworkView(type)) continue;
-                int at = returns.get(0), button = firstRegister(body.get(at));
-                if (tiedToId(body, reads, button)) sites.add(new ButtonSite(m, at, button, type, false, hook));
+                if (returns.size() == 1 && clean.classes.containsKey(type) && frameworkView(type)) {
+                    int at = returns.get(0), button = firstRegister(body.get(at));
+                    if (tiedToId(body, reads, button)) { sites.add(new ButtonSite(m, at, button, type, false, hook)); continue; }
+                }
+                constructedButtons(m, body, reads, hook, sites);
             }
             return sites.size() > before;
+        }
+
+        /**
+         * Built in place: one of the APK's own framework views constructed from an argument whose own
+         * constructor took the id (the second closeup's lens in 14.40.0). The hook goes right after the
+         * view's constructor and, like a found button's, is reached only from there.
+         */
+        void constructedButtons(Method m, List<Instruction> body, List<Integer> reads, String hook, List<ButtonSite> sites) {
+            Set<Integer> ids = new HashSet<>(), holders = new HashSet<>();
+            for (int k : reads) ids.add(firstRegister(body.get(k)));
+            for (int k = reads.get(0) + 1; k < body.size(); k++) {
+                Instruction call = body.get(k);
+                if (!(call instanceof FiveRegisterInstruction || call instanceof RegisterRangeInstruction)
+                        || !(reference(call) instanceof MethodReference method) || !method.getName().equals("<init>")) continue;
+                List<Integer> registers = callRegisters(call);
+                if (registers.isEmpty()) continue;
+                List<Integer> passed = registers.subList(1, registers.size());
+                if (passed.stream().anyMatch(ids::contains)) { holders.add(registers.get(0)); continue; }
+                if (passed.stream().noneMatch(holders::contains)) continue;
+                String type = method.getDefiningClass();
+                if (clean.classes.containsKey(type) && frameworkView(type)) sites.add(new ButtonSite(m, k + 1, registers.get(0), type, true, hook));
+            }
         }
 
         /** The view in [button] takes the id: setId with it, or a constructor argument whose own constructor took it. */

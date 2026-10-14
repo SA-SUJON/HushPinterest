@@ -167,7 +167,7 @@ public final class FeatureDexFixture {
             visit.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
             visit.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 3)); visit.add(end());
         }
-        visit.add(literal("android_client_tracking_params_consistency", 0)); visit.add(literal("_url", 0)); visit.add(end());
+        visit.add(literal("com.pinterest.EXTRA_URL", 0)); visit.add(literal("_url", 0)); visit.add(end());
         classes.put("Lfixture/Visit;", List.of(method("Lfixture/Visit;", "visit", VOID, true, 3, visit, STRING, pin)));
         for (String name : List.of("Header", "About")) {
             String owner = "Lfixture/" + name + ";";
