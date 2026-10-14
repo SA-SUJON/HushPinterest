@@ -147,11 +147,13 @@ val downloadPinsPatch = bytecodePatch(
         }
         val (row, icon, download) = rows.singleOrNull() ?: throw PatchException("$PATCH: no unique native Download row factory")
         val presenter = mutableClassDefBy(presenterField.type)
+        // The event's constructor takes an int in 14.39.0 and an int plus its slide-out flag in 14.40.0.
         val dismiss = presenter.methods.singleOrNull { method ->
+            val opcodes = method.implementation?.instructions?.map { it.opcode }?.toList().orEmpty()
             method.returnType == "V" && method.parameterTypes.isEmpty() && AccessFlags.PUBLIC.isSet(method.accessFlags) &&
-                method.implementation?.instructions?.map { it.opcode }?.toList() == listOf(
-                    Opcode.NEW_INSTANCE, Opcode.CONST_4, Opcode.INVOKE_DIRECT, Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID,
-                )
+                opcodes.size in 6..7 && opcodes.first() == Opcode.NEW_INSTANCE &&
+                opcodes.subList(1, opcodes.size - 4).all { it == Opcode.CONST_4 } &&
+                opcodes.takeLast(4) == listOf(Opcode.INVOKE_DIRECT, Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID)
         } ?: throw PatchException("$PATCH: no unique native presenter dismissal event")
         // Pinterest's own Download image row: its title id goes straight into the layout's row factory,
         // whose result is marked so the extension can fold it when Download pin is in the same menu.
