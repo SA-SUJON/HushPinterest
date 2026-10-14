@@ -53,13 +53,13 @@ import org.junit.experimental.categories.Category
 /** Pinterest's closeup section binder, the topic row's interface, its one view class and that view's own ancestors, in each declared APK. */
 @Category(FixtureTests::class)
 class TopicSuggestionsFixtureTest {
-    private class Build(val name: String, val binder: ClassDef, val face: ClassDef, val row: ClassDef, val ancestors: List<ClassDef>) {
+    private class Build(val name: String, val binder: ClassDef, val face: ClassDef, val row: ClassDef, val ancestors: List<ClassDef>, val arm: Int) {
         val classes get() = listOf(binder, face, row) + ancestors
         val method get() = binder.methods.single { it.isTopicBinder() }
     }
 
     @Test
-    fun `each declared original APK hides the topic row at its switch fall-through and measures it through the hook`() {
+    fun `each declared original APK hides the topic row right after its arm's cast and measures it through the hook`() {
         for (build in Fixtures.declaredBuilds().map(::read)) {
             val context = PatchContexts.of(ExtensionDex.classes() + build.classes)
             hideTopicSuggestionsPatch.execute(context)
@@ -69,14 +69,15 @@ class TopicSuggestionsFixtureTest {
             // Payload alignment nops come and go with the layout, so they aren't compared.
             val original = build.method.implementation!!.instructions.map { it.opcode }.filter { it != Opcode.NOP }
             val body = patched(context, build.method)
+            val hookAt = build.arm + 1
             assertEquals("${build.name}: everything but the hook stays", original,
-                body.filterIndexed { at, _ -> at != TOPIC_FALL_THROUGH }.map { it.opcode }.filter { it != Opcode.NOP })
-            val hook = body[TOPIC_FALL_THROUGH]
+                body.filterIndexed { at, _ -> at != hookAt }.map { it.opcode }.filter { it != Opcode.NOP })
+            val hook = body[hookAt]
             assertEquals(build.name, TOPIC_ROW_HOOK, (hook as ReferenceInstruction).reference.toString())
             val view = build.method.implementation!!.registerCount - build.method.parameterTypes.size
             assertEquals("${build.name}: the hook reads the view parameter", listOf(view),
                 (hook as RegisterRangeInstruction).let { (it.startRegister until it.startRegister + it.registerCount).toList() })
-            val cast = body[TOPIC_FALL_THROUGH + 1]
+            val cast = body[build.arm]
             assertEquals(build.name, Opcode.CHECK_CAST, cast.opcode)
             assertEquals(build.name, view, (cast as OneRegisterInstruction).registerA)
             assertEquals(build.name, build.face.type, ((cast as ReferenceInstruction).reference as TypeReference).type)
@@ -105,15 +106,16 @@ class TopicSuggestionsFixtureTest {
         val extension = ExtensionDex.classes()
         val method = build.method
         val view = method.implementation!!.registerCount - method.parameterTypes.size
-        // A switch arm landing on the fall-through would run the hook for another section too.
+        // A case landing just after the arm's cast would run the hook for another section too.
         val labelled = replace(build.binder, { it.isTopicBinder() }) { instructions ->
             val switch = instructions[1] as OffsetInstruction
             val payloadAt = address(instructions, 1) + switch.codeOffset
+            val landing = address(instructions, build.arm + 1) - address(instructions, 1)
             instructions.mapIndexed { at, instruction ->
                 if (address(instructions, at) != payloadAt) instruction else {
                     val payload = instruction as PackedSwitchPayload
                     ImmutablePackedSwitchPayload(payload.switchElements.mapIndexed { k, element ->
-                        ImmutableSwitchElement(element.key, if (k == 0) address(instructions, 2) - address(instructions, 1) else element.offset)
+                        ImmutableSwitchElement(element.key, if (k == 0) landing else element.offset)
                     })
                 }
             }
@@ -128,7 +130,7 @@ class TopicSuggestionsFixtureTest {
         val otherCast = replace(build.binder, { it.isTopicBinder() }) { instructions ->
             val read = instructions[0] as TwoRegisterInstruction
             instructions.toMutableList().apply {
-                set(2, ImmutableInstruction21c(Opcode.CHECK_CAST, read.registerA, (instructions[2] as ReferenceInstruction).reference))
+                set(build.arm, ImmutableInstruction21c(Opcode.CHECK_CAST, read.registerA, (instructions[build.arm] as ReferenceInstruction).reference))
             }
         }
         // A second method of the same shape, logging the same line, leaves no one binder to choose.
@@ -150,11 +152,11 @@ class TopicSuggestionsFixtureTest {
         val cases = linkedMapOf(
             "missing binder" to (extension + build.classes - build.binder to "topic row binder: expected one exact target, found 0"),
             "two binders" to (with(secondBinder) to "topic row binder: expected one exact target, found 2"),
-            "fall-through is also a switch target" to (with(labelled) to "also a branch target"),
-            "view parameter written before the fall-through" to (with(overwritten) to "writes over parameter 0"),
-            "fall-through casts another register" to (with(otherCast) to "no longer starts by casting"),
+            "a case lands just after the arm's cast" to (with(labelled) to "after the topic arm's cast is also a branch target"),
+            "view parameter written before the arm" to (with(overwritten) to "writes over parameter 0"),
+            "the arm casts another register" to (with(otherCast) to "topic arm: expected one exact target, found 0"),
             "cast to a class" to (with(notAnInterface) to "which is not an interface"),
-            "no row view" to (extension + build.classes - build.row to "topic row view: expected one exact target, found 0"),
+            "no row view" to (extension + build.classes - build.row to "no topic row view"),
             "two row views" to (extension + build.classes + secondRow to "topic row view: expected one exact target, found 2"),
             "row view measures itself" to (with(measuring) to "measures itself"),
             "final onMeasure above the row view" to (with(finalAncestor) to if (build.ancestors.isEmpty()) "measures itself" else "cannot override final"),
@@ -236,26 +238,42 @@ class TopicSuggestionsFixtureTest {
 
     /**
      * The binder's class, the interface its topic arm casts the view to, the one class implementing
-     * it, and that class's ancestors up to the first one outside the APK.
+     * it, that class's ancestors up to the first one outside the APK, and where the arm starts: the
+     * one place the switch starts an arm with a cast to an interface [TOPIC_ROW] implements.
      */
     private fun read(build: File): Build {
         val binders = mutableListOf<ClassDef>()
         val parents = mutableMapOf<String, String?>()
         val implementers = mutableMapOf<String, MutableList<String>>()
+        var rowFaces = emptySet<String>()
         FixtureDex.forEach(build) { dex ->
             for (classDef in dex.classes) {
                 parents.putIfAbsent(classDef.type, classDef.superclass)
                 classDef.interfaces.forEach { implementers.getOrPut(it) { mutableListOf() } += classDef.type }
+                if (classDef.type == TOPIC_ROW) rowFaces = classDef.interfaces.toSet()
                 if (classDef.methods.any { it.isTopicBinder() }) binders += ImmutableClassDef.of(classDef)
             }
         }
         val binder = binders.singleOrNull() ?: error("${build.name}: ${binders.size} topic row binders")
-        val start = binder.methods.single { it.isTopicBinder() }.implementation!!.instructions.toList()[TOPIC_FALL_THROUGH]
-        check(start.opcode == Opcode.CHECK_CAST) { "${build.name}: the topic arm starts with ${start.opcode}" }
-        val face = ((start as ReferenceInstruction).reference as TypeReference).type
+        val body = binder.methods.single { it.isTopicBinder() }.implementation!!.instructions.toList()
+        val arms = starts(body).filter { at ->
+            body[at].opcode == Opcode.CHECK_CAST && ((body[at] as ReferenceInstruction).reference as TypeReference).type in rowFaces
+        }
+        val arm = arms.singleOrNull() ?: error("${build.name}: ${arms.size} arms cast to an interface of $TOPIC_ROW")
+        val face = ((body[arm] as ReferenceInstruction).reference as TypeReference).type
         val row = implementers[face]?.singleOrNull() ?: error("${build.name}: ${implementers[face]} implement $face")
+        check(row == TOPIC_ROW) { "${build.name}: $face is implemented by $row" }
         val ancestors = generateSequence(parents[row]) { parents[it] }.filter { it in parents }.toList()
         val classes = FixtureDex.classes(build, setOf(face, row) + ancestors)
-        return Build(build.name, binder, classes.getValue(face), classes.getValue(row), ancestors.map(classes::getValue))
+        return Build(build.name, binder, classes.getValue(face), classes.getValue(row), ancestors.map(classes::getValue), arm)
+    }
+
+    /** Where the binder's switch starts an arm: right after the switch, then at each of its cases. */
+    private fun starts(instructions: List<Instruction>): List<Int> {
+        val addresses = instructions.runningFold(0) { at, instruction -> at + instruction.codeUnits }
+        val switchAt = addresses[1]
+        val payloadAt = addresses.indexOf(switchAt + (instructions[1] as OffsetInstruction).codeOffset)
+        val payload = instructions[payloadAt] as PackedSwitchPayload
+        return (listOf(TOPIC_FALL_THROUGH) + payload.switchElements.map { addresses.indexOf(switchAt + it.offset) }).distinct()
     }
 }
