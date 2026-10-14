@@ -46,8 +46,9 @@ import app.hushpinterest.extension.shared.settings.BooleanSetting;
  * painted as Pinterest finishes building them and again after their layout passes, on the views
  * that hold the fill and nothing else, so their text, icons and dividers stay as they are. The
  * strip behind the gesture handle draws over a sheet's last rows, so it is black while a black
- * sheet is open and gets its page's color back when the sheet leaves. Pinterest colors the strip
- * again whenever it likes, so while something black still wants it, its next frame turns it back.
+ * sheet is open and gets its page's color back when the sheet leaves. The window's own navigation
+ * bar band, drawn over the strip, goes with it. Pinterest colors both again whenever it likes, so
+ * while something black still wants them, their next frame turns them back.
  */
 public final class AmoledBlack {
     private AmoledBlack() {}
@@ -60,7 +61,7 @@ public final class AmoledBlack {
     private static final Map<View, Boolean> bars = new WeakHashMap<>();
     /** The gesture strip found under each window's root view. */
     private static final Map<View, WeakReference<View>> strips = new WeakHashMap<>();
-    /** The strips painted black at least once, each watched before every frame from then on. */
+    /** The strips and window bands painted black at least once, each watched before every frame from then on. */
     private static final Map<View, Boolean> kept = new WeakHashMap<>();
     /** How many bar draws found no strip under each root view so far. */
     private static final Map<View, Integer> misses = new WeakHashMap<>();
@@ -204,37 +205,46 @@ public final class AmoledBlack {
     };
 
     /**
-     * The strip, black or back to its page's color. Seen on a Galaxy S25: Pinterest colored the
-     * strip again after it was painted and nothing painted it a second time, so a black bar or
-     * sheet still ended in Pinterest's gray band. A strip painted black once is checked before
-     * every frame from then on.
+     * The strip, black or back to its page's color, and the window's own navigation bar band with
+     * it. Seen on a Galaxy S25 with three-button navigation: Pinterest also gives the window's
+     * navigation bar its page's gray, and the window draws that band over the strip, so a black
+     * strip still ended in a gray band. Pinterest colors both again as pages and sheets change, so
+     * each band painted black once is checked before every frame from then on.
      */
     private static void paintStrip(View strip, boolean black) {
         if (strip == null) return;
-        String was = colorOf(strip);
-        paint(strip, black);
-        if (!black || kept.put(strip, Boolean.TRUE) != null) return;
-        Logger.printDebug(() -> "Gesture strip " + was + " painted black");
-        strip.getViewTreeObserver().addOnPreDrawListener(new Keeper(strip));
+        paintBand(strip, black, "Gesture strip");
+        paintBand(strip.getRootView().findViewById(android.R.id.navigationBarBackground), black, "Window navigation bar");
     }
 
-    /** Before each frame: a strip Pinterest colored again turns black while a black bar or sheet still wants it. */
+    private static void paintBand(View band, boolean black, String what) {
+        if (band == null) return;
+        String was = colorOf(band);
+        paint(band, black);
+        if (!black || kept.put(band, Boolean.TRUE) != null) return;
+        Logger.printDebug(() -> what + " " + was + " painted black");
+        band.getViewTreeObserver().addOnPreDrawListener(new Keeper(band, what));
+    }
+
+    /** Before each frame: a band Pinterest colored again turns black while a black bar or sheet still wants it. */
     private static final class Keeper implements ViewTreeObserver.OnPreDrawListener {
-        private final WeakReference<View> strip;
+        private final WeakReference<View> band;
+        private final String what;
         private boolean noted;
 
-        Keeper(View strip) {
-            this.strip = new WeakReference<>(strip);
+        Keeper(View band, String what) {
+            this.band = new WeakReference<>(band);
+            this.what = what;
         }
 
         @Override public boolean onPreDraw() {
             try {
-                View view = strip.get();
+                View view = band.get();
                 if (view == null || showsBlack(view) || !blackElsewhere(view.getRootView(), null)) return true;
                 if (!noted) {
                     noted = true;
                     String was = colorOf(view);
-                    Logger.printDebug(() -> "Gesture strip colored " + was + " again by Pinterest, painted black");
+                    Logger.printDebug(() -> what + " colored " + was + " again by Pinterest, painted black");
                 }
                 paint(view, true);
             } catch (Throwable failure) {

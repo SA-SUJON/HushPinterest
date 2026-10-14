@@ -445,6 +445,32 @@ public class AmoledBlackTest {
         assertEquals(0xFF2B2B2F, color(strip));
     }
 
+    /**
+     * Seen on a Galaxy S25 with three-button navigation: the window draws its own navigation bar
+     * band over the strip, in the gray Pinterest gives the window for each page and sheet.
+     */
+    @Test public void theWindowsOwnNavigationBarBandGoesBlackWithTheStrip() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.gestureStrip = STRIP;
+        LinearLayout bar = bar(true);
+        FrameLayout window = window(bar);
+        View band = new View(bar.getContext());
+        band.setId(android.R.id.navigationBarBackground);
+        band.setBackgroundColor(0xFF222226);
+        window.addView(band);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(Color.BLACK, color(band));
+        // A sheet opening: Pinterest gives the window the sheet's page gray.
+        band.setBackgroundColor(PAGE);
+        band.getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals(Color.BLACK, color(band));
+        Settings.BLACK_BOTTOM_BAR.save(false);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(PAGE, color(band));
+        band.getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals("the switch is off and the band turned black anyway", PAGE, color(band));
+    }
+
     /** A window on show holding the bar and the strip behind the gesture handle, in a pin page's gray. */
     private static FrameLayout window(LinearLayout bar) {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
