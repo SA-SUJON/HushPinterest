@@ -2,7 +2,7 @@
 
 Every HushPinterest release, newest first.
 
-## Unreleased
+## 0.0.11 (2026-10-14)
 
 * **Pinterest:** Hide AI-labeled pins works on Pinterest 14.40.0 again. That version marks AI pins in a new way, including the ones Pinterest's own detection flags, and stopped sending the old label, so with the switch on they kept showing in search and the home feed. It now reads the new marks as well as the old label.
 * **Tooling:** The release gate's advisory check asks OSV again when a connection drops or the server is busy, up to two more times, before it gives up. One lost request out of the hundred or so a release sends used to stop the whole gate.
