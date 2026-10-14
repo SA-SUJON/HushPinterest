@@ -2,7 +2,7 @@
 
 Every HushPinterest release, newest first.
 
-## Unreleased
+## 0.0.10 (2026-10-14)
 
 * **Pinterest:** Hide search history now also hides the recent searches listed when you tap the search bar, with no gap where they were. Suggestions for what you type still show, and turning the switch off or pausing brings the recent searches back.
 * **Pinterest:** The Recent searches heading on the search page now hides along with the searches under it. Before, Hide search history left the heading sitting there over nothing.
