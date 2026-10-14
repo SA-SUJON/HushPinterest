@@ -35,8 +35,10 @@ import app.hushpinterest.extension.shared.settings.BooleanSetting;
  * that holds its tabs, each tab's rounded background where the bar shows its tabs apart, the search
  * pill where a tab is one, and the strip Pinterest draws behind the gesture handle. Where those
  * tabs are frosted glass they have no fill, and the color Pinterest washes the glass with is
- * answered black instead. Gradients stay, so the shadow strip above the bar and the scrim behind a
- * floating bar keep their look, and so do the icons, each tab's outline and the selected-tab marker.
+ * answered black instead. The search pill is the one see-through fill that changes: on a phone
+ * that doesn't blur it carries that wash as its own fill. Gradients stay, so the shadow strip above
+ * the bar and the scrim behind a floating bar keep their look, and so do the icons, each tab's
+ * outline and the selected-tab marker.
  *
  * <p>The comments sheet and a pin's menu carry the same gray, each behind its own switch. They are
  * painted as Pinterest finishes building them and again after their layout passes, on the views
@@ -239,9 +241,22 @@ public final class AmoledBlack {
             }
             View text = searchText == 0 ? null : tab.findViewById(searchText);
             if (text == null) continue;
-            paint(childHolding(tab, text), black);
-            if (searchContainer != 0) paint(tab.findViewById(searchContainer), black);
+            paintPill(childHolding(tab, text), black);
+            if (searchContainer != 0) paintPill(tab.findViewById(searchContainer), black);
         }
+    }
+
+    /**
+     * Where the bar floats over the page and the phone doesn't blur, the pill is a shape filled
+     * with Pinterest's half see-through wash, and that wash is its gray. A pill with no fill at
+     * all sits over glass and is left alone.
+     */
+    private static void paintPill(View pill, boolean black) {
+        if (pill == null) return;
+        Drawable background = pill.getBackground();
+        boolean tinted = pill.getBackgroundTintList() != null || tints.containsKey(pill);
+        if (!tinted && background instanceof GradientDrawable) paint((GradientDrawable) background, black, true);
+        else paint(pill, black);
     }
 
     /** The direct child of the tab that the inner view sits in, or null when that view isn't under the tab. */
@@ -297,13 +312,20 @@ public final class AmoledBlack {
     }
 
     private static void paint(GradientDrawable shape, boolean black) {
+        paint(shape, black, false);
+    }
+
+    /** [washes] also takes a fill that is partly see-through, never one that is fully clear. */
+    private static void paint(GradientDrawable shape, boolean black, boolean washes) {
         if (!black) {
             ColorStateList original = shapes.remove(shape);
             if (original != null) shape.setColor(original);
             return;
         }
         ColorStateList fill = shape.getColor();
-        if (fill == null || shape.getColors() != null || !opaque(fill.getDefaultColor()) || isBlack(fill)) return;
+        if (fill == null || shape.getColors() != null || isBlack(fill)) return;
+        int alpha = Color.alpha(fill.getDefaultColor());
+        if (washes ? alpha == 0 : alpha != 0xFF) return;
         // Drawables loaded from one resource share their state until one is mutated, and the bar's
         // shape comes from a resource other views could load too.
         shape.mutate();

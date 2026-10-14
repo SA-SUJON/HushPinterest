@@ -134,6 +134,35 @@ public class AmoledBlackTest {
         assertEquals(ELEVATION, onContainer.getColor().getDefaultColor());
     }
 
+    /**
+     * Where the bar floats over the page and the phone doesn't blur, the pill is Pinterest's
+     * searchfield_bg_transparent, a shape filled with its half see-through wash. On an API 36
+     * emulator it stayed gray over the page beside a black Home and Saved.
+     */
+    @Test public void aSearchTabsSeeThroughPillTurnsBlackAndOffGivesItsWashBack() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.tabRoot = View.generateViewId();
+        AmoledBlack.searchText = View.generateViewId();
+        AmoledBlack.searchContainer = View.generateViewId();
+        int wash = 0x80242421;
+        LinearLayout bar = bar(true);
+        LinearLayout row = (LinearLayout) bar.getChildAt(0);
+        GradientDrawable onPill = searchTab(row, false);
+        onPill.setColor(wash);
+        GradientDrawable onContainer = searchTab(row, true);
+        onContainer.setColor(wash);
+        GradientDrawable underGlass = searchTab(row, false);
+        underGlass.setColor(Color.TRANSPARENT);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(Color.BLACK, onPill.getColor().getDefaultColor());
+        assertEquals(Color.BLACK, onContainer.getColor().getDefaultColor());
+        assertEquals("a pill with no fill of its own was given one", Color.TRANSPARENT, underGlass.getColor().getDefaultColor());
+        Settings.BLACK_BOTTOM_BAR.save(false);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(wash, onPill.getColor().getDefaultColor());
+        assertEquals(wash, onContainer.getColor().getDefaultColor());
+    }
+
     @Test public void theStripUnderTheBarTurnsBlackAndOffGivesItsColorBack() {
         Settings.BLACK_BOTTOM_BAR.save(true);
         AmoledBlack.gestureStrip = View.generateViewId();
