@@ -200,10 +200,14 @@ function Test-OsvTransientFailure {
     param([System.Exception]$Problem)
 
     if ($Problem -is [System.TimeoutException] -or $Problem -is [System.Threading.Tasks.TaskCanceledException]) { return $true }
-    if ($Problem -isnot [System.Net.Http.HttpRequestException]) { return $false }
+    # PowerShell 7 throws HttpRequestException (HttpResponseException for a status), and Windows
+    # PowerShell 5.1 throws WebException. 5.1 doesn't load System.Net.Http, so a type literal for
+    # the first fails to resolve there and stopped this check: it's looked up by name instead.
+    $httpFailure = 'System.Net.Http.HttpRequestException' -as [type]
+    if (-not ($Problem -is [System.Net.WebException] -or ($httpFailure -and $Problem -is $httpFailure))) { return $false }
     $status = if ($Problem.PSObject.Properties['Response'] -and $Problem.Response) {
         [int]$Problem.Response.StatusCode
-    } else { [int]$Problem.StatusCode }
+    } elseif ($Problem.PSObject.Properties['StatusCode']) { [int]$Problem.StatusCode } else { 0 }
     return $status -eq 0 -or $status -eq 408 -or $status -eq 429 -or $status -ge 500
 }
 

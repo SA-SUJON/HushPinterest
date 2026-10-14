@@ -4,6 +4,7 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Tooling:** The release gate's advisory check works in Windows PowerShell 5.1 again. Since 0.0.11, any failed OSV request stopped it there with an "Unable to find type" error. A dropped connection or a busy server now gets asked again in 5.1, the way it already did in PowerShell 7.
 * **Tooling:** The script tests now clean up after themselves. The pre-push cases remove the worktree the hook builds in, and a passing host reference run deletes its report folder. Each run used to leave both in the temp directory.
 
 ## 0.0.11 (2026-10-14)

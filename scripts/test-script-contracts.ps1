@@ -1490,7 +1490,17 @@ try {
     Assert-Throws { Invoke-Gate @('pkg:maven/com.example/unknown@1.0') } '*could not be asked about pkg:maven/com.example/unknown@1.0*fails closed*' `
         'The gate read an OSV it could not reach as no advisories.'
     # A dropped connection is asked again a bounded number of times, and a connection that stays
-    # down still fails closed. A status OSV refuses the query with is not asked again.
+    # down still fails closed. A status OSV refuses the query with is not asked again. The stand-in
+    # throws what this shell's Invoke-RestMethod does: HttpRequestException in PowerShell 7 and
+    # WebException in Windows PowerShell 5.1, which doesn't load System.Net.Http at all.
+    $coreShell = $PSVersionTable.PSEdition -eq 'Core'
+    if (-not $coreShell -and -not ('OsvStandInResponse' -as [type])) {
+        Add-Type -TypeDefinition @'
+public class OsvStandInResponse : System.Net.WebResponse {
+    public System.Net.HttpStatusCode StatusCode { get; set; }
+}
+'@
+    }
     $dropping = {
         param([int]$Drops, [int]$Status = 0)
         $asked = New-Object System.Collections.Generic.List[string]
@@ -1498,10 +1508,17 @@ try {
             param($Uri, $Method, $ContentType, $Body, $TimeoutSec)
             $asked.Add($Uri)
             if ($asked.Count -le $Drops) {
-                if ($Status) {
-                    throw [System.Net.Http.HttpRequestException]::new("Response status code does not indicate success: $Status.", $null, [System.Net.HttpStatusCode]$Status)
+                $message = if ($Status) { "Response status code does not indicate success: $Status." } else { 'An error occurred while sending the request.' }
+                if ($coreShell) {
+                    if ($Status) { throw [System.Net.Http.HttpRequestException]::new($message, $null, [System.Net.HttpStatusCode]$Status) }
+                    throw [System.Net.Http.HttpRequestException]::new($message)
                 }
-                throw [System.Net.Http.HttpRequestException]::new('An error occurred while sending the request.')
+                if ($Status) {
+                    $response = New-Object OsvStandInResponse
+                    $response.StatusCode = [System.Net.HttpStatusCode]$Status
+                    throw (New-Object System.Net.WebException($message, $null, [System.Net.WebExceptionStatus]::ProtocolError, $response))
+                }
+                throw (New-Object System.Net.WebException($message))
             }
             return ('{}' | ConvertFrom-Json)
         }
