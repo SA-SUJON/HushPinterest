@@ -16,6 +16,7 @@ import android.graphics.drawable.LayerDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 
 import java.lang.ref.WeakReference;
@@ -24,6 +25,7 @@ import java.util.WeakHashMap;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.Settings;
+import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 import app.hushpinterest.extension.shared.settings.BooleanSetting;
@@ -44,7 +46,8 @@ import app.hushpinterest.extension.shared.settings.BooleanSetting;
  * painted as Pinterest finishes building them and again after their layout passes, on the views
  * that hold the fill and nothing else, so their text, icons and dividers stay as they are. The
  * strip behind the gesture handle draws over a sheet's last rows, so it is black while a black
- * sheet is open and gets its page's color back when the sheet leaves.
+ * sheet is open and gets its page's color back when the sheet leaves. Pinterest colors the strip
+ * again whenever it likes, so while something black still wants it, its next frame turns it back.
  */
 public final class AmoledBlack {
     private AmoledBlack() {}
@@ -57,6 +60,8 @@ public final class AmoledBlack {
     private static final Map<View, Boolean> bars = new WeakHashMap<>();
     /** The gesture strip found under each window's root view. */
     private static final Map<View, WeakReference<View>> strips = new WeakHashMap<>();
+    /** The strips painted black at least once, each watched before every frame from then on. */
+    private static final Map<View, Boolean> kept = new WeakHashMap<>();
     /** How many bar draws found no strip under each root view so far. */
     private static final Map<View, Integer> misses = new WeakHashMap<>();
     /** Bar draws that look for a strip Pinterest may add after the bar's first draw, before a window counts as having none. */
@@ -174,7 +179,7 @@ public final class AmoledBlack {
         View strip = stripIn(root);
         if (strip == null) return;
         known.strip = new WeakReference<>(strip);
-        paint(strip, black || blackElsewhere(root, sheet));
+        paintStrip(strip, black || blackElsewhere(root, sheet));
     }
 
     /**
@@ -191,12 +196,66 @@ public final class AmoledBlack {
             try {
                 Sheet known = sheets.get(sheet);
                 View strip = known == null || known.strip == null ? null : known.strip.get();
-                if (strip != null) paint(strip, blackElsewhere(strip.getRootView(), sheet));
+                if (strip != null) paintStrip(strip, blackElsewhere(strip.getRootView(), sheet));
             } catch (Throwable failure) {
                 HookStatus.threw(FamilyNames.AMOLED_BLACK, "sheet leaving", failure);
             }
         }
     };
+
+    /**
+     * The strip, black or back to its page's color. Seen on a Galaxy S25: Pinterest colored the
+     * strip again after it was painted and nothing painted it a second time, so a black bar or
+     * sheet still ended in Pinterest's gray band. A strip painted black once is checked before
+     * every frame from then on.
+     */
+    private static void paintStrip(View strip, boolean black) {
+        if (strip == null) return;
+        String was = colorOf(strip);
+        paint(strip, black);
+        if (!black || kept.put(strip, Boolean.TRUE) != null) return;
+        Logger.printDebug(() -> "Gesture strip " + was + " painted black");
+        strip.getViewTreeObserver().addOnPreDrawListener(new Keeper(strip));
+    }
+
+    /** Before each frame: a strip Pinterest colored again turns black while a black bar or sheet still wants it. */
+    private static final class Keeper implements ViewTreeObserver.OnPreDrawListener {
+        private final WeakReference<View> strip;
+        private boolean noted;
+
+        Keeper(View strip) {
+            this.strip = new WeakReference<>(strip);
+        }
+
+        @Override public boolean onPreDraw() {
+            try {
+                View view = strip.get();
+                if (view == null || showsBlack(view) || !blackElsewhere(view.getRootView(), null)) return true;
+                if (!noted) {
+                    noted = true;
+                    String was = colorOf(view);
+                    Logger.printDebug(() -> "Gesture strip colored " + was + " again by Pinterest, painted black");
+                }
+                paint(view, true);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.AMOLED_BLACK, "gesture strip", failure);
+            }
+            return true;
+        }
+    }
+
+    /** Whether the strip shows black now, or carries a background this class never paints. */
+    private static boolean showsBlack(View strip) {
+        ColorStateList tint = strip.getBackgroundTintList();
+        if (tint != null) return isBlack(tint);
+        Drawable fill = strip.getBackground();
+        return !(fill instanceof ColorDrawable) || ((ColorDrawable) fill).getColor() == Color.BLACK;
+    }
+
+    private static String colorOf(View strip) {
+        Drawable fill = strip.getBackground();
+        return fill instanceof ColorDrawable ? "#" + Integer.toHexString(((ColorDrawable) fill).getColor()) : String.valueOf(fill);
+    }
 
     private static View stripIn(View root) {
         if (gestureStrip < 0) gestureStrip = id(root, "navigation_bar_background");
@@ -281,7 +340,7 @@ public final class AmoledBlack {
             tabs((ViewGroup) child, black);
         }
         // A black sheet open over a bar that isn't black keeps the strip.
-        paint(gestureStrip(bar, searching), black || blackElsewhere(bar.getRootView(), bar));
+        paintStrip(gestureStrip(bar, searching), black || blackElsewhere(bar.getRootView(), bar));
     }
 
     /**

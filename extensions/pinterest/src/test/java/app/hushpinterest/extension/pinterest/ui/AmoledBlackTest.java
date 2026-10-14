@@ -405,6 +405,46 @@ public class AmoledBlackTest {
         assertEquals("the color the strip had under the bar was put on another page", PAGE, color(strip));
     }
 
+    /**
+     * Seen on a Galaxy S25: Pinterest colored the strip again after the bar painted it, and the
+     * bar's gray band stayed until something else asked the bar to draw.
+     */
+    @Test public void aStripPinterestColorsAgainUnderABlackBarIsBlackByItsNextFrame() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.gestureStrip = STRIP;
+        LinearLayout bar = bar(true);
+        View strip = window(bar).findViewById(STRIP);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(Color.BLACK, color(strip));
+        strip.setBackgroundColor(0xFF222226);
+        strip.getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals(Color.BLACK, color(strip));
+        Settings.BLACK_BOTTOM_BAR.save(false);
+        AmoledBlack.bottomBar(bar);
+        assertEquals("off gave the strip a color Pinterest had replaced", 0xFF222226, color(strip));
+        strip.getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals("the switch is off and the strip turned black anyway", 0xFF222226, color(strip));
+    }
+
+    @Test public void aStripPinterestColorsAgainAfterABlackSheetLeftKeepsPinterestsColor() {
+        Settings.BLACK_PIN_MENU.save(true);
+        AmoledBlack.gestureStrip = STRIP;
+        LinearLayout bar = bar(true);
+        FrameLayout window = window(bar);
+        View strip = window.findViewById(STRIP);
+        FrameLayout menu = sheet(true, "modal_header", "modal_container");
+        AmoledBlack.pinMenu(menu);
+        window.addView(menu);
+        menu.layout(0, 0, 320, 480);
+        strip.setBackgroundColor(0xFF222226);
+        strip.getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals("the open menu lost its black strip", Color.BLACK, color(strip));
+        window.removeView(menu);
+        strip.setBackgroundColor(0xFF2B2B2F);
+        strip.getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals(0xFF2B2B2F, color(strip));
+    }
+
     /** A window on show holding the bar and the strip behind the gesture handle, in a pin page's gray. */
     private static FrameLayout window(LinearLayout bar) {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
