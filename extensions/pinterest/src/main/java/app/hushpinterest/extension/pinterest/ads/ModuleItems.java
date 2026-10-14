@@ -104,9 +104,13 @@ final class ModuleItems {
             "promot|sponsor|campaign|advertis|^ad_|_ad$|_ads?_|_ads$|shop|merchant|affiliate|featured|boost|third_party|partner"
                     + "|catalog|integration|match_reason|targeting|price");
 
+    /** The AI label fields, for the same line, so a report of an AI pin that got through says what it carried. */
+    private static final Pattern AI_LABELS = Pattern.compile(
+            "^ai_disclosures$|^digital_media_source_type|^creator_declared_digital_source_type$");
+
     /**
      * [module]'s story type and each list it carries after filtering: its size, and for each model
-     * kept, its class and the commercial fields it has set. An entry that isn't a model shows only its
+     * kept, its class and the commercial and AI label fields it has set. An entry that isn't a model shows only its
      * full class name in parentheses, never its value, so a list the filter can't judge still says
      * what it holds. Built only with Debug logging on, so a bug report about an ad that got through
      * says what the module held (#6).
@@ -141,18 +145,29 @@ final class ModuleItems {
         return line.toString();
     }
 
-    /** The commercial fields [model] has set, as {@code [name=value,...]} in name order, or nothing. */
+    /**
+     * The commercial and AI label fields [model] has set, as {@code [name=value,...]} in name order,
+     * or nothing. A list of up to four numbers shows them, the way ai_disclosures holds its codes.
+     */
     static String markers(Object model) {
         if (model == null) return "";
         StringBuilder set = new StringBuilder();
         for (Map.Entry<String, Field> field : new TreeMap<>(ModelFields.of(model.getClass())).entrySet()) {
-            if (!COMMERCIAL.matcher(field.getKey()).find()) continue;
+            if (!COMMERCIAL.matcher(field.getKey()).find() && !AI_LABELS.matcher(field.getKey()).find()) continue;
             Object value = ModelFields.read(ModelFields.of(model.getClass()), model, field.getKey());
             if (value == null || Boolean.FALSE.equals(value)) continue;
-            String shown = value instanceof Boolean || value instanceof Number || value instanceof Enum ? String.valueOf(value) : "set";
+            String shown = value instanceof Boolean || value instanceof Number || value instanceof Enum || codes(value)
+                    ? String.valueOf(value) : "set";
             set.append(set.length() == 0 ? "[" : ",").append(field.getKey()).append('=').append(shown);
         }
         return set.length() == 0 ? "" : set.append(']').toString();
+    }
+
+    /** Whether [value] is a short list of numbers, safe and useful to print whole. */
+    private static boolean codes(Object value) {
+        if (!(value instanceof List) || ((List<?>) value).size() > 4) return false;
+        for (Object entry : (List<?>) value) if (!(entry instanceof Number)) return false;
+        return true;
     }
 
     /** What a removal from inside a module is counted as. English, for the report. */

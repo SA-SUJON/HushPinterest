@@ -31,6 +31,8 @@ class PinModelSchemaTest {
         "pin_promotion_id_reformatted" to "Ljava/lang/String;",
         "campaign_id_reformatted" to "Ljava/lang/String;",
         "ai_disclosures" to "Ljava/util/List;",
+        "digital_media_source_type" to "Lfixture/Pin\$SourceType;",
+        "digital_media_source_type_label" to "Ljava/lang/String;",
         "is_eligible_for_pdp" to "Ljava/lang/Boolean;",
     )
 
@@ -59,13 +61,17 @@ class PinModelSchemaTest {
         assertEquals(listOf("Lfixture/Pin; field ai_disclosures is Ljava/lang/String;, expected Ljava/util/List;",
             "Lfixture/Pin; field is_eligible_for_pdp is I, expected Ljava/lang/Boolean; or Z"),
             problems(board, model("Lfixture/Pin;", pinFields + ("ai_disclosures" to "Ljava/lang/String;") + ("is_eligible_for_pdp" to "I"))))
+        assertEquals(listOf("Lfixture/Pin; field digital_media_source_type is I, expected an object",
+            "Lfixture/Pin; has no field named digital_media_source_type_label (expected Ljava/lang/String;)"),
+            problems(board, model("Lfixture/Pin;", pinFields + ("digital_media_source_type" to "I") - "digital_media_source_type_label")))
     }
 
     @Test
     fun `names the extension can't read at run time don't count`() {
         val all = "is_promoted (expected Ljava/lang/Boolean; or Z), is_third_party_ad (expected Ljava/lang/Boolean; or Z), " +
             "pin_promotion_id_reformatted (expected Ljava/lang/String;), campaign_id_reformatted (expected Ljava/lang/String;), " +
-            "ai_disclosures (expected Ljava/util/List;), is_eligible_for_pdp (expected Ljava/lang/Boolean; or Z)"
+            "ai_disclosures (expected Ljava/util/List;), digital_media_source_type (expected an object), " +
+            "digital_media_source_type_label (expected Ljava/lang/String;), is_eligible_for_pdp (expected Ljava/lang/Boolean; or Z)"
         assertEquals(listOf("no model with a serialized id and images carries any of $all"),
             problems(model("Lfixture/Pin;", pinFields, visibility = AnnotationVisibility.BUILD)))
         assertEquals(listOf("no model with a serialized id and images carries any of $all"),
@@ -74,8 +80,9 @@ class PinModelSchemaTest {
 
     @Test
     fun `two equally likely pins are refused rather than guessed between`() {
-        assertEquals(listOf("the pin model is ambiguous: Lfixture/Pin;, Lfixture/Story; each carry 6 of " +
-            "[is_promoted, is_third_party_ad, pin_promotion_id_reformatted, campaign_id_reformatted, ai_disclosures, is_eligible_for_pdp]"),
+        assertEquals(listOf("the pin model is ambiguous: Lfixture/Pin;, Lfixture/Story; each carry 8 of " +
+            "[is_promoted, is_third_party_ad, pin_promotion_id_reformatted, campaign_id_reformatted, ai_disclosures, " +
+            "digital_media_source_type, digital_media_source_type_label, is_eligible_for_pdp]"),
             problems(board, model("Lfixture/Story;", pinFields), model("Lfixture/Pin;", pinFields)))
     }
 }

@@ -19,14 +19,15 @@ private const val PATCH = "Hide AI-labeled pins"
 
 /**
  * Takes the pins Pinterest labels as made or changed with AI out of the same lists Hide ads works
- * on, through the shared list hook ([feedListHookPatch]). The label is the pin's `ai_disclosures`
- * list, read by its JSON name at run time; an AI image Pinterest hasn't labeled carries nothing to
- * go by, and stays.
+ * on, through the shared list hook ([feedListHookPatch]). The label is read by JSON name at run time;
+ * an AI image Pinterest hasn't labeled carries nothing to go by, and stays.
  *
  * Off when you patch unless you pick it: it changes what you see, not just what's sold to you.
  *
- * Pinterest's label check reads `ai_disclosures` for 1 (AI modified) and 2 (synthetic performer).
- * 14.39.0 still names the field `ai_disclosures` and both labels.
+ * 14.40.0 draws "AI modified" from `digital_media_source_type_label` and treats any
+ * `digital_media_source_type` (an enum of AI kinds) as an AI pin; its old `ai_disclosures` readers
+ * have no callers left. 14.39.0 read `ai_disclosures` for 1 (AI modified) and 2 (synthetic
+ * performer). The extension takes any of the three.
  */
 @Suppress("unused")
 val hideAiPinsPatch = bytecodePatch(

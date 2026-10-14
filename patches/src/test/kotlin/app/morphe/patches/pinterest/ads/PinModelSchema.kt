@@ -35,10 +35,13 @@ private val BOOLEAN = listOf("Ljava/lang/Boolean;", "Z")
 private val TEXT = listOf("Ljava/lang/String;")
 private val ENTRIES = listOf("Ljava/util/List;")
 
+/** Any object type, for `isSet` on a field whose class is renamed in every build (an enum, say). */
+private val OBJECT = listOf("an object")
+
 /**
  * The pin fields Hide ads, Hide AI-labeled pins and Hide shopping filter on, with the declared
  * types ModelFields can use for each: `isTrue` compares with Boolean.TRUE, which a primitive
- * boolean boxes to as well, `hasText` needs a String and `hasEntries` a List.
+ * boolean boxes to as well, `hasText` needs a String, `hasEntries` a List and `isSet` any object.
  */
 internal val PIN_FILTER_FIELDS: Map<String, List<String>> = linkedMapOf(
     "is_promoted" to BOOLEAN,
@@ -46,8 +49,12 @@ internal val PIN_FILTER_FIELDS: Map<String, List<String>> = linkedMapOf(
     "pin_promotion_id_reformatted" to TEXT,
     "campaign_id_reformatted" to TEXT,
     "ai_disclosures" to ENTRIES,
+    "digital_media_source_type" to OBJECT,
+    "digital_media_source_type_label" to TEXT,
     "is_eligible_for_pdp" to BOOLEAN,
 )
+
+private fun fits(type: String, types: List<String>) = type in types || (types === OBJECT && type.startsWith("L"))
 
 private fun expected(key: String) = "$key (expected ${PIN_FILTER_FIELDS.getValue(key).joinToString(" or ")})"
 
@@ -85,7 +92,7 @@ internal fun pinSchemaProblems(models: Map<String, Map<String, String>>): List<S
         val type = fields[key]
         when {
             type == null -> "$pin has no field named ${expected(key)}"
-            type !in types -> "$pin field $key is $type, expected ${types.joinToString(" or ")}"
+            !fits(type, types) -> "$pin field $key is $type, expected ${types.joinToString(" or ")}"
             else -> null
         }
     }

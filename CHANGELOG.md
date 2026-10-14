@@ -2,6 +2,10 @@
 
 Every HushPinterest release, newest first.
 
+## Unreleased
+
+* **Pinterest:** Hide AI-labeled pins works on Pinterest 14.40.0 again. That version marks AI pins in a new way, including the ones Pinterest's own detection flags, and stopped sending the old label, so with the switch on they kept showing in search and the home feed. It now reads the new marks as well as the old label.
+
 ## 0.0.10 (2026-10-14)
 
 * **Pinterest:** Hide search history now also hides the recent searches listed when you tap the search bar, with no gap where they were. Suggestions for what you type still show, and turning the switch off or pausing brings the recent searches back.

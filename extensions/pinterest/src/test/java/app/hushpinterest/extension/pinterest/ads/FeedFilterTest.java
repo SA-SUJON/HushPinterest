@@ -63,6 +63,8 @@ public class FeedFilterTest {
         @Json("pin_promotion_id") String promotionId;
         @Json("ad_data") Object adData;
         @Json("ai_disclosures") List<Integer> aiDisclosures;
+        @Json("digital_media_source_type") SourceType sourceType;
+        @Json("digital_media_source_type_label") String sourceLabel;
 
         Pin(String id) {
             this.id = id;
@@ -72,6 +74,9 @@ public class FeedFilterTest {
             return id;
         }
     }
+
+    /** 14.40.0's pe$b: the kinds of AI media a pin's digital_media_source_type names. */
+    enum SourceType { TRAINED_ALGORITHMIC_MEDIA, DETECTED_TRAINED_ALGORITHMIC_MEDIA, SYNTHETIC_PERFORMER }
 
     /** A feed story, which is an ad when Pinterest says it's a shopping spotlight. */
     static final class Story {
@@ -273,6 +278,41 @@ public class FeedFilterTest {
     public void bothSwitchesTakeTheLabeledPinsToo() {
         Settings.HIDE_AI_PINS.save(true);
         assertEquals("[plain, emptyLabels, ideas]", FeedFilter.filter(page()).toString());
+    }
+
+    /**
+     * 14.40.0 labels AI pins through digital_media_source_type and its label text, leaving
+     * ai_disclosures empty, so a pin with either goes. A blank label with no type is no label.
+     */
+    @Test
+    public void theSourceTypeOrItsLabelMarksAnAiPinWithoutDisclosures() {
+        Settings.HIDE_ADS.save(false);
+        Settings.HIDE_AI_PINS.save(true);
+        Pin detected = new Pin("detected");
+        detected.sourceType = SourceType.DETECTED_TRAINED_ALGORITHMIC_MEDIA;
+        detected.aiDisclosures = Collections.emptyList();
+        Pin labelOnly = new Pin("labelOnly");
+        labelOnly.sourceLabel = "AI modified";
+        Pin blankLabel = new Pin("blankLabel");
+        blankLabel.sourceLabel = "  ";
+        List<Object> page = new ArrayList<>(Arrays.asList(plain, detected, emptyLabels, labelOnly, blankLabel, labeled, ideas));
+        assertEquals("[plain, emptyLabels, blankLabel, ideas]", FeedFilter.filter(page).toString());
+        assertTrue(report(), report().contains("AI-labeled pin removed"));
+        Settings.HIDE_AI_PINS.save(false);
+        assertSame(page, FeedFilter.filter(page));
+    }
+
+    /** Debug logging's line for a kept pin names its AI labels next to its ad fields, with the codes. */
+    @Test
+    public void theDebugMarkersShowAiLabelsAndDisclosureCodes() {
+        Pin pin = new Pin("marked");
+        pin.promoted = true;
+        pin.aiDisclosures = Arrays.asList(1, 2);
+        pin.sourceType = SourceType.DETECTED_TRAINED_ALGORITHMIC_MEDIA;
+        pin.sourceLabel = "AI modified";
+        assertEquals("[ai_disclosures=[1, 2],digital_media_source_type=DETECTED_TRAINED_ALGORITHMIC_MEDIA,"
+                + "digital_media_source_type_label=set,is_promoted=true]", ModuleItems.markers(pin));
+        assertEquals("", ModuleItems.markers(plain));
     }
 
     @Test
