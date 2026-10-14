@@ -1489,6 +1489,34 @@ try {
     # OSV has to answer, and answer with something the gate can read.
     Assert-Throws { Invoke-Gate @('pkg:maven/com.example/unknown@1.0') } '*could not be asked about pkg:maven/com.example/unknown@1.0*fails closed*' `
         'The gate read an OSV it could not reach as no advisories.'
+    # A dropped connection is asked again a bounded number of times, and a connection that stays
+    # down still fails closed. A status OSV refuses the query with is not asked again.
+    $dropping = {
+        param([int]$Drops, [int]$Status = 0)
+        $asked = New-Object System.Collections.Generic.List[string]
+        function Invoke-RestMethod {
+            param($Uri, $Method, $ContentType, $Body, $TimeoutSec)
+            $asked.Add($Uri)
+            if ($asked.Count -le $Drops) {
+                if ($Status) {
+                    throw [System.Net.Http.HttpRequestException]::new("Response status code does not indicate success: $Status.", $null, [System.Net.HttpStatusCode]$Status)
+                }
+                throw [System.Net.Http.HttpRequestException]::new('An error occurred while sending the request.')
+            }
+            return ('{}' | ConvertFrom-Json)
+        }
+        $said = @(Invoke-OsvQuery -Purl $cleanPurl -RetryDelaySeconds @(0, 0) 3>&1 | ForEach-Object { "$_" }) -join "`n"
+        return [pscustomobject]@{ Asked = $asked.Count; Said = $said }
+    }
+    $recovered = & $dropping 2
+    Assert-True ($recovered.Asked -eq 3 -and $recovered.Said -like '*OSV dropped the query about*asking again in 0 s*') `
+        "Two dropped connections were not asked again: asked $($recovered.Asked) times, said $($recovered.Said)"
+    $recovered = & $dropping 1 503
+    Assert-True ($recovered.Asked -eq 2) "A busy OSV (503) was not asked again: asked $($recovered.Asked) times"
+    Assert-Throws { & $dropping 3 } '*could not be asked about*sending the request (asked 3 times)*fails closed*' `
+        'A connection that stayed down was read as no advisories, or asked more than three times.'
+    Assert-Throws { & $dropping 1 400 } '*could not be asked about*success: 400. The advisory check fails closed*' `
+        'A query OSV refused (400) was asked again.'
     $unreadable = @(
         @{ Name = 'a page of HTML'; Answer = '<html>Service Unavailable</html>'; Pattern = '*isn''t a query result*' },
         @{ Name = 'an advisory with no id'; Answer = '{"vulns":[{"summary":"no id"}]}'; Pattern = '*has no id*' })

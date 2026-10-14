@@ -191,6 +191,22 @@ function Get-AdvisorySeverity {
     return [pscustomobject]@{ Level = $level; Serious = $rank[$level] -ge 3; Why = $why }
 }
 
+function Test-OsvTransientFailure {
+    <#
+    .SYNOPSIS
+        Whether a failed OSV request is worth sending again: no answer at all, a timeout, or a 408,
+        429 or 5xx. Any other status is OSV refusing the query, which another try won't change.
+    #>
+    param([System.Exception]$Problem)
+
+    if ($Problem -is [System.TimeoutException] -or $Problem -is [System.Threading.Tasks.TaskCanceledException]) { return $true }
+    if ($Problem -isnot [System.Net.Http.HttpRequestException]) { return $false }
+    $status = if ($Problem.PSObject.Properties['Response'] -and $Problem.Response) {
+        [int]$Problem.Response.StatusCode
+    } else { [int]$Problem.StatusCode }
+    return $status -eq 0 -or $status -eq 408 -or $status -eq 429 -or $status -ge 500
+}
+
 function Invoke-OsvQuery {
     <#
     .SYNOPSIS
@@ -199,10 +215,14 @@ function Invoke-OsvQuery {
         OSV answers {} for a package it knows nothing about, and for a package URL it can't read
         at all, which is why Read-ReleaseSbom refuses a malformed one before it gets here. Anything
         that isn't a query result throws, and so does a failed request: the gate fails closed.
+        A dropped connection, a timeout or a busy server is asked again after each of
+        RetryDelaySeconds, since one lost request out of the hundred-odd a release sends used to
+        fail the whole gate. A query OSV refuses is not asked again.
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Purl,
-        [string]$Endpoint = 'https://api.osv.dev/v1/query'
+        [string]$Endpoint = 'https://api.osv.dev/v1/query',
+        [int[]]$RetryDelaySeconds = @(3, 10)
     )
 
     $found = New-Object System.Collections.Generic.List[object]
@@ -210,13 +230,24 @@ function Invoke-OsvQuery {
     for ($page = 0; $page -lt 20; $page++) {
         $query = [ordered]@{ package = [ordered]@{ purl = $Purl } }
         if ($token) { $query['page_token'] = $token }
-        try {
-            $answer = Invoke-RestMethod -Uri $Endpoint -Method Post -ContentType 'application/json' `
-                -Body ($query | ConvertTo-Json -Compress -Depth 4) -TimeoutSec 60
-        } catch {
-            throw ("OSV could not be asked about ${Purl}: $($_.Exception.Message). The advisory check fails " +
-                'closed, so nothing goes out on a check that did not run. Check the connection to api.osv.dev ' +
-                'and run it again, or pass -SkipAdvisoryCheck to work offline: the index push asks OSV again.')
+        for ($try = 0; ; $try++) {
+            try {
+                $answer = Invoke-RestMethod -Uri $Endpoint -Method Post -ContentType 'application/json' `
+                    -Body ($query | ConvertTo-Json -Compress -Depth 4) -TimeoutSec 60
+                break
+            } catch {
+                $problem = $_.Exception
+                $reason = $problem.Message.TrimEnd('.')
+                if ($try -lt $RetryDelaySeconds.Count -and (Test-OsvTransientFailure $problem)) {
+                    Write-Warning "OSV dropped the query about ${Purl} ($reason); asking again in $($RetryDelaySeconds[$try]) s."
+                    Start-Sleep -Seconds $RetryDelaySeconds[$try]
+                    continue
+                }
+                $tries = if ($try -gt 0) { " (asked $($try + 1) times)" } else { '' }
+                throw ("OSV could not be asked about ${Purl}: $reason$tries. The advisory check fails " +
+                    'closed, so nothing goes out on a check that did not run. Check the connection to api.osv.dev ' +
+                    'and run it again, or pass -SkipAdvisoryCheck to work offline: the index push asks OSV again.')
+            }
         }
         if ($answer -isnot [System.Management.Automation.PSCustomObject]) {
             throw "OSV answered the query about $Purl with something that isn't a query result: $answer"
