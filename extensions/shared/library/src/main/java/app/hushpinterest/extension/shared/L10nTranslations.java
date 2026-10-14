@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(1016);
+        Map<String, String> table = new HashMap<>(1018);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -756,6 +756,8 @@ public final class L10nTranslations {
                 "Einstellungsdatei wird gelesen");
         table.put("Recent searches autocomplete",
                 "Autovervollst\u00e4ndigung der letzten Suchen");
+        table.put("Recent searches heading on the search page",
+                "\u00dcberschrift der letzten Suchen auf der Suchseite");
         table.put("Recent searches under the search bar",
                 "Letzte Suchen unter der Suchleiste");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -794,11 +796,11 @@ public final class L10nTranslations {
                 "Fortsetzen");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Setze HushPinterest fort und schalte Pins herunterladen ein.");
-        table.put("Resume HushPinterest and turn on Download pins to use this.",
-                "Setze HushPinterest fort und schalte Pins herunterladen ein.");
     }
 
     private static void fillDe6(Map<String, String> table) {
+        table.put("Resume HushPinterest and turn on Download pins to use this.",
+                "Setze HushPinterest fort und schalte Pins herunterladen ein.");
         table.put("Resume HushPinterest, turn on Download pins and Download board.",
                 "Fortsetzen, dann \u201ePins herunterladen\u201c und \u201ePinnwand herunterladen\u201c einschalten.");
         table.put("Retry",
@@ -917,11 +919,11 @@ public final class L10nTranslations {
                 "Bereits gestartete Downloads laufen weiter. Noch nicht gestartete Auswahlen enden beim Schlie\u00dfen von Pinterest.");
         table.put("Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.",
                 "Hindert Pinterest daran, dir das Teilen eines Screenshots vorzuschlagen. Screenshots funktionieren weiterhin. Starte Pinterest neu, damit die \u00c4nderung greift.");
-        table.put("Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.",
-                "Stoppt Nutzungsberichte und Analyseaufgaben. Starte Pinterest nach dem Ausschalten oder Pausieren neu. Googles Analysen bleiben aus, bis du ohne den Patch \u201eAnalyse deaktivieren\u201c neu patchst.");
     }
 
     private static void fillDe7(Map<String, String> table) {
+        table.put("Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.",
+                "Stoppt Nutzungsberichte und Analyseaufgaben. Starte Pinterest nach dem Ausschalten oder Pausieren neu. Googles Analysen bleiben aus, bis du ohne den Patch \u201eAnalyse deaktivieren\u201c neu patchst.");
         table.put("Strip link tracking",
                 "Link-Tracking entfernen");
         table.put("Strips tracking from links and stops usage reports and the ad ID.",
@@ -1040,11 +1042,11 @@ public final class L10nTranslations {
                 "Bis zum Fortsetzen verh\u00e4lt sich jeder Schalter au\u00dfer der Debug-Protokollierung, als w\u00e4re er aus. Was beim Patchen festgelegt wurde, bleibt aktiv.");
         table.put("Update instructions",
                 "Anleitung zum Aktualisieren");
-        table.put("Updates",
-                "Updates");
     }
 
     private static void fillDe8(Map<String, String> table) {
+        table.put("Updates",
+                "Updates");
         table.put("Use Download again",
                 "Wieder Download verwenden");
         table.put("Use the email on your Pinterest account and a Pinterest password. Google sign-in doesn't work with stock Google Play services, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. The Fix push notifications patch, on by default, lets this app sign up for push notifications.",
@@ -1104,7 +1106,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(1016);
+        Map<String, String> table = new HashMap<>(1018);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1813,6 +1815,8 @@ public final class L10nTranslations {
                 "Leyendo el archivo de configuraci\u00f3n");
         table.put("Recent searches autocomplete",
                 "Autocompletado de b\u00fasquedas recientes");
+        table.put("Recent searches heading on the search page",
+                "T\u00edtulo de b\u00fasquedas recientes en la p\u00e1gina de b\u00fasqueda");
         table.put("Recent searches under the search bar",
                 "B\u00fasquedas recientes bajo la barra de b\u00fasqueda");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -1851,11 +1855,11 @@ public final class L10nTranslations {
                 "Reanudar");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Reanuda HushPinterest y activa Descargar pines para volver a intentarlo.");
-        table.put("Resume HushPinterest and turn on Download pins to use this.",
-                "Reanuda HushPinterest y activa Descargar pines para usar esto.");
     }
 
     private static void fillEs6(Map<String, String> table) {
+        table.put("Resume HushPinterest and turn on Download pins to use this.",
+                "Reanuda HushPinterest y activa Descargar pines para usar esto.");
         table.put("Resume HushPinterest, turn on Download pins and Download board.",
                 "Reanuda HushPinterest y activa Descargar pines y Descargar tablero.");
         table.put("Retry",
@@ -1974,11 +1978,11 @@ public final class L10nTranslations {
                 "Detener conserva las descargas iniciadas. Las selecciones sin iniciar terminan al cerrar Pinterest.");
         table.put("Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.",
                 "Evita que Pinterest te sugiera compartir una captura de pantalla. Las capturas siguen funcionando. Reinicia Pinterest para ver el cambio.");
-        table.put("Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.",
-                "Detiene los informes de uso y las tareas de estad\u00edsticas. Reinicia tras desactivarlo o pausar. Las estad\u00edsticas de Google siguen desactivadas hasta que vuelvas a parchear sin el parche Desactivar estad\u00edsticas.");
     }
 
     private static void fillEs7(Map<String, String> table) {
+        table.put("Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.",
+                "Detiene los informes de uso y las tareas de estad\u00edsticas. Reinicia tras desactivarlo o pausar. Las estad\u00edsticas de Google siguen desactivadas hasta que vuelvas a parchear sin el parche Desactivar estad\u00edsticas.");
         table.put("Strip link tracking",
                 "Quitar rastreo de enlaces");
         table.put("Strips tracking from links and stops usage reports and the ad ID.",
@@ -2097,11 +2101,11 @@ public final class L10nTranslations {
                 "Hasta que reanudes, todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados. Lo que se aplic\u00f3 al parchear se mantiene.");
         table.put("Update instructions",
                 "Instrucciones de actualizaci\u00f3n");
-        table.put("Updates",
-                "Actualizaciones");
     }
 
     private static void fillEs8(Map<String, String> table) {
+        table.put("Updates",
+                "Actualizaciones");
         table.put("Use Download again",
                 "Volver a usar Download");
         table.put("Use the email on your Pinterest account and a Pinterest password. Google sign-in doesn't work with stock Google Play services, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. The Fix push notifications patch, on by default, lets this app sign up for push notifications.",
@@ -2161,7 +2165,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(1016);
+        Map<String, String> table = new HashMap<>(1018);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -2870,6 +2874,8 @@ public final class L10nTranslations {
                 "Membaca file pengaturan");
         table.put("Recent searches autocomplete",
                 "Pelengkapan otomatis pencarian terbaru");
+        table.put("Recent searches heading on the search page",
+                "Judul pencarian terbaru di halaman pencarian");
         table.put("Recent searches under the search bar",
                 "Pencarian terbaru di bawah bilah pencarian");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -2908,11 +2914,11 @@ public final class L10nTranslations {
                 "Lanjutkan");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk mencoba lagi.");
-        table.put("Resume HushPinterest and turn on Download pins to use this.",
-                "Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk memakai ini.");
     }
 
     private static void fillIn6(Map<String, String> table) {
+        table.put("Resume HushPinterest and turn on Download pins to use this.",
+                "Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk memakai ini.");
         table.put("Resume HushPinterest, turn on Download pins and Download board.",
                 "Lanjutkan HushPinterest, aktifkan Unduh Pin dan Unduh papan.");
         table.put("Retry",
@@ -3031,11 +3037,11 @@ public final class L10nTranslations {
                 "Menghentikan pilihan tidak membatalkan unduhan yang sudah dimulai. Pilihan yang belum dimulai berakhir saat Pinterest ditutup.");
         table.put("Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.",
                 "Menghentikan Pinterest menyarankan Anda membagikan tangkapan layar. Tangkapan layar tetap berfungsi. Mulai ulang Pinterest untuk melihat perubahannya.");
-        table.put("Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.",
-                "Menghentikan laporan penggunaan dan tugas analitik. Mulai ulang setelah dimatikan atau dijeda. Analitik Google tetap mati sampai Anda menambal ulang tanpa patch Nonaktifkan analitik.");
     }
 
     private static void fillIn7(Map<String, String> table) {
+        table.put("Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.",
+                "Menghentikan laporan penggunaan dan tugas analitik. Mulai ulang setelah dimatikan atau dijeda. Analitik Google tetap mati sampai Anda menambal ulang tanpa patch Nonaktifkan analitik.");
         table.put("Strip link tracking",
                 "Hapus pelacakan tautan");
         table.put("Strips tracking from links and stops usage reports and the ad ID.",
@@ -3154,11 +3160,11 @@ public final class L10nTranslations {
                 "Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.");
         table.put("Update instructions",
                 "Petunjuk pembaruan");
-        table.put("Updates",
-                "Pembaruan");
     }
 
     private static void fillIn8(Map<String, String> table) {
+        table.put("Updates",
+                "Pembaruan");
         table.put("Use Download again",
                 "Gunakan Download lagi");
         table.put("Use the email on your Pinterest account and a Pinterest password. Google sign-in doesn't work with stock Google Play services, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. The Fix push notifications patch, on by default, lets this app sign up for push notifications.",
@@ -3218,7 +3224,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(1016);
+        Map<String, String> table = new HashMap<>(1018);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -3927,6 +3933,8 @@ public final class L10nTranslations {
                 "Lendo o arquivo de configura\u00e7\u00f5es");
         table.put("Recent searches autocomplete",
                 "Preenchimento autom\u00e1tico de pesquisas recentes");
+        table.put("Recent searches heading on the search page",
+                "T\u00edtulo de pesquisas recentes na p\u00e1gina de pesquisa");
         table.put("Recent searches under the search bar",
                 "Pesquisas recentes abaixo da barra de pesquisa");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -3965,11 +3973,11 @@ public final class L10nTranslations {
                 "Retomar");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Retome o HushPinterest e ative Baixar Pins para tentar novamente.");
-        table.put("Resume HushPinterest and turn on Download pins to use this.",
-                "Retome o HushPinterest e ative Baixar Pins para usar isto.");
     }
 
     private static void fillPt_rBR6(Map<String, String> table) {
+        table.put("Resume HushPinterest and turn on Download pins to use this.",
+                "Retome o HushPinterest e ative Baixar Pins para usar isto.");
         table.put("Resume HushPinterest, turn on Download pins and Download board.",
                 "Retome o HushPinterest e ative Baixar Pins e Baixar pasta.");
         table.put("Retry",
@@ -4088,11 +4096,11 @@ public final class L10nTranslations {
                 "Parar mant\u00e9m os downloads j\u00e1 iniciados. Sele\u00e7\u00f5es n\u00e3o iniciadas terminam quando o Pinterest fecha.");
         table.put("Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.",
                 "Impede o Pinterest de sugerir que voc\u00ea compartilhe uma captura de tela. As capturas continuam funcionando. Reinicie o Pinterest para ver a mudan\u00e7a.");
-        table.put("Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.",
-                "Para os relat\u00f3rios de uso e as tarefas de an\u00e1lise. Reinicie ap\u00f3s desligar ou pausar. As an\u00e1lises do Google ficam desligadas at\u00e9 voc\u00ea aplicar os patches de novo sem Desativar an\u00e1lises.");
     }
 
     private static void fillPt_rBR7(Map<String, String> table) {
+        table.put("Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.",
+                "Para os relat\u00f3rios de uso e as tarefas de an\u00e1lise. Reinicie ap\u00f3s desligar ou pausar. As an\u00e1lises do Google ficam desligadas at\u00e9 voc\u00ea aplicar os patches de novo sem Desativar an\u00e1lises.");
         table.put("Strip link tracking",
                 "Remover rastreamento de links");
         table.put("Strips tracking from links and stops usage reports and the ad ID.",
@@ -4211,11 +4219,11 @@ public final class L10nTranslations {
                 "At\u00e9 voc\u00ea retomar, todas as op\u00e7\u00f5es, menos o Registro de depura\u00e7\u00e3o, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo.");
         table.put("Update instructions",
                 "Instru\u00e7\u00f5es de atualiza\u00e7\u00e3o");
-        table.put("Updates",
-                "Atualiza\u00e7\u00f5es");
     }
 
     private static void fillPt_rBR8(Map<String, String> table) {
+        table.put("Updates",
+                "Atualiza\u00e7\u00f5es");
         table.put("Use Download again",
                 "Voltar a usar Download");
         table.put("Use the email on your Pinterest account and a Pinterest password. Google sign-in doesn't work with stock Google Play services, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. The Fix push notifications patch, on by default, lets this app sign up for push notifications.",
@@ -4275,7 +4283,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(1016);
+        Map<String, String> table = new HashMap<>(1018);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -4984,6 +4992,8 @@ public final class L10nTranslations {
                 "Ayar dosyas\u0131 okunuyor");
         table.put("Recent searches autocomplete",
                 "Son aramalarda otomatik tamamlama");
+        table.put("Recent searches heading on the search page",
+                "Arama sayfas\u0131ndaki son aramalar ba\u015fl\u0131\u011f\u0131");
         table.put("Recent searches under the search bar",
                 "Arama \u00e7ubu\u011funun alt\u0131ndaki son aramalar");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -5022,11 +5032,11 @@ public final class L10nTranslations {
                 "Devam et");
         table.put("Resume HushPinterest and turn on Download pins to retry.",
                 "Yeniden denemek i\u00e7in HushPinterest'i s\u00fcrd\u00fcr ve Pinleri indir'i a\u00e7.");
-        table.put("Resume HushPinterest and turn on Download pins to use this.",
-                "Bunu kullanmak i\u00e7in HushPinterest'i s\u00fcrd\u00fcr ve Pin indirmeyi a\u00e7.");
     }
 
     private static void fillTr6(Map<String, String> table) {
+        table.put("Resume HushPinterest and turn on Download pins to use this.",
+                "Bunu kullanmak i\u00e7in HushPinterest'i s\u00fcrd\u00fcr ve Pin indirmeyi a\u00e7.");
         table.put("Resume HushPinterest, turn on Download pins and Download board.",
                 "HushPinterest'i s\u00fcrd\u00fcr, Pinleri indir ve Panoyu indir'i a\u00e7.");
         table.put("Retry",
@@ -5145,11 +5155,11 @@ public final class L10nTranslations {
                 "Durdurmak ba\u015flam\u0131\u015f indirmeleri korur. Ba\u015flamam\u0131\u015f se\u00e7imler Pinterest kapand\u0131\u011f\u0131nda sona erer.");
         table.put("Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.",
                 "Pinterest'in ekran g\u00f6r\u00fcnt\u00fcs\u00fc payla\u015fman\u0131 \u00f6nermesini durdurur. Ekran g\u00f6r\u00fcnt\u00fcleri yine \u00e7al\u0131\u015f\u0131r. De\u011fi\u015fikli\u011fi g\u00f6rmek i\u00e7in Pinterest'i yeniden ba\u015flat.");
-        table.put("Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.",
-                "Kullan\u0131m raporlar\u0131n\u0131 ve analiz g\u00f6revlerini durdurur. Kapatt\u0131ktan veya duraklatt\u0131ktan sonra yeniden ba\u015flat. Google'\u0131n analizleri, Analizleri devre d\u0131\u015f\u0131 b\u0131rak yamas\u0131 olmadan yeniden yamalayana kadar kapal\u0131 kal\u0131r.");
     }
 
     private static void fillTr7(Map<String, String> table) {
+        table.put("Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.",
+                "Kullan\u0131m raporlar\u0131n\u0131 ve analiz g\u00f6revlerini durdurur. Kapatt\u0131ktan veya duraklatt\u0131ktan sonra yeniden ba\u015flat. Google'\u0131n analizleri, Analizleri devre d\u0131\u015f\u0131 b\u0131rak yamas\u0131 olmadan yeniden yamalayana kadar kapal\u0131 kal\u0131r.");
         table.put("Strip link tracking",
                 "Ba\u011flant\u0131 takibini kald\u0131r");
         table.put("Strips tracking from links and stops usage reports and the ad ID.",
@@ -5268,11 +5278,11 @@ public final class L10nTranslations {
                 "Devam ettirene kadar Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r. Yamalad\u0131\u011f\u0131nda ayarlananlar devrede kal\u0131r.");
         table.put("Update instructions",
                 "G\u00fcncelleme talimatlar\u0131");
-        table.put("Updates",
-                "G\u00fcncellemeler");
     }
 
     private static void fillTr8(Map<String, String> table) {
+        table.put("Updates",
+                "G\u00fcncellemeler");
         table.put("Use Download again",
                 "Yeniden Download'u kullan");
         table.put("Use the email on your Pinterest account and a Pinterest password. Google sign-in doesn't work with stock Google Play services, because this patched app is signed with a different key. Pinterest no longer offers Facebook login. The Fix push notifications patch, on by default, lets this app sign up for push notifications.",

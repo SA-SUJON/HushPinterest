@@ -275,7 +275,7 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2), Map.entry("drawWash", 4), Map.entry("builtView", 3),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("recentSearchRows", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
             Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
             Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3));
 
@@ -4710,6 +4710,45 @@ public class DexDiff {
             capability(c.callee, bound && measured);
         }
 
+        static final String RECENT_SEARCH_CELL = "Lcom/pinterest/feature/search/landing/view/SlpRecentSearchCell;";
+        static final String GESTALT_TEXT = "Lcom/pinterest/gestalt/text/GestaltText;";
+
+        /**
+         * The search page's Recent searches block, which holds the heading and the recent-search
+         * cells. The one method building those cells keeps them in an ArrayList on the block, so the
+         * block is the Android view whose ArrayList that method reads, and it holds the heading text. It folds through the cells'
+         * own visibility and measure hooks, as overrides of a block with no onMeasure of its own.
+         */
+        void recentSearchHeading(Contract c) {
+            List<Method> builders = new ArrayList<>();
+            for (Method m : clean.methods.values()) if (!m.getDefiningClass().equals(RECENT_SEARCH_CELL)
+                    && instructions(m).stream().anyMatch(i -> i.getOpcode() == Opcode.NEW_INSTANCE && RECENT_SEARCH_CELL.equals(String.valueOf(reference(i)))))
+                builders.add(m);
+            Method builder = unique(builders, "the method that builds recent-search cells");
+            String block = null;
+            if (builder != null) {
+                Set<String> owners = new TreeSet<>();
+                for (Instruction i : instructions(builder)) if (reference(i) instanceof FieldReference f
+                        && f.getType().equals("Ljava/util/ArrayList;") && frameworkView(f.getDefiningClass())) owners.add(f.getDefiningClass());
+                if (owners.size() == 1) block = owners.iterator().next();
+                else fail("the recent-search cell builder reads " + owners.size() + " view lists, expected 1: " + owners);
+            }
+            if (block != null) {
+                boolean heading = false;
+                for (Field f : clean.classes.get(block).getFields())
+                    if (f.getType().equals(GESTALT_TEXT) && !AccessFlags.STATIC.isSet(f.getAccessFlags())) heading = true;
+                if (!heading) {
+                    fail("the recent searches block " + block + " holds no heading text, so it may be a wider view");
+                    block = null;
+                }
+            }
+            boolean folded = block != null && !clean.methods.containsKey(block + "->onMeasure(II)V")
+                    && canOverride(block, "setVisibility", "(I)V") && canOverride(block, "onMeasure", "(II)V");
+            if (block != null && !folded) fail("the recent searches block " + block + " measures itself or can't be overridden");
+            if (folded) view(block, c.strings.get(0), c.strings.get(1), null);
+            capability(c.callee, folded);
+        }
+
         static final String CLOSEUP_BACK_ID = "closeup_back_button", CLOSEUP_LENS_ID = "flashlight_search_button";
         static final String FIND_VIEW = "Landroid/view/View;->findViewById(I)Landroid/view/View;";
         static final String GET_CLASS = "Ljava/lang/Object;->getClass()Ljava/lang/Class;";
@@ -5597,6 +5636,7 @@ public class DexDiff {
                     case "closeupImage": closeupImage(c); break;
                     case "topicSuggestions": topicSuggestions(c); break;
                     case "recentSearchRows": recentSearchRows(c); break;
+                    case "recentSearchHeading": recentSearchHeading(c); break;
                     case "closeupButtons": closeupButtons(c); break;
                     case "boardMenu": boardMenu(c); break;
                     case "surveyPrompts": surveyPrompts(c); break;

@@ -27,14 +27,20 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -42,6 +48,8 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.experimental.categories.Category
+
+private const val ARRAY_LIST = "Ljava/util/ArrayList;"
 
 @Category(FixtureTests::class)
 class UiFixtureTest {
@@ -55,7 +63,7 @@ class UiFixtureTest {
         "hidePinMenuItems" to "pinMenuItems", "hideComments" to "comments",
         "quietEmailReminder" to "emailReminder", "disableUpdateNag" to "updateNag",
         "amoledBlack" to "blackBottomBar", "amoledBlack" to "blackComments", "amoledBlack" to "blackPinMenu",
-        "hideSearchHistory" to "recentSearchRows",
+        "hideSearchHistory" to "recentSearchRows", "hideSearchHistory" to "recentSearchHeading",
     )
 
     @Test fun `every interface family matches each supported vendor build without a warning`() {
@@ -122,6 +130,24 @@ class UiFixtureTest {
             }
             assertEquals("${build.name}: the row still measures through its own superclass", wasRow.superclass,
                 ((measured[4] as ReferenceInstruction).reference as MethodReference).definingClass)
+            // The search page's Recent searches block holds the heading over the cells, so it folds with them
+            // through the cells' own hooks, or the heading stays on the page with nothing under it.
+            val blockType = recentSearchBlockType(classes)
+            val wasBlock = classes.single { it.type == blockType }
+            assertTrue("${build.name}: the block holds the heading", wasBlock.fields.any { it.type == GESTALT_TEXT })
+            val block = context.mutableClassDefBy(wasBlock.type)
+            assertEquals("${build.name}: the block gained two overrides, nothing else", wasBlock.methods.count() + 2, block.methods.size)
+            for ((name, hooks) in listOf("setVisibility" to listOf("searchHistoryVisibility"),
+                    "onMeasure" to listOf("searchHistoryMeasureSpec", "searchHistoryMeasureSpec"))) {
+                val body = block.methods.single { it.name == name }.instructions()
+                assertEquals("${build.name}: the block's $name runs the hooks, then its superclass's",
+                    hooks.flatMap { listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT) } + listOf(Opcode.INVOKE_SUPER_RANGE, Opcode.RETURN_VOID),
+                    body.map { it.opcode })
+                assertEquals(build.name, hooks.map { "$UI_HOOKS->$it(I)I" },
+                    body.filter { it.opcode == Opcode.INVOKE_STATIC_RANGE }.map { (it as ReferenceInstruction).reference.toString() })
+                assertEquals("${build.name}: the block still runs its superclass's $name", wasBlock.superclass,
+                    ((body[body.size - 2] as ReferenceInstruction).reference as MethodReference).definingClass)
+            }
             val header = context.mutableClassDefBy(HEADER_BAR).methods.single { it.name == "onMeasure" }
             assertTrue(header.calls().any { it.definingClass == INTERFACE_CONTROLS && it.name == "headerButtons" })
             val menuType = context.classDefBy(PIN_MENU).fields.single { it.name == "modalView" }.type
@@ -267,35 +293,50 @@ class UiFixtureTest {
         }
     }
 
-    @Test fun `a typing-screen row the patch can't tell recent searches in refuses before any change`() {
+    @Test fun `a recent-search view the patch can't pin down refuses before any change`() {
         val classes = read(Fixtures.declaredBuilds().last())
         val row = classes.single { it.type == TYPEAHEAD_ROW }
         val pill = classes.single { it.type == RECENT_SEARCH_PILL }
         val face = classes.single { it.type in row.interfaces && it.methods.any { method -> method.parameters() == RECENT_ROW_BIND } }
+        val builder = classes.single { owner -> owner.methods.any { it.buildsRecentSearchCell() } }
+        val blockType = recentSearchBlockType(classes)
+        val block = classes.single { it.type == blockType }
         fun copy(owner: ClassDef, interfaces: List<String> = owner.interfaces, methods: List<Method> = owner.methods.toList()) =
             ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, interfaces, owner.sourceFile, owner.annotations,
                 owner.fields, methods)
+        fun measuring(owner: ClassDef) = copy(owner, methods = owner.methods + ImmutableMethod(owner.type, "onMeasure",
+            listOf(ImmutableMethodParameter("I", null, null), ImmutableMethodParameter("I", null, null)), "V", AccessFlags.PUBLIC.value,
+            null, null, ImmutableMethodImplementation(3, listOf(ImmutableInstruction10x(Opcode.RETURN_VOID)), null, null)))
         val parameters = RECENT_ROW_BIND.map { ImmutableMethodParameter(it, null, null) }
         val twoBinds = copy(face, methods = face.methods + ImmutableMethod(face.type, "bindAgain", parameters, "V",
             AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, null, null, null))
         val unshared = copy(pill, interfaces = pill.interfaces - face.type)
-        val measuring = copy(row, methods = row.methods + ImmutableMethod(row.type, "onMeasure",
-            listOf(ImmutableMethodParameter("I", null, null), ImmutableMethodParameter("I", null, null)), "V", AccessFlags.PUBLIC.value,
-            null, null, ImmutableMethodImplementation(3, listOf(ImmutableInstruction10x(Opcode.RETURN_VOID)), null, null)))
+        val secondBuilder = "Lhush/test/SecondCellBuilder;"
+        val twoBuilders = ImmutableClassDef(secondBuilder, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", listOf(), null, setOf(),
+            listOf(), listOf(ImmutableMethod(secondBuilder, "build", listOf(), "V", AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                null, null, ImmutableMethodImplementation(1, listOf(
+                    ImmutableInstruction21c(Opcode.NEW_INSTANCE, 0, ImmutableTypeReference(RECENT_SEARCH_CELL)),
+                    ImmutableInstruction10x(Opcode.RETURN_VOID)), null, null))))
+        val headless = ImmutableClassDef(block.type, block.accessFlags, block.superclass, block.interfaces, block.sourceFile,
+            block.annotations, block.fields.filter { it.type != GESTALT_TEXT }, block.methods)
         fun with(swap: ClassDef) = classes.map { if (it.type == swap.type) swap else it }
         // Each case and the refusal it has to give, so none passes on another check's account.
         val cases = linkedMapOf(
             "no typing-screen row" to (classes - row to "no typing-screen row"),
             "two binds on the row's interface" to (with(twoBinds) to "recent search bind on the row's interface: expected one exact target, found 2"),
             "the pill no longer shares the row's interface" to (with(unshared) to "recent search bind on the row's interface: expected one exact target, found 0"),
-            "the row measures itself" to (with(measuring) to "measures itself"),
+            "the row measures itself" to (with(measuring(row)) to "typing-screen row ${row.type} measures itself"),
+            "nothing builds recent-search cells" to (classes - builder to "the method that builds recent-search cells: expected one exact target, found 0"),
+            "two methods build recent-search cells" to (classes + twoBuilders to "the method that builds recent-search cells: expected one exact target, found 2"),
+            "the block measures itself" to (with(measuring(block)) to "recent searches block ${block.type} measures itself"),
+            "the block holds no heading" to (with(headless) to "recent searches block ${block.type} holds no heading text"),
         )
         for ((reason, case) in cases) {
             val (input, message) = case
             val context = PatchContexts.of(ExtensionDex.classes() + input)
             val refusal = assertThrows(reason, PatchException::class.java) { hideSearchHistoryPatch.execute(context) }
             assertTrue("$reason refused for another reason: ${refusal.message}", refusal.message.orEmpty().contains(message))
-            for (type in SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW) {
+            for (type in SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW + block.type) {
                 if (input.none { it.type == type }) continue
                 assertTrue("$reason left a hook in $type", context.mutableClassDefBy(type).methods.none { method ->
                     method.calls().any { it.definingClass == UI_HOOKS }
@@ -304,7 +345,35 @@ class UiFixtureTest {
             assertFlag(context, "hideSearchHistory", false)
             assertFlag(context, "searchHistory", false)
             assertFlag(context, "recentSearchRows", false)
+            assertFlag(context, "recentSearchHeading", false)
         }
+    }
+
+    @Test fun `a list on a class that isn't a view doesn't count as the recent searches block`() {
+        val classes = read(Fixtures.declaredBuilds().last())
+        val blockType = recentSearchBlockType(classes)
+        val builder = classes.single { owner -> owner.methods.any { it.buildsRecentSearchCell() } }
+        val plain = "Lhush/test/PlainListHolder;"
+        val holder = ImmutableClassDef(plain, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", listOf(), null, setOf(),
+            listOf(ImmutableField(plain, "list", ARRAY_LIST, AccessFlags.PUBLIC.value, null, setOf(), null)), listOf())
+        val reading = replace(builder, { it.buildsRecentSearchCell() }, keepTries = false) { body ->
+            listOf(ImmutableInstruction22c(Opcode.IGET_OBJECT, 0, 0, ImmutableFieldReference(plain, "list", ARRAY_LIST))) + body
+        }
+        val context = PatchContexts.of(ExtensionDex.classes() + classes.map { if (it.type == builder.type) reading else it } + holder)
+        hideSearchHistoryPatch.execute(context)
+        assertFlag(context, "recentSearchHeading", true)
+        assertTrue("the real block folds", context.mutableClassDefBy(blockType).methods.any { method ->
+            method.name == "onMeasure" && method.calls().any { it.definingClass == UI_HOOKS }
+        })
+        assertTrue("the plain list holder is left alone", context.mutableClassDefBy(plain).methods.isEmpty())
+    }
+
+    /** The view whose ArrayList the one method building the search page's recent-search cells reads. */
+    private fun recentSearchBlockType(classes: List<ClassDef>) = classes.flatMap { it.methods }.single { it.buildsRecentSearchCell() }
+        .fields().filter { it.type == ARRAY_LIST }.map { it.definingClass }.distinct().single()
+
+    private fun Method.buildsRecentSearchCell() = definingClass != RECENT_SEARCH_CELL && instructions().any {
+        it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == RECENT_SEARCH_CELL
     }
 
     private fun replace(owner: ClassDef, which: (Method) -> Boolean, keepTries: Boolean = true,
@@ -327,7 +396,7 @@ class UiFixtureTest {
         val found = mutableMapOf<String, ClassDef>()
         FixtureDex.forEach(build) { dex ->
             for (owner in dex.classes) {
-                val match = owner.type in required || owner.isCommentsModule() ||
+                val match = owner.type in required || owner.isCommentsModule() || owner.methods.any { it.buildsRecentSearchCell() } ||
                     (owner.superclass == "Ljava/lang/Enum;" && owner.fields.map { it.name }
                         .containsAll(listOf("HOME", "PROFILE", "CREATE", "NOTIFICATIONS"))) ||
                     owner.methods.any { method -> method.strings().any { it in anchors } ||
@@ -339,6 +408,9 @@ class UiFixtureTest {
         // The interfaces the typing-screen row shares with the recent-search pill name its recent search bind.
         found += FixtureDex.classes(build, listOfNotNull(found[TYPEAHEAD_ROW], found[RECENT_SEARCH_PILL])
             .flatMap { it.interfaces }.toSet() - found.keys)
+        // The search page's Recent searches block is the view whose cell list the cell builder reads.
+        found += FixtureDex.classes(build, found.values.flatMap { it.methods }.filter { it.buildsRecentSearchCell() }
+            .flatMap { it.fields() }.filter { it.type == ARRAY_LIST }.map { it.definingClass }.toSet() - found.keys)
         // Include every application superclass so final inherited methods are checked before an override is added.
         // The sheet a pin's menu is built into comes along too, so the patch can tell it's a view.
         val sheets = found[PIN_MENU]?.methods?.filter { it.name == "createModalView" }?.map { it.returnType }.orEmpty()

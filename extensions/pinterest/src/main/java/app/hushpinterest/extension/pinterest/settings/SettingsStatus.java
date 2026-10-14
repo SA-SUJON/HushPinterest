@@ -66,6 +66,7 @@ public final class SettingsStatus {
     public static boolean hideSearchHistory() { return false; }
     public static boolean searchHistory() { return false; }
     public static boolean recentSearchRows() { return false; }
+    public static boolean recentSearchHeading() { return false; }
     public static boolean hideNavigationButtons() { return false; }
     public static boolean navigationButtons() { return false; }
     public static boolean hideHeaderButtons() { return false; }

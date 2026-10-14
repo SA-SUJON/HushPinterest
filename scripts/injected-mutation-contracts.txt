@@ -44,7 +44,7 @@ family|longPressDownload|Long-press download|longPressMenu
 family|externalBrowser|Open links in your browser|visitLinks
 family|systemShare|System share sheet|pinShare
 family|hideScreenshotShare|No screenshot share menu|screenshotShare
-family|hideSearchHistory|Hide search history|searchHistory,recentSearchRows
+family|hideSearchHistory|Hide search history|searchHistory,recentSearchRows,recentSearchHeading
 family|hideNavigationButtons|Hide navigation buttons|navigationButtons
 family|hideHeaderButtons|Hide header buttons|headerButtons
 family|amoledBlack|AMOLED black|blackBottomBar,blackComments,blackPinMenu
@@ -85,6 +85,7 @@ mutation|pinMenuItems|menu|Lapp/hushpinterest/extension/pinterest/ui/InterfaceCo
 mutation|comments|comments|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsMeasureSpec(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsVisible(Z)Z|Lcom/pinterest/activity/pin/view/unifiedcomments/CommentPreviewView;|Lcom/pinterest/activity/pin/view/modules/PinCloseupBaseModule;
 mutation|topicSuggestions|topicSuggestions|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->topicSuggestions(Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->topicSuggestionsMeasureSpec(Landroid/view/View;I)I
 mutation|recentSearchRows|recentSearchRows|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->recentSearchRow(Landroid/view/View;Z)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->recentSearchRowMeasureSpec(Landroid/view/View;I)I
+mutation|recentSearchHeading|recentSearchHeading|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->searchHistoryVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->searchHistoryMeasureSpec(I)I
 mutation|emailReminder|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->quietEmailReminder()Z|email
 mutation|surveyPrompts|surveyPrompts|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideSurveyPrompts()Z|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideSponsoredPolls()Z
 mutation|saveToasts|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideSaveToast(Ljava/lang/Object;)Z|saveToast|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->androidToast(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;|androidToast|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->androidToast(Landroid/content/Context;II)Landroid/widget/Toast;|androidToast
