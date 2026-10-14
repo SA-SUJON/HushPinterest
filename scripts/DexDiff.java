@@ -275,7 +275,7 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2), Map.entry("drawWash", 4), Map.entry("builtView", 3),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("recentSearchRows", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
             Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
             Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3));
 
@@ -4590,7 +4590,7 @@ public class DexDiff {
                     fail("the topic row's interface " + face + " is implemented by " + rowView.getType() + ", not " + TOPIC_ROW);
                     rowView = null;
                 }
-                if (rowView != null) measured = topicMeasure(rowView, measureHook);
+                if (rowView != null) measured = rowMeasure(rowView, measureHook, "topic row");
             }
             capability(c.callee, row && measured);
         }
@@ -4633,12 +4633,13 @@ public class DexDiff {
         /**
          * The row view's added onMeasure: the measure hook with the view and its width spec, then with
          * the view and its height spec, each answer back in its own register, then the superclass's
-         * onMeasure with both. A view that measured itself in the clean target would need another hook.
+         * onMeasure with both, and nothing else. [what] names the row in failures. A view that measured
+         * itself in the clean target would need another hook.
          */
-        boolean topicMeasure(ClassDef rowView, String measureHook) {
+        boolean rowMeasure(ClassDef rowView, String measureHook, String what) {
             String type = rowView.getType(), key = type + "->onMeasure(II)V";
             if (clean.methods.containsKey(key) || !canOverride(type, "onMeasure", "(II)V")) {
-                fail("the topic row view " + type + " has an onMeasure of its own or one it can't override");
+                fail("the " + what + " view " + type + " has an onMeasure of its own or one it can't override");
                 return false;
             }
             Method m = actual(key);
@@ -4650,7 +4651,7 @@ public class DexDiff {
                     && arguments(body.get(0)).equals(List.of(self, width)) && arguments(body.get(2)).equals(List.of(self, height))
                     && isMoveResult(body.get(1).getOpcode()) && firstRegister(body.get(1)) == width
                     && isMoveResult(body.get(3).getOpcode()) && firstRegister(body.get(3)) == height;
-            if (!prefix) { fail(measureHook + " does not pass the topic row and each spec, in place, first in " + m); return false; }
+            if (!prefix) { fail(measureHook + " does not pass the " + what + " and each spec, in place, first in " + m); return false; }
             remove(m, 0, 4);
             List<Instruction> retained = retained(m, edits.get(m.toString()));
             List<Integer> args = List.of(self, width, height);
@@ -4660,6 +4661,53 @@ public class DexDiff {
                     && descriptor(call).equals("(II)V") && arguments(retained.get(0)).equals(args);
             if (!inherited) fail(m + " lost its inherited original behavior");
             return inherited;
+        }
+
+        static final String TYPEAHEAD_ROW = "Lcom/pinterest/feature/search/typeahead/view/SearchTypeaheadTextCell;";
+        static final String RECENT_SEARCH_PILL = "Lcom/pinterest/feature/search/typeahead/view/SearchTypeaheadRecentSearchPillView;";
+        static final String RECENT_ROW_BIND = "(Ljava/lang/String;Z)V";
+
+        /**
+         * The row of the screen tapping the search bar opens, which shows recent searches and
+         * suggestions for typed text alike. Its (String, boolean) bind, the one abstract method of
+         * that shape on the interfaces it shares with the recent-search pill, starts with the row
+         * hook taking the row and that boolean, true for a row given the clear button only recent
+         * searches get. The row gains an onMeasure through the measure hook like the topic row's.
+         * Both are found in the clean target, never from the hooks.
+         */
+        void recentSearchRows(Contract c) {
+            String rowHook = c.strings.get(0), measureHook = c.strings.get(1);
+            ClassDef row = clean.classes.get(TYPEAHEAD_ROW), pill = clean.classes.get(RECENT_SEARCH_PILL);
+            if (row == null || pill == null) {
+                fail("the typing-screen row " + TYPEAHEAD_ROW + " or the recent-search pill " + RECENT_SEARCH_PILL + " is missing");
+                capability(c.callee, false);
+                return;
+            }
+            List<Method> declared = new ArrayList<>();
+            for (String face : row.getInterfaces()) {
+                ClassDef owner = clean.classes.get(face);
+                if (owner == null || !pill.getInterfaces().contains(face) || !AccessFlags.INTERFACE.isSet(owner.getAccessFlags())) continue;
+                for (Method m : owner.getMethods())
+                    if (AccessFlags.ABSTRACT.isSet(m.getAccessFlags()) && descriptor(m).equals(RECENT_ROW_BIND)) declared.add(m);
+            }
+            Method shape = unique(declared, "recent search bind on the typing-screen row's interface");
+            boolean bound = false;
+            if (shape != null) {
+                Method bind = clean.methods.get(TYPEAHEAD_ROW + "->" + shape.getName() + RECENT_ROW_BIND);
+                if (bind == null || bind.getImplementation() == null || AccessFlags.STATIC.isSet(bind.getAccessFlags())) {
+                    fail("the typing-screen row has no recent search bind " + shape.getName() + RECENT_ROW_BIND);
+                } else {
+                    Method m = actual(bind);
+                    List<Integer> sites = calls(m, rowHook, 1);
+                    if (m != null && sites.size() == 1) {
+                        bound = sites.get(0) == 0 && arguments(instructions(m).get(0)).equals(List.of(parameter(m, -1), parameter(m, 1)));
+                        if (!bound) fail(rowHook + " does not take the row and its clear-button flag first in " + m);
+                        else remove(m, 0, 1);
+                    }
+                }
+            }
+            boolean measured = rowMeasure(row, measureHook, "typing-screen row");
+            capability(c.callee, bound && measured);
         }
 
         static final String CLOSEUP_BACK_ID = "closeup_back_button", CLOSEUP_LENS_ID = "flashlight_search_button";
@@ -5548,6 +5596,7 @@ public class DexDiff {
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;
                     case "topicSuggestions": topicSuggestions(c); break;
+                    case "recentSearchRows": recentSearchRows(c); break;
                     case "closeupButtons": closeupButtons(c); break;
                     case "boardMenu": boardMenu(c); break;
                     case "surveyPrompts": surveyPrompts(c); break;

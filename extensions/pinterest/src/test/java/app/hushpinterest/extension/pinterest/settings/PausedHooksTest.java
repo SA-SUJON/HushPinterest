@@ -208,6 +208,20 @@ public class PausedHooksTest {
         return UiHooks.topicSuggestionsMeasureSpec(row, MEASURE_SPEC) != MEASURE_SPEC;
     }
 
+    /** A recent search Pinterest binds on the typing screen: true when the hook hid it. */
+    private static boolean hidesRecentSearchRow() {
+        View row = new View(RuntimeEnvironment.getApplication());
+        UiHooks.recentSearchRow(row, true);
+        return row.getVisibility() == View.GONE;
+    }
+
+    /** A recent search Pinterest binds and then measures: true when the measure folded. */
+    private static boolean foldsRecentSearchRow() {
+        View row = new View(RuntimeEnvironment.getApplication());
+        UiHooks.recentSearchRow(row, true);
+        return UiHooks.recentSearchRowMeasureSpec(row, MEASURE_SPEC) != MEASURE_SPEC;
+    }
+
     private static Map<BooleanSetting, List<Probe>> probes() {
         // Every hook is in this build, so the filter reads each family's switch.
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
@@ -305,7 +319,8 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_SCREENSHOT_SHARE, Collections.singletonList(UiHooks::hideScreenshotShare));
         probes.put(Settings.HIDE_SEARCH_HISTORY, Arrays.asList(
                 () -> UiHooks.searchHistoryVisibility(View.INVISIBLE) != View.INVISIBLE,
-                () -> UiHooks.searchHistoryMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC));
+                () -> UiHooks.searchHistoryMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC,
+                PausedHooksTest::hidesRecentSearchRow, PausedHooksTest::foldsRecentSearchRow));
         probes.put(Settings.HIDE_NAV_CREATE, Collections.singletonList(() -> hidesNavigation(Tab.CREATE)));
         probes.put(Settings.HIDE_NAV_NOTIFICATIONS, Collections.singletonList(() -> hidesNavigation(Tab.NOTIFICATIONS)));
         probes.put(Settings.HIDE_NAV_SEARCH, Collections.singletonList(() -> hidesNavigation(Tab.SEARCH)));

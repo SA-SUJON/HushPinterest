@@ -132,7 +132,7 @@ internal fun BytecodePatchContext.topicSuggestions(): TopicSuggestions {
 }
 
 /** True when the class's first ancestor outside the APK is one of Android's view classes. */
-private fun BytecodePatchContext.isFrameworkView(type: ClassDef): Boolean {
+internal fun BytecodePatchContext.isFrameworkView(type: ClassDef): Boolean {
     val visited = mutableSetOf<String>()
     var ancestor = type.superclass
     while (ancestor != null && visited.add(ancestor)) {

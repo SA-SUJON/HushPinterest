@@ -15,6 +15,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.pinterest.misc.extension.PatchLogCapture
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -29,6 +30,8 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
@@ -52,6 +55,7 @@ class UiFixtureTest {
         "hidePinMenuItems" to "pinMenuItems", "hideComments" to "comments",
         "quietEmailReminder" to "emailReminder", "disableUpdateNag" to "updateNag",
         "amoledBlack" to "blackBottomBar", "amoledBlack" to "blackComments", "amoledBlack" to "blackPinMenu",
+        "hideSearchHistory" to "recentSearchRows",
     )
 
     @Test fun `every interface family matches each supported vendor build without a warning`() {
@@ -92,6 +96,32 @@ class UiFixtureTest {
                 assertTrue("${build.name}: ${original.type} must keep pin media and non-comment modules visible",
                     closeup.methods.none { it.calls().any { call -> call.definingClass == UI_HOOKS } })
             }
+            // The typing screen's row draws recent searches and typed suggestions alike. Its bind hands
+            // the hook the flag that gives only a recent search its clear button.
+            val wasRow = classes.single { it.type == TYPEAHEAD_ROW }
+            val row = context.mutableClassDefBy(TYPEAHEAD_ROW)
+            val bind = row.methods.single { method -> method.calls().any { it.definingClass == UI_HOOKS } && method.name != "onMeasure" }
+            assertEquals("${build.name}: the hooked bind takes the text and the flag", RECENT_ROW_BIND, bind.parameters())
+            val wasBind = wasRow.methods.single { it.name == bind.name && it.parameters() == RECENT_ROW_BIND }
+            val rowBind = bind.instructions()
+            assertEquals("${build.name}: the row hook runs first", RECENT_ROW_HOOK, (rowBind[0] as ReferenceInstruction).reference.toString())
+            val self = wasBind.implementation!!.registerCount - 3
+            assertEquals("${build.name}: the row hook takes the row and the flag", listOf(self, self + 2),
+                (rowBind[0] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD).take(it.registerCount) })
+            assertEquals("${build.name}: the bind gained its hook, nothing else", wasBind.instructions().map { it.opcode },
+                rowBind.drop(1).map { it.opcode })
+            val measured = row.methods.single { it.name == "onMeasure" }.instructions()
+            assertEquals("${build.name}: the row measures through the hook, then as before", listOf(Opcode.INVOKE_STATIC,
+                Opcode.MOVE_RESULT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.INVOKE_SUPER_RANGE, Opcode.RETURN_VOID),
+                measured.map { it.opcode })
+            for ((at, spec) in listOf(0 to 1, 2 to 2)) {
+                assertEquals(build.name, RECENT_ROW_MEASURE_HOOK, (measured[at] as ReferenceInstruction).reference.toString())
+                assertEquals("${build.name}: the row and its spec", listOf(0, spec),
+                    (measured[at] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
+                assertEquals("${build.name}: the answer replaces the spec", spec, (measured[at + 1] as OneRegisterInstruction).registerA)
+            }
+            assertEquals("${build.name}: the row still measures through its own superclass", wasRow.superclass,
+                ((measured[4] as ReferenceInstruction).reference as MethodReference).definingClass)
             val header = context.mutableClassDefBy(HEADER_BAR).methods.single { it.name == "onMeasure" }
             assertTrue(header.calls().any { it.definingClass == INTERFACE_CONTROLS && it.name == "headerButtons" })
             val menuType = context.classDefBy(PIN_MENU).fields.single { it.name == "modalView" }.type
@@ -237,6 +267,46 @@ class UiFixtureTest {
         }
     }
 
+    @Test fun `a typing-screen row the patch can't tell recent searches in refuses before any change`() {
+        val classes = read(Fixtures.declaredBuilds().last())
+        val row = classes.single { it.type == TYPEAHEAD_ROW }
+        val pill = classes.single { it.type == RECENT_SEARCH_PILL }
+        val face = classes.single { it.type in row.interfaces && it.methods.any { method -> method.parameters() == RECENT_ROW_BIND } }
+        fun copy(owner: ClassDef, interfaces: List<String> = owner.interfaces, methods: List<Method> = owner.methods.toList()) =
+            ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, interfaces, owner.sourceFile, owner.annotations,
+                owner.fields, methods)
+        val parameters = RECENT_ROW_BIND.map { ImmutableMethodParameter(it, null, null) }
+        val twoBinds = copy(face, methods = face.methods + ImmutableMethod(face.type, "bindAgain", parameters, "V",
+            AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, null, null, null))
+        val unshared = copy(pill, interfaces = pill.interfaces - face.type)
+        val measuring = copy(row, methods = row.methods + ImmutableMethod(row.type, "onMeasure",
+            listOf(ImmutableMethodParameter("I", null, null), ImmutableMethodParameter("I", null, null)), "V", AccessFlags.PUBLIC.value,
+            null, null, ImmutableMethodImplementation(3, listOf(ImmutableInstruction10x(Opcode.RETURN_VOID)), null, null)))
+        fun with(swap: ClassDef) = classes.map { if (it.type == swap.type) swap else it }
+        // Each case and the refusal it has to give, so none passes on another check's account.
+        val cases = linkedMapOf(
+            "no typing-screen row" to (classes - row to "no typing-screen row"),
+            "two binds on the row's interface" to (with(twoBinds) to "recent search bind on the row's interface: expected one exact target, found 2"),
+            "the pill no longer shares the row's interface" to (with(unshared) to "recent search bind on the row's interface: expected one exact target, found 0"),
+            "the row measures itself" to (with(measuring) to "measures itself"),
+        )
+        for ((reason, case) in cases) {
+            val (input, message) = case
+            val context = PatchContexts.of(ExtensionDex.classes() + input)
+            val refusal = assertThrows(reason, PatchException::class.java) { hideSearchHistoryPatch.execute(context) }
+            assertTrue("$reason refused for another reason: ${refusal.message}", refusal.message.orEmpty().contains(message))
+            for (type in SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW) {
+                if (input.none { it.type == type }) continue
+                assertTrue("$reason left a hook in $type", context.mutableClassDefBy(type).methods.none { method ->
+                    method.calls().any { it.definingClass == UI_HOOKS }
+                })
+            }
+            assertFlag(context, "hideSearchHistory", false)
+            assertFlag(context, "searchHistory", false)
+            assertFlag(context, "recentSearchRows", false)
+        }
+    }
+
     private fun replace(owner: ClassDef, which: (Method) -> Boolean, keepTries: Boolean = true,
                         change: (List<Instruction>) -> List<Instruction>) =
         ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
@@ -252,7 +322,7 @@ class UiFixtureTest {
         val anchors = setOf("sg_android_new_screenshot_api_14", "BottomNavTabModel(type=",
             "BottomNavBar tab insertion out of range", "confirmEmailButton", "inAppUpdateManager",
             "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=")
-        val required = (SEARCH_HISTORY_VIEWS + COMMENT_PREVIEW + HEADER_BAR + BOTTOM_BAR + BLUR_VIEW + PIN_MENU +
+        val required = (SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW + COMMENT_PREVIEW + HEADER_BAR + BOTTOM_BAR + BLUR_VIEW + PIN_MENU +
             "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;").toSet()
         val found = mutableMapOf<String, ClassDef>()
         FixtureDex.forEach(build) { dex ->
@@ -266,6 +336,9 @@ class UiFixtureTest {
                 if (match) found[owner.type] = ImmutableClassDef.of(owner)
             }
         }
+        // The interfaces the typing-screen row shares with the recent-search pill name its recent search bind.
+        found += FixtureDex.classes(build, listOfNotNull(found[TYPEAHEAD_ROW], found[RECENT_SEARCH_PILL])
+            .flatMap { it.interfaces }.toSet() - found.keys)
         // Include every application superclass so final inherited methods are checked before an override is added.
         // The sheet a pin's menu is built into comes along too, so the patch can tell it's a view.
         val sheets = found[PIN_MENU]?.methods?.filter { it.name == "createModalView" }?.map { it.returnType }.orEmpty()

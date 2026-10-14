@@ -4,6 +4,7 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** Hide search history now also hides the recent searches listed when you tap the search bar, with no gap where they were. Suggestions for what you type still show, and turning the switch off or pausing brings the recent searches back.
 * **Pinterest:** Don't use Quick setups? Press and hold its row on the settings home page and it's gone, and its help line now says so. Quick setups on the home page, on the Pause, backup and diagnostics page, brings it back.
 
 ## 0.0.9 (2026-10-14)

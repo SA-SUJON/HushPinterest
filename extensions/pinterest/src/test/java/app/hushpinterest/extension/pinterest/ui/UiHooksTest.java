@@ -96,6 +96,10 @@ public class UiHooksTest {
         assertEquals(312, UiHooks.topicSuggestionsMeasureSpec(topics, 312));
         assertEquals(View.INVISIBLE, UiHooks.searchHistoryVisibility(View.INVISIBLE));
         assertEquals(312, UiHooks.searchHistoryMeasureSpec(312));
+        View recent = new LinearLayout(RuntimeEnvironment.getApplication());
+        UiHooks.recentSearchRow(recent, true);
+        assertEquals(View.VISIBLE, recent.getVisibility());
+        assertEquals(312, UiHooks.recentSearchRowMeasureSpec(recent, 312));
         assertEquals(View.VISIBLE, UiHooks.commentsVisibility(View.VISIBLE));
         assertTrue(UiHooks.commentsVisible(true));
     }
@@ -373,6 +377,48 @@ public class UiHooksTest {
         ShadowLooper.idleMainLooper();
         assertEquals(View.GONE, row.getVisibility());
         assertEquals(0, View.MeasureSpec.getSize(UiHooks.topicSuggestionsMeasureSpec(row, spec)));
+    }
+
+    @Test public void recentSearchRowsFoldWhileTypedSuggestionsInTheSameRowStay() {
+        int spec = View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.AT_MOST);
+        View row = new LinearLayout(RuntimeEnvironment.getApplication());
+        View suggestion = new LinearLayout(RuntimeEnvironment.getApplication());
+        Settings.HIDE_SEARCH_HISTORY.save(true);
+        UiHooks.recentSearchRow(suggestion, false);
+        assertEquals("a row with no clear button is a typed suggestion", View.VISIBLE, suggestion.getVisibility());
+        assertEquals(spec, UiHooks.recentSearchRowMeasureSpec(suggestion, spec));
+        UiHooks.recentSearchRow(row, true);
+        assertEquals(View.GONE, row.getVisibility());
+        int folded = UiHooks.recentSearchRowMeasureSpec(row, spec);
+        assertEquals(0, View.MeasureSpec.getSize(folded));
+        assertEquals(View.MeasureSpec.EXACTLY, View.MeasureSpec.getMode(folded));
+        assertEquals(spec, UiHooks.recentSearchRowMeasureSpec(null, spec));
+        UiHooks.recentSearchRow(row, false);
+        assertEquals("the same row bound again as a suggestion comes back", View.VISIBLE, row.getVisibility());
+        assertEquals(spec, UiHooks.recentSearchRowMeasureSpec(row, spec));
+        UiHooks.recentSearchRow(row, true);
+        Settings.HIDE_SEARCH_HISTORY.save(false);
+        UiHooks.recentSearchRow(row, true);
+        assertEquals("a recent search bound with the switch off comes back", View.VISIBLE, row.getVisibility());
+        UiHooks.recentSearchRow(null, true);
+    }
+
+    @Test public void aHiddenRecentSearchRowComesBackAfterItsNextMeasureWhilePaused() {
+        int spec = View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.AT_MOST);
+        View row = new LinearLayout(RuntimeEnvironment.getApplication());
+        View own = new LinearLayout(RuntimeEnvironment.getApplication());
+        own.setVisibility(View.GONE);
+        Settings.HIDE_SEARCH_HISTORY.save(true);
+        UiHooks.recentSearchRow(row, true);
+        UiHooks.recentSearchRow(own, true);
+        assertEquals("a row Pinterest hid itself isn't folded", spec, UiHooks.recentSearchRowMeasureSpec(own, spec));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals(spec, UiHooks.recentSearchRowMeasureSpec(row, spec));
+        assertEquals("shown after the layout pass, not during it", View.GONE, row.getVisibility());
+        ShadowLooper.idleMainLooper();
+        assertEquals(View.VISIBLE, row.getVisibility());
+        UiHooks.recentSearchRow(own, false);
+        assertEquals("only rows the hook hid come back", View.GONE, own.getVisibility());
     }
 
     @Test public void searchHistoryAndCommentsFoldToZeroAndRestoreTheirRequestedSize() {

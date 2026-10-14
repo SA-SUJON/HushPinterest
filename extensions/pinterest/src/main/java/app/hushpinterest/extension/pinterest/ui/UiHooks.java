@@ -270,6 +270,33 @@ public final class UiHooks {
                 ? View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY) : requested;
     }
 
+    /** The typing-screen rows HushPinterest hid, held weakly like {@link #HIDDEN_TOPIC_ROWS}. */
+    private static final Set<View> HIDDEN_RECENT_ROWS = Collections.synchronizedSet(
+            Collections.newSetFromMap(new WeakHashMap<>()));
+
+    /**
+     * Pinterest is binding a row of the screen tapping the search bar opens. The same row shows a
+     * recent search or a suggestion for typed text, and Pinterest gives only a recent search the
+     * button that clears it, which is what {@code recent} says. With the switch on a recent search
+     * goes GONE and joins the hidden rows. A row bound again as a suggestion, or bound with the switch
+     * off or paused, comes back if HushPinterest hid it.
+     */
+    public static void recentSearchRow(View row, boolean recent) {
+        if (row == null) return;
+        try {
+            boolean hide = enabled(FamilyNames.HIDE_SEARCH_HISTORY, Settings.HIDE_SEARCH_HISTORY) && recent;
+            hideRow(HIDDEN_RECENT_ROWS, row, hide);
+            if (hide && HIDDEN_RECENT_ROWS.contains(row)) HookStatus.counted(FamilyNames.HIDE_SEARCH_HISTORY, "recent search row hidden");
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.HIDE_SEARCH_HISTORY, "recent search row", failure);
+        }
+    }
+
+    /** A hidden typing-screen row measures zero, the same way {@link #topicSuggestionsMeasureSpec} folds a topic row. */
+    public static int recentSearchRowMeasureSpec(View row, int requested) {
+        return foldedMeasure(HIDDEN_RECENT_ROWS, FamilyNames.HIDE_SEARCH_HISTORY, Settings.HIDE_SEARCH_HISTORY, row, requested);
+    }
+
     public static int commentsVisibility(int requested) {
         return enabled(FamilyNames.HIDE_COMMENTS, Settings.HIDE_COMMENTS) ? View.GONE : requested;
     }
@@ -303,15 +330,9 @@ public final class UiHooks {
         if (!(section instanceof View)) return;
         View row = (View) section;
         try {
-            if (hideTopicSuggestions()) {
-                if (row.getVisibility() != View.GONE) {
-                    HIDDEN_TOPIC_ROWS.add(row);
-                    row.setVisibility(View.GONE);
-                }
-                if (HIDDEN_TOPIC_ROWS.contains(row)) HookStatus.counted(FamilyNames.HIDE_TOPIC_SUGGESTIONS, "topic row hidden");
-            } else if (HIDDEN_TOPIC_ROWS.remove(row)) {
-                row.setVisibility(View.VISIBLE);
-            }
+            boolean hide = hideTopicSuggestions();
+            hideRow(HIDDEN_TOPIC_ROWS, row, hide);
+            if (hide && HIDDEN_TOPIC_ROWS.contains(row)) HookStatus.counted(FamilyNames.HIDE_TOPIC_SUGGESTIONS, "topic row hidden");
         } catch (RuntimeException failure) {
             HookStatus.threw(FamilyNames.HIDE_TOPIC_SUGGESTIONS, "topic row", failure);
         }
@@ -319,16 +340,37 @@ public final class UiHooks {
 
     /**
      * The topic row sits straight in Pinterest's grid, a RecyclerView, and that lays out a GONE
-     * child at its measured size, a blank gap. A row HushPinterest hid measures zero instead. Once
-     * the switch is off or Pause is on, the row measures as Pinterest asks and is shown again after
-     * this layout pass, rather than waiting for Pinterest to bind it again. A row whose switch is
-     * back on by then stays hidden.
+     * child at its measured size, a blank gap. A row HushPinterest hid measures zero instead.
      */
     public static int topicSuggestionsMeasureSpec(View row, int requested) {
-        if (row == null || !HIDDEN_TOPIC_ROWS.contains(row)) return requested;
-        if (topicRowsStayHidden()) return View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY);
+        return foldedMeasure(HIDDEN_TOPIC_ROWS, FamilyNames.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_TOPIC_SUGGESTIONS, row, requested);
+    }
+
+    /**
+     * Hides a row being bound and adds it to {@code hidden}, or gives back a row HushPinterest hid.
+     * A row Pinterest made GONE itself is left as it is.
+     */
+    private static void hideRow(Set<View> hidden, View row, boolean hide) {
+        if (hide) {
+            if (row.getVisibility() != View.GONE) {
+                hidden.add(row);
+                row.setVisibility(View.GONE);
+            }
+        } else if (hidden.remove(row)) {
+            row.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * A row in {@code hidden} measures zero. Once the switch is off or Pause is on, the row measures
+     * as Pinterest asks and is shown again after this layout pass, rather than waiting for Pinterest
+     * to bind it again. A row whose switch is back on by then stays hidden.
+     */
+    private static int foldedMeasure(Set<View> hidden, String family, BooleanSetting setting, View row, int requested) {
+        if (row == null || !hidden.contains(row)) return requested;
+        if (rowsStayHidden(family, setting)) return View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY);
         Utils.runOnMainThread(() -> {
-            if (!topicRowsStayHidden() && HIDDEN_TOPIC_ROWS.remove(row)) row.setVisibility(View.VISIBLE);
+            if (!rowsStayHidden(family, setting) && hidden.remove(row)) row.setVisibility(View.VISIBLE);
         });
         return requested;
     }
@@ -337,11 +379,11 @@ public final class UiHooks {
      * The switch read again for a measure, which Pinterest runs far more often than a bind, so it
      * isn't counted as another call.
      */
-    private static boolean topicRowsStayHidden() {
+    private static boolean rowsStayHidden(String family, BooleanSetting setting) {
         try {
-            return Utils.settingsReady() && Settings.HIDE_TOPIC_SUGGESTIONS.get();
+            return Utils.settingsReady() && setting.get();
         } catch (Throwable failure) {
-            HookStatus.threw(FamilyNames.HIDE_TOPIC_SUGGESTIONS, "switch read", failure);
+            HookStatus.threw(family, "switch read", failure);
             return false;
         }
     }
