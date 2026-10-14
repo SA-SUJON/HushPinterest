@@ -67,6 +67,8 @@ public final class SettingsContextRule extends ExternalResource {
         // The language picked for HushPinterest's own text is process-wide as well: left on English
         // by one test, every test after it would read English whatever language it asked for.
         app.hushpinterest.extension.shared.settings.BaseSettings.HUSH_LANGUAGE.resetToDefault();
+        // So is whether Quick setups is off the home page, which every home row count reads.
+        app.hushpinterest.extension.shared.settings.BaseSettings.HIDE_QUICK_SETUPS.resetToDefault();
         // The restart debt is process-wide by design, and the test JVM is one process: a
         // restart-gated toggle in one class would pin the row on every page captured after it.
         app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment

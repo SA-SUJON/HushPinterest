@@ -2,6 +2,10 @@
 
 Every HushPinterest release, newest first.
 
+## Unreleased
+
+* **Pinterest:** Don't use Quick setups? Press and hold its row on the settings home page and it's gone, and its help line now says so. Quick setups on the home page, on the Pause, backup and diagnostics page, brings it back.
+
 ## 0.0.9 (2026-10-14)
 
 * **Pinterest:** HushPinterest now patches Pinterest 14.40.0, the newest release, in place of 14.39.0. Download pins, Long-press download, Hide topic suggestions and Open links in your browser couldn't find their spots in the new build until they were updated. Hide closeup buttons still hides the lens on both pin screens, though 14.40.0 builds one of those lenses differently.

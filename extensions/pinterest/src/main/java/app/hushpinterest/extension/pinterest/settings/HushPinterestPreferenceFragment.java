@@ -110,6 +110,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
     static final String NOTIFICATION_SETTINGS = "action_notification_settings";
     /** The HushPinterest language row's key. The choice is saved by its own setting, not under this name. */
     static final String LANGUAGE = "action_hushpinterest_language";
+    /** The row that shows or hides Quick setups on the home page. The choice is saved by its own setting. */
+    static final String QUICK_SETUPS_HOME = "action_quick_setups_home";
 
     /** Thrown by the next initialize() and then cleared: how a test reaches the recovery page. */
     static volatile RuntimeException failNextInitialization;
@@ -505,6 +507,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                 L10n.t("Turns off every HushPinterest switch except Debug logging the next time Pinterest starts. "
                     + "What you chose when you patched stays, and your choices are saved.")), SettingsIcons.PATCHED));
         hushpinterest.addPreference(mark(languageRow(context), SettingsIcons.SETTINGS));
+        hushpinterest.addPreference(mark(quickSetupsHomeRow(context), SettingsIcons.TOOLS));
         String stays = PatchFamily.staysWhilePausedSummary(build);
         // Morphe Manager can export the patch choices and the signing key, not these switches.
         hushpinterest.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.EXPORT,
@@ -959,6 +962,53 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             return true;
         });
         return row;
+    }
+
+    /**
+     * Whether Quick setups sits on the home page. A tap flips it; a long press on the home row
+     * hides it too. Like the language it's the screen's own state, so it works while paused and
+     * stays out of settings files.
+     */
+    private Preference quickSetupsHomeRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(QUICK_SETUPS_HOME);
+        row.setTitle(L10n.t("Quick setups on the home page"));
+        row.setSummary(quickSetupsHomeSummary());
+        row.setPersistent(false);
+        // A tap changes it at once, so the row goes without a chevron.
+        row.actsAtOnce = true;
+        row.setOnPreferenceClickListener(p -> {
+            setQuickSetupsHidden(!BaseSettings.HIDE_QUICK_SETUPS.savedValue());
+            return true;
+        });
+        return row;
+    }
+
+    private static String quickSetupsHomeSummary() {
+        return BaseSettings.HIDE_QUICK_SETUPS.savedValue()
+                ? L10n.t("Hidden. Tap to show it again.") : L10n.t("Shown. Tap to hide it.");
+    }
+
+    /** The home row's long press: Quick setups leaves the home page, and a toast says where it comes back from. */
+    void hideQuickSetups() {
+        if (setQuickSetupsHidden(true)) {
+            Utils.showToastLong(L10n.t("Quick setups hidden. Bring it back from Pause, backup and diagnostics."));
+        }
+    }
+
+    /**
+     * Saves whether Quick setups is hidden and redraws the rows that show it. False when the
+     * choice couldn't be saved, which a toast says, and then nothing on screen changes.
+     */
+    boolean setQuickSetupsHidden(boolean hidden) {
+        if (!BaseSettings.HIDE_QUICK_SETUPS.save(hidden)) {
+            Utils.showToastLong(L10n.t("The setting couldn't finish updating. Its saved value is shown."));
+            return false;
+        }
+        Preference row = findPreference(QUICK_SETUPS_HOME);
+        if (row != null) row.setSummary(quickSetupsHomeSummary());
+        if (navigation != null) navigation.quickSetupsChanged();
+        return true;
     }
 
     private static String languageName(AppLanguage language) {

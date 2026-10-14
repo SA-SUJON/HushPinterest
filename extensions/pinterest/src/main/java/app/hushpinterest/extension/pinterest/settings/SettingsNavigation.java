@@ -148,7 +148,8 @@ final class SettingsNavigation extends BaseAdapter {
         report.setKey(REPORT);
         report.setOnPreferenceClickListener(row -> { ReportProblemForm.open(row.getContext(), screen); return true; });
         quickSetups = link(context, L10n.t("Quick setups"),
-                L10n.t("Turn on a set of switches in one tap, or put every switch back the way it started."), SettingsIcons.TOOLS);
+                L10n.t("Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row."),
+                SettingsIcons.TOOLS);
         quickSetups.setKey(QUICK_SETUPS);
         quickSetups.setOnPreferenceClickListener(ignored -> { page.showQuickSetups(); return true; });
         restart = new HushPinterestPreferenceFragment.Row(context);
@@ -201,6 +202,13 @@ final class SettingsNavigation extends BaseAdapter {
             } else if (item.getOnPreferenceClickListener() != null) {
                 item.getOnPreferenceClickListener().onPreferenceClick(item);
             }
+        });
+        // A long press takes Quick setups off the home page; a row on the Pause, backup and
+        // diagnostics page brings it back. Every other row keeps the list's own long press.
+        list.setOnItemLongClickListener((parent, view, position, id) -> {
+            if (getItem(position) != quickSetups) return false;
+            page.hideQuickSetups();
+            return true;
         });
         rebuild();
         host.showPage(title(), route.isEmpty(), query);
@@ -360,6 +368,9 @@ final class SettingsNavigation extends BaseAdapter {
     /** A change that waits for a restart was made or taken back: the restart row comes, goes or counts again. */
     void restartChanged() { rebuild(); }
 
+    /** Quick setups was hidden or brought back: the home page shows it or leaves it out from now on. */
+    void quickSetupsChanged() { rebuild(); }
+
     private void rebuild() {
         int restartWas = visible.indexOf(restart);
         boolean pageStatusWas = visible.contains(pageStatus);
@@ -389,7 +400,7 @@ final class SettingsNavigation extends BaseAdapter {
             addPageStatus();
         } else {
             visible.add(screen.getPreference(0));
-            visible.add(quickSetups);
+            if (!BaseSettings.HIDE_QUICK_SETUPS.savedValue()) visible.add(quickSetups);
             // Each heading only over pages this build has: a build with none of the feature
             // patches shows no empty Browse settings heading.
             boolean anyPrimary = false;

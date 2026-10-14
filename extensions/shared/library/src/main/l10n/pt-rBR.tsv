@@ -508,7 +508,9 @@ Opens a GitHub report with your versions and settings filled in. Add what happen
 # context: home page row under the status card, and the title of the dialog it opens
 Quick setups	Configurações rápidas
 # context: that row's summary
-Turn on a set of switches in one tap, or put every switch back the way it started.	Ative um conjunto de opções com um toque ou volte todas as opções ao estado inicial.
+Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	Ative um conjunto de opções com um toque ou volte todas as opções ao estado inicial. Toque e segure esta linha para ocultá-la.
+# context: toast after a long press hides the Quick setups row; names the page whose row brings it back
+Quick setups hidden. Bring it back from Pause, backup and diagnostics.	Configurações rápidas ocultas. Traga de volta em Pausa, backup e diagnóstico.
 # context: Quick setups choice that turns on the switches that hide ads, suggestions and nags
 Quiet	Tranquilo
 # context: what Quiet does, under its name
@@ -525,6 +527,12 @@ Changed %1$d setting	%1$d configuração alterada
 Changed %1$d settings	%1$d configurações alteradas
 # context: row on the Pause, backup and diagnostics page, and the title of its list of choices: the language HushPinterest's own pages, menus and messages use. Pinterest's language isn't changed
 HushPinterest language	Idioma do HushPinterest
+# context: row on the Pause, backup and diagnostics page that shows or hides the Quick setups row on the settings home page
+Quick setups on the home page	Configurações rápidas na página inicial
+# context: that row's summary while the Quick setups row is on the home page
+Shown. Tap to hide it.	Visíveis. Toque para ocultar.
+# context: that row's summary while the Quick setups row is hidden
+Hidden. Tap to show it again.	Ocultas. Toque para mostrar de novo.
 # context: the first language choice and the row's line while it's in force: HushPinterest uses whatever language Pinterest is in
 Same as Pinterest	O mesmo do Pinterest
 # context: the second language choice and the row's line while it's in force: the English language, by its name in this language

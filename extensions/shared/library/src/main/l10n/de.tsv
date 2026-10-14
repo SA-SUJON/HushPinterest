@@ -511,7 +511,9 @@ Opens a GitHub report with your versions and settings filled in. Add what happen
 # context: home page row under the status card, and the title of the dialog it opens
 Quick setups	Schnelleinstellungen
 # context: that row's summary
-Turn on a set of switches in one tap, or put every switch back the way it started.	Schalte mehrere Schalter mit einem Tippen ein oder setze alle Schalter auf ihren Ausgangszustand zurück.
+Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	Schalte mehrere Schalter mit einem Tippen ein oder setze alle Schalter auf ihren Ausgangszustand zurück. Halte diese Zeile gedrückt, um sie auszublenden.
+# context: toast after a long press hides the Quick setups row; names the page whose row brings it back
+Quick setups hidden. Bring it back from Pause, backup and diagnostics.	Schnelleinstellungen ausgeblendet. Unter Pause, Sicherung und Diagnose holst du sie zurück.
 # context: Quick setups choice that turns on the switches that hide ads, suggestions and nags
 Quiet	Ruhig
 # context: what Quiet does, under its name
@@ -528,6 +530,12 @@ Changed %1$d setting	%1$d Einstellung geändert
 Changed %1$d settings	%1$d Einstellungen geändert
 # context: row on the Pause, backup and diagnostics page, and the title of its list of choices: the language HushPinterest's own pages, menus and messages use. Pinterest's language isn't changed
 HushPinterest language	Sprache von HushPinterest
+# context: row on the Pause, backup and diagnostics page that shows or hides the Quick setups row on the settings home page
+Quick setups on the home page	Schnelleinstellungen auf der Startseite
+# context: that row's summary while the Quick setups row is on the home page
+Shown. Tap to hide it.	Werden angezeigt. Tippe, um sie auszublenden.
+# context: that row's summary while the Quick setups row is hidden
+Hidden. Tap to show it again.	Ausgeblendet. Tippe, um sie wieder anzuzeigen.
 # context: the first language choice and the row's line while it's in force: HushPinterest uses whatever language Pinterest is in
 Same as Pinterest	Wie in Pinterest
 # context: the second language choice and the row's line while it's in force: the English language, by its name in this language

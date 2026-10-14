@@ -583,6 +583,46 @@ public class SettingsNavigationTest {
         }
     }
 
+    /**
+     * A long press takes Quick setups off the home page for good, and the row on Pause, backup and
+     * diagnostics brings it back. No other row answers a long press.
+     */
+    @Test public void quickSetupsHidesOnALongPressAndComesBackFromItsRow() {
+        Preference row = (Preference) list().getItemAtPosition(1);
+        assertEquals(SettingsNavigation.QUICK_SETUPS, row.getKey());
+        assertTrue(String.valueOf(row.getSummary()), String.valueOf(row.getSummary()).endsWith(" Press and hold to hide this row."));
+        int home = list().getCount();
+        assertFalse("a long press on another row did something", list().getOnItemLongClickListener()
+                .onItemLongClick(list(), null, position("section_Feed"), 0));
+        assertTrue(list().getOnItemLongClickListener().onItemLongClick(list(), null, 1, 0));
+        ShadowLooper.idleMainLooper();
+        assertTrue(BaseSettings.HIDE_QUICK_SETUPS.savedValue());
+        assertEquals("Quick setups hidden. Bring it back from Pause, backup and diagnostics.", ShadowToast.getTextOfLatestToast());
+        assertFalse(contains(SettingsNavigation.QUICK_SETUPS));
+        assertEquals(home - 1, list().getCount());
+
+        // Back to defaults leaves it as it is (SettingsBackupTest keeps it out of settings files).
+        page.applyQuickSetup(QuickSetupKeys.defaults());
+        assertTrue(BaseSettings.HIDE_QUICK_SETUPS.savedValue());
+
+        tap("section_Pause, backup and diagnostics");
+        assertEquals("Hidden. Tap to show it again.",
+                String.valueOf(((Preference) list().getItemAtPosition(position(HushPinterestPreferenceFragment.QUICK_SETUPS_HOME))).getSummary()));
+        tap(HushPinterestPreferenceFragment.QUICK_SETUPS_HOME);
+        assertFalse(BaseSettings.HIDE_QUICK_SETUPS.savedValue());
+        assertEquals("Shown. Tap to hide it.",
+                String.valueOf(((Preference) list().getItemAtPosition(position(HushPinterestPreferenceFragment.QUICK_SETUPS_HOME))).getSummary()));
+        assertTrue(page.navigation.back());
+        assertEquals(SettingsNavigation.QUICK_SETUPS, ((Preference) list().getItemAtPosition(1)).getKey());
+        assertEquals(home, list().getCount());
+
+        // The same row hides it again.
+        tap("section_Pause, backup and diagnostics");
+        tap(HushPinterestPreferenceFragment.QUICK_SETUPS_HOME);
+        assertTrue(page.navigation.back());
+        assertFalse(contains(SettingsNavigation.QUICK_SETUPS));
+    }
+
     /** Each Quick setups choice changes its switches through their rows and says how many changed. */
     @Test public void quickSetupsChangeTheirSwitchesAndSayHowMany() {
         Preference row = (Preference) list().getItemAtPosition(1);
