@@ -336,6 +336,20 @@ Add-PublishEvent 'verify-index'
         [IO.File]::WriteAllText($factsForm, ([IO.File]::ReadAllText($factsForm) -replace
             ('(HushPinterest )' + [regex]::Escape($publishedVersion) + '(?!\.?\d)'), "`${1}$sourceVersion"))
     }
+    # A release that moves to a newer Pinterest build also moves the index's build and both of the
+    # bug form's build placeholders when it publishes, so the fixture moves them to the catalog's.
+    $catalogTarget = @(@((Get-Content -LiteralPath (Join-Path $global:PublishContract.FactsRoot 'patches-list.json') -Raw |
+        ConvertFrom-Json).patches)[0].compatibility[0].targets)[0]
+    $publishedTarget = [regex]::Match(([IO.File]::ReadAllText($factsBundle) | ConvertFrom-Json).description,
+        'Pinterest (\d+(?:\.\d+)+)').Groups[1].Value
+    if ($catalogTarget -and $publishedTarget -and $catalogTarget.version -ne $publishedTarget) {
+        $oldTarget = 'Pinterest ' + [regex]::Escape($publishedTarget) + '(?!\.?\d)'
+        [IO.File]::WriteAllText($factsBundle, ([IO.File]::ReadAllText($factsBundle) -replace $oldTarget, "Pinterest $($catalogTarget.version)"))
+        $targetCode = @($catalogTarget.versionCodes.PSObject.Properties.Value)[0]
+        $factsForm = Join-Path $global:PublishContract.FactsRoot '.github/ISSUE_TEMPLATE/bug_report.yml'
+        [IO.File]::WriteAllText($factsForm, (([IO.File]::ReadAllText($factsForm) -replace $oldTarget, "Pinterest $($catalogTarget.version)") -replace
+            ('(APKMirror universal APK, )' + [regex]::Escape($publishedTarget) + ' \(\d+\)'), "`${1}$($catalogTarget.version) ($targetCode)"))
+    }
     function Assert-RealFactsRefused([string]$Pattern, [switch]$SkipCount) {
         $problem = $null
         try {
