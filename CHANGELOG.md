@@ -2,6 +2,10 @@
 
 Every HushPinterest release, newest first.
 
+## Unreleased
+
+* **Tooling:** The script tests now clean up after themselves. The pre-push cases remove the worktree the hook builds in, and a passing host reference run deletes its report folder. Each run used to leave both in the temp directory.
+
 ## 0.0.11 (2026-10-14)
 
 * **Pinterest:** Hide AI-labeled pins works on Pinterest 14.40.0 again. That version marks AI pins in a new way, including the ones Pinterest's own detection flags, and stopped sending the old label, so with the switch on they kept showing in search and the home feed. It now reads the new marks as well as the old label.
