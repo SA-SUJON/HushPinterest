@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/version-0.0.8-E60023" alt="Version 0.0.8">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%2010%2B-3DDC84" alt="Platform Android 10+">
-  <img src="https://img.shields.io/badge/Pinterest-14.39.0-E60023" alt="Pinterest 14.39.0">
+  <img src="https://img.shields.io/badge/Pinterest-14.40.0-E60023" alt="Pinterest 14.40.0">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.34.0%2B-8A2BE2" alt="For Morphe Manager 1.34.0 or newer">
 </p>
 
@@ -35,7 +35,7 @@ The latest release is [v0.0.8](https://github.com/SysAdminDoc/HushPinterest/rele
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.34.0 or newer.
 2. Add HushPinterest as a patch source with the link above. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushPinterest`.
-3. Get Pinterest 14.39.0, version code 14398020. Use the universal APK, the one file that holds every screen density and processor type, which APKMirror lists as the "nodpi" variant. A split bundle (`.apkm`, `.xapk`) works too if Manager can merge it.
+3. Get Pinterest 14.40.0, version code 14408010. Use the universal APK, the one file that holds every screen density and processor type, which APKMirror lists as the "nodpi" variant. A split bundle (`.apkm`, `.xapk`) works too if Manager can merge it.
 4. Patch it with the default selection. It holds every switch, so you don't need Expert mode. The one patch left out is Spoof signature for Google sign-in. If you want it, turn on **Settings > Advanced > Expert mode** in Manager and pick it before you patch.
 
 A patched Pinterest can't install over the stock app, because Android only accepts an update signed with the same key. Save anything local you need, uninstall stock Pinterest, then install the patched one. Your boards and pins come back when you sign in. Local settings and drafts don't.
@@ -115,7 +115,7 @@ Every patch but Spoof signature for Google sign-in is in Manager's default selec
 - **Can't find the settings.** Open Pinterest's settings and tap **HushPinterest**, or long-press the Pinterest logo at the top of your home feed or the app icon. If the entries are missing, refresh the source in Manager and patch again.
 - **A switch does nothing.** Check that **Pause** is off, then reopen the screen you're looking at. Pin menu changes show on the next menu you open.
 - **Android won't install the patched app.** It can't replace stock Pinterest, so uninstall that first. Later updates of your patched copy need the same signing key.
-- **Manager rejects the APK, or a patch fails.** Use Pinterest 14.39.0, version code 14398020, unmodified. Each patch finds its code by what it does in that build, and Pinterest renames almost everything between releases, so a patch that can't find its spot stops instead of patching the wrong place.
+- **Manager rejects the APK, or a patch fails.** Use Pinterest 14.40.0, version code 14408010, unmodified. Each patch finds its code by what it does in that build, and Pinterest renames almost everything between releases, so a patch that can't find its spot stops instead of patching the wrong place.
 - **Google sign-in fails.** Use your email and a Pinterest password. See [Signing in](#signing-in).
 
 ### Reporting a problem
@@ -139,15 +139,15 @@ Disable analytics stops Pinterest's usage uploads, the AppsFlyer and Bugsnag tra
 | Field | Value |
 | --- | --- |
 | Package | `com.pinterest` |
-| Version | Pinterest 14.39.0 |
-| Version code | `14398020` |
+| Version | Pinterest 14.40.0 |
+| Version code | `14408010` |
 | APK | The universal APK (APKMirror's "nodpi" variant), or a split bundle Manager can merge |
 | Minimum Android version | Android 10 |
 
 SHA-256 of the stock APK the patches were checked against:
 
 ```text
-14398020  4ecc7f9a34c89fd98d0e2133c294517772857b935969847bfd92b3e25b13e78d
+14408010  1ddbd604d06f81489a5c628ba874a93b979eefcf1f1dcc263b2e0a2804518438
 ```
 
 On Windows, compare yours with `Get-FileHash -Algorithm SHA256 .\pinterest.apk`. Other Pinterest versions aren't supported.

@@ -27,9 +27,9 @@ import org.junit.experimental.categories.Category
 @Category(FixtureTests::class)
 class NativeSettingsEntryFixtureTest {
     private val model = "Lcom/pinterest/feature/settings/menu/model/"
-    private val builder = "Lcom/pinterest/feature/profile/pymk/sba/o1;"
-    private val click = "Llc2/g;"
-    private val types = setOf(builder, click) + listOf("l1", "z", "t1", "s1", "g1").map { "$model$it;" }
+    private val builder = "Lcom/pinterest/feature/settings/amazonstorefront/claim/w;"
+    private val click = "Lsq0/j;"
+    private val types = setOf(builder, click) + listOf("m1", "z", "u1", "t1", "h1").map { "$model$it;" }
 
     private fun classes(build: java.io.File): List<ClassDef> {
         val stock = FixtureDex.classes(build, types)
@@ -44,7 +44,7 @@ class NativeSettingsEntryFixtureTest {
             context.hookNativeSettingsEntry()
             assertEquals("${model}z;", context.classDefBy(NATIVE_SETTINGS_ITEM).superclass)
             assertEquals("the native list's marker interface must survive code generation",
-                classes.single { it.type == "${model}l1;" }.interfaces,
+                classes.single { it.type == "${model}m1;" }.interfaces,
                 context.classDefBy(NATIVE_SETTINGS_ITEM).interfaces)
             val built = context.classDefBy(builder).methods.single { it.name == "invoke" }.instructions()
             assertEquals(1, built.count { it.opcode == Opcode.NEW_INSTANCE &&
@@ -78,7 +78,7 @@ class NativeSettingsEntryFixtureTest {
                 assertEquals("$type: original account and safety behavior survives", shape(beforeMethod),
                     shape(afterMethod, at until at + size))
             }
-            val safety = classes.single { it.type == "${model}l1;" }
+            val safety = classes.single { it.type == "${model}m1;" }
             assertEquals(safety.methods.map { it.instructions().map { instruction -> instruction.opcode } },
                 context.classDefBy(safety.type).methods.map { it.instructions().map { instruction -> instruction.opcode } })
             assertThrows("reapplying cannot duplicate a row", PatchException::class.java) { context.hookNativeSettingsEntry() }

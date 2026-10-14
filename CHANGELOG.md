@@ -4,6 +4,10 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* **Pinterest:** HushPinterest now patches Pinterest 14.40.0, the newest release, in place of 14.39.0. Download pins, Long-press download, Hide topic suggestions and Open links in your browser couldn't find their spots in the new build until they were updated. Hide closeup buttons still hides the lens on both pin screens, though 14.40.0 builds one of those lenses differently.
+
+* **Tooling:** The gate's own dex checks find the pin menu's close event, the topic row and a lens built in place the way 14.40.0 lays them out, and the fixture tests pin 14.40.0's class names.
+
 * **Pinterest:** When a Quick setup can't change some of its switches, you now get one short message that says how many changed and how many didn't. Before, each of those switches could show a message of its own and crowd out the summary, and the summary itself ran past the two lines a message gets.
 
 * **Pinterest:** A switch that needs a restart could have trouble saving on its way back to its starting value and still end up there. The restart row kept counting it anyway, and the next time you flipped that switch it could snap back. Now the row's count is right and the switch stays where you put it.

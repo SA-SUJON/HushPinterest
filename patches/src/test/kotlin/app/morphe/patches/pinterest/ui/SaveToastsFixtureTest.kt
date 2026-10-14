@@ -47,7 +47,7 @@ class SaveToastsFixtureTest {
     private data class Input(val classes: List<ClassDef>, val model: String, val builders: List<ClassDef>, val screens: List<ClassDef>)
 
     /**
-     * Each save and pinned text in 14.39.0: how many methods read its id, and how many of those
+     * Each save and pinned text in 14.40.0: how many methods read its id, and how many of those
      * show it themselves, as a toast model, as a text builder, or by making a toast in that same
      * method. Counted from the dex by hand, apart from the patch's own rule, so a text or a screen
      * the rule misses turns up here as a number that's off.
@@ -130,14 +130,15 @@ class SaveToastsFixtureTest {
                 androidToasts() > 0 || handsOver() > 0
 
             val readers = counted.keys.associateWith { name -> methods.filter { method -> method.fields().any { it.type == "I" && it.name == name } } }
-            if ("-14.39.0-" in build.name) {
+            if ("-14.40.0-" in build.name) {
                 for ((name, expected) in counted) {
                     val found = readers.getValue(name)
                     assertEquals("${build.name}: methods that read $name: ${found.map { it.key() }}", expected.first, found.size)
                     assertEquals("${build.name}: methods that read $name and show it: ${found.filter { it.shows() }.map { it.key() }}",
                         expected.second, found.count { it.shows() })
                 }
-                assertEquals("${build.name}: helpers that show an Android toast $helpers", 1, helpers.size)
+                // 14.39.0 showed one save as an Android toast through a helper; 14.40.0 makes that toast in the screen itself.
+                assertEquals("${build.name}: helpers that show an Android toast $helpers", 0, helpers.size)
             }
 
             val saveToasts = checked(context, "isSaveToast").toSet()
@@ -169,12 +170,13 @@ class SaveToastsFixtureTest {
                 .strings().filter { Regex("[a-z_]+").matches(it) }.toSet()
             assertEquals("the names the extension looks up", SAVE_TEXT_NAMES, runtime)
 
-            if ("-14.39.0-" in build.name) {
+            if ("-14.40.0-" in build.name) {
                 assertEquals("${build.name}: toasts handed their text $messageToasts", 2, messageToasts.size)
                 val taken = (showing + methods.filter { it.key() in calledHelpers }).distinctBy { it.key() }.map { method ->
                     context.mutableClassDefBy(method.definingClass).methods.single { it.key() == method.key() }
                 }.flatMap { it.calls() }.filter { it.definingClass == UI_HOOKS && it.name == "androidToast" }
-                assertEquals("${build.name}: Android toasts taken over", listOf("I", "Ljava/lang/CharSequence;", "Ljava/lang/CharSequence;", "Ljava/lang/CharSequence;"),
+                // 14.40.0 makes the helper's toast in each screen that called it, and each of those is taken over.
+                assertEquals("${build.name}: Android toasts taken over", listOf("I") + List(10) { "Ljava/lang/CharSequence;" },
                     taken.map { it.parameters()[1] }.sorted())
             }
         }

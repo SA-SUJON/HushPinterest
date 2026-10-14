@@ -46,8 +46,9 @@ class LogoLongPressTest {
             val context = PatchContexts.of(ExtensionDex.classes() + readers)
 
             val site = context.greetingHeaderSites().single()
-            assertEquals("${build.name}: the header's bind takes the home screen's view",
-                listOf("Landroid/view/View;"), site.method.parameterTypes.map(CharSequence::toString))
+            // 14.39.0 binds with the view alone, 14.40.0 with the view and its saved state.
+            val parameters = site.method.parameterTypes.map(CharSequence::toString)
+            assertEquals("${build.name}: the header's bind takes the home screen's view first", "Landroid/view/View;", parameters.firstOrNull())
             // The R class naming the header names the logo too, which is how the extension finds it.
             val ids = ((headerRead(site.method) as ReferenceInstruction).reference as FieldReference).definingClass
             assertTrue("${build.name}: $ids names $logoId",
@@ -56,7 +57,7 @@ class LogoLongPressTest {
 
             assertTrue(build.name, context.hookLogoLongPress())
             val patched = context.mutableClassDefBy(site.method.definingClass).methods.single {
-                it.name == site.method.name && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/View;")
+                it.name == site.method.name && it.parameterTypes.map(CharSequence::toString) == parameters
             }.implementation!!.instructions.toList()
             val hook = patched[site.index]
             assertEquals("${build.name}: hook", Opcode.INVOKE_STATIC_RANGE, hook.opcode)

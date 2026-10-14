@@ -176,7 +176,7 @@ class PinActionsFixtureTest {
             }.let { (it as ReferenceInstruction).reference.toString() }
             val id = stored(Opcode.IPUT_OBJECT, registers - 2)
             val kind = stored(Opcode.IPUT, registers - 1)
-            if (build.name.startsWith("pinterest-14.39.0-")) {
+            if (build.name.startsWith("pinterest-14.40.0-")) {
                 assertEquals("$SENDABLE_TYPE->a:Ljava/lang/String;", id)
                 assertEquals("$SENDABLE_TYPE->c:I", kind)
             }
@@ -194,7 +194,7 @@ class PinActionsFixtureTest {
             // The extension makes a pin link only for kind 0, and the patch applied, so the
             // sendable's model constructor gives the overflow menu's pin model that kind.
             val pin = classes.single { it.type == PIN_MENU }.fields.single { it.name == "pin" }.type
-            if (build.name.startsWith("pinterest-14.39.0-")) assertEquals("${build.name} pin model", "Lcom/pinterest/api/model/oe;", pin)
+            if (build.name.startsWith("pinterest-14.40.0-")) assertEquals("${build.name} pin model", "Lcom/pinterest/api/model/pe;", pin)
             println("${build.name}: a pin ($pin) is sendable kind 0")
         }
     }
@@ -353,7 +353,7 @@ class PinActionsFixtureTest {
         FixtureDex.forEach(build) { dex ->
             for (owner in dex.classes) {
                 superclasses[owner.type] = owner.superclass
-                val visit = owner.methods.any { it.strings().containsAll(setOf("_url", "android_client_tracking_params_consistency")) }
+                val visit = owner.methods.any { it.strings().containsAll(setOf("_url", "com.pinterest.EXTRA_URL")) }
                 val profile = owner.methods.any { method ->
                     "websiteUrlView" in method.strings() || method.name == "onClick" &&
                         method.implementation?.instructions?.any {
