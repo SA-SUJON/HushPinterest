@@ -83,10 +83,11 @@ val externalBrowserPatch = bytecodePatch(
         requireStatusMethod("externalBrowser")
         requireStatusMethod("visitLinks")
         val pin = pinType()
-        // The long dispatcher grew a parameter in 14.38, but keeps these two literals and its pin.
+        // The long dispatcher grew a parameter in 14.38 and lost its tracking experiment in 14.40, but
+        // keeps these two literals, in this order, and its pin.
         val method = Fingerprint(
             returnType = "V",
-            filters = listOf(string("android_client_tracking_params_consistency"), string("_url")),
+            filters = listOf(string("com.pinterest.EXTRA_URL"), string("_url")),
             custom = { candidate, _ -> candidate.parameterTypes.take(2).map { it.toString() } == listOf("Ljava/lang/String;", pin) },
         ).methodOrNull ?: throw PatchException("$PATCH: no pin Visit dispatcher with both URL tracking anchors")
         val header = Fingerprint(
