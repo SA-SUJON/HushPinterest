@@ -63,8 +63,8 @@ private fun Instruction.readsId(id: String): Boolean {
  * and the button's class is the check-cast that follows, after Kotlin's getClass null check if
  * there is one. Built: a method answering one of the APK's own views through a single
  * `return-object`, where that view takes the id (see [tiedToId]). The hook goes right before it,
- * and the class is the method's return type. Anything else reading the id, such as a table
- * pairing ids with names, isn't a button.
+ * and the class is the method's return type. Constructed: see [constructedAt]. Anything else
+ * reading the id, such as a table pairing ids with names, isn't a button.
  */
 internal fun BytecodePatchContext.buttonSites(id: String): List<ButtonSite> {
     val sites = mutableListOf<ButtonSite>()
@@ -82,11 +82,42 @@ private fun BytecodePatchContext.buttonSites(method: Method, id: String): List<B
     val found = reads.mapNotNull { foundAt(method, body, it, id) }
     if (found.isNotEmpty()) return found
     val returns = body.indices.filter { body[it].opcode == Opcode.RETURN_OBJECT }
-    if (returns.size != 1 || classDefByOrNull(method.returnType) == null || !isFrameworkView(method.returnType)) return emptyList()
-    val at = returns.single()
-    val button = (body[at] as OneRegisterInstruction).registerA
-    if (!tiedToId(body, reads, button)) return emptyList()
-    return listOf(ButtonSite(method, at, button, method.returnType, false))
+    if (returns.size == 1 && classDefByOrNull(method.returnType) != null && isFrameworkView(method.returnType)) {
+        val at = returns.single()
+        val button = (body[at] as OneRegisterInstruction).registerA
+        if (tiedToId(body, reads, button)) return listOf(ButtonSite(method, at, button, method.returnType, false))
+    }
+    return constructedAt(method, body, reads)
+}
+
+/**
+ * Built in place: one of the APK's own views constructed from an object whose own constructor took
+ * the id, in a method that goes on to do more. 14.40.0 builds the second closeup's lens that way,
+ * where 14.39.0 called a small method answering it. The hook goes right after the view's
+ * constructor, the only place the new view is sure to be in that register, so these sites are
+ * checked like a found button's.
+ */
+private fun BytecodePatchContext.constructedAt(method: Method, body: List<Instruction>, reads: List<Int>): List<ButtonSite> {
+    val ids = reads.map { (body[it] as OneRegisterInstruction).registerA }.toSet()
+    val holders = mutableSetOf<Int>()
+    val sites = mutableListOf<ButtonSite>()
+    for (index in reads.min() + 1 until body.size) {
+        val call = body[index]
+        if (call !is FiveRegisterInstruction && call !is RegisterRangeInstruction) continue
+        val target = (call as ReferenceInstruction).reference as? MethodReference ?: continue
+        val registers = call.namedRegisters()
+        if (target.name != "<init>" || registers.isEmpty()) continue
+        val passed = registers.drop(1)
+        if (passed.any { it in ids }) {
+            holders += registers.first()
+            continue
+        }
+        if (passed.none { it in holders }) continue
+        val type = target.definingClass
+        if (classDefByOrNull(type) == null || !isFrameworkView(type)) continue
+        sites += ButtonSite(method, index + 1, registers.first(), type, true)
+    }
+    return sites
 }
 
 /**
@@ -163,7 +194,8 @@ val hideCloseupButtonsPatch = bytecodePatch(
         val hooked = backs.map { it to CLOSEUP_BACK_HOOK } + lenses.map { it to CLOSEUP_LENS_HOOK }
         val edits = hooked.map { (site, hook) -> Triple(mutable(site.method), site, hook) }
         for ((method, site, _) in edits) {
-            // A found button is only in its register on the path from findViewById.
+            // A found button is only in its register on the path from findViewById, and a constructed
+            // one on the path from its constructor.
             val at = method.implementation!!.instructions[site.index] as BuilderInstruction
             if (site.found && at.location.labels.isNotEmpty()) {
                 throw PatchException("$PATCH: ${site.method.definingClass}->${site.method.name} branches into the found button")

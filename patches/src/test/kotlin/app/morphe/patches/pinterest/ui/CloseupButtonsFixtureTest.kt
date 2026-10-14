@@ -14,6 +14,7 @@ import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
+import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
@@ -84,6 +85,10 @@ class CloseupButtonsFixtureTest {
                         val cast = body.drop(at + 1).first { it.opcode == Opcode.CHECK_CAST }
                         assertEquals(register, (cast as OneRegisterInstruction).registerA)
                         views += ((cast as ReferenceInstruction).reference as TypeReference).type
+                    } else if (((before as? ReferenceInstruction)?.reference as? MethodReference)?.name == "<init>") {
+                        // Built in place (14.40.0's second closeup): handed over right after its constructor.
+                        assertEquals("${build.name}: $method hands over the view it just built", before.namedRegisters().first(), register)
+                        views += ((before as ReferenceInstruction).reference as MethodReference).definingClass
                     } else {
                         val answer = body[at + 1]
                         assertEquals("${build.name}: $method hands over the view it answers", Opcode.RETURN_OBJECT, answer.opcode)
@@ -260,7 +265,7 @@ class CloseupButtonsFixtureTest {
     private companion object {
         const val FIND_VIEW_CALL = "Landroid/view/View;->findViewById(I)Landroid/view/View;"
         const val ICON_BUTTON = "Lcom/pinterest/gestalt/iconbutton/GestaltIconButton;"
-        const val LENS_BUILDER = "Lwt/d;"
+        const val LENS_BUILDER = "Lxt/d;"
         const val SET_ID_CALL = "Landroid/view/View;->setId(I)V"
     }
 }
