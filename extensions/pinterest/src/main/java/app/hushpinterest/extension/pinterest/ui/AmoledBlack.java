@@ -42,7 +42,9 @@ import app.hushpinterest.extension.shared.settings.BooleanSetting;
  *
  * <p>The comments sheet and a pin's menu carry the same gray, each behind its own switch. They are
  * painted as Pinterest finishes building them and again after their layout passes, on the views
- * that hold the fill and nothing else, so their text, icons and dividers stay as they are.
+ * that hold the fill and nothing else, so their text, icons and dividers stay as they are. The
+ * strip behind the gesture handle draws over a sheet's last rows, so it is black while a black
+ * sheet is open and gets its page's color back when the sheet leaves.
  */
 public final class AmoledBlack {
     private AmoledBlack() {}
@@ -150,7 +152,10 @@ public final class AmoledBlack {
             int[] ids = new int[fills.length];
             for (int index = 0; index < fills.length; index++) ids[index] = id(sheet, fills[index]);
             Sheet known = new Sheet(setting, ids);
-            if (sheets.put(sheet, known) == null) sheet.addOnLayoutChangeListener(REPAINT_SHEET);
+            if (sheets.put(sheet, known) == null) {
+                sheet.addOnLayoutChangeListener(REPAINT_SHEET);
+                sheet.addOnAttachStateChangeListener(LEAVING);
+            }
             paintSheet(sheet, known, UiHooks.enabled(FamilyNames.AMOLED_BLACK, setting) && night(sheet));
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.AMOLED_BLACK, what, failure);
@@ -165,6 +170,60 @@ public final class AmoledBlack {
             if (background instanceof LayerDrawable) paint((LayerDrawable) background, black);
             else paint(fill, black);
         }
+        View root = sheet.getRootView();
+        View strip = stripIn(root);
+        if (strip == null) return;
+        known.strip = new WeakReference<>(strip);
+        paint(strip, black || blackElsewhere(root, sheet));
+    }
+
+    /**
+     * The strip behind the gesture handle draws over the bottom of whatever is open, in the page's
+     * gray, so a black sheet ended in a gray band. A black sheet's layout pass paints it, and the
+     * sheet leaving the window gives its color back, unless a black bar on show or another black
+     * sheet in that window still wants it. A sheet that leaves at the end of an animation has no
+     * parent by then, so the strip is the one its last layout pass found.
+     */
+    private static final View.OnAttachStateChangeListener LEAVING = new View.OnAttachStateChangeListener() {
+        @Override public void onViewAttachedToWindow(View sheet) {}
+
+        @Override public void onViewDetachedFromWindow(View sheet) {
+            try {
+                Sheet known = sheets.get(sheet);
+                View strip = known == null || known.strip == null ? null : known.strip.get();
+                if (strip != null) paint(strip, blackElsewhere(strip.getRootView(), sheet));
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.AMOLED_BLACK, "sheet leaving", failure);
+            }
+        }
+    };
+
+    private static View stripIn(View root) {
+        if (gestureStrip < 0) gestureStrip = id(root, "navigation_bar_background");
+        return gestureStrip == 0 ? null : root.findViewById(gestureStrip);
+    }
+
+    /** Whether a black bar on show, or a black sheet other than this one, shares the window. */
+    private static boolean blackElsewhere(View root, View except) {
+        for (View bar : bars.keySet()) {
+            if (bar == null || bar == except || bar.getRootView() != root) continue;
+            if (visible(bar) && wanted(bar)) return true;
+        }
+        for (Map.Entry<View, Sheet> open : sheets.entrySet()) {
+            View sheet = open.getKey();
+            if (sheet == null || sheet == except || sheet.getRootView() != root || !visible(sheet)) continue;
+            if (Utils.settingsReady() && open.getValue().setting.get() && night(sheet)) return true;
+        }
+        return false;
+    }
+
+    /** A pin's page keeps the bar in the window and hides it. */
+    private static boolean visible(View view) {
+        for (View current = view; current != null;) {
+            if (current.getVisibility() != View.VISIBLE) return false;
+            current = current.getParent() instanceof View ? (View) current.getParent() : null;
+        }
+        return true;
     }
 
     /**
@@ -184,6 +243,8 @@ public final class AmoledBlack {
     private static final class Sheet {
         final BooleanSetting setting;
         final int[] fills;
+        /** The strip behind the gesture handle in the window the sheet was last laid out in. */
+        WeakReference<View> strip;
 
         Sheet(BooleanSetting setting, int[] fills) {
             this.setting = setting;
@@ -219,7 +280,8 @@ public final class AmoledBlack {
             paint(child, black);
             tabs((ViewGroup) child, black);
         }
-        paint(gestureStrip(bar, searching), black);
+        // A black sheet open over a bar that isn't black keeps the strip.
+        paint(gestureStrip(bar, searching), black || blackElsewhere(bar.getRootView(), bar));
     }
 
     /**
@@ -348,7 +410,8 @@ public final class AmoledBlack {
     private static void paint(ColorDrawable fill, boolean black) {
         if (!black) {
             Integer original = colors.remove(fill);
-            if (original != null) fill.setColor(original);
+            // Pinterest gives the strip each page's own color, and a color it set since isn't ours to undo.
+            if (original != null && fill.getColor() == Color.BLACK) fill.setColor(original);
             return;
         }
         int color = fill.getColor();

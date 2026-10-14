@@ -9,6 +9,7 @@ package app.hushpinterest.extension.pinterest.ui;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -26,6 +27,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
@@ -46,6 +48,10 @@ public class AmoledBlackTest {
 
     /** Pinterest's sema_color_background_elevation at night, the bar's warm gray. */
     private static final int ELEVATION = 0xFF33332E;
+    /** A pin page's own dark gray, which the strip behind the gesture handle takes there. */
+    private static final int PAGE = 0xFF18181B;
+    /** navigation_bar_background's id in 14.39.0. A sheet's fills use 1 to 3. */
+    private static final int STRIP = 0x7f0a0dae;
 
     @After public void restore() {
         PauseForTests.resume();
@@ -334,6 +340,86 @@ public class AmoledBlackTest {
         AmoledBlack.comments(light);
         light.layout(0, 0, 320, 480);
         assertEquals(ELEVATION, ((ColorDrawable) floating.getBackground()).getColor());
+    }
+
+    /**
+     * Seen on an API 36 emulator: under a black pin menu and a black comments sheet the strip behind
+     * the gesture handle stayed the pin page's #18181B, a gray band across the sheet's last rows.
+     */
+    @Test public void theStripUnderABlackSheetTurnsBlackAndGetsItsColorBackWhenTheSheetLeaves() {
+        Settings.BLACK_PIN_MENU.save(true);
+        AmoledBlack.gestureStrip = STRIP;
+        FrameLayout menu = sheet(true, "modal_header", "modal_container");
+        fill(menu, 2, new ColorDrawable(ELEVATION));
+        LinearLayout bar = bar(true);
+        FrameLayout window = window(bar);
+        View strip = window.findViewById(STRIP);
+        AmoledBlack.pinMenu(menu);
+        assertEquals("a menu that isn't open yet painted the strip", PAGE, color(strip));
+        window.addView(menu);
+        menu.layout(0, 0, 320, 480);
+        assertEquals(Color.BLACK, color(strip));
+        AmoledBlack.bottomBar(bar);
+        assertEquals("a bar that isn't black took the strip from the open menu", Color.BLACK, color(strip));
+        window.removeView(menu);
+        assertEquals("the menu left and the strip kept its black", PAGE, color(strip));
+    }
+
+    @Test public void aSheetLeavingABlackBarsWindowLeavesTheStripBlackUnlessTheBarIsHidden() {
+        Settings.BLACK_PIN_MENU.save(true);
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.gestureStrip = STRIP;
+        LinearLayout bar = bar(true);
+        FrameLayout window = window(bar);
+        View strip = window.findViewById(STRIP);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(Color.BLACK, color(strip));
+        FrameLayout menu = sheet(true, "modal_header", "modal_container");
+        AmoledBlack.pinMenu(menu);
+        window.addView(menu);
+        menu.layout(0, 0, 320, 480);
+        window.removeView(menu);
+        assertEquals("the bar is still black and on show", Color.BLACK, color(strip));
+        // A pin's page: Pinterest hides the bar and gives the strip that page's color.
+        bar.setVisibility(View.GONE);
+        strip.setBackgroundColor(PAGE);
+        window.addView(menu);
+        menu.layout(0, 0, 320, 520);
+        assertEquals(Color.BLACK, color(strip));
+        window.removeView(menu);
+        assertEquals("a hidden bar kept the strip black on a pin's page", PAGE, color(strip));
+    }
+
+    /** Pinterest gives the strip each page's own color, and the bar's gray isn't that page's. */
+    @Test public void aStripPinterestRecoloredSinceItWasPaintedKeepsPinterestsColor() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.gestureStrip = STRIP;
+        LinearLayout bar = bar(true);
+        View strip = window(bar).findViewById(STRIP);
+        strip.setBackgroundColor(0xFF222226);
+        AmoledBlack.bottomBar(bar);
+        assertEquals(Color.BLACK, color(strip));
+        strip.setBackgroundColor(PAGE);
+        Settings.BLACK_BOTTOM_BAR.save(false);
+        AmoledBlack.bottomBar(bar);
+        assertEquals("the color the strip had under the bar was put on another page", PAGE, color(strip));
+    }
+
+    /** A window on show holding the bar and the strip behind the gesture handle, in a pin page's gray. */
+    private static FrameLayout window(LinearLayout bar) {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        FrameLayout window = new FrameLayout(bar.getContext());
+        window.addView(bar);
+        View strip = new View(bar.getContext());
+        strip.setId(STRIP);
+        strip.setBackgroundColor(PAGE);
+        window.addView(strip);
+        activity.setContentView(window);
+        return window;
+    }
+
+    private static int color(View strip) {
+        return ((ColorDrawable) strip.getBackground()).getColor();
     }
 
     /**
