@@ -46,7 +46,7 @@ public final class AiPins {
     /** What a pin that says it's AI calls itself, already {@link PinWords#normalize normalized}. */
     static final List<String> PHRASES = Collections.unmodifiableList(Arrays.asList(
             "ai art", "ai generated", "ai-generated", "#aiart", "#aigenerated", "made with ai",
-            "midjourney", "stable diffusion", "dall-e", "nijijourney"));
+            "midjourney", "stable diffusion", "dall-e", "nijijourney", "pixai"));
 
     /** Sites that only host AI images, with any subdomain. */
     static final List<String> AI_SITES = Collections.unmodifiableList(Arrays.asList(

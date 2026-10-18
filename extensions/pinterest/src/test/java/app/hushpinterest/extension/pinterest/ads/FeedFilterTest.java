@@ -367,12 +367,13 @@ public class FeedFilterTest {
                 worded("madeWith", "Made with AI", null, null, null),
                 worded("tool", null, "Midjourney v6 prompt", null, null),
                 worded("dalle", null, null, "dall-e 3, upscaled", null),
+                worded("generator", null, null, "made by PixAi", null),
                 worded("site", "minime567", null, null, "pixai.art"),
                 worded("subdomain", null, null, null, "WWW.Civitai.com"),
                 ideas));
         assertEquals("[plain, labeled, ideas]", FeedFilter.filter(page).toString());
         String ai = line(FamilyNames.HIDE_AI_PINS);
-        assertTrue(report(), ai.contains("self-described AI pin removed 9"));
+        assertTrue(report(), ai.contains("self-described AI pin removed 10"));
         assertFalse(report(), ai.contains("AI-labeled pin removed"));
         assertEquals(report(), "", line(AiPins.SELF_DESCRIBED));
     }
@@ -390,7 +391,7 @@ public class FeedFilterTest {
                 worded("weiwei", "Ai Weiwei installation", null, null, null),
                 worded("portuguese", null, null, "Vem aí art festival", null),
                 worded("combining", null, "Vem aí art festival", null, null),
-                worded("inside", "Thai artist sketchbook", "AI artist portfolio", "#aiartwork", null),
+                worded("inside", "Thai artist sketchbook", "AI artist portfolio", "#aiartwork #pixaiworks", null),
                 worded("retail", "Galaxy AI phone case", null, "AI-powered robot vacuum", null),
                 worded("bare", "AI", null, "ai", null),
                 worded("caption", "A cozy reading nook", null, "Soft light and a good book", "example.com"),
