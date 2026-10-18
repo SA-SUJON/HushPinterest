@@ -6372,6 +6372,19 @@ try { & $Script @forward; exit 0 } catch { Write-Output ('REFUSED: ' + $_.Except
     Assert-StageRefused (Invoke-ReleaseStageCase prepare -Version 0.0.6) "already says 0.0.6, but HEAD*isn't its prepare commit" `
         'prepare took a version gradle.properties already holds.'
     Assert-StageRefused (Invoke-ReleaseStageCase prepare -Version 0.0.5) "0.0.5 isn't newer than 0.0.6" 'prepare went back a version.'
+    # A README still split between the published release's build and the next release's is
+    # rewritten before the cut. One naming a single build gets past that to the tag checks, which
+    # fail here only because the scratch repository has no origin.
+    Set-StageFile 'README.md' "3. Get Pinterest 1.0.0. The next release moves to Pinterest 1.1.0.`n"
+    Invoke-StageGit @('add', '--all')
+    Invoke-StageGit @('commit', '--quiet', '-m', 'docs: name the next build')
+    Assert-StageRefused (Invoke-ReleaseStageCase prepare) 'README.md still splits*for the one Pinterest build v0.0.7 patches' `
+        'prepare cut a release over a README still naming the next release.'
+    Set-StageFile 'README.md' "3. Get Pinterest 1.1.0.`n"
+    Invoke-StageGit @('commit', '--quiet', '--all', '-m', 'docs: one build')
+    Assert-StageRefused (Invoke-ReleaseStageCase prepare) "git couldn't ask origin for its tags" `
+        'prepare refused a README naming one build.'
+    Invoke-StageGit @('reset', '--quiet', '--hard', 'HEAD~2')
     foreach ($stage in 'preflight', 'gate', 'build') {
         Assert-StageRefused (Invoke-ReleaseStageCase $stage) 'Run -Stage prepare first.' "$stage ran before the release was prepared."
     }

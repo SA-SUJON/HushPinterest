@@ -3,8 +3,8 @@
 <p>
   <img src="https://img.shields.io/badge/version-0.0.11-E60023" alt="Version 0.0.11">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
-  <img src="https://img.shields.io/badge/platform-Android%2012L%2B-3DDC84" alt="Platform Android 12L+">
-  <img src="https://img.shields.io/badge/Pinterest-14.41.0-E60023" alt="Pinterest 14.41.0">
+  <img src="https://img.shields.io/badge/platform-Android%2010%2B-3DDC84" alt="Platform Android 10+">
+  <img src="https://img.shields.io/badge/Pinterest-14.40.0-E60023" alt="Pinterest 14.40.0">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.34.0%2B-8A2BE2" alt="For Morphe Manager 1.34.0 or newer">
 </p>
 
@@ -35,7 +35,7 @@ The latest release is [v0.0.11](https://github.com/SysAdminDoc/HushPinterest/rel
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.34.0 or newer.
 2. Add HushPinterest as a patch source with the link above. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushPinterest`.
-3. Get Pinterest 14.41.0, version code 14418010. So far APKMirror has it only as a split bundle (`.apkm`) for arm64 phones on Android 12L or newer. Pick that file in Manager and it merges the parts before patching.
+3. Get Pinterest 14.40.0, version code 14408010. Use the universal APK, the one file that holds every screen density and processor type, which APKMirror lists as the "nodpi" variant. A split bundle (`.apkm`, `.xapk`) works too if Manager can merge it. The next release moves to Pinterest 14.41.0, version code 14418010, which APKMirror so far has only as an arm64 split bundle for Android 12L or newer. Stay on 14.40.0 until that release is out.
 4. Patch it with the default selection. It holds every switch, so you don't need Expert mode. The one patch left out is Spoof signature for Google sign-in. If you want it, turn on **Settings > Advanced > Expert mode** in Manager and pick it before you patch.
 
 A patched Pinterest can't install over the stock app, because Android only accepts an update signed with the same key. Save anything local you need, uninstall stock Pinterest, then install the patched one. Your boards and pins come back when you sign in. Local settings and drafts don't.
@@ -120,7 +120,7 @@ Every patch but Spoof signature for Google sign-in is in Manager's default selec
   - Over your own patched copy, it fails when the new build was signed with a different key, usually after reinstalling Manager or moving to a new phone. Restore your old key under **Settings > System > Import & export > Signing key** in Manager and patch again, or uninstall the patched copy first (its settings go with it). Back that key up once and every later update installs over the top.
   - If Android says it isn't allowed to install unknown apps from this source, it's asking once for whichever app opened the APK. Tap **Settings** on that prompt and allow Morphe Manager, or the file manager you used.
   - For any other message, open an issue with the exact wording plus your phone model and Android version.
-- **Manager rejects the APK, or a patch fails.** Use Pinterest 14.41.0, version code 14418010, unmodified. Each patch finds its code by what it does in that build, and Pinterest renames almost everything between releases, so a patch that can't find its spot stops instead of patching the wrong place.
+- **Manager rejects the APK, or a patch fails.** Use Pinterest 14.40.0, version code 14408010, unmodified (14.41.0 once the next release is out). Each patch finds its code by what it does in that build, and Pinterest renames almost everything between releases, so a patch that can't find its spot stops instead of patching the wrong place.
 - **Google sign-in fails.** Use your email and a Pinterest password. See [Signing in](#signing-in).
 
 ### Reporting a problem
@@ -139,19 +139,20 @@ Shared pin links use `www.pinterest.com`. The About, Licenses and setup guide sc
 
 Disable analytics stops Pinterest's usage uploads, the AppsFlyer and Bugsnag transports and Google's Engage publishing, and turns off Firebase Analytics, Crashlytics and Performance collection in the manifest. Hide advertising ID gives Pinterest an empty ad ID with tracking limited. It doesn't touch the ad ID other apps see. Fix push notifications only swaps the certificate fingerprint in Firebase's own sign-up request and opens no connection itself.
 
-## Supported Pinterest build
+## Supported Pinterest builds
 
-| Field | Value |
-| --- | --- |
-| Package | `com.pinterest` |
-| Version | Pinterest 14.41.0 |
-| Version code | `14418010` |
-| APK | APKMirror's arm64-v8a split bundle (`.apkm`), which Manager merges |
-| Minimum Android version | Android 12L |
+| Field | v0.0.11 | Next release |
+| --- | --- | --- |
+| Package | `com.pinterest` | `com.pinterest` |
+| Version | Pinterest 14.40.0 | Pinterest 14.41.0 |
+| Version code | `14408010` | `14418010` |
+| APK | The universal APK (APKMirror's "nodpi" variant), or a split bundle Manager can merge | APKMirror's arm64-v8a split bundle (`.apkm`), which Manager merges |
+| Minimum Android version | Android 10 | Android 12L |
 
-SHA-256 of the stock file the patches were checked against, APKMirror's arm64-v8a bundle for Android 12L and newer:
+Each release patches its own build only, so v0.0.11 refuses 14.41.0. SHA-256 of the stock files the patches were checked against, the universal APK for v0.0.11 and APKMirror's arm64-v8a bundle for the next release:
 
 ```text
+14408010  1ddbd604d06f81489a5c628ba874a93b979eefcf1f1dcc263b2e0a2804518438
 14418010  2be1fe9b90434628ff5ec4e435e5dfcf2f30d1c74a90c7e24becbc7eee3b0ba5
 ```
 

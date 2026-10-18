@@ -98,6 +98,14 @@ switch ($Stage) {
             throw "gradle.properties already says $Version, but HEAD $head isn't its prepare commit. Put it back to the last release first."
         }
         if ([version]$Version -le [version]$current) { throw "$Version isn't newer than $current, the version in gradle.properties." }
+        # Between releases the README sends people on the published release to the build it patches
+        # and names the next release's build beside it. Cut with that split still in, the new release
+        # would ship a README pointing people at the old build, the one it refuses.
+        $readmePath = Join-Path $Root 'README.md'
+        if ((Test-Path -LiteralPath $readmePath) -and [IO.File]::ReadAllText($readmePath) -match '(?i)\bnext release\b') {
+            throw ("README.md still splits the published release's Pinterest build from the next release's. Rewrite its " +
+                "badges, install step, Help and Supported Pinterest builds for the one Pinterest build v$Version patches, then prepare again.")
+        }
         if (Get-ReleaseGitText -Root $Root -Arguments @('tag', '--list', $tag)) { throw "The tag $tag already exists here." }
         $global:LASTEXITCODE = 0
         $remoteTag = @(& git -C $Root ls-remote --tags origin "refs/tags/$tag")
