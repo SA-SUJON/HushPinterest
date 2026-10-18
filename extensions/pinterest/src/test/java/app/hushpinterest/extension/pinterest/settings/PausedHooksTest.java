@@ -300,6 +300,7 @@ public class PausedHooksTest {
                 () -> queuesWithDownloadPins(request -> !request.getAllowedOverMetered())));
         probes.put(Settings.DOWNLOAD_NO_ROAMING, Collections.singletonList(
                 () -> queuesWithDownloadPins(request -> !request.getAllowedOverRoaming())));
+        probes.put(Settings.COPY_IMAGE, Collections.singletonList(PausedHooksTest::offersCopyImage));
         probes.put(Settings.DOWNLOAD_BOARD, Collections.singletonList(() -> BoardDownloads.record(Collections.singletonList(BOARD_PIN))));
         probes.put(Settings.LONG_PRESS_DOWNLOAD, Collections.singletonList(PausedHooksTest::addsLongPressDownload));
         probes.put(Settings.EXTERNAL_BROWSER, Collections.singletonList(() -> withActivity(activity -> {
@@ -437,6 +438,29 @@ public class PausedHooksTest {
                 ShadowDownloadManager.ShadowRequest request = queuedDownload(activity);
                 return request != null && limited.apply(request);
             });
+        } finally {
+            if (!pins) Settings.DOWNLOAD_PINS.save(false);
+        }
+    }
+
+    /**
+     * Copy image rides on Download pins, so its probe turns that switch on for its own run. It answers
+     * whether the pin would get a Copy image row.
+     */
+    private static boolean offersCopyImage() {
+        boolean pins = Settings.DOWNLOAD_PINS.savedValue();
+        if (!pins) Settings.DOWNLOAD_PINS.save(true);
+        try {
+            Class<?> media = Class.forName("app.hushpinterest.extension.pinterest.actions.PinMedia");
+            Method resolve = media.getDeclaredMethod("resolve", Object.class);
+            resolve.setAccessible(true);
+            Object resolved = resolve.invoke(null, PIN);
+            Class<?> copy = Class.forName("app.hushpinterest.extension.pinterest.actions.CopyImage");
+            Method offered = copy.getDeclaredMethod("offered", resolved.getClass());
+            offered.setAccessible(true);
+            return (Boolean) offered.invoke(null, resolved);
+        } catch (ReflectiveOperationException failure) {
+            throw new AssertionError(failure);
         } finally {
             if (!pins) Settings.DOWNLOAD_PINS.save(false);
         }

@@ -199,6 +199,67 @@ public final class PinTransfer {
         });
     }
 
+    /** The file is bigger than the caller allows, by its Content-Length or by the bytes that arrived. */
+    static final class TooLarge extends IOException {
+        TooLarge(long limit) {
+            super("The media file is bigger than " + limit + " bytes");
+        }
+    }
+
+    /** What the media host answered a whole-file GET with. [written] is 0 unless the body was kept. */
+    static final class Fetched {
+        final int status;
+        /** The Content-Type header, or null. */
+        @Nullable final String type;
+        final long written;
+
+        Fetched(int status, @Nullable String type, long written) {
+            this.status = status;
+            this.type = type;
+            this.written = written;
+        }
+    }
+
+    /**
+     * One GET for the whole file at [source], written to [into] (Copy image). Like the other
+     * requests it follows no redirect and carries no cookie, and the one budget of [budgetMs]
+     * counts the connection, the headers and every byte of the body. The body is kept only for a
+     * 200 whose type [typeOk] accepts, and never past [maxBytes]: a longer Content-Length or a
+     * longer body throws {@link TooLarge}. A body that fails part way leaves no file behind.
+     */
+    static Fetched fetch(PinMedia.Source source, java.io.File into, long maxBytes, java.util.function.Predicate<String> typeOk,
+                         Connection factory, LongSupplier clock, long budgetMs) throws IOException {
+        URI uri = PinMedia.mediaUri(source.url);
+        if (uri == null) throw new IOException("Not a public Pinterest media URL");
+        long deadline = clock.getAsLong() + budgetMs;
+        return exchange(uri, factory, clock, deadline, 5000, true, false, (get, status) -> {
+            String type = get.getContentType();
+            if (status != HttpURLConnection.HTTP_OK || !typeOk.test(type)) return new Fetched(status, type, 0);
+            if (get.getContentLengthLong() > maxBytes) throw new TooLarge(maxBytes);
+            String encoding = get.getContentEncoding();
+            if (encoding != null && !encoding.trim().equalsIgnoreCase("identity")) {
+                throw new IOException("The media host encoded the file");
+            }
+            boolean kept = false;
+            try (InputStream body = get.getInputStream(); java.io.OutputStream out = new java.io.FileOutputStream(into)) {
+                byte[] buffer = new byte[16384];
+                long total = 0;
+                while (true) {
+                    if (clock.getAsLong() > deadline) throw new SocketTimeoutException("The media host sent the file too slowly");
+                    int read = body.read(buffer);
+                    if (read < 0) break;
+                    total += read;
+                    if (total > maxBytes) throw new TooLarge(maxBytes);
+                    out.write(buffer, 0, read);
+                }
+                kept = true;
+                return new Fetched(status, type, total);
+            } finally {
+                if (!kept && !into.delete() && into.exists()) into.deleteOnExit();
+            }
+        });
+    }
+
     /**
      * The pool only turns a request away when both workers exist, and one that has just answered may
      * not be back at the queue yet. A lookup asks up to four questions in a row, so without this wait
@@ -219,6 +280,12 @@ public final class PinTransfer {
     /** All three exchanges include opening, headers, reading and cleanup in one caller budget. */
     private static <T> T exchange(URI uri, Connection factory, LongSupplier clock, long deadline,
                                   int socketTimeout, boolean prefix, Answer<T> answer) throws IOException {
+        return exchange(uri, factory, clock, deadline, socketTimeout, prefix, prefix, answer);
+    }
+
+    /** [get] asks with GET instead of HEAD, and [ranged] limits that GET to the start of the file. */
+    private static <T> T exchange(URI uri, Connection factory, LongSupplier clock, long deadline,
+                                  int socketTimeout, boolean get, boolean ranged, Answer<T> answer) throws IOException {
         if (clock.getAsLong() >= deadline) throw new SocketTimeoutException("The media host took too long");
         CookieHandler cookies = CookieHandler.getDefault();
         AtomicReference<HttpURLConnection> opened = new AtomicReference<>();
@@ -235,13 +302,13 @@ public final class PinTransfer {
                 if (expired.get() || clock.getAsLong() >= deadline) {
                     throw new SocketTimeoutException("The media host took too long");
                 }
-                connection.setRequestMethod(prefix ? "GET" : "HEAD");
+                connection.setRequestMethod(get ? "GET" : "HEAD");
                 connection.setInstanceFollowRedirects(false);
                 connection.setUseCaches(false);
                 connection.setConnectTimeout(socketTimeout);
                 connection.setReadTimeout(socketTimeout);
                 connection.setRequestProperty("Accept-Encoding", "identity");
-                if (prefix) connection.setRequestProperty("Range", "bytes=0-" + (PREFIX_BYTES - 1));
+                if (ranged) connection.setRequestProperty("Range", "bytes=0-" + (PREFIX_BYTES - 1));
                 int status = connection.getResponseCode();
                 answered = NoCookies.setBy(connection.getHeaderFields());
                 if (expired.get() || clock.getAsLong() >= deadline) {

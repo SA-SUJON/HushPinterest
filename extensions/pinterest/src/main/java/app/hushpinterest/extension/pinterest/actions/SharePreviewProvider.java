@@ -43,7 +43,8 @@ import java.util.Locale;
  * itself for a thumbnail, and MediaStore answers none for a video there, so the sheet showed a
  * plain file icon. Nothing here is exported: an app reaches an address only through the read
  * grant a share hands it, and an address names one video entry this app saved, never a collection
- * or another app's file.
+ * or another app's file. A second path, {@code clip/}, serves the one picture Copy image keeps in
+ * its own cache folder, read-only and only by the names that feature gives its files.
  */
 public final class SharePreviewProvider extends ContentProvider {
     /** The first path segment, ahead of the MediaStore path it carries. */
@@ -84,6 +85,64 @@ public final class SharePreviewProvider extends ContentProvider {
         } catch (PackageManager.NameNotFoundException | RuntimeException missing) {
             return null;
         }
+    }
+
+    /** The first path segment of an address for a picture Copy image put on the clipboard. */
+    private static final String CLIP = "clip";
+
+    /** Whether this provider is declared in the app, so a Copy image address would answer. */
+    static boolean serves(Context context) {
+        return context != null && authority(context) != null;
+    }
+
+    /**
+     * The address of the cached picture called [name], or null when the name isn't one Copy image
+     * made or this provider isn't declared. The only thing under it is that folder.
+     */
+    static Uri clipUri(Context context, String name) {
+        if (context == null || CopiedImages.mime(name) == null) return null;
+        String authority = authority(context);
+        if (authority == null) return null;
+        return new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(authority).appendPath(CLIP).appendPath(name).build();
+    }
+
+    private static boolean isClip(Uri uri) {
+        List<String> path = uri.getPathSegments();
+        return !path.isEmpty() && CLIP.equals(path.get(0));
+    }
+
+    /** The cached picture [uri] names, or null for any other path, name or a picture already replaced. */
+    private File clipFile(Uri uri) {
+        List<String> path = uri.getPathSegments();
+        if (path.size() != 2 || !CLIP.equals(path.get(0))) return null;
+        return CopiedImages.file(getContext(), path.get(1));
+    }
+
+    private File requireClip(Uri uri) throws FileNotFoundException {
+        File picture = clipFile(uri);
+        if (picture == null) throw new FileNotFoundException("No copied image at " + uri);
+        return picture;
+    }
+
+    /** Name, size and type of a copied picture, for the apps that read them before pasting. */
+    private Cursor clipRow(Uri uri, String[] projection) {
+        File picture = clipFile(uri);
+        if (picture == null) return null;
+        List<String> columns = new ArrayList<>();
+        List<Object> values = new ArrayList<>();
+        for (String column : projection != null ? projection : new String[]{OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE}) {
+            Object value;
+            if (OpenableColumns.DISPLAY_NAME.equals(column)) value = picture.getName();
+            else if (OpenableColumns.SIZE.equals(column)) value = picture.length();
+            else if (MediaStore.MediaColumns.MIME_TYPE.equals(column)) value = CopiedImages.mime(picture.getName());
+            else continue;
+            if (columns.contains(column)) continue;
+            columns.add(column);
+            values.add(value);
+        }
+        MatrixCursor cursor = new MatrixCursor(columns.toArray(new String[0]), 1);
+        cursor.addRow(values.toArray());
+        return cursor;
     }
 
     private static boolean video(String mime) {
@@ -152,6 +211,10 @@ public final class SharePreviewProvider extends ContentProvider {
     }
 
     @Override public String getType(Uri uri) {
+        if (isClip(uri)) {
+            File picture = clipFile(uri);
+            return picture == null ? null : CopiedImages.mime(picture.getName());
+        }
         Uri file = target(uri);
         return file == null ? null : mediaType(file);
     }
@@ -165,6 +228,11 @@ public final class SharePreviewProvider extends ContentProvider {
     }
 
     @Override public String[] getStreamTypes(Uri uri, String filter) {
+        if (isClip(uri)) {
+            File picture = clipFile(uri);
+            String type = picture == null ? null : CopiedImages.mime(picture.getName());
+            return type != null && ClipDescription.compareMimeTypes(type, filter) ? new String[]{type} : null;
+        }
         Uri file = target(uri);
         if (file == null) return null;
         List<String> types = new ArrayList<>();
@@ -179,6 +247,7 @@ public final class SharePreviewProvider extends ContentProvider {
      * the share sheet reads. Columns it doesn't know are left out, as FileProvider does.
      */
     @Override public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+        if (isClip(uri)) return clipRow(uri, projection);
         Uri file = target(uri);
         if (file == null) return null;
         String name;
@@ -212,6 +281,7 @@ public final class SharePreviewProvider extends ContentProvider {
 
     @Override public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
         if (!"r".equals(mode)) throw new SecurityException("A shared video is read only");
+        if (isClip(uri)) return ParcelFileDescriptor.open(requireClip(uri), ParcelFileDescriptor.MODE_READ_ONLY);
         Uri file = require(uri);
         long caller = Binder.clearCallingIdentity();
         try {
@@ -228,6 +298,13 @@ public final class SharePreviewProvider extends ContentProvider {
      * ContentResolver.loadThumbnail asks, at the size it names.
      */
     @Override public AssetFileDescriptor openTypedAssetFile(Uri uri, String filter, Bundle opts) throws FileNotFoundException {
+        if (isClip(uri)) {
+            File picture = requireClip(uri);
+            if (!ClipDescription.compareMimeTypes(CopiedImages.mime(picture.getName()), filter)) {
+                throw new FileNotFoundException("No " + filter + " for " + uri);
+            }
+            return new AssetFileDescriptor(ParcelFileDescriptor.open(picture, ParcelFileDescriptor.MODE_READ_ONLY), 0, picture.length());
+        }
         Uri file = require(uri);
         String type = mediaType(file);
         if (type == null) throw new FileNotFoundException("No shared video at " + uri);

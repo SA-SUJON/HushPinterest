@@ -661,6 +661,76 @@ public class PinMenuTest {
         PinDownloads.nativeRow(null);
     }
 
+    // #11: Copy image sits right under Download pin, for an image pin only, only when its own switch is on.
+    @Test public void copyImageIsAnImageOnlyRowUnderDownloadPinThatStartsOffAndNeedsItsCapability() {
+        Map<String, Object> image = Map.of("id", "123", "images", Map.of("orig", Map.of(
+                "url", "https://i.pinimg.com/originals/source.png")));
+        Host stock = host(image);
+        PinDownloads.attach(stock);
+        assertNull("the switch starts off", stock.layout.findViewWithTag(PinDownloads.COPY_IMAGE_TAG));
+        int stockRows = stock.layout.getChildCount();
+        assertTrue(stockRows >= 1);
+
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS, PatchFamily.Capability.COPY_IMAGE));
+        Settings.COPY_IMAGE.save(true);
+        try {
+            Host on = host(image);
+            PinDownloads.attach(on);
+            PinDownloads.attach(on);
+            assertEquals(stockRows + 1, on.layout.getChildCount());
+            assertEquals("Download pin", ((TextView) on.layout.getChildAt(0)).getText());
+            assertEquals("Copy image", ((TextView) on.layout.getChildAt(1)).getText());
+            assertSame(on.layout.getChildAt(1), on.layout.findViewWithTag(PinDownloads.COPY_IMAGE_TAG));
+            assertEquals("Copy media link", ((TextView) on.layout.getChildAt(2)).getText());
+
+            Host video = host(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
+                    "large", Map.of("url", "https://v.pinimg.com/large.mp4", "width", 1920, "height", 1080)))));
+            PinDownloads.attach(video);
+            assertEquals("Download pin", ((TextView) video.layout.getChildAt(0)).getText());
+            assertNull("no picture to copy from a video", video.layout.findViewWithTag(PinDownloads.COPY_IMAGE_TAG));
+
+            PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+            Host paused = host(image);
+            PinDownloads.attach(paused);
+            assertEquals("a paused app keeps the stock menu", 0, paused.layout.getChildCount());
+            PauseForTests.resume();
+
+            PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS));
+            Host unpatched = host(image);
+            PinDownloads.attach(unpatched);
+            assertNull(unpatched.layout.findViewWithTag(PinDownloads.COPY_IMAGE_TAG));
+            assertEquals(stockRows, unpatched.layout.getChildCount());
+
+            // Download pins off: no rows at all, so none for Copy image either.
+            PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS, PatchFamily.Capability.COPY_IMAGE));
+            Settings.DOWNLOAD_PINS.save(false);
+            Host downloadsOff = host(image);
+            PinDownloads.attach(downloadsOff);
+            assertEquals(0, downloadsOff.layout.getChildCount());
+        } finally {
+            Settings.COPY_IMAGE.save(false);
+        }
+    }
+
+    @Test public void copyImageAlsoSitsUnderDownloadPinInTheOverflowSheetAndTellsTheTruthWhenItCantStart() {
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS, PatchFamily.Capability.COPY_IMAGE));
+        Settings.COPY_IMAGE.save(true);
+        try {
+            Host sheet = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
+                    "url", "https://i.pinimg.com/originals/source.png"))));
+            PinDownloads.attachSheet(sheet);
+            assertEquals("Download pin", ((TextView) sheet.layout.getChildAt(0)).getText());
+            assertEquals("Copy image", ((TextView) sheet.layout.getChildAt(1)).getText());
+            // This test app declares no share provider, so the clip can't be served: say so, change nothing.
+            ShadowToast.reset();
+            assertTrue(sheet.layout.findViewWithTag(PinDownloads.COPY_IMAGE_TAG).performClick());
+            assertEquals("Couldn't copy the image. Check your connection and try again.", ShadowToast.getTextOfLatestToast());
+            assertEquals("a copy that never started leaves the menu open", 0, sheet.sheetDismissed);
+        } finally {
+            Settings.COPY_IMAGE.save(false);
+        }
+    }
+
     // #2: the full-screen overflow sheet opens with header rows of its own and closes through its presenter.
     @Test public void theOverflowSheetGetsTheRowsWhereItsOwnDownloadRowWasAndClosesItself() throws Exception {
         Host sheet = host(Map.of("id", "123", "images", Map.of("orig", Map.of(

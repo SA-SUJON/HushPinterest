@@ -607,3 +607,13 @@ none	keine
 Pinterest's own AI setting	Pinterests eigene KI-Einstellung
 Pinterest can show you fewer AI pins among the ones it picks for you. It works alongside the switches above, and neither one catches every AI pin. Tap to open it.	Pinterest kann dir unter den Pins, die es für dich auswählt, weniger KI-Pins zeigen. Das wirkt zusammen mit den Schaltern oben, und keins von beiden erwischt jeden KI-Pin. Zum Öffnen tippen.
 Pinterest couldn't open that page.	Pinterest konnte diese Seite nicht öffnen.
+# context: Copy image, a row in the pin menu that puts the pin's full-size picture on the clipboard (#11)
+Copy image	Bild kopieren
+Adds Copy image to the pin menu. It puts the full-size picture on the clipboard, ready to paste into other apps. Needs Download pins on. Videos don't get the row.	Fügt Bild kopieren zum Pin-Menü hinzu. Legt das Bild in voller Größe in die Zwischenablage, bereit zum Einfügen in andere Apps. Pins herunterladen muss an sein. Videos bekommen die Zeile nicht.
+Pin image	Pin-Bild
+Image copied.	Bild kopiert.
+That image is too big to copy.	Das Bild ist zu groß zum Kopieren.
+Pinterest didn't send a usable image.	Pinterest hat kein brauchbares Bild geschickt.
+Copying the image took too long. Try again.	Das Kopieren des Bilds dauerte zu lange. Versuch es erneut.
+Still copying the last image.	Das letzte Bild wird noch kopiert.
+Couldn't copy the image. Check your connection and try again.	Bild nicht kopiert. Prüfe deine Verbindung und versuch es erneut.

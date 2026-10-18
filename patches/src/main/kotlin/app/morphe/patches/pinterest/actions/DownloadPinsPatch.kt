@@ -103,7 +103,8 @@ val downloadPinsPatch = bytecodePatch(
         "Download image row is hidden. Downloads go to the Download folder. Turn on " +
         "Save in Pinterest's folder to keep them in Pictures/100PINT/Pins with Pinterest's own saves, or use Pick a " +
         "download folder to choose any folder inside Pictures, DCIM, Download or Documents. Starts off. " +
-        "Turn it on in HushPinterest settings > Pin actions.",
+        "Copy image, its own switch (also off), puts an image pin's full-size picture on the clipboard. " +
+        "Turn them on in HushPinterest settings > Pin actions.",
 ) {
     category("Downloads")
     dependsOn(settingsPatch, pinterestExtensionPatch, sharePreviewProviderPatch)
@@ -111,6 +112,7 @@ val downloadPinsPatch = bytecodePatch(
     execute {
         requireStatusMethod("downloadPins")
         requireStatusMethod("pinDownloads")
+        requireStatusMethod("copyImage")
         val menu = pinMenu()
         val pin = pinType()
         val viewField = menu.fields.singleOrNull { it.name == "modalView" }
@@ -288,6 +290,8 @@ val downloadPinsPatch = bytecodePatch(
         create.addInstructions(assignment + 1, "invoke-static/range { p0 .. p0 }, $DOWNLOADS->attach(Ljava/lang/Object;)V")
         sheet?.let { installSheet(it) }
         enableCapability("pinDownloads")
+        // Copy image is the extension's own row in the menu Download pins hooks, so it comes in with that hook.
+        enableCapability("copyImage")
         enableStatus("downloadPins")
     }
 }

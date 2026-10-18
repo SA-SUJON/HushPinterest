@@ -607,3 +607,13 @@ none	tidak ada
 Pinterest's own AI setting	Pengaturan AI milik Pinterest
 Pinterest can show you fewer AI pins among the ones it picks for you. It works alongside the switches above, and neither one catches every AI pin. Tap to open it.	Pinterest bisa menampilkan lebih sedikit pin AI di antara pin yang dipilihkannya untuk Anda. Ini bekerja bersama sakelar di atas, dan keduanya tidak menangkap semua pin AI. Ketuk untuk membukanya.
 Pinterest couldn't open that page.	Pinterest tidak bisa membuka halaman itu.
+# context: Copy image, a row in the pin menu that puts the pin's full-size picture on the clipboard (#11)
+Copy image	Salin gambar
+Adds Copy image to the pin menu. It puts the full-size picture on the clipboard, ready to paste into other apps. Needs Download pins on. Videos don't get the row.	Menambahkan Salin gambar ke menu pin. Menaruh gambar ukuran penuh di papan klip, siap ditempel ke aplikasi lain. Unduh Pin harus aktif. Video tidak mendapat barisnya.
+Pin image	Gambar pin
+Image copied.	Gambar disalin.
+That image is too big to copy.	Gambar itu terlalu besar untuk disalin.
+Pinterest didn't send a usable image.	Pinterest tidak mengirim gambar yang bisa dipakai.
+Copying the image took too long. Try again.	Menyalin gambar terlalu lama. Coba lagi.
+Still copying the last image.	Gambar terakhir masih disalin.
+Couldn't copy the image. Check your connection and try again.	Tidak bisa menyalin gambar. Periksa koneksi lalu coba lagi.

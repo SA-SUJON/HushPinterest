@@ -98,6 +98,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_download_unmetered_only", FALSE);
     public static final BooleanSetting DOWNLOAD_NO_ROAMING =
             new BooleanSetting("hushpinterest_download_no_roaming", FALSE);
+    /** Download pins' Copy image row in the pin menu. Starts off, and needs Download pins on. */
+    public static final BooleanSetting COPY_IMAGE =
+            new BooleanSetting("hushpinterest_copy_image", FALSE);
     public static final BooleanSetting DOWNLOAD_BOARD =
             new BooleanSetting("hushpinterest_download_board", FALSE);
     public static final BooleanSetting LONG_PRESS_DOWNLOAD =

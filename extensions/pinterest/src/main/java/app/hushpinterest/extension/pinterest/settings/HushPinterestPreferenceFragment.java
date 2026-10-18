@@ -370,6 +370,13 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                             + "Queued downloads keep their original rule.")),
                         SettingsIcons.DOWNLOADS));
                 actions.addPreference(mark(new DownloadHistoryPreference(context), SettingsIcons.DOWNLOADS));
+                // Its own hook is the pin menu row Download pins already adds, so it shows wherever that is installed.
+                if (PatchFamily.Capability.COPY_IMAGE.installed()) {
+                    actions.addPreference(mark(toggle(context, Settings.COPY_IMAGE, L10n.t("Copy image"),
+                            L10n.t("Adds Copy image to the pin menu. It puts the full-size picture on the clipboard, "
+                                + "ready to paste into other apps. Needs Download pins on. Videos don't get the row.")),
+                            SettingsIcons.DOWNLOADS));
+                }
             }
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_BOARD, Settings.DOWNLOAD_BOARD,
                     L10n.t("Download board"), L10n.t("Downloads up to 500 loaded pins, skipping those in Download history. "

@@ -47,6 +47,7 @@ public final class PinDownloads {
     static final String ROW_TAG = "hushpinterest_download_pin";
     private static final String DETAILS_TAG = "hushpinterest_pin_media_details";
     static final String COPY_TAG = "hushpinterest_copy_media_link";
+    static final String COPY_IMAGE_TAG = "hushpinterest_copy_image";
 
     /** Pinterest's own Download image rows, marked as the native menu builds them. Weak, so closed menus go. */
     private static final Map<View, Boolean> nativeDownloads = Collections.synchronizedMap(new WeakHashMap<>());
@@ -188,6 +189,32 @@ public final class PinDownloads {
                         }
                     });
                     layout.addView(copy, at + 1);
+                }
+                // Right under Download pin. A video has no picture to copy, and the switch starts off.
+                if (CopyImage.offered(media)) {
+                    String imageTitle = L10n.t("Copy image");
+                    View image = row(controller, sheet, layout, imageTitle);
+                    if (image != null) {
+                        image.setTag(COPY_IMAGE_TAG);
+                        image.setFocusable(true);
+                        image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+                        image.setContentDescription(imageTitle);
+                        // The menu takes a moment to close, and a second tap in that time would start a second copy.
+                        AtomicBoolean copying = new AtomicBoolean();
+                        image.setOnClickListener(ignored -> {
+                            if (!CopyImage.active() || copying.get()) return;
+                            try {
+                                if (CopyImage.start(pin, layout.getContext())) {
+                                    copying.set(true);
+                                    dismiss(controller, sheet);
+                                }
+                            } catch (Throwable failure) {
+                                HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "dismiss copy image menu", failure);
+                            }
+                        });
+                        layout.addView(image, at + 1);
+                        HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "copy image row added to pin menu");
+                    }
                 }
             }
             HookStatus.counted(FamilyNames.DOWNLOAD_PINS, supported ? "download row added to pin menu" : "download explanation added to pin menu");

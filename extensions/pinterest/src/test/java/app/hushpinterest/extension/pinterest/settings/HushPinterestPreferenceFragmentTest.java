@@ -424,6 +424,34 @@ public class HushPinterestPreferenceFragmentTest {
         }
     }
 
+    /**
+     * Copy image has its own switch under the download rows, starts off, and shows only where the
+     * pin menu row went in.
+     */
+    @Test
+    public void copyImageShowsAfterDownloadHistoryOnlyWhereItsHookWentIn() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Set<PatchFamily.Capability> withoutIt = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutIt.remove(PatchFamily.Capability.COPY_IMAGE);
+        PatchFamily.capabilitiesForTests = withoutIt;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            assertNull(page.findPreference(Settings.COPY_IMAGE.key));
+            assertNotNull(page.findPreference(Settings.DOWNLOAD_PINS.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            SwitchPreference row = (SwitchPreference) page.findPreference(Settings.COPY_IMAGE.key);
+            assertNotNull(row);
+            assertEquals("Copy image", String.valueOf(row.getTitle()));
+            assertFalse("Copy image starts off", row.isChecked());
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            assertEquals(indexOfKey(rows, "action_download_history") + 1, indexOfKey(rows, Settings.COPY_IMAGE.key));
+        }
+    }
+
     /** Black comments and Black pin menu each have their own hook, so each row shows only where its hook went in, under Black bottom bar. */
     @Test
     public void theBlackSheetRowsShowOnlyWhereTheirHooksWentIn() {
