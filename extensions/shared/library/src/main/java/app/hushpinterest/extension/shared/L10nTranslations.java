@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(1022);
+        Map<String, String> table = new HashMap<>(1024);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -952,6 +952,8 @@ public final class L10nTranslations {
                 "Diese Datei enth\u00e4lt eine Einstellung doppelt. Es wurde nichts ge\u00e4ndert.");
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Das ist keine HushPinterest-Einstellungsdatei. Es wurde nichts ge\u00e4ndert.");
+        table.put("The app with the last pin list hasn't answered. Try later.",
+                "Die App mit der letzten Pin-Liste antwortet nicht. Versuch es sp\u00e4ter.");
         table.put("The app with the last settings file hasn't answered. Try later.",
                 "Die App mit der letzten Einstellungsdatei antwortet nicht. Versuch es sp\u00e4ter.");
         table.put("The diagnostic report couldn't be saved yet. Try again soon.",
@@ -1040,11 +1042,11 @@ public final class L10nTranslations {
                 "Nicht unterst\u00fctztes Bild");
         table.put("Unsupported video",
                 "Nicht unterst\u00fctztes Video");
-        table.put("Unsupported: %d",
-                "Nicht unterst\u00fctzt: %d");
     }
 
     private static void fillDe8(Map<String, String> table) {
+        table.put("Unsupported: %d",
+                "Nicht unterst\u00fctzt: %d");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
                 "Bis zum Fortsetzen verh\u00e4lt sich jeder Schalter au\u00dfer der Debug-Protokollierung, als w\u00e4re er aus. Was beim Patchen festgelegt wurde, bleibt aktiv.");
         table.put("Update instructions",
@@ -1110,7 +1112,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(1022);
+        Map<String, String> table = new HashMap<>(1024);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -2015,6 +2017,8 @@ public final class L10nTranslations {
                 "Ese archivo repite un ajuste. No se cambi\u00f3 nada.");
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Eso no es un archivo de configuraci\u00f3n de HushPinterest. No se cambi\u00f3 nada.");
+        table.put("The app with the last pin list hasn't answered. Try later.",
+                "La app de la \u00faltima lista de pines no responde. Int\u00e9ntalo luego.");
         table.put("The app with the last settings file hasn't answered. Try later.",
                 "La app del \u00faltimo archivo de configuraci\u00f3n no responde. Int\u00e9ntalo luego.");
         table.put("The diagnostic report couldn't be saved yet. Try again soon.",
@@ -2103,11 +2107,11 @@ public final class L10nTranslations {
                 "Imagen no compatible");
         table.put("Unsupported video",
                 "Video no compatible");
-        table.put("Unsupported: %d",
-                "No compatibles: %d");
     }
 
     private static void fillEs8(Map<String, String> table) {
+        table.put("Unsupported: %d",
+                "No compatibles: %d");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
                 "Hasta que reanudes, todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados. Lo que se aplic\u00f3 al parchear se mantiene.");
         table.put("Update instructions",
@@ -2173,7 +2177,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(1022);
+        Map<String, String> table = new HashMap<>(1024);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -3078,6 +3082,8 @@ public final class L10nTranslations {
                 "File itu mencantumkan satu pengaturan dua kali. Tidak ada yang diubah.");
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Itu bukan file pengaturan HushPinterest. Tidak ada yang diubah.");
+        table.put("The app with the last pin list hasn't answered. Try later.",
+                "Aplikasi daftar Pin terakhir belum merespons. Coba lagi nanti.");
         table.put("The app with the last settings file hasn't answered. Try later.",
                 "Aplikasi file pengaturan terakhir belum merespons. Coba lagi nanti.");
         table.put("The diagnostic report couldn't be saved yet. Try again soon.",
@@ -3166,11 +3172,11 @@ public final class L10nTranslations {
                 "Gambar tidak didukung");
         table.put("Unsupported video",
                 "Video tidak didukung");
-        table.put("Unsupported: %d",
-                "Tidak didukung: %d");
     }
 
     private static void fillIn8(Map<String, String> table) {
+        table.put("Unsupported: %d",
+                "Tidak didukung: %d");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
                 "Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.");
         table.put("Update instructions",
@@ -3236,7 +3242,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(1022);
+        Map<String, String> table = new HashMap<>(1024);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -4141,6 +4147,8 @@ public final class L10nTranslations {
                 "Esse arquivo repete uma configura\u00e7\u00e3o. Nada foi alterado.");
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Isso n\u00e3o \u00e9 um arquivo de configura\u00e7\u00f5es do HushPinterest. Nada foi alterado.");
+        table.put("The app with the last pin list hasn't answered. Try later.",
+                "O app da \u00faltima lista de Pins n\u00e3o respondeu. Tente depois.");
         table.put("The app with the last settings file hasn't answered. Try later.",
                 "O app do \u00faltimo arquivo de configura\u00e7\u00f5es n\u00e3o respondeu. Tente depois.");
         table.put("The diagnostic report couldn't be saved yet. Try again soon.",
@@ -4229,11 +4237,11 @@ public final class L10nTranslations {
                 "Imagem n\u00e3o compat\u00edvel");
         table.put("Unsupported video",
                 "V\u00eddeo n\u00e3o compat\u00edvel");
-        table.put("Unsupported: %d",
-                "N\u00e3o compat\u00edveis: %d");
     }
 
     private static void fillPt_rBR8(Map<String, String> table) {
+        table.put("Unsupported: %d",
+                "N\u00e3o compat\u00edveis: %d");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
                 "At\u00e9 voc\u00ea retomar, todas as op\u00e7\u00f5es, menos o Registro de depura\u00e7\u00e3o, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo.");
         table.put("Update instructions",
@@ -4299,7 +4307,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(1022);
+        Map<String, String> table = new HashMap<>(1024);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -5204,6 +5212,8 @@ public final class L10nTranslations {
                 "Bu dosyada bir ayar iki kez ge\u00e7iyor. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("That isn't a HushPinterest settings file. Nothing was changed.",
                 "Bu bir HushPinterest ayar dosyas\u0131 de\u011fil. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
+        table.put("The app with the last pin list hasn't answered. Try later.",
+                "Son pin listesini tutan uygulama h\u00e2l\u00e2 yan\u0131t vermedi. Daha sonra tekrar dene.");
         table.put("The app with the last settings file hasn't answered. Try later.",
                 "Son ayar dosyas\u0131n\u0131 tutan uygulama h\u00e2l\u00e2 yan\u0131t vermedi. Daha sonra tekrar dene.");
         table.put("The diagnostic report couldn't be saved yet. Try again soon.",
@@ -5292,11 +5302,11 @@ public final class L10nTranslations {
                 "Desteklenmeyen g\u00f6rsel");
         table.put("Unsupported video",
                 "Desteklenmeyen video");
-        table.put("Unsupported: %d",
-                "Desteklenmeyen: %d");
     }
 
     private static void fillTr8(Map<String, String> table) {
+        table.put("Unsupported: %d",
+                "Desteklenmeyen: %d");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
                 "Devam ettirene kadar Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r. Yamalad\u0131\u011f\u0131nda ayarlananlar devrede kal\u0131r.");
         table.put("Update instructions",

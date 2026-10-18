@@ -553,3 +553,4 @@ English	Bahasa Inggris
 %1$d changed. %2$d setting didn't. Reopen settings and try again.	%1$d diubah, %2$d pengaturan tidak. Buka kembali pengaturan lalu coba lagi.
 # context: the same toast when any other number of switches didn't change
 %1$d changed. %2$d settings didn't. Reopen settings and try again.	%1$d diubah, %2$d pengaturan tidak. Buka kembali pengaturan lalu coba lagi.
+The app with the last pin list hasn't answered. Try later.	Aplikasi daftar Pin terakhir belum merespons. Coba lagi nanti.

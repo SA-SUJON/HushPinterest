@@ -33,6 +33,7 @@ import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowToast;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +44,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
@@ -51,6 +54,7 @@ import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.SettingsContextRule;
 import app.hushpinterest.extension.shared.Utils;
+import app.hushpinterest.extension.shared.settings.HushPinterestPause;
 import app.hushpinterest.extension.shared.settings.PauseForTests;
 
 @RunWith(RobolectricTestRunner.class)
@@ -80,7 +84,9 @@ public class PinManifestTest {
         Field running = GridDownloads.class.getDeclaredField("RUNNING");
         running.setAccessible(true);
         ((AtomicBoolean) running.get(null)).set(false);
+        if (PinListProvider.stall != null) PinListProvider.stall.countDown();
         settle();
+        assertFalse("the file's app was asked on the main thread", PinListProvider.askedOnMain);
         pending().set(null);
         Settings.DOWNLOAD_PINS.save(false);
         PatchFamilyForTests.capabilities(null);
@@ -116,8 +122,15 @@ public class PinManifestTest {
     private static void settle() throws Exception {
         for (int i = 0; i < 10; i++) {
             Utils.awaitBackgroundTasksForTests();
+            PinManifest.awaitFileWorkForTests();
             shadowOf(Looper.getMainLooper()).idle();
         }
+    }
+
+    /** Hands [file] to the picker's answer and runs the main thread, without waiting on the file's app. */
+    private void pickWithoutWaiting(ShadowActivity.IntentForResult started, Uri file) {
+        shadowOf(activity).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(file));
+        shadowOf(Looper.getMainLooper()).idle();
     }
 
     private static Set<String> keys(JSONObject object) {
@@ -494,6 +507,161 @@ public class PinManifestTest {
         assertEquals("Resume HushPinterest and turn on Download pins to use this.", ShadowToast.getTextOfLatestToast());
         assertNull("the picker's empty file is gone", PinListProvider.get(file));
         assertNull(pending().get());
+    }
+
+    /**
+     * The file's app stops answering at each step a save takes. The wait gives up on it within
+     * the budget, the next list is turned away while it holds the worker, its late answer says
+     * and removes nothing, and once it lets go the next list saves as usual.
+     */
+    @Test public void aFileAppThatStopsAnsweringIsGivenUpOnWithinTheWait() throws Exception {
+        for (String step : List.of("query", "write", "read", "close", "delete", "lost")) {
+            PinListProvider.install();
+            PinListProvider.refusesWrite = step.equals("delete");
+            // A process that lost its list still cleans the picked file up, and that can stall too.
+            PinListProvider.stalls = Set.of(step.equals("lost") ? "query" : step);
+            CountDownLatch release = new CountDownLatch(1);
+            PinListProvider.stall = release;
+            Uri file = PinListProvider.put(step + ".json", new byte[0]);
+            String late = step.equals("lost")
+                    ? "File left alone. If it's empty, delete it in your files app."
+                    : "The file's app is too slow. Check the file before you use it.";
+            try {
+                ShadowActivity.IntentForResult started = exportOne();
+                if (step.equals("lost")) pending().set(null);
+                ShadowToast.reset();
+                pickWithoutWaiting(started, file);
+                assertTrue(step + " never reached the app", PinListProvider.holding.tryAcquire(5, TimeUnit.SECONDS));
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(PinManifest.timeoutMs - 1));
+                assertEquals(step, 0, ShadowToast.shownToastCount());
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1));
+                assertEquals(step, late, ShadowToast.getTextOfLatestToast());
+                // A close and a delete carry no cancel signal.
+                if (!step.equals("delete") && !step.equals("close")) assertEquals(step, 1, PinListProvider.cancels.get());
+
+                assertFalse(step, PinManifest.export(activity, PinManifest.entries(List.of(pin("102", null, null))), false));
+                assertNull(step + " opened a picker", shadowOf(activity).getNextStartedActivityForResult());
+                assertEquals("The app with the last pin list hasn't answered. Try later.", ShadowToast.getTextOfLatestToast());
+            } finally {
+                release.countDown();
+            }
+            int said = ShadowToast.shownToastCount();
+            settle();
+            assertEquals(step + ": the late answer said something", said, ShadowToast.shownToastCount());
+            // A delete already asked for may finish: the file was the picker's own empty one.
+            if (!step.equals("delete")) assertNotNull(step + ": a file given up on was removed", PinListProvider.get(file));
+            assertFalse(step, PinListProvider.askedOnMain);
+        }
+        PinListProvider.install();
+        Uri file = PinListProvider.put("after.json", null);
+        answer(exportOne(), file);
+        assertEquals("Saved a list of one pin.", ShadowToast.getTextOfLatestToast());
+    }
+
+    /** With the shared workers all taken and HushPinterest paused, the picked file is still cleaned up off the main thread. */
+    @Test public void aPickerAnsweredWhileTheSharedWorkersAreFullNeverAsksOnTheMainThread() throws Exception {
+        ShadowActivity.IntentForResult started = exportOne();
+        Uri file = PinListProvider.put("paused.json", new byte[0]);
+        CountDownLatch release = new CountDownLatch(1);
+        try {
+            int parked = 0;
+            while (parked < 100 && Utils.runOnBackgroundThread(() -> {
+                try {
+                    release.await(10, TimeUnit.SECONDS);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            })) parked++;
+            assertTrue("the shared workers never filled", parked < 100);
+            PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+            pickWithoutWaiting(started, file);
+            PinManifest.awaitFileWorkForTests();
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("Resume HushPinterest and turn on Download pins to use this.", ShadowToast.getTextOfLatestToast());
+            assertNull("the picker's empty file is gone", PinListProvider.get(file));
+        } finally {
+            release.countDown();
+            // The parked tasks take a moment to leave, and settle() can't queue its own wait until they do.
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+            while (!Utils.runOnBackgroundThread(() -> { }) && System.nanoTime() < deadline) Thread.sleep(5);
+        }
+        settle();
+        assertFalse(PinListProvider.askedOnMain);
+    }
+
+    /** When the open picker said it opened, on the clock the code reads. */
+    private long openedAt() {
+        android.app.Fragment picker = activity.getFragmentManager().findFragmentByTag(PICKER);
+        assertNotNull("no picker fragment", picker);
+        return picker.getArguments().getLong("opened");
+    }
+
+    /**
+     * An empty file that was there before the picker opened was picked to write over, so it's the
+     * user's own: a list that isn't written leaves it, and so does one whose file's app won't say
+     * when it changed. Only an empty file changed since the picker opened is the picker's to remove.
+     */
+    @Test public void anEmptyFileAlreadyThereIsNeverRemoved() throws Exception {
+        // The test clock starts near zero, too early for a time before the slack to be told from one not given.
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(3 * PinManifest.CLOCK_SLACK_MS));
+        for (String route : List.of("write fails", "paused", "time unknown")) {
+            PinListProvider.install();
+            PauseForTests.resume();
+            Uri file = PinListProvider.put("old.json", new byte[0]);
+            ShadowActivity.IntentForResult started = exportOne();
+            assertTrue("the clock never moved", openedAt() > 2 * PinManifest.CLOCK_SLACK_MS);
+            if (route.equals("time unknown")) PinListProvider.hidesModified = true;
+            else PinListProvider.modified.put("old.json", openedAt() - PinManifest.CLOCK_SLACK_MS - 1);
+            if (route.equals("paused")) PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+            else PinListProvider.refusesWrite = true;
+            ShadowToast.reset();
+            answer(started, file);
+            assertEquals(route, "File left alone. If it's empty, delete it in your files app.", ShadowToast.getTextOfLatestToast());
+            assertEquals(route, 2, ShadowToast.shownToastCount());
+            assertNotNull(route + ": the user's own file was removed", PinListProvider.get(file));
+        }
+        PauseForTests.resume();
+        PinListProvider.install();
+        Uri file = PinListProvider.put("new.json", new byte[0]);
+        ShadowActivity.IntentForResult started = exportOne();
+        PinListProvider.modified.put("new.json", openedAt() - PinManifest.CLOCK_SLACK_MS + 1);
+        PinListProvider.refusesWrite = true;
+        answer(started, file);
+        assertEquals("Couldn't save the pin list. Try again.", ShadowToast.getTextOfLatestToast());
+        assertNull("the picker's own empty file stayed", PinListProvider.get(file));
+    }
+
+    /**
+     * A picker answered while another file's app holds the worker is turned away at once: nothing
+     * reaches its file's app, its file stays, and that's said. No new picker opens meanwhile.
+     */
+    @Test public void aPickerAnsweredWhileTheWorkerIsHeldIsTurnedAwayAtOnce() throws Exception {
+        Uri first = PinListProvider.put("first.json", new byte[0]);
+        Uri second = PinListProvider.put("second.json", new byte[0]);
+        CountDownLatch release = new CountDownLatch(1);
+        PinListProvider.stalls = Set.of("query");
+        PinListProvider.stall = release;
+        try {
+            exportOne();
+            android.app.Fragment replaced = activity.getFragmentManager().findFragmentByTag(PICKER);
+            ShadowActivity.IntentForResult started = exportOne();
+            // The first picker's answer comes back late, for a list the second replaced.
+            replaced.onActivityResult(PinManifest.REQUEST, Activity.RESULT_OK, new Intent().setData(first));
+            assertTrue("the first file never reached its app", PinListProvider.holding.tryAcquire(5, TimeUnit.SECONDS));
+            ShadowToast.reset();
+            pickWithoutWaiting(started, second);
+            assertEquals(2, ShadowToast.shownToastCount());
+            assertEquals("File left alone. If it's empty, delete it in your files app.", ShadowToast.getTextOfLatestToast());
+            assertEquals("only the first file's app was asked", 0, PinListProvider.holding.availablePermits());
+            assertFalse(PinManifest.export(activity, PinManifest.entries(List.of(pin("102", null, null))), false));
+            assertNull("a picker opened", shadowOf(activity).getNextStartedActivityForResult());
+            assertEquals("The app with the last pin list hasn't answered. Try later.", ShadowToast.getTextOfLatestToast());
+        } finally {
+            release.countDown();
+        }
+        settle();
+        assertNotNull("the turned-away file was removed", PinListProvider.get(second));
+        assertNull("the first picker's own empty file stayed", PinListProvider.get(first));
     }
 
     @Test public void withNoFilePickerTheListIsDroppedAndThatIsSaid() throws Exception {

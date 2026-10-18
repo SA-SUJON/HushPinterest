@@ -553,3 +553,4 @@ English	İngilizce
 %1$d changed. %2$d setting didn't. Reopen settings and try again.	%1$d ayar değişti, %2$d ayar değişmedi. Ayarları yeniden açıp tekrar dene.
 # context: the same toast when any other number of switches didn't change
 %1$d changed. %2$d settings didn't. Reopen settings and try again.	%1$d ayar değişti, %2$d ayar değişmedi. Ayarları yeniden açıp tekrar dene.
+The app with the last pin list hasn't answered. Try later.	Son pin listesini tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.

@@ -550,3 +550,4 @@ English	Inglês
 %1$d changed. %2$d setting didn't. Reopen settings and try again.	Alteradas: %1$d. Sem mudar: %2$d. Reabra as configurações e tente de novo.
 # context: the same toast when any other number of switches didn't change
 %1$d changed. %2$d settings didn't. Reopen settings and try again.	Alteradas: %1$d. Sem mudar: %2$d. Reabra as configurações e tente de novo.
+The app with the last pin list hasn't answered. Try later.	O app da última lista de Pins não respondeu. Tente depois.

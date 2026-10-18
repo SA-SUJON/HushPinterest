@@ -445,6 +445,7 @@ public class BoardDownloadsTest {
         assertEquals(Intent.ACTION_CREATE_DOCUMENT, started.intent.getAction());
         Uri file = PinListProvider.put("board.json", null);
         Shadows.shadowOf(activity).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(file));
+        PinManifest.awaitFileWorkForTests();
         settle();
         assertEquals("Saved a list of 2 pins.", ShadowToast.getTextOfLatestToast());
         JSONObject list = new JSONObject(new String(PinListProvider.get(file), StandardCharsets.UTF_8));

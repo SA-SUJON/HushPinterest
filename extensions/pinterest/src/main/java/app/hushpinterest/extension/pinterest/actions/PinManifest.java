@@ -14,13 +14,17 @@ import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CancellationSignal;
+import android.os.OperationCanceledException;
 import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +38,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -75,6 +84,8 @@ public final class PinManifest {
     static final String FORMAT = "hushpinterest-pin-list";
     private static final String TAG = "hushpinterest-pin-list";
     private static final String TOKEN = "token";
+    /** When the picker opened, by the wall clock a document app stamps files with. Kept with the fragment, so it outlives the process. */
+    private static final String OPENED = "opened";
 
     /** How a pin's source link went into the list. */
     enum LinkStatus {
@@ -307,6 +318,7 @@ public final class PinManifest {
      */
     static boolean export(Activity activity, List<Entry> entries, boolean board, Format format) {
         if (activity == null || activity.isFinishing() || activity.isDestroyed() || entries.isEmpty()) return false;
+        if (stillStalled()) return false;
         Picker picker = null;
         try {
             long now = System.currentTimeMillis();
@@ -319,6 +331,7 @@ public final class PinManifest {
             picker = new Picker();
             Bundle arguments = new Bundle();
             arguments.putString(TOKEN, token);
+            arguments.putLong(OPENED, now);
             picker.setArguments(arguments);
             android.app.FragmentTransaction change = fragments.beginTransaction();
             if (old != null) change.remove(old);
@@ -364,6 +377,7 @@ public final class PinManifest {
             if (request != REQUEST) return;
             Bundle arguments = getArguments();
             String token = arguments == null ? null : arguments.getString(TOKEN);
+            long opened = arguments == null ? -1 : arguments.getLong(OPENED, -1);
             Pending pending = PENDING.get();
             if (pending != null && pending.token.equals(token)) PENDING.compareAndSet(pending, null);
             else pending = null;
@@ -373,77 +387,257 @@ public final class PinManifest {
             Uri uri = result == Activity.RESULT_OK && data != null ? data.getData() : null;
             if (uri == null) return; // Cancelled: nothing written and nothing to say.
             if (pending == null || app == null) {
-                discardThenSay(app, uri, L10n.t("HushPinterest closed with the picker open. Pick and save again."));
+                discardThenSay(app, uri, opened, L10n.t("HushPinterest closed with the picker open. Pick and save again."));
                 return;
             }
             if (!PinDownloads.active()) {
-                discardThenSay(app, uri, L10n.t("Resume HushPinterest and turn on Download pins to use this."));
+                discardThenSay(app, uri, opened, L10n.t("Resume HushPinterest and turn on Download pins to use this."));
                 return;
             }
             Pending list = pending;
-            boolean started = Utils.runOnBackgroundThread(() -> {
-                ContentResolver resolver = app.getContentResolver();
+            String failed = L10n.t("Couldn't save the pin list. Try again.");
+            onFileWorker(app, (resolver, run) -> {
                 // Read before writing: a failed write can leave a file picked to write over empty.
-                long before = size(resolver, uri);
+                Picked before = picked(resolver, uri, opened, run);
                 try {
-                    Utils.showToastLong(save(resolver, uri, list.bytes, list.count));
+                    return new String[]{save(resolver, uri, list.bytes, list.count, run)};
                 } catch (IOException | RuntimeException failure) {
                     HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "save the pin list", failure);
-                    discard(resolver, uri, L10n.t("Couldn't save the pin list. Try again."), before);
+                    return discard(resolver, uri, failed, before, run);
                 }
+            }, new String[]{L10n.t("The file's app is too slow. Check the file before you use it.")},
+                    new String[]{failed, leftAlone()});
+        }
+    }
+
+    /** How long the app holding a picked file gets for a whole save, first question to last close. A test sets its own. */
+    static volatile long timeoutMs = 30_000L;
+
+    /**
+     * Every question to the app holding a picked file goes through this one worker, never the main
+     * thread or the shared pool. {@link #fileWork} lets one run in at a time, so an app that never
+     * answers holds only this worker, and while it's held the next file is turned away at once
+     * rather than another worker started. The queue's one place lets a run in while the last one's
+     * thread is still on its way out.
+     */
+    private static final ThreadPoolExecutor FILE_WORKER = new ThreadPoolExecutor(1, 1, 10, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(1), work -> {
+                Thread thread = new Thread(work, "hushpinterest-pin-list");
+                thread.setDaemon(true);
+                return thread;
             });
-            if (!started) discardThenSay(app, uri, L10n.t("Couldn't save the pin list. Try again."));
+    static {
+        FILE_WORKER.allowCoreThreadTimeOut(true);
+    }
+
+    /** 1 while a run is on the file worker, from the moment it's let in until its answer is posted to the main thread. */
+    private static final AtomicInteger fileWork = new AtomicInteger();
+
+    /** One save or clean-up of a picked file, with what the wait needs to stop it. */
+    private static final class Run {
+        /** Reaches the file's app while it opens or looks up the file, for an app that honours it. */
+        final CancellationSignal cancel = new CancellationSignal();
+        /** The file the worker has open, closed when the wait runs out. */
+        volatile Closeable open;
+        /** Taken once, on the main thread, by the worker's answer or by the wait running out. */
+        boolean settled;
+
+        /** Keeps [file] where the wait can close it, or closes it now when the wait already ran out. */
+        AssetFileDescriptor hold(AssetFileDescriptor file) throws IOException {
+            if (file == null) throw new FileNotFoundException("No file");
+            open = file;
+            if (cancel.isCanceled()) {
+                file.close();
+                throw new OperationCanceledException();
+            }
+            return file;
+        }
+    }
+
+    /** A run's work against the picked file. It answers with what to say, one or two toasts. */
+    private interface FileWork {
+        String[] run(ContentResolver resolver, Run run) throws Exception;
+    }
+
+    /**
+     * Runs [work] on the file worker within one {@link #timeoutMs} wait, called on the main thread.
+     * Only the first to finish speaks: the worker's answer, or [late] once the wait runs out, when
+     * the open is cancelled and the file closed. An app can ignore both, so [late] never says it
+     * stopped. With the worker still held nothing reaches the file's app, and [busy] is said.
+     */
+    private static void onFileWorker(Context app, FileWork work, String[] late, String[] busy) {
+        if (!fileWork.compareAndSet(0, 1)) {
+            HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin list file worker still held");
+            say(busy);
+            return;
+        }
+        ContentResolver resolver = app.getContentResolver();
+        Run run = new Run();
+        Runnable task = () -> {
+            String[] said;
+            try {
+                said = work.run(resolver, run);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "pin list file", failure);
+                said = new String[]{L10n.t("Couldn't save the pin list. Try again.")};
+            }
+            String[] answer = said;
+            try {
+                Utils.runOnMainThread(() -> {
+                    if (run.settled) {
+                        HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin list file answered after the wait");
+                        return;
+                    }
+                    run.settled = true;
+                    say(answer);
+                });
+            } finally {
+                fileWork.set(0);
+            }
+        };
+        try {
+            // The wait is set first, so a worker that never starts can't leave a run without one.
+            Utils.runOnMainThreadDelayed(() -> {
+                if (run.settled) return;
+                run.settled = true;
+                run.cancel.cancel();
+                Closeable open = run.open;
+                if (open != null) {
+                    // Closing can wait on the app too, so not on the main thread.
+                    Thread closing = new Thread(() -> closeQuietly(open), "hushpinterest-pin-list-close");
+                    closing.setDaemon(true);
+                    closing.start();
+                }
+                HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "stopped waiting on a pin list file");
+                say(late);
+            }, timeoutMs);
+            FILE_WORKER.execute(task);
+        } catch (Throwable held) {
+            // Nothing reached the file's app: the worker was full, or its thread couldn't start.
+            // A thread that fails to start can leave the run queued, so it comes back out.
+            FILE_WORKER.remove(task);
+            run.settled = true;
+            fileWork.set(0);
+            if (held instanceof RejectedExecutionException) {
+                HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin list file worker still held");
+            } else {
+                HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "pin list file worker", held);
+            }
+            say(busy);
+        }
+    }
+
+    /** Says so, and answers true, while a run still holds the file worker, so a new list isn't offered a picker yet. */
+    private static boolean stillStalled() {
+        if (fileWork.get() == 0) return false;
+        Utils.showToastLong(L10n.t("The app with the last pin list hasn't answered. Try later."));
+        return true;
+    }
+
+    private static void say(String[] lines) {
+        for (String line : lines) Utils.showToastLong(line);
+    }
+
+    private static void closeQuietly(Closeable open) {
+        try {
+            open.close();
+        } catch (IOException | RuntimeException ignored) {
+            // The app holding the file already let it go, or won't say.
+        }
+    }
+
+    /** For tests: waits until the file worker has handed its answer to the main thread. */
+    static void awaitFileWorkForTests() throws InterruptedException {
+        long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(20);
+        while (fileWork.get() > 0) {
+            if (System.nanoTime() > until) throw new IllegalStateException("Pin list file work didn't finish");
+            Thread.sleep(5);
         }
     }
 
     /**
      * The picker made the file before the list had a chance to fill it, so a list that isn't written
-     * takes its file away again, off the main thread when a worker is free, and says [said].
+     * takes its file away again on the file worker, and says [said]. The picker opened at [opened].
      */
-    private static void discardThenSay(Context app, Uri uri, String said) {
+    private static void discardThenSay(Context app, Uri uri, long opened, String said) {
+        String[] alone = {said, leftAlone()};
         if (app == null) {
-            Utils.showToastLong(said);
-            Utils.showToastLong(leftAlone());
+            say(alone);
             return;
         }
-        ContentResolver resolver = app.getContentResolver();
-        Runnable work = () -> discard(resolver, uri, said, size(resolver, uri));
-        if (!Utils.runOnBackgroundThread(work)) work.run();
+        onFileWorker(app, (resolver, run) -> discard(resolver, uri, said, picked(resolver, uri, opened, run), run),
+                alone, alone);
     }
 
     /**
      * Says [said], then a second toast when the picked file stays behind, since Android 12 and later
-     * cut a toast at two lines. Only a file that was empty before anything was written, [size]
-     * bytes, is taken away: one that held something was picked to be written over and is the
-     * user's own.
+     * cut a toast at two lines. A file is taken away only when it was [before] the picker's own,
+     * and only while the wait still holds. One that held something was picked to be written over
+     * and is the user's own, and an empty one that was already there could be too.
      */
-    private static void discard(ContentResolver resolver, Uri uri, String said, long size) {
-        Utils.showToastLong(said);
-        if (size > 0) return;
-        if (size < 0) {
-            Utils.showToastLong(leftAlone());
-            return;
-        }
+    private static String[] discard(ContentResolver resolver, Uri uri, String said, Picked before, Run run) {
+        if (before.size > 0) return new String[]{said};
+        if (!before.pickersOwn() || run.cancel.isCanceled()) return new String[]{said, leftAlone()};
         boolean gone;
         try {
             gone = DocumentsContract.deleteDocument(resolver, uri);
         } catch (FileNotFoundException | RuntimeException refused) {
             gone = false;
         }
-        if (!gone) Utils.showToastLong(L10n.t("Couldn't remove the empty file. Delete it in your files app."));
+        return gone ? new String[]{said}
+                : new String[]{said, L10n.t("Couldn't remove the empty file. Delete it in your files app.")};
     }
 
-    /** How many bytes the picked file holds, or -1 when the app holding it won't say. */
-    private static long size(ContentResolver resolver, Uri uri) {
-        try (Cursor cursor = resolver.query(uri, new String[]{OpenableColumns.SIZE}, null, null, null)) {
-            if (cursor != null && cursor.moveToFirst() && !cursor.isNull(0)) return cursor.getLong(0);
+    /**
+     * How far before the picker opened a new file's time may read, for a document app on a server
+     * whose clock runs a little behind. An empty file changed earlier than that was already there.
+     */
+    static final long CLOCK_SLACK_MS = 60_000L;
+
+    /** The picked file as the app holding it describes it, before anything is written. */
+    private static final class Picked {
+        /** Bytes in it, or -1 when the app won't say. */
+        final long size;
+        /** When it last changed, or -1 when the app won't say. */
+        final long modified;
+        /** When the picker opened, or -1 when that was lost. */
+        final long opened;
+
+        Picked(long size, long modified, long opened) {
+            this.size = size;
+            this.modified = modified;
+            this.opened = opened;
+        }
+
+        /** Empty and changed since the picker opened, so the picker made it rather than the user choosing one there already. */
+        boolean pickersOwn() {
+            return size == 0 && modified >= 0 && opened > 0 && modified >= opened - CLOCK_SLACK_MS;
+        }
+    }
+
+    /** What the app holding the file at [uri] says of it. A file it won't describe counts as one that may be the user's. */
+    private static Picked picked(ContentResolver resolver, Uri uri, long opened, Run run) {
+        String[] columns = {OpenableColumns.SIZE, DocumentsContract.Document.COLUMN_LAST_MODIFIED};
+        try (Cursor cursor = resolver.query(uri, columns, null, null, null, run.cancel)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                return new Picked(number(cursor, OpenableColumns.SIZE),
+                        number(cursor, DocumentsContract.Document.COLUMN_LAST_MODIFIED), opened);
+            }
         } catch (RuntimeException unanswered) {
             // Treated as unknown, so the file stays.
         }
-        return -1;
+        return new Picked(-1, -1, opened);
     }
 
-    /** For a file whose size couldn't be read, which might be one the user picked to write over. */
+    /** [column]'s value in [cursor]'s row, or -1 when it's missing, empty or negative. */
+    private static long number(Cursor cursor, String column) {
+        int index = cursor.getColumnIndex(column);
+        if (index < 0 || cursor.isNull(index)) return -1;
+        long value = cursor.getLong(index);
+        return value < 0 ? -1 : value;
+    }
+
+    /** For a file left in place that might be one the user picked to write over. */
     private static String leftAlone() {
         return L10n.t("File left alone. If it's empty, delete it in your files app.");
     }
@@ -453,20 +647,19 @@ public final class PinManifest {
      * replaced; an app that turns the mode down gets "w", and the read back catches old bytes left
      * past the new end. Success is said only for a file that reads back as written.
      */
-    static String save(ContentResolver resolver, Uri uri, byte[] bytes, int count) throws IOException {
-        OutputStream out;
+    private static String save(ContentResolver resolver, Uri uri, byte[] bytes, int count, Run run) throws IOException {
+        AssetFileDescriptor file;
         try {
-            out = resolver.openOutputStream(uri, "wt");
+            file = resolver.openAssetFileDescriptor(uri, "wt", run.cancel);
         } catch (IllegalArgumentException | UnsupportedOperationException | FileNotFoundException unsupported) {
-            out = resolver.openOutputStream(uri, "w");
+            file = resolver.openAssetFileDescriptor(uri, "w", run.cancel);
         }
-        if (out == null) throw new FileNotFoundException("No stream for the pin list");
-        try (OutputStream stream = out) {
+        try (AssetFileDescriptor held = run.hold(file); OutputStream stream = held.createOutputStream()) {
             stream.write(bytes);
         }
         byte[] back;
-        try (InputStream in = resolver.openInputStream(uri)) {
-            if (in == null) throw new FileNotFoundException("No stream to read the pin list back");
+        try (AssetFileDescriptor held = run.hold(resolver.openAssetFileDescriptor(uri, "r", run.cancel));
+             InputStream in = held.createInputStream()) {
             ByteArrayOutputStream read = new ByteArrayOutputStream(bytes.length);
             byte[] buffer = new byte[8192];
             for (int n; (n = in.read(buffer)) != -1 && read.size() <= bytes.length; ) read.write(buffer, 0, n);

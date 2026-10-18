@@ -553,3 +553,4 @@ English	Englisch
 %1$d changed. %2$d setting didn't. Reopen settings and try again.	%1$d geändert, %2$d nicht. Öffne die Einstellungen neu und versuch es erneut.
 # context: the same toast when any other number of switches didn't change
 %1$d changed. %2$d settings didn't. Reopen settings and try again.	%1$d geändert, %2$d nicht. Öffne die Einstellungen neu und versuch es erneut.
+The app with the last pin list hasn't answered. Try later.	Die App mit der letzten Pin-Liste antwortet nicht. Versuch es später.
