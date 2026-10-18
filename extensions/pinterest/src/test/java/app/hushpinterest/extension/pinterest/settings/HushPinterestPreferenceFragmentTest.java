@@ -452,6 +452,31 @@ public class HushPinterestPreferenceFragmentTest {
         }
     }
 
+    /** Share image has its own switch right after Copy image, starts off, and shows only where its row went in. */
+    @Test
+    public void shareImageShowsAfterCopyImageOnlyWhereItsHookWentIn() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Set<PatchFamily.Capability> withoutIt = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutIt.remove(PatchFamily.Capability.SHARE_IMAGE);
+        PatchFamily.capabilitiesForTests = withoutIt;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            assertNull(page.findPreference(Settings.SHARE_IMAGE.key));
+            assertNotNull(page.findPreference(Settings.COPY_IMAGE.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            SwitchPreference row = (SwitchPreference) page.findPreference(Settings.SHARE_IMAGE.key);
+            assertNotNull(row);
+            assertEquals("Share image", String.valueOf(row.getTitle()));
+            assertFalse("Share image starts off", row.isChecked());
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            assertEquals(indexOfKey(rows, Settings.COPY_IMAGE.key) + 1, indexOfKey(rows, Settings.SHARE_IMAGE.key));
+        }
+    }
+
     /** Black comments and Black pin menu each have their own hook, so each row shows only where its hook went in, under Black bottom bar. */
     @Test
     public void theBlackSheetRowsShowOnlyWhereTheirHooksWentIn() {

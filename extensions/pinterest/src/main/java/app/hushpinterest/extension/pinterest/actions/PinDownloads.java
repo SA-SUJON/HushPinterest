@@ -48,6 +48,7 @@ public final class PinDownloads {
     private static final String DETAILS_TAG = "hushpinterest_pin_media_details";
     static final String COPY_TAG = "hushpinterest_copy_media_link";
     static final String COPY_IMAGE_TAG = "hushpinterest_copy_image";
+    static final String SHARE_IMAGE_TAG = "hushpinterest_share_image";
 
     /** Pinterest's own Download image rows, marked as the native menu builds them. Weak, so closed menus go. */
     private static final Map<View, Boolean> nativeDownloads = Collections.synchronizedMap(new WeakHashMap<>());
@@ -189,6 +190,32 @@ public final class PinDownloads {
                         }
                     });
                     layout.addView(copy, at + 1);
+                }
+                // Under Copy image, added first so Copy image lands above it. Images only, and off by default.
+                if (ShareImage.offered(media)) {
+                    String shareTitle = L10n.t("Share image");
+                    View share = row(controller, sheet, layout, shareTitle);
+                    if (share != null) {
+                        share.setTag(SHARE_IMAGE_TAG);
+                        share.setFocusable(true);
+                        share.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+                        share.setContentDescription(shareTitle);
+                        // Same guard as Copy image: a tap while the menu closes would fetch the picture twice.
+                        AtomicBoolean sharing = new AtomicBoolean();
+                        share.setOnClickListener(ignored -> {
+                            if (!ShareImage.active() || sharing.get()) return;
+                            try {
+                                if (ShareImage.start(pin, layout.getContext())) {
+                                    sharing.set(true);
+                                    dismiss(controller, sheet);
+                                }
+                            } catch (Throwable failure) {
+                                HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "dismiss share image menu", failure);
+                            }
+                        });
+                        layout.addView(share, at + 1);
+                        HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "share image row added to pin menu");
+                    }
                 }
                 // Right under Download pin. A video has no picture to copy, and the switch starts off.
                 if (CopyImage.offered(media)) {

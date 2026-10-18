@@ -43,8 +43,9 @@ import java.util.Locale;
  * itself for a thumbnail, and MediaStore answers none for a video there, so the sheet showed a
  * plain file icon. Nothing here is exported: an app reaches an address only through the read
  * grant a share hands it, and an address names one video entry this app saved, never a collection
- * or another app's file. A second path, {@code clip/}, serves the one picture Copy image keeps in
- * its own cache folder, read-only and only by the names that feature gives its files.
+ * or another app's file. Two more paths, {@code clip/} and {@code shared/}, serve the pictures Copy
+ * image and Share image keep in their own cache folders, read-only and only by the names those
+ * features give their files.
  */
 public final class SharePreviewProvider extends ContentProvider {
     /** The first path segment, ahead of the MediaStore path it carries. */
@@ -89,52 +90,72 @@ public final class SharePreviewProvider extends ContentProvider {
 
     /** The first path segment of an address for a picture Copy image put on the clipboard. */
     private static final String CLIP = "clip";
+    /** The same for a picture Share image handed to the share sheet. */
+    private static final String SHARED = "shared";
 
-    /** Whether this provider is declared in the app, so a Copy image address would answer. */
+    /** Whether this provider is declared in the app, so a Copy image or Share image address would answer. */
     static boolean serves(Context context) {
         return context != null && authority(context) != null;
     }
 
     /**
-     * The address of the cached picture called [name], or null when the name isn't one Copy image
+     * The address of the copied picture called [name], or null when the name isn't one Copy image
      * made or this provider isn't declared. The only thing under it is that folder.
      */
     static Uri clipUri(Context context, String name) {
+        return cachedUri(context, CLIP, name);
+    }
+
+    /** The address of the shared picture called [name], the same way for Share image's folder. */
+    static Uri sharedUri(Context context, String name) {
+        return cachedUri(context, SHARED, name);
+    }
+
+    private static Uri cachedUri(Context context, String folder, String name) {
         if (context == null || CopiedImages.mime(name) == null) return null;
         String authority = authority(context);
         if (authority == null) return null;
-        return new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(authority).appendPath(CLIP).appendPath(name).build();
+        return new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(authority).appendPath(folder).appendPath(name).build();
     }
 
-    private static boolean isClip(Uri uri) {
+    private static boolean isCached(Uri uri) {
         List<String> path = uri.getPathSegments();
-        return !path.isEmpty() && CLIP.equals(path.get(0));
+        return !path.isEmpty() && (CLIP.equals(path.get(0)) || SHARED.equals(path.get(0)));
     }
 
     /** The cached picture [uri] names, or null for any other path, name or a picture already replaced. */
-    private File clipFile(Uri uri) {
+    private File cachedFile(Uri uri) {
         List<String> path = uri.getPathSegments();
-        if (path.size() != 2 || !CLIP.equals(path.get(0))) return null;
-        return CopiedImages.file(getContext(), path.get(1));
+        if (path.size() != 2) return null;
+        if (CLIP.equals(path.get(0))) return CopiedImages.file(getContext(), path.get(1));
+        if (SHARED.equals(path.get(0))) return CopiedImages.sharedFile(getContext(), path.get(1));
+        return null;
     }
 
-    private File requireClip(Uri uri) throws FileNotFoundException {
-        File picture = clipFile(uri);
-        if (picture == null) throw new FileNotFoundException("No copied image at " + uri);
+    private File requireCached(Uri uri) throws FileNotFoundException {
+        File picture = cachedFile(uri);
+        if (picture == null) throw new FileNotFoundException("No cached image at " + uri);
         return picture;
     }
 
-    /** Name, size and type of a copied picture, for the apps that read them before pasting. */
-    private Cursor clipRow(Uri uri, String[] projection) {
-        File picture = clipFile(uri);
+    /**
+     * Name, size and type of a cached picture, for the apps that read them before pasting or
+     * attaching. A shared one also offers the thumbnail flag the share sheet reads.
+     */
+    private Cursor cachedRow(Uri uri, String[] projection) {
+        File picture = cachedFile(uri);
         if (picture == null) return null;
+        boolean shared = SHARED.equals(uri.getPathSegments().get(0));
+        String[] asked = projection != null ? projection
+                : shared ? DEFAULT_COLUMNS : new String[]{OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE};
         List<String> columns = new ArrayList<>();
         List<Object> values = new ArrayList<>();
-        for (String column : projection != null ? projection : new String[]{OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE}) {
+        for (String column : asked) {
             Object value;
             if (OpenableColumns.DISPLAY_NAME.equals(column)) value = picture.getName();
             else if (OpenableColumns.SIZE.equals(column)) value = picture.length();
             else if (MediaStore.MediaColumns.MIME_TYPE.equals(column)) value = CopiedImages.mime(picture.getName());
+            else if (shared && DocumentsContract.Document.COLUMN_FLAGS.equals(column)) value = DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL;
             else continue;
             if (columns.contains(column)) continue;
             columns.add(column);
@@ -211,8 +232,8 @@ public final class SharePreviewProvider extends ContentProvider {
     }
 
     @Override public String getType(Uri uri) {
-        if (isClip(uri)) {
-            File picture = clipFile(uri);
+        if (isCached(uri)) {
+            File picture = cachedFile(uri);
             return picture == null ? null : CopiedImages.mime(picture.getName());
         }
         Uri file = target(uri);
@@ -228,8 +249,8 @@ public final class SharePreviewProvider extends ContentProvider {
     }
 
     @Override public String[] getStreamTypes(Uri uri, String filter) {
-        if (isClip(uri)) {
-            File picture = clipFile(uri);
+        if (isCached(uri)) {
+            File picture = cachedFile(uri);
             String type = picture == null ? null : CopiedImages.mime(picture.getName());
             return type != null && ClipDescription.compareMimeTypes(type, filter) ? new String[]{type} : null;
         }
@@ -247,7 +268,7 @@ public final class SharePreviewProvider extends ContentProvider {
      * the share sheet reads. Columns it doesn't know are left out, as FileProvider does.
      */
     @Override public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        if (isClip(uri)) return clipRow(uri, projection);
+        if (isCached(uri)) return cachedRow(uri, projection);
         Uri file = target(uri);
         if (file == null) return null;
         String name;
@@ -281,7 +302,7 @@ public final class SharePreviewProvider extends ContentProvider {
 
     @Override public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
         if (!"r".equals(mode)) throw new SecurityException("A shared video is read only");
-        if (isClip(uri)) return ParcelFileDescriptor.open(requireClip(uri), ParcelFileDescriptor.MODE_READ_ONLY);
+        if (isCached(uri)) return ParcelFileDescriptor.open(requireCached(uri), ParcelFileDescriptor.MODE_READ_ONLY);
         Uri file = require(uri);
         long caller = Binder.clearCallingIdentity();
         try {
@@ -298,8 +319,8 @@ public final class SharePreviewProvider extends ContentProvider {
      * ContentResolver.loadThumbnail asks, at the size it names.
      */
     @Override public AssetFileDescriptor openTypedAssetFile(Uri uri, String filter, Bundle opts) throws FileNotFoundException {
-        if (isClip(uri)) {
-            File picture = requireClip(uri);
+        if (isCached(uri)) {
+            File picture = requireCached(uri);
             if (!ClipDescription.compareMimeTypes(CopiedImages.mime(picture.getName()), filter)) {
                 throw new FileNotFoundException("No " + filter + " for " + uri);
             }

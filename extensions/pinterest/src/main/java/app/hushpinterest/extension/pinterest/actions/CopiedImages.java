@@ -11,18 +11,23 @@ import android.content.Context;
 import androidx.annotation.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
- * The cache folder Copy image keeps its picture in. Every file here is one this feature made, named
- * by a random id and the picture's type, so the provider that serves them and the sweep that
- * deletes them both recognize their own files by name and touch nothing else in the cache.
+ * The cache folders Copy image and Share image keep their pictures in, one each, so a new copy never
+ * sweeps away a picture an app is still reading from a share. Every file here is one these features
+ * made, named by a random id and the picture's type, so the provider that serves them and the sweeps
+ * that delete them both recognize their own files by name and touch nothing else in the cache.
  */
 final class CopiedImages {
     private CopiedImages() {}
 
     static final String FOLDER = "hushpinterest-copied-images";
+    static final String SHARED_FOLDER = "hushpinterest-shared-images";
 
     /** A finished picture: a random id, then the type the bytes showed. */
     private static final Pattern PICTURE = Pattern.compile("[0-9a-f]{32}\\.(jpg|png|webp|gif)");
@@ -30,12 +35,23 @@ final class CopiedImages {
     /** A picture still arriving. Never served. */
     private static final Pattern PART = Pattern.compile("[0-9a-f]{32}\\.part");
 
-    /** The folder, made if it isn't there, or null when the cache can't hold one. */
+    /** Copy image's folder, made if it isn't there, or null when the cache can't hold one. */
     @Nullable
     static File dir(Context context) {
+        return dir(context, FOLDER);
+    }
+
+    /** Share image's folder, the same way. */
+    @Nullable
+    static File sharedDir(Context context) {
+        return dir(context, SHARED_FOLDER);
+    }
+
+    @Nullable
+    private static File dir(Context context, String folder) {
         File cache = context.getCacheDir();
         if (cache == null) return null;
-        File dir = new File(cache, FOLDER);
+        File dir = new File(cache, folder);
         if (!dir.mkdirs() && !dir.isDirectory()) return null;
         return dir;
     }
@@ -63,11 +79,20 @@ final class CopiedImages {
         return null;
     }
 
-    /** The finished picture called [name], or null when the name isn't one of ours or nothing is there. */
+    /** The copied picture called [name], or null when the name isn't one of ours or nothing is there. */
     @Nullable
     static File file(Context context, String name) {
-        if (mime(name) == null) return null;
-        File dir = dir(context);
+        return mime(name) == null ? null : in(dir(context), name);
+    }
+
+    /** The shared picture called [name], the same way. */
+    @Nullable
+    static File sharedFile(Context context, String name) {
+        return mime(name) == null ? null : in(sharedDir(context), name);
+    }
+
+    @Nullable
+    private static File in(@Nullable File dir, String name) {
         if (dir == null) return null;
         File file = new File(dir, name);
         return file.isFile() ? file : null;
@@ -101,6 +126,27 @@ final class CopiedImages {
         for (File file : files) {
             String name = file.getName();
             if (name.equals(keep) || (mime(name) == null && !isPart(name))) continue;
+            if (!file.delete() && file.exists()) file.deleteOnExit();
+        }
+    }
+
+    /**
+     * Keeps [keep] and the newest of our other pictures, [count] in all, and deletes the rest of ours,
+     * parts included. A share sheet hands an app its picture to read later, so the last few stay.
+     */
+    static void keepNewest(File dir, String keep, int count) {
+        File[] files = dir.listFiles();
+        if (files == null) return;
+        List<File> older = new ArrayList<>();
+        for (File file : files) {
+            String name = file.getName();
+            if (name.equals(keep)) continue;
+            if (mime(name) != null) older.add(file);
+            else if (isPart(name) && !file.delete() && file.exists()) file.deleteOnExit();
+        }
+        older.sort(Comparator.comparingLong(File::lastModified).reversed());
+        for (int i = Math.max(0, count - 1); i < older.size(); i++) {
+            File file = older.get(i);
             if (!file.delete() && file.exists()) file.deleteOnExit();
         }
     }

@@ -617,3 +617,10 @@ Pinterest didn't send a usable image.	Pinterest tidak mengirim gambar yang bisa 
 Copying the image took too long. Try again.	Menyalin gambar terlalu lama. Coba lagi.
 Still copying the last image.	Gambar terakhir masih disalin.
 Couldn't copy the image. Check your connection and try again.	Tidak bisa menyalin gambar. Periksa koneksi lalu coba lagi.
+# context: Share image, a row in the pin menu that sends the pin's full-size picture through Android's share menu (#11)
+Share image	Bagikan gambar
+Adds Share image to the pin menu. It sends the full-size picture itself, not a link, through Android's share menu. Needs Download pins on. Videos don't get the row.	Menambahkan Bagikan gambar ke menu pin. Mengirim gambar ukuran penuh itu sendiri, bukan tautan, lewat menu berbagi Android. Unduh Pin harus aktif. Video tidak mendapat barisnya.
+That image is too big to share.	Gambar itu terlalu besar untuk dibagikan.
+Getting the image took too long. Try again.	Mengambil gambar terlalu lama. Coba lagi.
+Still getting the last image ready.	Gambar terakhir masih disiapkan.
+Couldn't share the image. Check your connection and try again.	Tidak bisa membagikan gambar. Periksa koneksi lalu coba lagi.

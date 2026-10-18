@@ -154,8 +154,12 @@ final class CopyImage {
      * for {@link Result#COPIED}; every other answer leaves nothing of this copy behind.
      */
     static Fetch fetch(Context app, PinMedia.Resolution media) {
+        return fetch(media, CopiedImages.dir(app));
+    }
+
+    /** The same into [dir], one of {@link CopiedImages}' folders. Share image fetches into its own. */
+    static Fetch fetch(PinMedia.Resolution media, @Nullable File dir) {
         long began = clock.getAsLong();
-        File dir = CopiedImages.dir(app);
         if (dir == null) return new Fetch(Result.FAILED, null, null);
         CopiedImages.clearParts(dir);
         PinMedia.Source source = media.source;

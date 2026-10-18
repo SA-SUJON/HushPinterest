@@ -300,7 +300,8 @@ public class PausedHooksTest {
                 () -> queuesWithDownloadPins(request -> !request.getAllowedOverMetered())));
         probes.put(Settings.DOWNLOAD_NO_ROAMING, Collections.singletonList(
                 () -> queuesWithDownloadPins(request -> !request.getAllowedOverRoaming())));
-        probes.put(Settings.COPY_IMAGE, Collections.singletonList(PausedHooksTest::offersCopyImage));
+        probes.put(Settings.COPY_IMAGE, Collections.singletonList(() -> offersImageRow("CopyImage")));
+        probes.put(Settings.SHARE_IMAGE, Collections.singletonList(() -> offersImageRow("ShareImage")));
         probes.put(Settings.DOWNLOAD_BOARD, Collections.singletonList(() -> BoardDownloads.record(Collections.singletonList(BOARD_PIN))));
         probes.put(Settings.LONG_PRESS_DOWNLOAD, Collections.singletonList(PausedHooksTest::addsLongPressDownload));
         probes.put(Settings.EXTERNAL_BROWSER, Collections.singletonList(() -> withActivity(activity -> {
@@ -444,10 +445,10 @@ public class PausedHooksTest {
     }
 
     /**
-     * Copy image rides on Download pins, so its probe turns that switch on for its own run. It answers
-     * whether the pin would get a Copy image row.
+     * Copy image and Share image ride on Download pins, so their probe turns that switch on for its own
+     * run. It answers whether the pin would get the row [action] adds.
      */
-    private static boolean offersCopyImage() {
+    private static boolean offersImageRow(String action) {
         boolean pins = Settings.DOWNLOAD_PINS.savedValue();
         if (!pins) Settings.DOWNLOAD_PINS.save(true);
         try {
@@ -455,8 +456,8 @@ public class PausedHooksTest {
             Method resolve = media.getDeclaredMethod("resolve", Object.class);
             resolve.setAccessible(true);
             Object resolved = resolve.invoke(null, PIN);
-            Class<?> copy = Class.forName("app.hushpinterest.extension.pinterest.actions.CopyImage");
-            Method offered = copy.getDeclaredMethod("offered", resolved.getClass());
+            Class<?> row = Class.forName("app.hushpinterest.extension.pinterest.actions." + action);
+            Method offered = row.getDeclaredMethod("offered", resolved.getClass());
             offered.setAccessible(true);
             return (Boolean) offered.invoke(null, resolved);
         } catch (ReflectiveOperationException failure) {

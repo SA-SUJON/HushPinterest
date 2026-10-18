@@ -731,6 +731,85 @@ public class PinMenuTest {
         }
     }
 
+    // #11: Share image sits under Copy image, for an image pin only, behind a switch of its own that starts off.
+    @Test public void shareImageIsAnImageOnlyRowUnderCopyImageThatStartsOffAndNeedsItsCapability() {
+        Map<String, Object> image = Map.of("id", "123", "images", Map.of("orig", Map.of(
+                "url", "https://i.pinimg.com/originals/source.png")));
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS,
+                PatchFamily.Capability.COPY_IMAGE, PatchFamily.Capability.SHARE_IMAGE));
+        Settings.COPY_IMAGE.save(true);
+        try {
+            Host copyOnly = host(image);
+            PinDownloads.attach(copyOnly);
+            assertNull("the switch starts off", copyOnly.layout.findViewWithTag(PinDownloads.SHARE_IMAGE_TAG));
+            int rows = copyOnly.layout.getChildCount();
+
+            Settings.SHARE_IMAGE.save(true);
+            Host on = host(image);
+            PinDownloads.attach(on);
+            PinDownloads.attach(on);
+            assertEquals(rows + 1, on.layout.getChildCount());
+            assertEquals("Download pin", ((TextView) on.layout.getChildAt(0)).getText());
+            assertEquals("Copy image", ((TextView) on.layout.getChildAt(1)).getText());
+            assertEquals("Share image", ((TextView) on.layout.getChildAt(2)).getText());
+            assertSame(on.layout.getChildAt(2), on.layout.findViewWithTag(PinDownloads.SHARE_IMAGE_TAG));
+            assertEquals("Copy media link", ((TextView) on.layout.getChildAt(3)).getText());
+
+            Settings.COPY_IMAGE.save(false);
+            Host alone = host(image);
+            PinDownloads.attach(alone);
+            assertEquals("without Copy image it sits right under Download pin",
+                    "Share image", ((TextView) alone.layout.getChildAt(1)).getText());
+            assertEquals("Copy media link", ((TextView) alone.layout.getChildAt(2)).getText());
+
+            Host video = host(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
+                    "large", Map.of("url", "https://v.pinimg.com/large.mp4", "width", 1920, "height", 1080)))));
+            PinDownloads.attach(video);
+            assertEquals("Download pin", ((TextView) video.layout.getChildAt(0)).getText());
+            assertNull("no picture to share from a video", video.layout.findViewWithTag(PinDownloads.SHARE_IMAGE_TAG));
+
+            PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+            Host paused = host(image);
+            PinDownloads.attach(paused);
+            assertEquals("a paused app keeps the stock menu", 0, paused.layout.getChildCount());
+            PauseForTests.resume();
+
+            PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS, PatchFamily.Capability.COPY_IMAGE));
+            Host unpatched = host(image);
+            PinDownloads.attach(unpatched);
+            assertNull(unpatched.layout.findViewWithTag(PinDownloads.SHARE_IMAGE_TAG));
+
+            PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS, PatchFamily.Capability.SHARE_IMAGE));
+            Settings.DOWNLOAD_PINS.save(false);
+            Host downloadsOff = host(image);
+            PinDownloads.attach(downloadsOff);
+            assertEquals(0, downloadsOff.layout.getChildCount());
+        } finally {
+            Settings.SHARE_IMAGE.save(false);
+            Settings.COPY_IMAGE.save(false);
+        }
+    }
+
+    @Test public void shareImageAlsoSitsInTheOverflowSheetAndTellsTheTruthWhenItCantStart() {
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS, PatchFamily.Capability.SHARE_IMAGE));
+        Settings.SHARE_IMAGE.save(true);
+        try {
+            Host sheet = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
+                    "url", "https://i.pinimg.com/originals/source.png"))));
+            PinDownloads.attachSheet(sheet);
+            assertEquals("Download pin", ((TextView) sheet.layout.getChildAt(0)).getText());
+            assertEquals("Share image", ((TextView) sheet.layout.getChildAt(1)).getText());
+            // This test app declares no share provider, so nothing could read the picture: say so, open nothing.
+            ShadowToast.reset();
+            assertTrue(sheet.layout.findViewWithTag(PinDownloads.SHARE_IMAGE_TAG).performClick());
+            assertEquals("Couldn't share the image. Check your connection and try again.", ShadowToast.getTextOfLatestToast());
+            assertEquals("a share that never started leaves the menu open", 0, sheet.sheetDismissed);
+            assertNull(Shadows.shadowOf(activity.getApplication()).getNextStartedActivity());
+        } finally {
+            Settings.SHARE_IMAGE.save(false);
+        }
+    }
+
     // #2: the full-screen overflow sheet opens with header rows of its own and closes through its presenter.
     @Test public void theOverflowSheetGetsTheRowsWhereItsOwnDownloadRowWasAndClosesItself() throws Exception {
         Host sheet = host(Map.of("id", "123", "images", Map.of("orig", Map.of(

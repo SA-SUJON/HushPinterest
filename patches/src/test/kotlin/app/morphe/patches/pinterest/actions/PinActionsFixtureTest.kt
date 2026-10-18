@@ -74,7 +74,7 @@ class PinActionsFixtureTest {
             downloadPinsPatch.execute(context)
             externalBrowserPatch.execute(context)
             systemSharePatch.execute(context)
-            for (name in listOf("downloadPins", "pinDownloads", "copyImage", "externalBrowser", "visitLinks", "systemShare", "pinShare")) {
+            for (name in listOf("downloadPins", "pinDownloads", "copyImage", "shareImage", "externalBrowser", "visitLinks", "systemShare", "pinShare")) {
                 assertFlag(context, name, 1)
             }
             val menu = context.mutableClassDefBy(PIN_MENU)
@@ -385,6 +385,7 @@ class PinActionsFixtureTest {
         assertFlag(context, "downloadPins", 0)
         assertFlag(context, "pinDownloads", 0)
         assertFlag(context, "copyImage", 0)
+        assertFlag(context, "shareImage", 0)
     }
 
     private fun references(instructions: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>): List<String> =

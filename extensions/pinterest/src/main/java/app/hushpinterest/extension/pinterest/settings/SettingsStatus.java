@@ -57,6 +57,7 @@ public final class SettingsStatus {
     public static boolean downloadPins() { return false; }
     public static boolean pinDownloads() { return false; }
     public static boolean copyImage() { return false; }
+    public static boolean shareImage() { return false; }
     public static boolean downloadBoard() { return false; }
     public static boolean boardMenu() { return false; }
     public static boolean boardPins() { return false; }

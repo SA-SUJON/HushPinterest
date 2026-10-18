@@ -377,6 +377,12 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                                 + "ready to paste into other apps. Needs Download pins on. Videos don't get the row.")),
                             SettingsIcons.DOWNLOADS));
                 }
+                if (PatchFamily.Capability.SHARE_IMAGE.installed()) {
+                    actions.addPreference(mark(toggle(context, Settings.SHARE_IMAGE, L10n.t("Share image"),
+                            L10n.t("Adds Share image to the pin menu. It sends the full-size picture itself, not a link, "
+                                + "through Android's share menu. Needs Download pins on. Videos don't get the row.")),
+                            SettingsIcons.DOWNLOADS));
+                }
             }
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_BOARD, Settings.DOWNLOAD_BOARD,
                     L10n.t("Download board"), L10n.t("Downloads up to 500 loaded pins, skipping those in Download history. "
