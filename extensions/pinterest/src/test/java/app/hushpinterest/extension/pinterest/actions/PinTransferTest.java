@@ -27,6 +27,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -346,6 +349,38 @@ public class PinTransferTest {
         } finally {
             release.countDown();
             assertTrue("late connections are closed", closed.await(1, TimeUnit.SECONDS));
+        }
+    }
+
+    /** An original lookup asks up to four questions in a row, so a worker on its way back must still take the next. */
+    @Test(timeout = 5000) public void aRequestWaitsForAWorkerThatIsAboutToFinish() throws Exception {
+        CountDownLatch release = new CountDownLatch(1);
+        CountDownLatch holding = new CountDownLatch(2);
+        PinTransfer.Connection held = uri -> {
+            holding.countDown();
+            try {
+                release.await(3, TimeUnit.SECONDS);
+            } catch (InterruptedException stopped) {
+                Thread.currentThread().interrupt();
+            }
+            return new Response(uri, 308, "/held");
+        };
+        ExecutorService callers = Executors.newFixedThreadPool(3);
+        try {
+            List<Future<String>> both = new ArrayList<>();
+            for (int i = 0; i < 2; i++) both.add(callers.submit(() -> PinTransfer.location(SHORT_LINK, 3000, held)));
+            assertTrue("both workers took a request", holding.await(2, TimeUnit.SECONDS));
+            // Frees them just after the next request finds both workers taken.
+            callers.submit(() -> {
+                TimeUnit.MILLISECONDS.sleep(100);
+                release.countDown();
+                return null;
+            });
+            assertEquals("/next", PinTransfer.location(SHORT_LINK, 3000, answering));
+            for (Future<String> request : both) assertEquals("/held", request.get(2, TimeUnit.SECONDS));
+        } finally {
+            release.countDown();
+            callers.shutdownNow();
         }
     }
 

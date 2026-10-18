@@ -55,6 +55,8 @@ public final class PinTransfer {
     // A stuck resolver cannot consume the shared app workers or create a new thread on every tap.
     private static final ThreadPoolExecutor exchanges = workers("hushpinterest-media-request");
     private static final ThreadPoolExecutor disconnects = workers("hushpinterest-media-close");
+    // How long a turned-away request waits for a worker that has just answered to come back.
+    private static final long HANDOFF_MS = 500;
 
     private static ThreadPoolExecutor workers(String name) {
         ThreadPoolExecutor pool = new ThreadPoolExecutor(2, 2, 1, TimeUnit.MINUTES,
@@ -197,6 +199,23 @@ public final class PinTransfer {
         });
     }
 
+    /**
+     * The pool only turns a request away when both workers exist, and one that has just answered may
+     * not be back at the queue yet. A lookup asks up to four questions in a row, so without this wait
+     * it could find both workers "busy" between two answers and settle for the supplied size. Two
+     * workers that are really stuck still refuse it, never past the caller's deadline.
+     */
+    private static boolean handOff(Runnable request, LongSupplier clock, long deadline) {
+        long wait = Math.min(HANDOFF_MS, deadline - clock.getAsLong());
+        if (wait <= 0) return false;
+        try {
+            return exchanges.getQueue().offer(request, wait, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException stopped) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
     /** All three exchanges include opening, headers, reading and cleanup in one caller budget. */
     private static <T> T exchange(URI uri, Connection factory, LongSupplier clock, long deadline,
                                   int socketTimeout, boolean prefix, Answer<T> answer) throws IOException {
@@ -244,7 +263,7 @@ public final class PinTransfer {
         try {
             exchanges.execute(request);
         } catch (RejectedExecutionException busy) {
-            throw new IOException("No media lookup worker is free", busy);
+            if (!handOff(request, clock, deadline)) throw new IOException("No media lookup worker is free", busy);
         }
         try {
             long left = deadline - clock.getAsLong();
