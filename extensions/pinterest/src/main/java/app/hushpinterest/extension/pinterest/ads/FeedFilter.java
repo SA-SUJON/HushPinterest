@@ -110,7 +110,8 @@ public final class FeedFilter {
             } else if (family != null) {
                 count = removal(family);
             }
-            // A kept item with commercial fields set is what a report of an ad that got through needs (#6).
+            // A kept item with commercial fields set is what a report of an ad that got through needs (#6),
+            // and its saved fields are what Hide pins you've already saved has to be built on.
             if (family == null && debug) {
                 String marks = ModuleItems.markers(item);
                 if (!marks.isEmpty()) Logger.printDebug(() -> "Kept " + item.getClass().getSimpleName() + marks);

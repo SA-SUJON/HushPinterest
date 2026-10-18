@@ -108,9 +108,13 @@ final class ModuleItems {
     private static final Pattern AI_LABELS = Pattern.compile(
             "^ai_disclosures$|^digital_media_source_type|^creator_declared_digital_source_type$");
 
+    /** The fields that could say a pin is one the viewer saved or posted, for the same line. */
+    private static final Pattern SAVED = Pattern.compile(
+            "^pinned_to_board$|^new_repin_id$|^is_repin$|^is_owned_by_viewer$");
+
     /**
      * [module]'s story type and each list it carries after filtering: its size, and for each model
-     * kept, its class and the commercial and AI label fields it has set. An entry that isn't a model shows only its
+     * kept, its class and the commercial, AI label and saved fields it has set. An entry that isn't a model shows only its
      * full class name in parentheses, never its value, so a list the filter can't judge still says
      * what it holds. Built only with Debug logging on, so a bug report about an ad that got through
      * says what the module held (#6).
@@ -146,14 +150,16 @@ final class ModuleItems {
     }
 
     /**
-     * The commercial and AI label fields [model] has set, as {@code [name=value,...]} in name order,
-     * or nothing. A list of up to four numbers shows them, the way ai_disclosures holds its codes.
+     * The commercial, AI label and saved fields [model] has set, as {@code [name=value,...]} in name order,
+     * or nothing. A list of up to four numbers shows them, the way ai_disclosures holds its codes. A text
+     * or a board shows only as set, so the line never names the viewer's board or repin.
      */
     static String markers(Object model) {
         if (model == null) return "";
         StringBuilder set = new StringBuilder();
         for (Map.Entry<String, Field> field : new TreeMap<>(ModelFields.of(model.getClass())).entrySet()) {
-            if (!COMMERCIAL.matcher(field.getKey()).find() && !AI_LABELS.matcher(field.getKey()).find()) continue;
+            String name = field.getKey();
+            if (!COMMERCIAL.matcher(name).find() && !AI_LABELS.matcher(name).find() && !SAVED.matcher(name).find()) continue;
             Object value = ModelFields.read(ModelFields.of(model.getClass()), model, field.getKey());
             if (value == null || Boolean.FALSE.equals(value)) continue;
             String shown = value instanceof Boolean || value instanceof Number || value instanceof Enum || codes(value)

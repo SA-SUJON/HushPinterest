@@ -471,6 +471,22 @@ public class FeedFilterTest {
         assertEquals("", ModuleItems.markers(plain));
     }
 
+    /** 14.41.0's pin fields that could say the viewer saved it, for the Hide pins you've already saved trace. */
+    static final class SavedPin {
+        @Json("id") String id = "saved";
+        @Json("pinned_to_board") Object pinnedToBoard = new Board();
+        @Json("new_repin_id") String newRepinId = "1234567890";
+        @Json("is_repin") Boolean repin = true;
+        @Json("is_owned_by_viewer") Boolean owned = false;
+        @Json("pinned_to_profile") Boolean pinnedToProfile = true;
+    }
+
+    /** Debug logging names the saved fields a kept pin carries, but never the board or the repin's id. */
+    @Test
+    public void theDebugMarkersShowSavedFieldsWithoutTheirValues() {
+        assertEquals("[is_repin=true,new_repin_id=set,pinned_to_board=set]", ModuleItems.markers(new SavedPin()));
+    }
+
     @Test
     public void aiAloneLeavesTheAds() {
         Settings.HIDE_ADS.save(false);
