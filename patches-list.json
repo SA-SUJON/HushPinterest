@@ -187,6 +187,42 @@
       "options": []
     },
     {
+      "name": "Filter feed",
+      "description": "Lets you take video pins out of your home feed, search, related pins and boards. Photos and GIFs stay. Starts off. Turn it on in HushPinterest settings > Feed.",
+      "category": "Feed",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushPinterest settings"
+      ],
+      "compatiblePackages": {
+        "com.pinterest": [
+          "14.41.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pinterest",
+          "packageName": "com.pinterest",
+          "description": null,
+          "appIconColor": 15073315,
+          "signatures": [
+            "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
+          ],
+          "targets": [
+            {
+              "version": "14.41.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14418010
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Filter pin menu",
       "description": "Lets you hide Add to collage, Remix collage, Search image and Promote pin in a pin's menu, each with its own switch. Download, share and copy link stay. Starts off. Turn them on in HushPinterest settings > Interface.",
       "category": "Interface",

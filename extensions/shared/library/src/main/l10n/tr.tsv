@@ -168,6 +168,9 @@ Pin actions	Pin işlemleri
 Interface	Arayüz
 Hide shopping and product pins	Alışveriş ve ürün Pinlerini gizle
 Hides product pins, shopping stories, featured boards and Shop the look under pins. Visit and Paid link stay.	Ürün pinlerini, alışveriş hikayelerini, öne çıkan panoları ve pinlerin altındaki Shop the look bölümünü gizler. Ziyaret bağlantısı ve ücretli bağlantı etiketi kalır.
+# context: a Feed switch under Hide shopping and product pins, from the Filter feed patch. It removes pins that play a video (video pins and idea pins with video) from the lists Pinterest shows. Photos and animated GIFs stay. The title is also the name of that part of the patch in the build report.
+Hide video pins	Video pinlerini gizle
+Removes pins that play a video from your home feed, search, related pins and boards. Photos and GIFs stay.	Video oynatan pinleri ana akışından, aramadan, ilgili pinlerden ve panolardan kaldırır. Fotoğraflar ve GIF'ler kalır.
 Disable analytics	Analizleri devre dışı bırak
 Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.	Kullanım raporlarını ve analiz görevlerini durdurur. Kapattıktan veya duraklattıktan sonra yeniden başlat. Google'ın analizleri, Analizleri devre dışı bırak yaması olmadan yeniden yamalayana kadar kapalı kalır.
 Firebase and Google Analytics collection is turned off	Firebase ve Google Analytics veri toplama kapalı

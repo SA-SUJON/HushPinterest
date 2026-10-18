@@ -28,6 +28,7 @@ public final class FamilyNames {
     public static final String HIDE_ADS = "Hide ads";
     public static final String HIDE_AI_PINS = "Hide AI-labeled pins";
     public static final String HIDE_SHOPPING = "Hide shopping and product pins";
+    public static final String FILTER_FEED = "Filter feed";
     public static final String DISABLE_ANALYTICS = "Disable analytics";
     public static final String STRIP_LINK_TRACKING = "Strip link tracking";
     public static final String HIDE_ADVERTISING_ID = "Hide advertising ID";

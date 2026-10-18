@@ -125,12 +125,13 @@ public class PausedHooksTest {
         String value();
     }
 
-    /** A pin with the two fields the feed families read. */
+    /** A pin with the fields the feed families read. */
     static final class ProbePin {
         @Json("is_promoted") Boolean promoted;
         @Json("ai_disclosures") List<Integer> aiDisclosures;
         @Json("is_shoppable") Boolean shoppable;
         @Json("grid_title") String gridTitle;
+        @Json("is_video") Boolean video;
     }
 
     /** One hook with its switch on: true when it changed what Pinterest would have done. */
@@ -255,6 +256,13 @@ public class PausedHooksTest {
             ProbePin product = new ProbePin();
             product.shoppable = true;
             return filtersOut(product);
+        }));
+        // A pin Pinterest marks as a video leaves the page.
+        probes.put(Settings.HIDE_VIDEO_PINS, Collections.singletonList(() -> {
+            ProbePin video = new ProbePin();
+            video.gridTitle = "";
+            video.video = true;
+            return filtersOut(video);
         }));
         probes.put(Settings.DISABLE_ANALYTICS, Arrays.asList(Analytics::blockUpload,
                 () -> Analytics.blockTask(Task.TAG_APPSFLYER_INIT), PausedHooksTest::quietsSdkConnection));

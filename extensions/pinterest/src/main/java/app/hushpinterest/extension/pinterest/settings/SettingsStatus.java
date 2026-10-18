@@ -39,6 +39,9 @@ public final class SettingsStatus {
 
     public static boolean hideShopping() { return false; }
     public static boolean feedShopping() { return false; }
+
+    public static boolean filterFeed() { return false; }
+    public static boolean feedVideoPins() { return false; }
     public static boolean disableAnalytics() { return false; }
     public static boolean analyticsTasks() { return false; }
     public static boolean analyticsUploads() { return false; }

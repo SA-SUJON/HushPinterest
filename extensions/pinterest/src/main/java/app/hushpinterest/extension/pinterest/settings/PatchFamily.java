@@ -50,6 +50,7 @@ public enum PatchFamily {
     HIDE_AI_PINS(FamilyNames.HIDE_AI_PINS, "hideAiPins", null,
             Settings.HIDE_AI_PINS, Settings.HIDE_AI_SELF_DESCRIBED),
     HIDE_SHOPPING(FamilyNames.HIDE_SHOPPING, "hideShopping", null, Settings.HIDE_SHOPPING),
+    FILTER_FEED(FamilyNames.FILTER_FEED, "filterFeed", null, Settings.HIDE_VIDEO_PINS),
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics",
             "Firebase and Google Analytics collection is turned off", Settings.DISABLE_ANALYTICS),
     STRIP_LINK_TRACKING(FamilyNames.STRIP_LINK_TRACKING, "stripLinkTracking", null, Settings.STRIP_LINK_TRACKING,
@@ -131,7 +132,8 @@ public enum PatchFamily {
     static volatile Set<Capability> capabilitiesForTests;
 
     /** The families whose switches the Feed page holds. The page and its home row both read this. */
-    static final Set<PatchFamily> FEED_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_AI_PINS, HIDE_SHOPPING));
+    static final Set<PatchFamily> FEED_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_AI_PINS, HIDE_SHOPPING,
+            FILTER_FEED));
     static final Set<PatchFamily> PRIVACY_PAGE = Collections.unmodifiableSet(EnumSet.of(DISABLE_ANALYTICS, STRIP_LINK_TRACKING,
             HIDE_ADVERTISING_ID, REMOVE_AD_TRACKING_PERMISSIONS, SPOOF_SIGNATURE));
     static final Set<PatchFamily> ACTIONS_PAGE = Collections.unmodifiableSet(EnumSet.of(DOWNLOAD_PINS, DOWNLOAD_BOARD,
@@ -148,6 +150,7 @@ public enum PatchFamily {
         GOOGLE_ADS(HIDE_ADS, "googleAds", "Google ad SDK start"),
         FEED_AI_PINS(HIDE_AI_PINS, "feedAiPins", "AI-labeled pins in lists"),
         FEED_SHOPPING(HIDE_SHOPPING, "feedShopping", "Hide shopping and product pins"),
+        FEED_VIDEO_PINS(FILTER_FEED, "feedVideoPins", "Hide video pins"),
         ANALYTICS_TASKS(DISABLE_ANALYTICS, "analyticsTasks", "Analytics launch tasks"),
         ANALYTICS_UPLOADS(DISABLE_ANALYTICS, "analyticsUploads", "Analytics uploads"),
         LINK_TRACKING(STRIP_LINK_TRACKING, "linkTracking", "Strip link tracking"),

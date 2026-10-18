@@ -1,6 +1,6 @@
 # Pinterest Android app map for 14.39.0
 
-The [signed-in factory audit](pinterest-14.39.0-audit.md) extends this map with native settings, advertising delivery, tracking boundaries, all 29 patch mappings and specific patch opportunities. Privacy filtering covers selected known paths, and ordinary account and content requests still reach Pinterest. See the [privacy reference](pinterest-14.39.0-privacy.md) for exact coverage.
+The [signed-in factory audit](pinterest-14.39.0-audit.md) extends this map with native settings, advertising delivery, tracking boundaries, all 30 patch mappings and specific patch opportunities. Privacy filtering covers selected known paths, and ordinary account and content requests still reach Pinterest. See the [privacy reference](pinterest-14.39.0-privacy.md) for exact coverage.
 
 Last checked: 2026-10-10, against Pinterest 14.39.0. This guide maps the original Pinterest package HushPinterest patches, which has been 14.39.0 since the October 10 port. It records static APK facts and the reverse-engineering anchors that are useful when patches move to a new release. Where an obfuscated name changed, the 14.38.0 name follows in parentheses so the two builds can be compared.
 

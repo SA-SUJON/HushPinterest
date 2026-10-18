@@ -55,10 +55,12 @@ class FeedFixtureTest {
                 hideAdsPatch.execute(context)
                 hideAiPinsPatch.execute(context)
                 hideShoppingPatch.execute(context)
+                filterFeedPatch.execute(context)
             }
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             assertEquals(build.name, 3, feedListHoldersHooked)
-            for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping")) assertFlag(context, flag)
+            for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping",
+                    "filterFeed", "feedVideoPins")) assertFlag(context, flag)
             // Full coverage by target, not only by flag: both feed constructors, each holder and both methods of every view.
             assertEquals(build.name, "feedList=2/2;pagedResponse=1/1;modelList=1/1", recorded(context, "feedLists"))
             assertEquals(build.name, "TextAdView=2/2;LegacyPromotedCloseupActionButtonModule=2/2;" +

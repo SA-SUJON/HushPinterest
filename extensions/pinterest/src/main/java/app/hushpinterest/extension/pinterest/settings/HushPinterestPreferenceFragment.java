@@ -294,6 +294,9 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(feed, context, build, PatchFamily.HIDE_SHOPPING, Settings.HIDE_SHOPPING,
                     L10n.t("Hide shopping and product pins"), L10n.t("Hides product pins, shopping stories, featured "
                         + "boards and Shop the look under pins. Visit and Paid link stay."), SettingsIcons.BLOCK);
+            patchToggle(feed, context, build, PatchFamily.FILTER_FEED, Settings.HIDE_VIDEO_PINS,
+                    L10n.t("Hide video pins"), L10n.t("Removes pins that play a video from your home feed, search, "
+                        + "related pins and boards. Photos and GIFs stay."), SettingsIcons.BLOCK);
         }
 
         if (!Collections.disjoint(build, PatchFamily.PRIVACY_PAGE)) {

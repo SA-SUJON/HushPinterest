@@ -627,7 +627,7 @@ try {
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
     $families = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('family|') } |
         ForEach-Object { $values = $_ -split '\|'; [pscustomobject]@{ Flag = $values[1]; Name = $values[2]; Caps = @($values[3] -split ',' | Where-Object { $_ }) } })
-    Assert-True ($families.Count -eq 28) 'Every one of the 28 installed families needs a compiled contract.'
+    Assert-True ($families.Count -eq 29) 'Every one of the 29 installed families needs a compiled contract.'
     # A manifest-only family declares no capability and is the only kind that may.
     $manifestOnly = @($families | Where-Object { $_.Caps.Count -eq 0 } | ForEach-Object { $_.Flag })
     Assert-True (($manifestOnly -join ',') -ceq 'removeAdTrackingPermissions,spoofSignature') "Only Remove ad tracking permissions and Spoof signature for Google sign-in change no bytecode, not: $($manifestOnly -join ', ')"
@@ -692,6 +692,7 @@ try {
         'feature-feed-ads' = $true
         'feature-feed-ai' = $true
         'feature-feed-shopping' = $true
+        'feature-feed-videos' = $true
         'feature-feed-shared' = $true
         'feature-feed-duplicate' = $false
         'feature-feed-wrong-register' = $false

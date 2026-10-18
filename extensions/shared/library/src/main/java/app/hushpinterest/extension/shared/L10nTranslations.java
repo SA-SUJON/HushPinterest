@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(1034);
+        Map<String, String> table = new HashMap<>(1038);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -480,6 +480,8 @@ public final class L10nTranslations {
                 "Umfrage-Einladungen ausblenden");
         table.put("Hide topic suggestions",
                 "Themenvorschl\u00e4ge ausblenden");
+        table.put("Hide video pins",
+                "Video-Pins ausblenden");
         table.put("Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.",
                 "Blendet Zu Collage hinzuf\u00fcgen und Collage remixen in Pin-Men\u00fcs aus, die du ab jetzt \u00f6ffnest. Ein bereits offenes Men\u00fc \u00e4ndert sich nicht.");
         table.put("Hides Create in the bottom bar. The change shows the next time the bar updates.",
@@ -548,11 +550,11 @@ public final class L10nTranslations {
                 "Importieren");
         table.put("Import settings",
                 "Einstellungen importieren");
-        table.put("Import undone. Your earlier switches are back.",
-                "Import r\u00fcckg\u00e4ngig gemacht. Deine fr\u00fcheren Schalter sind wiederhergestellt.");
     }
 
     private static void fillDe4(Map<String, String> table) {
+        table.put("Import undone. Your earlier switches are back.",
+                "Import r\u00fcckg\u00e4ngig gemacht. Deine fr\u00fcheren Schalter sind wiederhergestellt.");
         table.put("Importing settings",
                 "Einstellungen werden importiert");
         table.put("Imports into browsers and bookmark apps.",
@@ -671,11 +673,11 @@ public final class L10nTranslations {
                 "\u00d6ffnet die gespeicherte Datei in einer App, die sie anzeigen kann.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Optionale Hilfe zur Anmeldung, zu unterst\u00fctzten Links, zur Patch-Auswahl und zu Sicherungen.");
-        table.put("Original-quality images",
-                "Bilder in Originalqualit\u00e4t");
     }
 
     private static void fillDe5(Map<String, String> table) {
+        table.put("Original-quality images",
+                "Bilder in Originalqualit\u00e4t");
         table.put("Pause",
                 "Pausieren");
         table.put("Pause HushPinterest",
@@ -786,19 +788,21 @@ public final class L10nTranslations {
                 "Aus Verlauf entfernen");
         table.put("Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.",
                 "Entfernt Pins, die Pinterest als mit KI erstellt oder ver\u00e4ndert kennzeichnet, aus deinem Startfeed, der Suche, \u00e4hnlichen Pins und Pinnw\u00e4nden. KI-Bilder ohne Kennzeichnung werden weiter angezeigt.");
+        table.put("Removes pins that play a video from your home feed, search, related pins and boards. Photos and GIFs stay.",
+                "Entfernt Pins, die ein Video abspielen, aus deinem Startfeed, der Suche, den \u00e4hnlichen Pins und den Pinnw\u00e4nden. Fotos und GIFs bleiben.");
         table.put("Removes pins without the label whose title or description calls them AI art, or that come from an AI image site. It goes by their words, so some still show.",
                 "Entfernt Pins ohne Kennzeichnung, deren Titel oder Beschreibung sie als KI-Kunst bezeichnet oder die von einer KI-Bilderseite stammen. Es geht nach ihren Worten, daher werden manche weiter angezeigt.");
         table.put("Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.",
                 "Entfernt beworbene Pins aus deinem Startfeed, der Suche, den \u00e4hnlichen Pins und den Pinnw\u00e4nden und blendet Bereiche aus, die nur Werbung enthalten.");
         table.put("Removes this history entry. Files and active downloads are kept.",
                 "Entfernt diesen Verlaufseintrag. Dateien und laufende Downloads bleiben erhalten.");
+    }
+
+    private static void fillDe6(Map<String, String> table) {
         table.put("Removes tracking tags from copied and shared links. Short pin.it links stay unchanged unless Plain pin links is on.",
                 "Entfernt Tracking-Zus\u00e4tze aus kopierten und geteilten Links. Kurze pin.it-Links bleiben unver\u00e4ndert, au\u00dfer Einfache Pin-Links ist an.");
         table.put("Removes tracking tags from copied and shared links. Short pin.it links stay unchanged.",
                 "Entfernt Tracking-Zus\u00e4tze aus kopierten und geteilten Links. Kurze pin.it-Links bleiben unver\u00e4ndert.");
-    }
-
-    private static void fillDe6(Map<String, String> table) {
         table.put("Replaces short and country-site pin links with pinterest.com links that don't identify who shared them. Unknown copied short links change only if a background check finds the pin. Sharing doesn't wait for that check.",
                 "Ersetzt kurze Pin-Links und solche von L\u00e4nderseiten durch pinterest.com-Links, die nicht verraten, wer sie geteilt hat. Unbekannte kopierte Kurzlinks \u00e4ndern sich nur, wenn eine Hintergrundabfrage den Pin findet. Teilen wartet nicht darauf.");
         table.put("Report a problem",
@@ -915,13 +919,13 @@ public final class L10nTranslations {
                 "Gr\u00f6\u00dfe: das Originalbild");
         table.put("Skipped",
                 "\u00dcbersprungen");
+    }
+
+    private static void fillDe7(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "\u00dcbersprungen, weil schon im Download-Verlauf: %d");
         table.put("Social permissions",
                 "Sozialberechtigungen");
-    }
-
-    private static void fillDe7(Map<String, String> table) {
         table.put("Source code and issues",
                 "Quellcode und Issues");
         table.put("Spoof signature for Google sign-in",
@@ -1038,13 +1042,13 @@ public final class L10nTranslations {
                 "Nicht verf\u00fcgbar");
         table.put("Undo",
                 "R\u00fcckg\u00e4ngig");
+    }
+
+    private static void fillDe8(Map<String, String> table) {
         table.put("Undo ended because a saved switch changed.",
                 "R\u00fcckg\u00e4ngig beendet, weil sich ein gespeicherter Schalter ge\u00e4ndert hat.");
         table.put("Undo import",
                 "Import r\u00fcckg\u00e4ngig machen");
-    }
-
-    private static void fillDe8(Map<String, String> table) {
         table.put("Undoing import",
                 "Import wird r\u00fcckg\u00e4ngig gemacht");
         table.put("Unknown",
@@ -1122,7 +1126,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(1034);
+        Map<String, String> table = new HashMap<>(1038);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1555,6 +1559,8 @@ public final class L10nTranslations {
                 "Ocultar invitaciones a encuestas");
         table.put("Hide topic suggestions",
                 "Ocultar sugerencias de temas");
+        table.put("Hide video pins",
+                "Ocultar pines de video");
         table.put("Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.",
                 "Oculta A\u00f1adir al collage y Remezclar collage en los men\u00fas de pin que abras a partir de ahora. Un men\u00fa que ya est\u00e1 abierto no cambia.");
         table.put("Hides Create in the bottom bar. The change shows the next time the bar updates.",
@@ -1623,11 +1629,11 @@ public final class L10nTranslations {
                 "Importar");
         table.put("Import settings",
                 "Importar configuraci\u00f3n");
-        table.put("Import undone. Your earlier switches are back.",
-                "Importaci\u00f3n deshecha. Se restauraron tus interruptores anteriores.");
     }
 
     private static void fillEs4(Map<String, String> table) {
+        table.put("Import undone. Your earlier switches are back.",
+                "Importaci\u00f3n deshecha. Se restauraron tus interruptores anteriores.");
         table.put("Importing settings",
                 "Importando la configuraci\u00f3n");
         table.put("Imports into browsers and bookmark apps.",
@@ -1746,11 +1752,11 @@ public final class L10nTranslations {
                 "Abre el archivo guardado en una app que pueda mostrarlo.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Ayuda opcional para iniciar sesi\u00f3n, abrir enlaces compatibles, elegir parches y hacer copias de seguridad.");
-        table.put("Original-quality images",
-                "Im\u00e1genes en calidad original");
     }
 
     private static void fillEs5(Map<String, String> table) {
+        table.put("Original-quality images",
+                "Im\u00e1genes en calidad original");
         table.put("Pause",
                 "Pausar");
         table.put("Pause HushPinterest",
@@ -1861,19 +1867,21 @@ public final class L10nTranslations {
                 "Eliminar del historial");
         table.put("Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.",
                 "Quita de tu feed de inicio, la b\u00fasqueda, los pines relacionados y los tableros los pines que Pinterest marca como hechos o modificados con IA. Las im\u00e1genes de IA sin esa marca se siguen viendo.");
+        table.put("Removes pins that play a video from your home feed, search, related pins and boards. Photos and GIFs stay.",
+                "Quita los pines que reproducen un video de tu feed de inicio, la b\u00fasqueda, los pines relacionados y los tableros. Las fotos y los GIF se quedan.");
         table.put("Removes pins without the label whose title or description calls them AI art, or that come from an AI image site. It goes by their words, so some still show.",
                 "Elimina pines sin la etiqueta cuyo t\u00edtulo o descripci\u00f3n los llama arte con IA, o que vienen de un sitio de im\u00e1genes con IA. Se gu\u00eda por sus palabras, as\u00ed que algunos se siguen mostrando.");
         table.put("Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.",
                 "Quita los pines promocionados de tu feed de inicio, la b\u00fasqueda, los pines relacionados y los tableros, y oculta los paneles que solo tienen anuncios.");
         table.put("Removes this history entry. Files and active downloads are kept.",
                 "Elimina esta entrada del historial. Se conservan los archivos y las descargas activas.");
+    }
+
+    private static void fillEs6(Map<String, String> table) {
         table.put("Removes tracking tags from copied and shared links. Short pin.it links stay unchanged unless Plain pin links is on.",
                 "Quita etiquetas de seguimiento de enlaces copiados y compartidos. Los enlaces cortos pin.it no cambian salvo que Enlaces de pin simples est\u00e9 activado.");
         table.put("Removes tracking tags from copied and shared links. Short pin.it links stay unchanged.",
                 "Quita etiquetas de seguimiento de enlaces copiados y compartidos. Los enlaces cortos pin.it no cambian.");
-    }
-
-    private static void fillEs6(Map<String, String> table) {
         table.put("Replaces short and country-site pin links with pinterest.com links that don't identify who shared them. Unknown copied short links change only if a background check finds the pin. Sharing doesn't wait for that check.",
                 "Cambia enlaces cortos de pines y de sitios de otros pa\u00edses por enlaces de pinterest.com que no identifican qui\u00e9n los comparti\u00f3. Los enlaces cortos copiados desconocidos solo cambian si una consulta en segundo plano encuentra el pin. Compartir no espera esa consulta.");
         table.put("Report a problem",
@@ -1990,13 +1998,13 @@ public final class L10nTranslations {
                 "Tama\u00f1o: la imagen original");
         table.put("Skipped",
                 "Omitido");
+    }
+
+    private static void fillEs7(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "Omitidos porque ya est\u00e1n en el Historial de descargas: %d");
         table.put("Social permissions",
                 "Permisos sociales");
-    }
-
-    private static void fillEs7(Map<String, String> table) {
         table.put("Source code and issues",
                 "C\u00f3digo fuente e incidencias");
         table.put("Spoof signature for Google sign-in",
@@ -2113,13 +2121,13 @@ public final class L10nTranslations {
                 "No disponible");
         table.put("Undo",
                 "Deshacer");
+    }
+
+    private static void fillEs8(Map<String, String> table) {
         table.put("Undo ended because a saved switch changed.",
                 "Ya no se puede deshacer porque cambi\u00f3 un interruptor guardado.");
         table.put("Undo import",
                 "Deshacer importaci\u00f3n");
-    }
-
-    private static void fillEs8(Map<String, String> table) {
         table.put("Undoing import",
                 "Deshaciendo importaci\u00f3n");
         table.put("Unknown",
@@ -2197,7 +2205,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(1034);
+        Map<String, String> table = new HashMap<>(1038);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -2630,6 +2638,8 @@ public final class L10nTranslations {
                 "Sembunyikan ajakan survei");
         table.put("Hide topic suggestions",
                 "Sembunyikan saran topik");
+        table.put("Hide video pins",
+                "Sembunyikan pin video");
         table.put("Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.",
                 "Menyembunyikan Tambahkan ke kolase dan Remix kolase di menu pin yang Anda buka mulai sekarang. Menu yang sudah terbuka tidak berubah.");
         table.put("Hides Create in the bottom bar. The change shows the next time the bar updates.",
@@ -2698,11 +2708,11 @@ public final class L10nTranslations {
                 "Impor");
         table.put("Import settings",
                 "Impor pengaturan");
-        table.put("Import undone. Your earlier switches are back.",
-                "Impor diurungkan. Sakelar sebelumnya dipulihkan.");
     }
 
     private static void fillIn4(Map<String, String> table) {
+        table.put("Import undone. Your earlier switches are back.",
+                "Impor diurungkan. Sakelar sebelumnya dipulihkan.");
         table.put("Importing settings",
                 "Mengimpor pengaturan");
         table.put("Imports into browsers and bookmark apps.",
@@ -2821,11 +2831,11 @@ public final class L10nTranslations {
                 "Membuka file tersimpan di aplikasi yang dapat menampilkannya.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Bantuan opsional untuk masuk, tautan yang didukung, pilihan patch, dan pencadangan.");
-        table.put("Original-quality images",
-                "Gambar kualitas asli");
     }
 
     private static void fillIn5(Map<String, String> table) {
+        table.put("Original-quality images",
+                "Gambar kualitas asli");
         table.put("Pause",
                 "Jeda");
         table.put("Pause HushPinterest",
@@ -2936,19 +2946,21 @@ public final class L10nTranslations {
                 "Hapus dari riwayat");
         table.put("Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.",
                 "Menghapus pin yang diberi label Pinterest sebagai buatan atau hasil ubahan AI dari feed beranda, pencarian, pin terkait, dan papan Anda. Gambar AI tanpa label tetap muncul.");
+        table.put("Removes pins that play a video from your home feed, search, related pins and boards. Photos and GIFs stay.",
+                "Menghapus pin yang memutar video dari beranda, pencarian, pin terkait, dan papan Anda. Foto dan GIF tetap ada.");
         table.put("Removes pins without the label whose title or description calls them AI art, or that come from an AI image site. It goes by their words, so some still show.",
                 "Menghapus pin tanpa label yang judul atau deskripsinya menyebutnya seni AI, atau yang berasal dari situs gambar AI. Ini berpatokan pada kata-katanya, jadi sebagian masih muncul.");
         table.put("Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.",
                 "Menghapus pin promosi dari beranda, pencarian, pin terkait, dan papan Anda, serta menyembunyikan panel yang hanya berisi iklan.");
         table.put("Removes this history entry. Files and active downloads are kept.",
                 "Menghapus entri riwayat ini. File dan unduhan aktif tetap disimpan.");
+    }
+
+    private static void fillIn6(Map<String, String> table) {
         table.put("Removes tracking tags from copied and shared links. Short pin.it links stay unchanged unless Plain pin links is on.",
                 "Menghapus tag pelacakan dari tautan yang disalin dan dibagikan. Tautan pendek pin.it tetap sama kecuali Tautan pin biasa aktif.");
         table.put("Removes tracking tags from copied and shared links. Short pin.it links stay unchanged.",
                 "Menghapus tag pelacakan dari tautan yang disalin dan dibagikan. Tautan pendek pin.it tetap sama.");
-    }
-
-    private static void fillIn6(Map<String, String> table) {
         table.put("Replaces short and country-site pin links with pinterest.com links that don't identify who shared them. Unknown copied short links change only if a background check finds the pin. Sharing doesn't wait for that check.",
                 "Mengganti tautan pin pendek dan situs negara dengan tautan pinterest.com tanpa identitas pembagi. Tautan pendek yang disalin dan belum dikenal hanya berubah jika pemeriksaan latar belakang menemukan pin. Berbagi tidak menunggu pemeriksaan itu.");
         table.put("Report a problem",
@@ -3065,13 +3077,13 @@ public final class L10nTranslations {
                 "Ukuran: gambar asli");
         table.put("Skipped",
                 "Dilewati");
+    }
+
+    private static void fillIn7(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "Dilewati karena sudah ada di Riwayat unduhan: %d");
         table.put("Social permissions",
                 "Izin fitur sosial");
-    }
-
-    private static void fillIn7(Map<String, String> table) {
         table.put("Source code and issues",
                 "Kode sumber dan laporan masalah");
         table.put("Spoof signature for Google sign-in",
@@ -3188,13 +3200,13 @@ public final class L10nTranslations {
                 "Tidak tersedia");
         table.put("Undo",
                 "Urungkan");
+    }
+
+    private static void fillIn8(Map<String, String> table) {
         table.put("Undo ended because a saved switch changed.",
                 "Urungkan tidak lagi tersedia karena sakelar tersimpan berubah.");
         table.put("Undo import",
                 "Urungkan impor");
-    }
-
-    private static void fillIn8(Map<String, String> table) {
         table.put("Undoing import",
                 "Mengurungkan impor");
         table.put("Unknown",
@@ -3272,7 +3284,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(1034);
+        Map<String, String> table = new HashMap<>(1038);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -3705,6 +3717,8 @@ public final class L10nTranslations {
                 "Ocultar convites de pesquisa");
         table.put("Hide topic suggestions",
                 "Ocultar sugest\u00f5es de temas");
+        table.put("Hide video pins",
+                "Ocultar pins de v\u00eddeo");
         table.put("Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.",
                 "Oculta Adicionar \u00e0 colagem e Remixar colagem nos menus de pin que voc\u00ea abrir a partir de agora. Um menu j\u00e1 aberto n\u00e3o muda.");
         table.put("Hides Create in the bottom bar. The change shows the next time the bar updates.",
@@ -3773,11 +3787,11 @@ public final class L10nTranslations {
                 "Importar");
         table.put("Import settings",
                 "Importar configura\u00e7\u00f5es");
-        table.put("Import undone. Your earlier switches are back.",
-                "Importa\u00e7\u00e3o desfeita. Suas op\u00e7\u00f5es anteriores foram restauradas.");
     }
 
     private static void fillPt_rBR4(Map<String, String> table) {
+        table.put("Import undone. Your earlier switches are back.",
+                "Importa\u00e7\u00e3o desfeita. Suas op\u00e7\u00f5es anteriores foram restauradas.");
         table.put("Importing settings",
                 "Importando as configura\u00e7\u00f5es");
         table.put("Imports into browsers and bookmark apps.",
@@ -3896,11 +3910,11 @@ public final class L10nTranslations {
                 "Abre o arquivo salvo em um app que consiga mostr\u00e1-lo.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Ajuda opcional para entrar, abrir links compat\u00edveis, escolher patches e fazer backups.");
-        table.put("Original-quality images",
-                "Imagens em qualidade original");
     }
 
     private static void fillPt_rBR5(Map<String, String> table) {
+        table.put("Original-quality images",
+                "Imagens em qualidade original");
         table.put("Pause",
                 "Pausar");
         table.put("Pause HushPinterest",
@@ -4011,19 +4025,21 @@ public final class L10nTranslations {
                 "Remover do hist\u00f3rico");
         table.put("Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.",
                 "Remove do seu feed inicial, da busca, dos pins relacionados e das pastas os pins que o Pinterest marca como criados ou alterados com IA. Imagens de IA sem essa marca continuam aparecendo.");
+        table.put("Removes pins that play a video from your home feed, search, related pins and boards. Photos and GIFs stay.",
+                "Remove os pins que reproduzem um v\u00eddeo do seu feed inicial, da busca, dos pins relacionados e das pastas. Fotos e GIFs ficam.");
         table.put("Removes pins without the label whose title or description calls them AI art, or that come from an AI image site. It goes by their words, so some still show.",
                 "Remove pins sem o selo cujo t\u00edtulo ou descri\u00e7\u00e3o os chama de arte com IA, ou que v\u00eam de um site de imagens de IA. Ele se guia pelas palavras deles, ent\u00e3o alguns ainda aparecem.");
         table.put("Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.",
                 "Remove os pins promovidos do seu feed inicial, da busca, dos pins relacionados e das pastas, e esconde os pain\u00e9is que s\u00f3 t\u00eam an\u00fancios.");
         table.put("Removes this history entry. Files and active downloads are kept.",
                 "Remove esta entrada do hist\u00f3rico. Os arquivos e downloads ativos s\u00e3o mantidos.");
+    }
+
+    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Removes tracking tags from copied and shared links. Short pin.it links stay unchanged unless Plain pin links is on.",
                 "Remove c\u00f3digos de rastreamento de links copiados e compartilhados. Links curtos pin.it n\u00e3o mudam, a menos que Links de pin simples esteja ativado.");
         table.put("Removes tracking tags from copied and shared links. Short pin.it links stay unchanged.",
                 "Remove c\u00f3digos de rastreamento de links copiados e compartilhados. Links curtos pin.it n\u00e3o mudam.");
-    }
-
-    private static void fillPt_rBR6(Map<String, String> table) {
         table.put("Replaces short and country-site pin links with pinterest.com links that don't identify who shared them. Unknown copied short links change only if a background check finds the pin. Sharing doesn't wait for that check.",
                 "Troca links curtos de pins e de sites de outros pa\u00edses por links do pinterest.com que n\u00e3o identificam quem os compartilhou. Links curtos copiados desconhecidos s\u00f3 mudam se uma consulta em segundo plano encontrar o pin. Compartilhar n\u00e3o espera essa consulta.");
         table.put("Report a problem",
@@ -4140,13 +4156,13 @@ public final class L10nTranslations {
                 "Tamanho: a imagem original");
         table.put("Skipped",
                 "Ignorado");
+    }
+
+    private static void fillPt_rBR7(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "Pulados porque j\u00e1 est\u00e3o no Hist\u00f3rico de downloads: %d");
         table.put("Social permissions",
                 "Permiss\u00f5es para redes sociais");
-    }
-
-    private static void fillPt_rBR7(Map<String, String> table) {
         table.put("Source code and issues",
                 "C\u00f3digo-fonte e relatos de problemas");
         table.put("Spoof signature for Google sign-in",
@@ -4263,13 +4279,13 @@ public final class L10nTranslations {
                 "Indispon\u00edvel");
         table.put("Undo",
                 "Desfazer");
+    }
+
+    private static void fillPt_rBR8(Map<String, String> table) {
         table.put("Undo ended because a saved switch changed.",
                 "N\u00e3o \u00e9 mais poss\u00edvel desfazer porque uma op\u00e7\u00e3o salva mudou.");
         table.put("Undo import",
                 "Desfazer importa\u00e7\u00e3o");
-    }
-
-    private static void fillPt_rBR8(Map<String, String> table) {
         table.put("Undoing import",
                 "Desfazendo importa\u00e7\u00e3o");
         table.put("Unknown",
@@ -4347,7 +4363,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(1034);
+        Map<String, String> table = new HashMap<>(1038);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -4780,6 +4796,8 @@ public final class L10nTranslations {
                 "Anket davetlerini gizle");
         table.put("Hide topic suggestions",
                 "Konu \u00f6nerilerini gizle");
+        table.put("Hide video pins",
+                "Video pinlerini gizle");
         table.put("Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.",
                 "Bundan sonra a\u00e7t\u0131\u011f\u0131n pin men\u00fclerinde Kolaja ekle ve Kolaj\u0131 yeniden d\u00fczenle \u00f6\u011felerini gizler. Zaten a\u00e7\u0131k olan men\u00fc de\u011fi\u015fmez.");
         table.put("Hides Create in the bottom bar. The change shows the next time the bar updates.",
@@ -4848,11 +4866,11 @@ public final class L10nTranslations {
                 "\u0130\u00e7e aktar");
         table.put("Import settings",
                 "Ayarlar\u0131 i\u00e7e aktar");
-        table.put("Import undone. Your earlier switches are back.",
-                "\u0130\u00e7e aktarma geri al\u0131nd\u0131. \u00d6nceki anahtar ayarlar\u0131n\u0131z geri geldi.");
     }
 
     private static void fillTr4(Map<String, String> table) {
+        table.put("Import undone. Your earlier switches are back.",
+                "\u0130\u00e7e aktarma geri al\u0131nd\u0131. \u00d6nceki anahtar ayarlar\u0131n\u0131z geri geldi.");
         table.put("Importing settings",
                 "Ayarlar i\u00e7e aktar\u0131l\u0131yor");
         table.put("Imports into browsers and bookmark apps.",
@@ -4971,11 +4989,11 @@ public final class L10nTranslations {
                 "Kay\u0131tl\u0131 dosyay\u0131 onu g\u00f6sterebilen bir uygulamada a\u00e7ar.");
         table.put("Optional help with sign-in, supported links, patch choices and backups.",
                 "Giri\u015f, desteklenen ba\u011flant\u0131lar, yama se\u00e7imleri ve yedeklemeler i\u00e7in iste\u011fe ba\u011fl\u0131 yard\u0131m.");
-        table.put("Original-quality images",
-                "Orijinal kalitede g\u00f6rseller");
     }
 
     private static void fillTr5(Map<String, String> table) {
+        table.put("Original-quality images",
+                "Orijinal kalitede g\u00f6rseller");
         table.put("Pause",
                 "Duraklat");
         table.put("Pause HushPinterest",
@@ -5086,19 +5104,21 @@ public final class L10nTranslations {
                 "Ge\u00e7mi\u015ften kald\u0131r");
         table.put("Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.",
                 "Pinterest'in yapay zekayla \u00fcretilmi\u015f veya de\u011fi\u015ftirilmi\u015f olarak etiketledi\u011fi pinleri ana ak\u0131\u015f\u0131ndan, aramadan, ilgili pinlerden ve panolardan kald\u0131r\u0131r. Etiketsiz yapay zeka g\u00f6rselleri g\u00f6r\u00fcnmeye devam eder.");
+        table.put("Removes pins that play a video from your home feed, search, related pins and boards. Photos and GIFs stay.",
+                "Video oynatan pinleri ana ak\u0131\u015f\u0131ndan, aramadan, ilgili pinlerden ve panolardan kald\u0131r\u0131r. Foto\u011fraflar ve GIF'ler kal\u0131r.");
         table.put("Removes pins without the label whose title or description calls them AI art, or that come from an AI image site. It goes by their words, so some still show.",
                 "Etiketi olmayan ama ba\u015fl\u0131\u011f\u0131 veya a\u00e7\u0131klamas\u0131 kendini yapay zeka sanat\u0131 olarak tan\u0131tan ya da bir yapay zeka g\u00f6rsel sitesinden gelen pinleri kald\u0131r\u0131r. Kelimelerine g\u00f6re karar verir, bu y\u00fczden baz\u0131lar\u0131 yine g\u00f6r\u00fcn\u00fcr.");
         table.put("Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.",
                 "Reklaml\u0131 pinleri ana ak\u0131\u015f\u0131ndan, aramadan, ilgili pinlerden ve panolardan kald\u0131r\u0131r; yaln\u0131zca reklam i\u00e7eren panelleri gizler.");
         table.put("Removes this history entry. Files and active downloads are kept.",
                 "Bu ge\u00e7mi\u015f kayd\u0131n\u0131 kald\u0131r\u0131r. Dosyalar ve etkin indirmeler korunur.");
+    }
+
+    private static void fillTr6(Map<String, String> table) {
         table.put("Removes tracking tags from copied and shared links. Short pin.it links stay unchanged unless Plain pin links is on.",
                 "Kopyalanan ve payla\u015f\u0131lan ba\u011flant\u0131lardan takip etiketlerini kald\u0131r\u0131r. Sade pin ba\u011flant\u0131lar\u0131 a\u00e7\u0131k de\u011filse k\u0131sa pin.it ba\u011flant\u0131lar\u0131 de\u011fi\u015fmez.");
         table.put("Removes tracking tags from copied and shared links. Short pin.it links stay unchanged.",
                 "Kopyalanan ve payla\u015f\u0131lan ba\u011flant\u0131lardan takip etiketlerini kald\u0131r\u0131r. K\u0131sa pin.it ba\u011flant\u0131lar\u0131 de\u011fi\u015fmez.");
-    }
-
-    private static void fillTr6(Map<String, String> table) {
         table.put("Replaces short and country-site pin links with pinterest.com links that don't identify who shared them. Unknown copied short links change only if a background check finds the pin. Sharing doesn't wait for that check.",
                 "K\u0131sa pin ba\u011flant\u0131lar\u0131n\u0131 ve \u00fclke sitelerindeki pin ba\u011flant\u0131lar\u0131n\u0131, kimin payla\u015ft\u0131\u011f\u0131n\u0131 g\u00f6stermeyen pinterest.com ba\u011flant\u0131lar\u0131na d\u00f6n\u00fc\u015ft\u00fcr\u00fcr. Tan\u0131nmayan kopyalanm\u0131\u015f k\u0131sa ba\u011flant\u0131lar yaln\u0131zca arka plan sorgusu pini bulursa de\u011fi\u015fir. Payla\u015f\u0131m bu sorguyu beklemez.");
         table.put("Report a problem",
@@ -5215,13 +5235,13 @@ public final class L10nTranslations {
                 "Boyut: \u00f6zg\u00fcn g\u00f6rsel");
         table.put("Skipped",
                 "Atland\u0131");
+    }
+
+    private static void fillTr7(Map<String, String> table) {
         table.put("Skipped because they're already in Download history: %d",
                 "\u0130ndirme ge\u00e7mi\u015finde oldu\u011fu i\u00e7in atlananlar: %d");
         table.put("Social permissions",
                 "Sosyal izinler");
-    }
-
-    private static void fillTr7(Map<String, String> table) {
         table.put("Source code and issues",
                 "Kaynak kodu ve sorunlar");
         table.put("Spoof signature for Google sign-in",
@@ -5338,13 +5358,13 @@ public final class L10nTranslations {
                 "Kullan\u0131lam\u0131yor");
         table.put("Undo",
                 "Geri al");
+    }
+
+    private static void fillTr8(Map<String, String> table) {
         table.put("Undo ended because a saved switch changed.",
                 "Kay\u0131tl\u0131 bir anahtar de\u011fi\u015fti\u011fi i\u00e7in geri alma sona erdi.");
         table.put("Undo import",
                 "\u0130\u00e7e aktarmay\u0131 geri al");
-    }
-
-    private static void fillTr8(Map<String, String> table) {
         table.put("Undoing import",
                 "\u0130\u00e7e aktarma geri al\u0131n\u0131yor");
         table.put("Unknown",

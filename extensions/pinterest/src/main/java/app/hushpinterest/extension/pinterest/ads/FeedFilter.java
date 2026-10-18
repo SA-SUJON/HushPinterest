@@ -42,22 +42,26 @@ public final class FeedFilter {
         boolean ads = PatchFamily.Capability.FEED_ADS.installed();
         boolean ai = PatchFamily.Capability.FEED_AI_PINS.installed();
         boolean shopping = PatchFamily.Capability.FEED_SHOPPING.installed();
+        boolean videos = PatchFamily.Capability.FEED_VIDEO_PINS.installed();
         if (ads) HookStatus.invoked(FamilyNames.HIDE_ADS);
         if (ai) HookStatus.invoked(FamilyNames.HIDE_AI_PINS);
         if (shopping) HookStatus.invoked(FamilyNames.HIDE_SHOPPING);
+        if (videos) HookStatus.invoked(FamilyNames.FILTER_FEED);
         if (items == null || items.isEmpty()) return items;
         ads = ads && Ads.active();
         // Hide pins that say they're AI rides the same hook as Hide AI-labeled pins, on its own switch.
         boolean aiWords = ai && AiPins.wordsActive();
         ai = ai && AiPins.active();
         shopping = shopping && Shopping.active();
-        if (!ads && !ai && !aiWords && !shopping) {
+        videos = videos && VideoPins.active();
+        if (!ads && !ai && !aiWords && !shopping && !videos) {
             BoardDownloads.record(items);
             return items;
         }
-        boolean hideAds = ads, hideAi = ai, hideAiWords = aiWords, hideShopping = shopping;
-        ModuleItems.Verdict verdict = model -> family(model, hideAds, hideAi, hideAiWords, hideShopping);
-        String owner = ads ? FamilyNames.HIDE_ADS : ai || aiWords ? FamilyNames.HIDE_AI_PINS : FamilyNames.HIDE_SHOPPING;
+        boolean hideAds = ads, hideAi = ai, hideAiWords = aiWords, hideShopping = shopping, hideVideos = videos;
+        ModuleItems.Verdict verdict = model -> family(model, hideAds, hideAi, hideAiWords, hideShopping, hideVideos);
+        String owner = ads ? FamilyNames.HIDE_ADS : ai || aiWords ? FamilyNames.HIDE_AI_PINS
+                : shopping ? FamilyNames.HIDE_SHOPPING : FamilyNames.FILTER_FEED;
         boolean debug = debugLogging();
         List<?> shown;
         // What the loop takes out, counted only once the whole list went through: a list that fails
@@ -126,14 +130,16 @@ public final class FeedFilter {
     }
 
     /**
-     * The first switch on that takes [item] out, in the order ads, AI label, AI words, shopping, or
-     * null to keep it. A pin that says it's AI is named {@link AiPins#SELF_DESCRIBED}, counted apart.
+     * The first switch on that takes [item] out, in the order ads, AI label, AI words, shopping,
+     * video, or null to keep it. A pin that says it's AI is named {@link AiPins#SELF_DESCRIBED},
+     * counted apart.
      */
-    private static String family(Object item, boolean ads, boolean ai, boolean aiWords, boolean shopping) {
+    private static String family(Object item, boolean ads, boolean ai, boolean aiWords, boolean shopping, boolean videos) {
         return ads && Ads.isAd(item) ? FamilyNames.HIDE_ADS
                 : ai && AiPins.isLabeled(item) ? FamilyNames.HIDE_AI_PINS
                 : aiWords && AiPins.saysItIsAi(item) ? AiPins.SELF_DESCRIBED
-                : shopping && Shopping.isShopping(item) ? FamilyNames.HIDE_SHOPPING : null;
+                : shopping && Shopping.isShopping(item) ? FamilyNames.HIDE_SHOPPING
+                : videos && VideoPins.isVideo(item) ? FamilyNames.FILTER_FEED : null;
     }
 
     /** The family whose report counts a removal [family] names. */
@@ -145,6 +151,7 @@ public final class FeedFilter {
     static String removal(String family) {
         return family.equals(FamilyNames.HIDE_ADS) ? "promoted pin removed"
                 : family.equals(FamilyNames.HIDE_AI_PINS) ? "AI-labeled pin removed"
-                : family.equals(AiPins.SELF_DESCRIBED) ? "self-described AI pin removed" : "shopping placement removed";
+                : family.equals(AiPins.SELF_DESCRIBED) ? "self-described AI pin removed"
+                : family.equals(FamilyNames.FILTER_FEED) ? "video pin removed" : "shopping placement removed";
     }
 }

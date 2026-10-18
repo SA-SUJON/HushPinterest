@@ -34,14 +34,16 @@ internal fun serializedFields(model: ClassDef): Map<String, String> {
 private val BOOLEAN = listOf("Ljava/lang/Boolean;", "Z")
 private val TEXT = listOf("Ljava/lang/String;")
 private val ENTRIES = listOf("Ljava/util/List;")
+private val MAP = listOf("Ljava/util/Map;")
 
 /** Any object type, for `isSet` on a field whose class is renamed in every build (an enum, say). */
 private val OBJECT = listOf("an object")
 
 /**
- * The pin fields Hide ads, Hide AI-labeled pins and Hide shopping filter on, with the declared
- * types ModelFields can use for each: `isTrue` compares with Boolean.TRUE, which a primitive
- * boolean boxes to as well, `hasText` needs a String, `hasEntries` a List and `isSet` any object.
+ * The pin fields Hide ads, Hide AI-labeled pins, Hide shopping and Filter feed filter on, with the
+ * declared types ModelFields can use for each: `isTrue` compares with Boolean.TRUE, which a
+ * primitive boolean boxes to as well, `hasText` needs a String, `hasEntries` a List and `isSet`
+ * (or a read into a nested model) any object.
  */
 internal val PIN_FILTER_FIELDS: Map<String, List<String>> = linkedMapOf(
     "is_promoted" to BOOLEAN,
@@ -52,6 +54,20 @@ internal val PIN_FILTER_FIELDS: Map<String, List<String>> = linkedMapOf(
     "digital_media_source_type" to OBJECT,
     "digital_media_source_type_label" to TEXT,
     "is_eligible_for_pdp" to BOOLEAN,
+    "is_video" to BOOLEAN,
+    "videos" to OBJECT,
+    "story_pin_data" to OBJECT,
+    // How PinWords tells a pin from other models, for the AI words and video filters.
+    "grid_title" to TEXT,
+)
+
+/**
+ * The fields Filter feed reads inside a pin's nested models, by the pin field that holds the model:
+ * VideoPins wants a Map for `video_list` and a String for `total_video_duration`.
+ */
+internal val NESTED_FILTER_FIELDS: Map<String, Pair<String, List<String>>> = linkedMapOf(
+    "videos" to ("video_list" to MAP),
+    "story_pin_data" to ("total_video_duration" to TEXT),
 )
 
 private fun fits(type: String, types: List<String>) = type in types || (types === OBJECT && type.startsWith("L"))
@@ -88,7 +104,7 @@ internal fun pinSchemaProblems(models: Map<String, Map<String, String>>): List<S
     if (pins.size > 1) return listOf("the pin model is ambiguous: ${pins.joinToString()} each carry $most of ${PIN_FILTER_FIELDS.keys}")
     val pin = pins.single()
     val fields = shaped.getValue(pin)
-    return PIN_FILTER_FIELDS.mapNotNull { (key, types) ->
+    val own = PIN_FILTER_FIELDS.mapNotNull { (key, types) ->
         val type = fields[key]
         when {
             type == null -> "$pin has no field named ${expected(key)}"
@@ -96,4 +112,17 @@ internal fun pinSchemaProblems(models: Map<String, Map<String, String>>): List<S
             else -> null
         }
     }
+    // A missing or retyped holder field already failed above, so only a model that's there is read.
+    val nested = NESTED_FILTER_FIELDS.mapNotNull { (holder, wanted) ->
+        val (key, types) = wanted
+        val model = fields[holder]?.takeIf { it.startsWith("L") } ?: return@mapNotNull null
+        val type = models[model]?.get(key)
+        when {
+            models[model] == null -> "$pin field $holder is $model, which isn't a model with JSON names"
+            type == null -> "$model ($pin's $holder) has no field named $key (expected ${types.joinToString(" or ")})"
+            !fits(type, types) -> "$model ($pin's $holder) field $key is $type, expected ${types.joinToString(" or ")}"
+            else -> null
+        }
+    }
+    return own + nested
 }

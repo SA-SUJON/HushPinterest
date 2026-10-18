@@ -60,6 +60,12 @@ public class Settings extends BaseSettings {
 
     public static final BooleanSetting HIDE_SHOPPING =
             new BooleanSetting("hushpinterest_hide_shopping", FALSE);
+    /**
+     * Video pins leave the same lists, on Filter feed's switch: a pin Pinterest marks as video, gives
+     * a video list or calls an idea pin with running time. GIFs and photos stay. Off to start.
+     */
+    public static final BooleanSetting HIDE_VIDEO_PINS =
+            new BooleanSetting("hushpinterest_hide_video_pins", FALSE);
     /** Its row asks for a restart after turning it off, so a change brings up the restart row. */
     public static final BooleanSetting DISABLE_ANALYTICS =
             new BooleanSetting("hushpinterest_disable_analytics", TRUE, true);

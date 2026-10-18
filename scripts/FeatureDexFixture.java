@@ -905,10 +905,11 @@ public final class FeatureDexFixture {
             loop.put(OBSERVER, List.of(method(OBSERVER, "onScreenshot", VOID, false, 4, guarded, OBJECT, "Landroidx/fragment/app/FragmentActivity;")));
             write(root, "feature-guard-interior-" + (unsafe ? "bad" : "good"), loop, true, "hideScreenshotShare");
         }
-        for (String variant : List.of("ads", "ai", "shopping", "shared", "duplicate", "wrong-register", "wrong-result", "unreachable-control")) {
+        for (String variant : List.of("ads", "ai", "shopping", "videos", "shared", "duplicate", "wrong-register", "wrong-result", "unreachable-control")) {
             reset();
             String[] selected = variant.equals("ai") ? new String[]{"hideAiPins"} : variant.equals("shopping") ? new String[]{"hideShopping"}
-                    : variant.equals("ads") ? new String[]{"hideAds"} : new String[]{"hideAds", "hideAiPins", "hideShopping"};
+                    : variant.equals("ads") ? new String[]{"hideAds"} : variant.equals("videos") ? new String[]{"filterFeed"}
+                    : new String[]{"hideAds", "hideAiPins", "hideShopping", "filterFeed"};
             for (String family : selected) enable(family);
             FLAGS.put("adViews", false);
             FLAGS.put("googleAds", false);

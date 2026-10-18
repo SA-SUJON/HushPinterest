@@ -165,6 +165,9 @@ Pin actions	Ações do Pin
 Interface	Interface
 Hide shopping and product pins	Ocultar compras e Pins de produtos
 Hides product pins, shopping stories, featured boards and Shop the look under pins. Visit and Paid link stay.	Oculta pins de produtos, stories de compras, pastas em destaque e Shop the look abaixo dos pins. O link para visitar o site e a indicação de link pago ficam.
+# context: a Feed switch under Hide shopping and product pins, from the Filter feed patch. It removes pins that play a video (video pins and idea pins with video) from the lists Pinterest shows. Photos and animated GIFs stay. The title is also the name of that part of the patch in the build report.
+Hide video pins	Ocultar pins de vídeo
+Removes pins that play a video from your home feed, search, related pins and boards. Photos and GIFs stay.	Remove os pins que reproduzem um vídeo do seu feed inicial, da busca, dos pins relacionados e das pastas. Fotos e GIFs ficam.
 Disable analytics	Desativar análises
 Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.	Para os relatórios de uso e as tarefas de análise. Reinicie após desligar ou pausar. As análises do Google ficam desligadas até você aplicar os patches de novo sem Desativar análises.
 Firebase and Google Analytics collection is turned off	A coleta do Firebase e do Google Analytics está desativada
