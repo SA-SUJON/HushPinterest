@@ -420,6 +420,14 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hide lens button on pins"),
                     L10n.t("Hides the visual search button in the corner of a pin you open. Search image in the pin "
                         + "menu still works. The change shows on the next pin you open."), SettingsIcons.BLOCK);
+            // Its own hook: a build where the label's flag wasn't found has no row for it, and both
+            // buttons above still work.
+            if (build.contains(PatchFamily.HIDE_CLOSEUP_BUTTONS) && PatchFamily.Capability.CLOSEUP_SEARCH_LABEL.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.HIDE_CLOSEUP_SEARCH_LABEL, L10n.t("Hide Search image label on pins"),
+                        L10n.t("Keeps the lens button on a pin you open but leaves off the Search image label Pinterest "
+                            + "adds to it on your first pins each day. Tapping the lens still searches. The change "
+                            + "shows on the next pin you open.")), SettingsIcons.BLOCK));
+            }
             patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_COLLAGE,
                     L10n.t("Hide collage menu items"),
                     L10n.t("Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's "

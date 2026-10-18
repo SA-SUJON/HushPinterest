@@ -277,7 +277,7 @@ public class DexDiff {
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
             Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
-            Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3));
+            Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -4939,6 +4939,81 @@ public class DexDiff {
             capability(c.callee, handed && held);
         }
 
+        static final String SEARCH_LABEL_FLAG = ", isVisualActionAnimated=", SEARCH_IMAGE_TEXT = "search_image";
+
+        /**
+         * The lens's Search image label. In the one clean class that reads the lens id, search_image and
+         * the closeup state's label flag (see searchLabelFlag), every read of the flag gains the hook on
+         * the read's register, answered back into it, reached only from the read and followed by the
+         * original next instruction. A build without that state or builder has no label switch, and its
+         * flag stays off.
+         */
+        void closeupSearchLabel(Contract c) {
+            String hook = c.strings.get(0), flag = searchLabelFlag();
+            List<ClassDef> builders = new ArrayList<>();
+            if (flag != null) for (ClassDef cd : clean.classes.values()) {
+                if (cd.getType().startsWith(OWN)) continue;
+                boolean lens = false, text = false, flagged = false;
+                for (Method m : cd.getMethods()) for (Instruction i : instructions(m)) {
+                    lens |= readsId(i, CLOSEUP_LENS_ID);
+                    text |= readsId(i, SEARCH_IMAGE_TEXT);
+                    flagged |= readsFlag(i, flag);
+                }
+                if (lens && text && flagged) builders.add(cd);
+            }
+            boolean labeled = builders.size() == 1;
+            if (labeled) for (Method old : builders.get(0).getMethods()) {
+                List<Instruction> was = instructions(old);
+                List<Integer> reads = new ArrayList<>();
+                for (int k = 0; k < was.size(); k++) if (readsFlag(was.get(k), flag)) reads.add(k);
+                if (reads.isEmpty()) continue;
+                Method m = actual(old);
+                calls(m, hook, reads.size());
+                if (m == null) { labeled = false; continue; }
+                List<Instruction> body = instructions(m);
+                // The n-th read in the built method, wherever another switch's hooks moved it.
+                List<Integer> built = new ArrayList<>();
+                for (int k = 0; k < body.size(); k++) if (readsFlag(body.get(k), flag)) built.add(k);
+                if (built.size() != reads.size()) { fail(m + " reads the label flag " + built.size() + " times, not " + reads.size()); labeled = false; continue; }
+                for (int n = 0; n < reads.size(); n++) {
+                    int read = reads.get(n), at = built.get(n), register = ((TwoRegisterInstruction) was.get(read)).getRegisterA();
+                    boolean placed = at + 3 < body.size() && read + 1 < was.size()
+                            && ((TwoRegisterInstruction) body.get(at)).getRegisterA() == register
+                            && hook.equals(String.valueOf(reference(body.get(at + 1)))) && arguments(body.get(at + 1)).equals(List.of(register))
+                            && isMoveResult(body.get(at + 2).getOpcode()) && firstRegister(body.get(at + 2)) == register
+                            && body.get(at + 3).getOpcode() == was.get(read + 1).getOpcode()
+                            && onlyFrom(m, at + 1, at) && onlyFrom(m, at + 2, at + 1);
+                    if (!placed) { fail(hook + " doesn't answer the label flag read at instruction " + read + " of " + m); labeled = false; }
+                    else remove(m, at + 1, at + 3);
+                }
+            }
+            capability(c.callee, labeled);
+        }
+
+        /**
+         * The boolean the closeup state's toString reads first after naming isVisualActionAnimated, as
+         * a field descriptor, or null when no single state names it or the read isn't the state's own.
+         */
+        String searchLabelFlag() {
+            List<Method> described = new ArrayList<>();
+            for (Method m : clean.holding(SEARCH_LABEL_FLAG)) if (m.getName().equals("toString") && m.getParameterTypes().isEmpty()) described.add(m);
+            if (described.size() != 1) return null;
+            Method state = described.get(0);
+            List<Instruction> body = instructions(state);
+            int named = -1;
+            for (int k = 0; k < body.size() && named < 0; k++)
+                if (reference(body.get(k)) instanceof StringReference s && s.getString().equals(SEARCH_LABEL_FLAG)) named = k;
+            for (int k = named + 1; k < body.size(); k++) if (body.get(k).getOpcode() == Opcode.IGET_BOOLEAN) {
+                FieldReference f = (FieldReference) reference(body.get(k));
+                return f.getDefiningClass().equals(state.getDefiningClass()) && f.getType().equals("Z") ? f.toString() : null;
+            }
+            return null;
+        }
+
+        static boolean readsFlag(Instruction i, String flag) {
+            return i.getOpcode() == Opcode.IGET_BOOLEAN && String.valueOf(reference(i)).equals(flag);
+        }
+
         /** Adds each site where [id]'s button is found or built to [sites]. True when there's at least one. */
         boolean buttonSites(String id, String hook, List<ButtonSite> sites) {
             int before = sites.size();
@@ -5759,6 +5834,7 @@ public class DexDiff {
                     case "recentSearchRows": recentSearchRows(c); break;
                     case "recentSearchHeading": recentSearchHeading(c); break;
                     case "closeupButtons": closeupButtons(c); break;
+                    case "closeupSearchLabel": closeupSearchLabel(c); break;
                     case "boardMenu": boardMenu(c); break;
                     case "surveyPrompts": surveyPrompts(c); break;
                     case "pinInvites": pinInvites(c); break;

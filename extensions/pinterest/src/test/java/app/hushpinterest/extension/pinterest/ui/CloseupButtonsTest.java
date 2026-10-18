@@ -35,6 +35,7 @@ public class CloseupButtonsTest {
         PauseForTests.resume();
         Settings.HIDE_CLOSEUP_BACK.resetToDefault();
         Settings.HIDE_CLOSEUP_LENS.resetToDefault();
+        Settings.HIDE_CLOSEUP_SEARCH_LABEL.resetToDefault();
         HookStatus.clear();
     }
 
@@ -117,5 +118,20 @@ public class CloseupButtonsTest {
         Settings.HIDE_CLOSEUP_BACK.save(true);
         assertEquals(View.GONE, CloseupButtons.visibility(back, View.GONE));
         assertFalse("the lens switch stays off", Settings.HIDE_CLOSEUP_LENS.savedValue());
+    }
+
+    @Test public void searchLabelKeepsPinterestsFlagUntilItsSwitchIsOn() {
+        assertTrue("off, the first pins of a day keep their label", CloseupButtons.searchLabel(true));
+        assertFalse(CloseupButtons.searchLabel(false));
+
+        Settings.HIDE_CLOSEUP_SEARCH_LABEL.save(true);
+        assertFalse("on, the label is left off", CloseupButtons.searchLabel(true));
+        assertFalse("a pin Pinterest wouldn't label stays unlabeled", CloseupButtons.searchLabel(false));
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("search image label left off"));
+        assertFalse("the lens switch stays off", Settings.HIDE_CLOSEUP_LENS.savedValue());
+
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertTrue("paused, Pinterest's label shows again", CloseupButtons.searchLabel(true));
     }
 }

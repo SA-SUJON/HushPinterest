@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
+import app.morphe.patches.pinterest.misc.extension.patchLog
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.EXTENSION_ROOT
@@ -23,14 +24,17 @@ import app.morphe.util.namedRegisters
 import app.morphe.util.superclassChain
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Hide closeup buttons"
@@ -39,10 +43,17 @@ internal const val CLOSEUP_BUTTONS = "$EXTENSION_PACKAGE/ui/CloseupButtons;"
 internal const val CLOSEUP_BACK_HOOK = "$CLOSEUP_BUTTONS->backArrow(Landroid/view/View;)V"
 internal const val CLOSEUP_LENS_HOOK = "$CLOSEUP_BUTTONS->lens(Landroid/view/View;)V"
 internal const val CLOSEUP_VISIBILITY_HOOK = "$CLOSEUP_BUTTONS->visibility(Landroid/view/View;I)I"
+internal const val CLOSEUP_SEARCH_LABEL_HOOK = "$CLOSEUP_BUTTONS->searchLabel(Z)Z"
 
 /** The R fields naming each button's id. This build reads ids from R rather than inlining them. */
 internal const val CLOSEUP_BACK_ID = "closeup_back_button"
 internal const val CLOSEUP_LENS_ID = "flashlight_search_button"
+
+/** The closeup state's toString names the lens label's flag right before reading it. */
+internal const val SEARCH_LABEL_FLAG = ", isVisualActionAnimated="
+
+/** The R string the lens wears as its label. */
+internal const val SEARCH_IMAGE_TEXT = "search_image"
 
 private const val FIND_VIEW = "Landroid/view/View;->findViewById(I)Landroid/view/View;"
 private const val GET_CLASS = "Ljava/lang/Object;->getClass()Ljava/lang/Class;"
@@ -162,6 +173,42 @@ private fun foundAt(method: Method, body: List<Instruction>, at: Int, id: String
     return ButtonSite(method, at + 3, button, ((cast as ReferenceInstruction).reference as TypeReference).type, true)
 }
 
+/** A read of the lens label's flag into [register], with the hook going in right after [index]. */
+internal class LabelRead(val method: Method, val index: Int, val register: Int)
+
+/**
+ * Where the lens decides to wear its Search image label and play the animation that shows it:
+ * every read of the closeup state's label flag in the one class that builds the lens and picks
+ * the search_image string. The flag is the first boolean the state's toString reads after naming
+ * it. Pinterest sets it on the first two eligible closeups of a day and clears it after, so the
+ * hook only ever makes a closeup look like the third. Throws when any part is missing or there's
+ * more than one candidate.
+ */
+internal fun BytecodePatchContext.labelReads(): List<LabelRead> {
+    val described = methodsWithString(SEARCH_LABEL_FLAG).filter { it.name == "toString" && it.parameterTypes.isEmpty() }
+    val toString = described.singleOrNull()
+        ?: throw PatchException("${described.size} closeup states describe their lens label flag")
+    val body = toString.instructions()
+    val named = body.indexOfFirst { (it as? ReferenceInstruction)?.reference.let { text -> text is StringReference && text.string == SEARCH_LABEL_FLAG } }
+    val flag = body.drop(named + 1).firstOrNull { it.opcode == Opcode.IGET_BOOLEAN }
+        ?.let { (it as ReferenceInstruction).reference as FieldReference }
+        ?.takeIf { it.definingClass == toString.definingClass && it.type == "Z" }
+        ?: throw PatchException("the closeup state ${toString.definingClass} names its lens label flag without reading its own boolean")
+    fun Instruction.readsFlag() = opcode == Opcode.IGET_BOOLEAN && "${(this as ReferenceInstruction).reference}" == "$flag"
+    val builders = mutableListOf<ClassDef>()
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        val code = owner.methods.map { it.instructions() }
+        if (code.any { body -> body.any { it.readsId(CLOSEUP_LENS_ID) } } && code.any { body -> body.any { it.readsId(SEARCH_IMAGE_TEXT) } } &&
+            code.any { body -> body.any { it.readsFlag() } }) builders += owner
+    }
+    val builder = builders.singleOrNull() ?: throw PatchException("${builders.size} lens builders read its label flag")
+    return builder.methods.flatMap { method ->
+        method.instructions().withIndex().filter { (_, read) -> read.readsFlag() }
+            .map { (at, read) -> LabelRead(method, at, (read as TwoRegisterInstruction).registerA) }
+    }
+}
+
 /** True when the class's first ancestor outside the APK is one of Android's view classes. */
 private fun BytecodePatchContext.isFrameworkView(type: String) =
     superclassChain(type).drop(1).lastOrNull()?.let { outside -> ANDROID_VIEWS.any { outside.startsWith(it) } } == true
@@ -170,9 +217,10 @@ private fun BytecodePatchContext.isFrameworkView(type: String) =
 val hideCloseupButtonsPatch = bytecodePatch(
     name = PATCH,
     description = "Lets you hide the back arrow and the visual search (lens) button that float over a pin you open, " +
-        "each with its own switch, so they stop covering the picture. Your phone's back gesture still leaves the " +
-        "pin, and Search image in the pin menu still works. Both start off. Turn them on in HushPinterest " +
-        "settings > Interface.",
+        "each with its own switch, so they stop covering the picture. A third switch keeps the lens but drops the " +
+        "Search image label Pinterest puts on it for your first pins each day. Your phone's back gesture still " +
+        "leaves the pin, and Search image in the pin menu still works. All three start off. Turn them on in " +
+        "HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)
@@ -181,10 +229,19 @@ val hideCloseupButtonsPatch = bytecodePatch(
     execute {
         requireStatusMethod("hideCloseupButtons")
         requireStatusMethod("closeupButtons")
+        requireStatusMethod("closeupSearchLabel")
         val backs = buttonSites(CLOSEUP_BACK_ID)
         val lenses = buttonSites(CLOSEUP_LENS_ID)
         if (backs.isEmpty()) throw PatchException("$PATCH: nothing finds the closeup's back arrow")
         if (lenses.isEmpty()) throw PatchException("$PATCH: nothing builds the closeup's visual search button")
+        // The label has its own switch, so a build where its flag can't be pinned down still gets
+        // both buttons, just without that third switch.
+        val labels = try {
+            labelReads()
+        } catch (missing: PatchException) {
+            patchLog.warning("$PATCH: ${missing.message}. Hide Search image label isn't in this build.")
+            emptyList()
+        }
 
         // Everything is found and checked before the first change.
         val views = (backs + lenses).map { it.view }.distinct().map { type ->
@@ -202,10 +259,23 @@ val hideCloseupButtonsPatch = bytecodePatch(
             }
         }
 
-        // Within one method the later site goes in first, so the earlier index still holds.
-        for ((method, site, hook) in edits.sortedByDescending { it.second.index }) {
+        // Within one method the later site goes in first, so the earlier index still holds. A button
+        // goes in at the label of the instruction it precedes; a label read's answer goes in after the
+        // read, off any label there, so only the path from the read is filtered.
+        val inserts = mutableListOf<Pair<Int, () -> Unit>>()
+        for ((method, site, hook) in edits) inserts += site.index to {
             method.addInstructionsAtControlFlowLabel(site.index, "invoke-static/range { v${site.register} .. v${site.register} }, $hook")
         }
+        for (read in labels) {
+            val method = mutable(read.method)
+            inserts += read.index + 1 to {
+                method.addInstructions(read.index + 1, """
+                    invoke-static { v${read.register} }, $CLOSEUP_SEARCH_LABEL_HOOK
+                    move-result v${read.register}
+                """)
+            }
+        }
+        for ((_, insert) in inserts.sortedByDescending { it.first }) insert()
         val prefix = """
             invoke-static { p0, p1 }, $CLOSEUP_VISIBILITY_HOOK
             move-result p1
@@ -215,6 +285,7 @@ val hideCloseupButtonsPatch = bytecodePatch(
             if (own != null) own.addInstructions(0, prefix) else addOverride(view, "setVisibility", listOf("I"), prefix)
         }
         enableCapability("closeupButtons")
+        if (labels.isNotEmpty()) enableCapability("closeupSearchLabel")
         enableStatus("hideCloseupButtons")
     }
 }

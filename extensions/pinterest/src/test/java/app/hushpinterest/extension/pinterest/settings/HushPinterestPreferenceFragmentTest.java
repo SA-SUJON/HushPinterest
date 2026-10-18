@@ -395,6 +395,34 @@ public class HushPinterestPreferenceFragmentTest {
         }
     }
 
+    /**
+     * Hide Search image label has its own hook, so its row shows only when that hook went in, right
+     * under Hide lens button. It starts off.
+     */
+    @Test
+    public void searchImageLabelShowsOnlyWhereItsHookWentIn() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Set<PatchFamily.Capability> withoutIt = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutIt.remove(PatchFamily.Capability.CLOSEUP_SEARCH_LABEL);
+        PatchFamily.capabilitiesForTests = withoutIt;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            assertNull(page.findPreference(Settings.HIDE_CLOSEUP_SEARCH_LABEL.key));
+            assertNotNull(page.findPreference(Settings.HIDE_CLOSEUP_LENS.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            SwitchPreference row = (SwitchPreference) page.findPreference(Settings.HIDE_CLOSEUP_SEARCH_LABEL.key);
+            assertNotNull(row);
+            assertEquals("Hide Search image label on pins", String.valueOf(row.getTitle()));
+            assertFalse("Hide Search image label starts off", row.isChecked());
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            assertEquals(indexOfKey(rows, Settings.HIDE_CLOSEUP_LENS.key) + 1, indexOfKey(rows, Settings.HIDE_CLOSEUP_SEARCH_LABEL.key));
+        }
+    }
+
     /** Black comments and Black pin menu each have their own hook, so each row shows only where its hook went in, under Black bottom bar. */
     @Test
     public void theBlackSheetRowsShowOnlyWhereTheirHooksWentIn() {

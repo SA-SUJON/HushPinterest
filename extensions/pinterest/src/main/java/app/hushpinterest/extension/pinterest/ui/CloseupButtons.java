@@ -23,7 +23,8 @@ import app.hushpinterest.extension.shared.settings.BooleanSetting;
  * closeup. The patch hands each button over where Pinterest finds or builds it, and sends every
  * visibility change of those two view classes through {@link #visibility}. A handed-over button
  * whose switch is on stays GONE, so it takes no room and TalkBack skips it. Off or paused,
- * Pinterest's own visibility goes through, and the next closeup's button shows as usual.
+ * Pinterest's own visibility goes through, and the next closeup's button shows as usual. The
+ * lens's label has a switch of its own, see {@link #searchLabel}.
  */
 public final class CloseupButtons {
     private CloseupButtons() {}
@@ -63,6 +64,24 @@ public final class CloseupButtons {
         if (requested == View.GONE || MARKED.isEmpty()) return requested;
         Boolean back = MARKED.get(view);
         return back != null && staysHidden(back) ? View.GONE : requested;
+    }
+
+    /**
+     * The lens's Search image label, read where the lens decides to wear it and where it plays the
+     * animation that shows it. Pinterest raises the flag on the first two eligible pins of a day and
+     * drops it after, so with the switch on every pin's lens looks the way the third one does:
+     * unlabeled, still there and still searching.
+     */
+    public static boolean searchLabel(boolean shown) {
+        if (!shown) return false;
+        try {
+            if (!UiHooks.enabled(FamilyNames.HIDE_CLOSEUP_BUTTONS, Settings.HIDE_CLOSEUP_SEARCH_LABEL)) return true;
+            HookStatus.counted(FamilyNames.HIDE_CLOSEUP_BUTTONS, "search image label left off");
+            return false;
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.HIDE_CLOSEUP_BUTTONS, "search image label", failure);
+            return true;
+        }
     }
 
     private static BooleanSetting setting(boolean back) {

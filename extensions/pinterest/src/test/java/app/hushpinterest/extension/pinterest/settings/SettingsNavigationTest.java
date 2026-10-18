@@ -1246,6 +1246,7 @@ public class SettingsNavigationTest {
         summaryContains(Settings.BLACK_PIN_MENU.key, "In dark mode", "a pin's menu pure black", "Light mode stays", "next time you open the menu");
         summaryContains(Settings.HIDE_CLOSEUP_BACK.key, "back arrow that floats over a pin", "back gesture or button", "next pin you open");
         summaryContains(Settings.HIDE_CLOSEUP_LENS.key, "visual search button", "Search image in the pin menu still works", "next pin you open");
+        summaryContains(Settings.HIDE_CLOSEUP_SEARCH_LABEL.key, "Search image label", "first pins each day", "Tapping the lens still searches", "next pin you open");
         summaryContains(Settings.HIDE_PIN_MENU_COLLAGE.key, "Add to collage and Remix collage", "pin menus you open from now on", "already open won't change");
         summaryContains(Settings.HIDE_PIN_MENU_VISUAL_SEARCH.key, "Search image", "pin menus you open from now on", "already open won't change");
         summaryContains(Settings.HIDE_PIN_MENU_PIN_BOOST.key, "Promote pin", "pin menus you open from now on", "already open won't change");

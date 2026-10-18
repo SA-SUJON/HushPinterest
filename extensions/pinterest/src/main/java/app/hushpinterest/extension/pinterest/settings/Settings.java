@@ -117,6 +117,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_closeup_back", FALSE);
     public static final BooleanSetting HIDE_CLOSEUP_LENS =
             new BooleanSetting("hushpinterest_hide_closeup_lens", FALSE);
+    public static final BooleanSetting HIDE_CLOSEUP_SEARCH_LABEL =
+            new BooleanSetting("hushpinterest_hide_closeup_search_label", FALSE);
     public static final BooleanSetting HIDE_PIN_MENU_COLLAGE =
             new BooleanSetting("hushpinterest_hide_pin_menu_collage", FALSE);
     public static final BooleanSetting HIDE_PIN_MENU_VISUAL_SEARCH =

@@ -13,6 +13,7 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.pinterest.misc.extension.PatchLogCapture
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -27,8 +28,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -45,11 +48,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.experimental.categories.Category
 
-/** Every class reading the closeup back arrow's or lens's id, the classes those buttons are, and their ancestors, in each declared APK. */
+/**
+ * Every class reading the closeup back arrow's or lens's id, the classes those buttons are, and their
+ * ancestors, in each declared APK, with the closeup state that describes the lens's label flag.
+ */
 @Category(FixtureTests::class)
 class CloseupButtonsFixtureTest {
-    private class Build(val name: String, val readers: List<ClassDef>, val others: List<ClassDef>) {
-        val classes get() = readers + others
+    private class Build(val name: String, val readers: List<ClassDef>, val others: List<ClassDef>, val states: List<ClassDef>) {
+        val classes get() = readers + others + states
     }
 
     private val ids = setOf(CLOSEUP_BACK_ID, CLOSEUP_LENS_ID)
@@ -156,6 +162,10 @@ class CloseupButtonsFixtureTest {
                 ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
                     owner.annotations, owner.fields, owner.methods.filterNot { it.name == "closeupButtons" }) }
                 to "no boolean method closeupButtons()"),
+            "missing label status stub" to (build.classes + extension.map { owner -> if (owner.type != SETTINGS_STATUS) owner else
+                ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
+                    owner.annotations, owner.fields, owner.methods.filterNot { it.name == "closeupSearchLabel" }) }
+                to "no boolean method closeupSearchLabel()"),
         )
         for ((reason, case) in cases) {
             val (input, message) = case
@@ -185,6 +195,79 @@ class CloseupButtonsFixtureTest {
         }
         assertEquals("the other builder still hands its lens over", 1, flag(context, "closeupButtons"))
     }
+
+    @Test
+    fun `each declared original APK answers every read of the lens's label flag through its own switch`() {
+        for (build in Fixtures.declaredBuilds().map(::read)) {
+            val context = PatchContexts.of(ExtensionDex.classes() + build.classes)
+            hideCloseupButtonsPatch.execute(context)
+            assertEquals("${build.name}: closeupSearchLabel", 1, flag(context, "closeupSearchLabel"))
+            val labelFlag = labelFlag(build.states.single())
+            var sites = 0
+            for (method in build.readers.single { it.type == LENS_BUILDER }.methods) {
+                val original = method.implementation?.instructions?.toList() ?: continue
+                val reads = original.indices.filter { original[it].readsFlag(labelFlag) }
+                val body = patched(context, method)
+                val hooks = body.indices.filter { (body[it] as? ReferenceInstruction)?.reference?.toString() == CLOSEUP_SEARCH_LABEL_HOOK }
+                assertEquals("${build.name}: $method's label flag reads", reads.size, hooks.size)
+                if (reads.isEmpty()) continue
+                for ((read, at) in reads.zip(hooks)) {
+                    val register = (original[read] as TwoRegisterInstruction).registerA
+                    assertTrue("${build.name}: $method asks right after the read", body[at - 1].readsFlag(labelFlag))
+                    assertEquals("${build.name}: $method passes the flag it read", listOf(register), registers(body[at]))
+                    assertEquals(Opcode.MOVE_RESULT, body[at + 1].opcode)
+                    assertEquals("${build.name}: the answer replaces the flag", register, (body[at + 1] as OneRegisterInstruction).registerA)
+                    assertEquals("${build.name}: nothing jumps into the hook", emptyList<Int>(), branchesTo(body, at))
+                    assertEquals("${build.name}: branches to the next instruction still land on it",
+                        branchesTo(original, read + 1).size, branchesTo(body, at + 2).size)
+                }
+                val added = hooks.flatMap { listOf(it, it + 1) }.toSet()
+                assertEquals("${build.name}: $method keeps every original instruction", original.map { it.opcode },
+                    body.filterIndexed { at, _ -> at !in added }.map { it.opcode })
+                sites += hooks.size
+            }
+            assertEquals("${build.name}: where the lens wears its label and where it plays the label's animation", 2, sites)
+        }
+    }
+
+    @Test
+    fun `without the closeup state or the lens builder's label text, the buttons still work and the label keeps no switch`() {
+        val build = read(Fixtures.declaredBuilds().last())
+        val builder = build.readers.single { it.type == LENS_BUILDER }
+        val labelFlag = labelFlag(build.states.single())
+        val unlabeled = replace(builder, { method -> method.implementation?.instructions?.any { it.reads(SEARCH_IMAGE_TEXT) } == true }) { instructions ->
+            instructions.flatMap { if (it.reads(SEARCH_IMAGE_TEXT)) List(it.codeUnits) { ImmutableInstruction10x(Opcode.NOP) } else listOf(it) }
+        }
+        val cases = linkedMapOf(
+            "no closeup state" to (build.classes - build.states.toSet() to "0 closeup states describe their lens label flag"),
+            "no search_image text" to (build.classes.map { if (it.type == LENS_BUILDER) unlabeled else it } to "0 lens builders read its label flag"),
+        )
+        for ((reason, case) in cases) {
+            val (input, message) = case
+            val context = PatchContexts.of(ExtensionDex.classes() + input)
+            val warnings = PatchLogCapture.warnings { hideCloseupButtonsPatch.execute(context) }
+            assertEquals("$reason: $warnings", 1, warnings.size)
+            assertTrue("$reason warned for another reason: $warnings", warnings.single().contains(message))
+            assertTrue("$reason: $warnings", warnings.single().endsWith("Hide Search image label isn't in this build."))
+            assertEquals("$reason took the buttons out with it", 1, flag(context, "closeupButtons"))
+            assertEquals("$reason left the label flag set", 0, flag(context, "closeupSearchLabel"))
+            for (method in builder.methods.filter { method -> method.implementation?.instructions?.any { it.readsFlag(labelFlag) } == true }) {
+                assertTrue("$reason left a hook in $method", patched(context, method).none {
+                    (it as? ReferenceInstruction)?.reference?.toString() == CLOSEUP_SEARCH_LABEL_HOOK })
+            }
+        }
+    }
+
+    /** The boolean [state]'s toString reads right after naming the label flag. */
+    private fun labelFlag(state: ClassDef): String {
+        val description = state.methods.single { it.name == "toString" }.implementation!!.instructions.toList()
+        val named = description.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == SEARCH_LABEL_FLAG }
+        assertTrue("${state.type} names the label flag", named >= 0)
+        val read = description.drop(named + 1).first { it.opcode == Opcode.IGET_BOOLEAN }
+        return ((read as ReferenceInstruction).reference as FieldReference).also { assertEquals(state.type, it.definingClass) }.toString()
+    }
+
+    private fun Instruction.readsFlag(field: String) = opcode == Opcode.IGET_BOOLEAN && (this as ReferenceInstruction).reference.toString() == field
 
     private fun Instruction.reads(id: String) = opcode == Opcode.SGET &&
         ((this as ReferenceInstruction).reference as FieldReference).let { it.name == id && it.type == "I" }
@@ -242,10 +325,14 @@ class CloseupButtonsFixtureTest {
     private fun read(build: File): Build {
         val parents = mutableMapOf<String, String?>()
         val readers = linkedMapOf<String, ClassDef>()
+        val states = linkedMapOf<String, ClassDef>()
         val wanted = mutableSetOf<String>()
         FixtureDex.forEach(build) { dex ->
             for (classDef in dex.classes) {
                 parents.putIfAbsent(classDef.type, classDef.superclass)
+                if (classDef.methods.any { method -> method.name == "toString" && method.implementation?.instructions?.any {
+                        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == SEARCH_LABEL_FLAG } == true })
+                    states.putIfAbsent(classDef.type, ImmutableClassDef.of(classDef))
                 val reading = classDef.methods.filter { it.readsAnId() }
                 if (reading.isEmpty() || classDef.type in readers) continue
                 readers[classDef.type] = ImmutableClassDef.of(classDef)
@@ -257,9 +344,9 @@ class CloseupButtonsFixtureTest {
             }
         }
         val types = wanted.filter { it in parents }.flatMap { type -> generateSequence(type) { parents[it] }.filter { it in parents }.toList() }
-            .toSet() - readers.keys
+            .toSet() - readers.keys - states.keys
         val others = FixtureDex.classes(build, types)
-        return Build(build.name, readers.values.toList(), others.values.toList())
+        return Build(build.name, readers.values.toList(), others.values.toList(), states.values.filterNot { it.type in readers }.toList())
     }
 
     private companion object {
