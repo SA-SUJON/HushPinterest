@@ -74,6 +74,7 @@ body:
         - Disable update nag
         - Download board
         - Download pins
+        - Filter feed
         - Filter pin menu
         - Fix push notifications
         - Hide AI-labeled pins
