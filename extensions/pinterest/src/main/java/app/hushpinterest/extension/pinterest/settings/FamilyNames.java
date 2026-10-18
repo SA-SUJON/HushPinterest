@@ -53,6 +53,7 @@ public final class FamilyNames {
     public static final String HIDE_SURVEY_PROMPTS = "Hide survey prompts";
     public static final String HIDE_SAVE_TOASTS = "Hide save toasts";
     public static final String ORIGINAL_IMAGES = "Original-quality images";
+    public static final String SHOW_POSTED_DATE = "Show posted date";
     public static final String DISABLE_UPDATE_NAG = "Disable update nag";
     public static final String FIX_PUSH_NOTIFICATIONS = "Fix push notifications";
 

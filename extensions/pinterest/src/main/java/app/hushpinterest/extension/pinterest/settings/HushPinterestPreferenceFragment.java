@@ -498,6 +498,9 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Original-quality images"),
                     L10n.t("Shows the original image instead of the large size in pin closeups and collages, when "
                         + "Pinterest has one. Uses more data. Pins already loaded change the next time they load."), SettingsIcons.FEED);
+            patchToggle(ui, context, build, PatchFamily.SHOW_POSTED_DATE, Settings.SHOW_POSTED_DATE,
+                    L10n.t("Show posted date"),
+                    L10n.t("Shows the day a pin was posted under its title. It shows on the next pin you open."), SettingsIcons.ABOUT);
         }
 
         // In every build: a patched Pinterest isn't verified for its own links, so Android opens them

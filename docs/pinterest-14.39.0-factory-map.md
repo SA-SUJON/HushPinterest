@@ -1,6 +1,6 @@
 # Pinterest Android app map for 14.39.0
 
-The [signed-in factory audit](pinterest-14.39.0-audit.md) extends this map with native settings, advertising delivery, tracking boundaries, all 31 patch mappings and specific patch opportunities. Privacy filtering covers selected known paths, and ordinary account and content requests still reach Pinterest. See the [privacy reference](pinterest-14.39.0-privacy.md) for exact coverage.
+The [signed-in factory audit](pinterest-14.39.0-audit.md) extends this map with native settings, advertising delivery, tracking boundaries, all 32 patch mappings and specific patch opportunities. Privacy filtering covers selected known paths, and ordinary account and content requests still reach Pinterest. See the [privacy reference](pinterest-14.39.0-privacy.md) for exact coverage.
 
 Last checked: 2026-10-10, against Pinterest 14.39.0. This guide maps the original Pinterest package HushPinterest patches, which has been 14.39.0 since the October 10 port. It records static APK facts and the reverse-engineering anchors that are useful when patches move to a new release. Where an obfuscated name changed, the 14.38.0 name follows in parentheses so the two builds can be compared.
 
@@ -132,14 +132,14 @@ Most features have two parts:
 
 Manifest-only changes have no runtime switch and remain in the installed APK until it is patched again. Runtime switches and Pause cannot undo manifest edits. `SettingsBackup.ALLOWLIST` is the authority for which settings can be imported or exported; account data, credentials, logs, and signing keys are not settings-backup content.
 
-The 31 source catalog entries are grouped here by the code that owns them:
+The 32 source catalog entries are grouped here by the code that owns them:
 
 | Patch area | Patch names | Main source |
 |---|---|---|
 | Feed and ads | Hide ads; Hide AI-labeled pins; Hide shopping and product pins; Filter feed; Keep Home feed | `patches/.../ads/`; runtime filters in `extensions/pinterest/.../ads/` |
 | Privacy | Disable analytics; Strip link tracking; Hide advertising ID; Remove ad tracking permissions; Spoof signature for Google sign-in | `patches/.../privacy/`; runtime hooks in `extensions/pinterest/.../privacy/` |
 | Pin actions | Download pins; Download board; Long-press download; Open links in your browser; System share sheet | `patches/.../actions/`; runtime transfer and routing under `extensions/pinterest/.../actions/` |
-| Interface | AMOLED black; Filter pin menu; Hide closeup buttons; Hide comments; Hide header buttons; Hide navigation buttons; Hide save toasts; Hide search history; Hide survey prompts; Hide topic suggestions; No screenshot share menu; Original-quality images; Quiet email reminders; Disable update nag | `patches/.../ui/`; runtime UI controls under `extensions/pinterest/.../ui/` |
+| Interface | AMOLED black; Filter pin menu; Hide closeup buttons; Hide comments; Hide header buttons; Hide navigation buttons; Hide save toasts; Hide search history; Hide survey prompts; Hide topic suggestions; No screenshot share menu; Original-quality images; Quiet email reminders; Disable update nag; Show posted date | `patches/.../ui/`; runtime UI controls under `extensions/pinterest/.../ui/` |
 | Notifications | Fix push notifications | `patches/.../notifications/`; the certificate answer in `extensions/pinterest/.../notifications/` and the readiness report in `extensions/pinterest/.../settings/PushReadiness.java` |
 | Settings wiring | HushPinterest settings | `patches/.../misc/settings/` and `extensions/pinterest/.../settings/` |
 

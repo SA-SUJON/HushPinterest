@@ -627,3 +627,7 @@ Couldn't share the image. Check your connection and try again.	Görsel paylaşı
 # context: a Feed switch under Muted words, from the Keep Home feed patch. When it's on, the Home feed doesn't load new pins by itself when the person comes back to the app or to the Home tab, so the pins they were looking at stay put. Pulling down on Home still loads new ones. The title is also the patch's name in the build report and in the settings import preview
 Keep Home feed	Ana akışı koru
 Home keeps the pins you were looking at when you come back to Pinterest or to the Home tab. Pull down on Home to load new pins.	Pinterest'e ya da Ana Sayfa sekmesine döndüğünde ana akışın baktığın pinleri korur. Yeni pinler yüklemek için Ana Sayfa'da aşağı çek.
+# context: an Interface switch under Original images, from the Show posted date patch. When it's on, the day a pin was posted shows in small text under the pin's title when the pin is opened. The title is also the patch's name in the build report and in the settings import preview. In Posted %1$s, %1$s is the date written the phone's way, such as Oct 12, 2026
+Show posted date	Paylaşım tarihini göster
+Shows the day a pin was posted under its title. It shows on the next pin you open.	Bir pinin paylaşıldığı günü başlığının altında gösterir. Açtığın bir sonraki pinde görünür.
+Posted %1$s	%1$s tarihinde paylaşıldı

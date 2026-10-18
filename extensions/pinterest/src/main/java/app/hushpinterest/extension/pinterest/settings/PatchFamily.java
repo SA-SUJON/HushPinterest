@@ -86,6 +86,7 @@ public enum PatchFamily {
     HIDE_SURVEY_PROMPTS(FamilyNames.HIDE_SURVEY_PROMPTS, "hideSurveyPrompts", null, Settings.HIDE_SURVEY_PROMPTS),
     HIDE_SAVE_TOASTS(FamilyNames.HIDE_SAVE_TOASTS, "hideSaveToasts", null, Settings.HIDE_SAVE_TOASTS),
     ORIGINAL_IMAGES(FamilyNames.ORIGINAL_IMAGES, "originalImages", null, Settings.ORIGINAL_IMAGES),
+    SHOW_POSTED_DATE(FamilyNames.SHOW_POSTED_DATE, "showPostedDate", null, Settings.SHOW_POSTED_DATE),
     DISABLE_UPDATE_NAG(FamilyNames.DISABLE_UPDATE_NAG, "disableUpdateNag", null, Settings.DISABLE_UPDATE_NAG),
     FIX_PUSH_NOTIFICATIONS(FamilyNames.FIX_PUSH_NOTIFICATIONS, "fixPushNotifications", null, Settings.FIX_PUSH_NOTIFICATIONS);
 
@@ -142,7 +143,7 @@ public enum PatchFamily {
     static final Set<PatchFamily> INTERFACE_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SCREENSHOT_SHARE,
             HIDE_SEARCH_HISTORY, HIDE_NAVIGATION_BUTTONS, HIDE_HEADER_BUTTONS, AMOLED_BLACK, HIDE_CLOSEUP_BUTTONS,
             HIDE_PIN_MENU_ITEMS, HIDE_COMMENTS, HIDE_TOPIC_SUGGESTIONS, QUIET_EMAIL_REMINDER, HIDE_SURVEY_PROMPTS,
-            HIDE_SAVE_TOASTS, ORIGINAL_IMAGES));
+            HIDE_SAVE_TOASTS, ORIGINAL_IMAGES, SHOW_POSTED_DATE));
 
     /** Each independent hook, its owning family and the flag set only after it was inserted. */
     public enum Capability {
@@ -188,6 +189,7 @@ public enum PatchFamily {
         SAVE_TOASTS(HIDE_SAVE_TOASTS, "saveToasts", "Hide save toasts"),
         IMAGE_CHOOSER(ORIGINAL_IMAGES, "imageChooser", "collage images"),
         CLOSEUP_IMAGE(ORIGINAL_IMAGES, "closeupImage", "pin closeups"),
+        POSTED_DATE(SHOW_POSTED_DATE, "postedDate", "Show posted date"),
         UPDATE_NAG(DISABLE_UPDATE_NAG, "updateNag", "Disable update nag"),
         FIREBASE_CERTIFICATE(FIX_PUSH_NOTIFICATIONS, "firebaseCertificate", "Fix push notifications");
 

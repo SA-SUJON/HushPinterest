@@ -102,6 +102,8 @@ public final class SettingsStatus {
     public static boolean originalImages() { return false; }
     public static boolean imageChooser() { return false; }
     public static boolean closeupImage() { return false; }
+    public static boolean showPostedDate() { return false; }
+    public static boolean postedDate() { return false; }
     public static boolean disableUpdateNag() { return false; }
     public static boolean updateNag() { return false; }
     public static boolean fixPushNotifications() { return false; }

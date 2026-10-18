@@ -478,6 +478,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_survey_prompts": return L10n.t("Hide survey prompts");
             case "hushpinterest_hide_save_toasts": return L10n.t("Hide save toasts");
             case "hushpinterest_original_images": return L10n.t("Original-quality images");
+            case "hushpinterest_show_posted_date": return L10n.t("Show posted date");
             case "hushpinterest_disable_update_nag": return L10n.t("Disable update nag");
             case "hushpinterest_fix_push_notifications": return L10n.t("Fix push notifications");
             default: throw new IllegalArgumentException("Unlisted backup switch");

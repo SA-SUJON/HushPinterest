@@ -277,7 +277,7 @@ public class DexDiff {
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
             Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
-            Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1));
+            Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1), Map.entry("postedDate", 1));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -5043,6 +5043,61 @@ public class DexDiff {
             return null;
         }
 
+        static final String CLOSEUP_MODULE = "Lcom/pinterest/activity/pin/view/modules/PinCloseupBaseModule;",
+                TITLE_CHEVRON_ID = "closeup_metadata_expand_chevron", HOLISTIC_METADATA = "android_closeup_holistic_metadata";
+
+        /**
+         * The closeup title module taking its pin: the one clean instance updatePin(pin) of a closeup
+         * module that checks the holistic metadata experiment, in a class whose constructor builds the
+         * title row (a view whose own constructor reads the chevron's id) and adds a view. Its first
+         * instruction is the hook, a range call on the module and the pin, the frame's last two registers.
+         */
+        void postedDate(Contract c) {
+            String hook = c.strings.get(0);
+            List<Method> updates = new ArrayList<>();
+            for (Method m : clean.holding(HOLISTIC_METADATA)) {
+                if (!m.getName().equals("updatePin") || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals("V")
+                        || m.getParameterTypes().size() != 1) continue;
+                ClassDef owner = clean.classes.get(m.getDefiningClass());
+                if (owner != null && CLOSEUP_MODULE.equals(owner.getSuperclass()) && buildsTitleRow(owner)) updates.add(m);
+            }
+            Method m = actual(unique(updates, "closeup title module"));
+            List<Integer> sites = calls(m, hook, 1);
+            boolean placed = false;
+            if (m != null && sites.size() == 1) {
+                Instruction first = instructions(m).get(0);
+                int registers = m.getImplementation().getRegisterCount();
+                placed = sites.get(0) == 0 && first.getOpcode() == Opcode.INVOKE_STATIC_RANGE
+                        && arguments(first).equals(List.of(registers - 2, registers - 1));
+                if (!placed) fail(hook + " isn't the first call, on the module and its pin, in " + m);
+                else remove(m, 0, 1);
+            }
+            capability(c.callee, placed);
+        }
+
+        boolean buildsTitleRow(ClassDef owner) {
+            for (Method init : owner.getMethods()) {
+                if (!init.getName().equals("<init>")) continue;
+                boolean adds = false, row = false;
+                for (Instruction i : instructions(init)) {
+                    if (reference(i) instanceof MethodReference r && r.getName().equals("addView")) adds = true;
+                    if (i.getOpcode() == Opcode.NEW_INSTANCE && reference(i) instanceof TypeReference t && readsChevronWhenBuilt(t.getType())) row = true;
+                }
+                if (adds && row) return true;
+            }
+            return false;
+        }
+
+        boolean readsChevronWhenBuilt(String type) {
+            ClassDef built = clean.classes.get(type);
+            if (built == null) return false;
+            for (Method init : built.getMethods()) {
+                if (!init.getName().equals("<init>")) continue;
+                for (Instruction i : instructions(init)) if (readsId(i, TITLE_CHEVRON_ID)) return true;
+            }
+            return false;
+        }
+
         static boolean readsFlag(Instruction i, String flag) {
             return i.getOpcode() == Opcode.IGET_BOOLEAN && String.valueOf(reference(i)).equals(flag);
         }
@@ -5868,6 +5923,7 @@ public class DexDiff {
                     case "recentSearchHeading": recentSearchHeading(c); break;
                     case "closeupButtons": closeupButtons(c); break;
                     case "closeupSearchLabel": closeupSearchLabel(c); break;
+                    case "postedDate": postedDate(c); break;
                     case "boardMenu": boardMenu(c); break;
                     case "surveyPrompts": surveyPrompts(c); break;
                     case "pinInvites": pinInvites(c); break;

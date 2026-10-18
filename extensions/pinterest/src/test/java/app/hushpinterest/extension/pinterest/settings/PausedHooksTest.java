@@ -30,6 +30,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -56,6 +57,7 @@ import java.net.URLStreamHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -81,6 +83,7 @@ import app.hushpinterest.extension.pinterest.privacy.PlainPinLinks;
 import app.hushpinterest.extension.pinterest.ui.AmoledBlack;
 import app.hushpinterest.extension.pinterest.ui.CloseupButtons;
 import app.hushpinterest.extension.pinterest.ui.InterfaceControls;
+import app.hushpinterest.extension.pinterest.ui.PostedDate;
 import app.hushpinterest.extension.pinterest.ui.UiHooks;
 import app.hushpinterest.extension.pinterest.ui.UiHooksForTests;
 import app.hushpinterest.extension.shared.SettingsContextRule;
@@ -133,6 +136,7 @@ public class PausedHooksTest {
         @Json("is_shoppable") Boolean shoppable;
         @Json("grid_title") String gridTitle;
         @Json("is_video") Boolean video;
+        @Json("created_at") Date createdAt;
     }
 
     /** One hook with its switch on: true when it changed what Pinterest would have done. */
@@ -186,6 +190,16 @@ public class PausedHooksTest {
         View row = new View(RuntimeEnvironment.getApplication());
         UiHooks.topicSuggestions(row);
         return row.getVisibility() == View.GONE;
+    }
+
+    /** A closeup title module taking a pin with a date: true when a line was added under its row. */
+    private static boolean addsPostedDate() {
+        LinearLayout module = new LinearLayout(RuntimeEnvironment.getApplication());
+        module.addView(new TextView(RuntimeEnvironment.getApplication()));
+        ProbePin pin = new ProbePin();
+        pin.createdAt = new Date(1_791_806_400_000L);
+        PostedDate.show(module, pin);
+        return module.getChildCount() > 1;
     }
 
     /** A closeup button handed over: true when it went GONE. */
@@ -374,6 +388,7 @@ public class PausedHooksTest {
             UiHooks.imageSizes(sizes);
             return !sizes.isEmpty();
         }));
+        probes.put(Settings.SHOW_POSTED_DATE, Collections.singletonList(PausedHooksTest::addsPostedDate));
         probes.put(Settings.DISABLE_UPDATE_NAG, Collections.singletonList(UiHooks::disableUpdateNag));
         probes.put(Settings.FIX_PUSH_NOTIFICATIONS, Collections.singletonList(PushNotificationsTest::fixesACertificate));
         return probes;

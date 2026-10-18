@@ -62,7 +62,7 @@ private val ANDROID_VIEWS = listOf("Landroid/view/", "Landroid/widget/")
 /** Where a button is handed to the extension: the hook goes in at [index], passing [register], a [view]. */
 internal class ButtonSite(val method: Method, val index: Int, val register: Int, val view: String, val found: Boolean)
 
-private fun Instruction.readsId(id: String): Boolean {
+internal fun Instruction.readsId(id: String): Boolean {
     if (opcode != Opcode.SGET) return false
     val field = (this as ReferenceInstruction).reference as? FieldReference ?: return false
     return field.name == id && field.type == "I"
