@@ -14,7 +14,11 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -32,6 +36,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -343,6 +348,50 @@ public class AmoledBlackTest {
     }
 
     /**
+     * Seen on Pinterest 14.41.0 (#12): the comments screen fills the window, keeps the status bar's
+     * height as its top padding and draws nothing there, so the window's #18181B stayed a gray band
+     * above the black list.
+     */
+    @Test public void theBandUnderTheStatusBarGoesBlackWithTheCommentsAndOnlyWhileTheyAre() {
+        Settings.BLACK_COMMENTS.save(true);
+        Settings.BLACK_PIN_MENU.save(true);
+        FrameLayout screen = sheet(true, "comments_feed", "comment_bottom_bar", "floating_comment_view");
+        screen.setPadding(0, 136, 0, 0);
+        AmoledBlack.comments(screen);
+        screen.layout(0, 0, 320, 480);
+        assertEquals(Arrays.asList(new Rect(0, 0, 320, 136)), blackDrawn(screen));
+        screen.setPadding(0, 96, 0, 0);
+        screen.layout(0, 0, 360, 480);
+        assertEquals("the band follows the padding on the next layout", Arrays.asList(new Rect(0, 0, 360, 96)), blackDrawn(screen));
+        AmoledBlack.comments(screen);
+        assertEquals("handing the same screen over again adds no second band", 1, blackDrawn(screen).size());
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        screen.layout(0, 0, 320, 480);
+        assertEquals("Pause takes the band away", 0, blackDrawn(screen).size());
+        PauseForTests.resume();
+        screen.layout(0, 0, 320, 520);
+        assertEquals(1, blackDrawn(screen).size());
+        Settings.BLACK_COMMENTS.save(false);
+        screen.layout(0, 0, 320, 480);
+        assertEquals("the switch off takes the band away", 0, blackDrawn(screen).size());
+        Settings.BLACK_COMMENTS.save(true);
+        screen.setBackground(new ColorDrawable(PAGE));
+        screen.layout(0, 0, 320, 520);
+        assertEquals("a screen with its own background keeps it", 0, blackDrawn(screen).size());
+
+        FrameLayout light = sheet(false, "comments_feed", "comment_bottom_bar", "floating_comment_view");
+        light.setPadding(0, 136, 0, 0);
+        AmoledBlack.comments(light);
+        light.layout(0, 0, 320, 480);
+        assertEquals("light mode is left alone", 0, blackDrawn(light).size());
+        FrameLayout menu = sheet(true, "modal_header", "modal_container");
+        menu.setPadding(0, 136, 0, 0);
+        AmoledBlack.pinMenu(menu);
+        menu.layout(0, 0, 320, 480);
+        assertEquals("a pin's menu gets no band", 0, blackDrawn(menu).size());
+    }
+
+    /**
      * Seen on an API 36 emulator: under a black pin menu and a black comments sheet the strip behind
      * the gesture handle stayed the pin page's #18181B, a gray band across the sheet's last rows.
      */
@@ -486,6 +535,17 @@ public class AmoledBlackTest {
 
     private static int color(View strip) {
         return ((ColorDrawable) strip.getBackground()).getColor();
+    }
+
+    /** The black rectangles the view draws, in its own coordinates, overlay included. */
+    private static List<Rect> blackDrawn(View view) {
+        List<Rect> drawn = new ArrayList<>();
+        view.draw(new Canvas(Bitmap.createBitmap(400, 600, Bitmap.Config.ARGB_8888)) {
+            @Override public void drawRect(Rect rect, Paint paint) {
+                if (paint.getColor() == Color.BLACK) drawn.add(new Rect(rect));
+            }
+        });
+        return drawn;
     }
 
     /**

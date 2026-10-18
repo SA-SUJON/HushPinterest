@@ -48,7 +48,9 @@ import app.hushpinterest.extension.shared.settings.BooleanSetting;
  * strip behind the gesture handle draws over a sheet's last rows, so it is black while a black
  * sheet is open and gets its page's color back when the sheet leaves. The window's own navigation
  * bar band, drawn over the strip, goes with it. Pinterest colors both again whenever it likes, so
- * while something black still wants them, their next frame turns them back.
+ * while something black still wants them, their next frame turns them back. The comments screen
+ * fills the window and leaves the band under the status bar to the window's own dark gray, so a
+ * black screen also covers that band in black, drawn over the screen itself and gone with it.
  */
 public final class AmoledBlack {
     private AmoledBlack() {}
@@ -140,7 +142,7 @@ public final class AmoledBlack {
      * the bar that holds the reply box and the comment floating over the list each carry the gray.
      */
     public static void comments(View sheet) {
-        built(sheet, Settings.BLACK_COMMENTS, "comments", "comments_feed", "comment_bottom_bar", "floating_comment_view");
+        built(sheet, Settings.BLACK_COMMENTS, true, "comments", "comments_feed", "comment_bottom_bar", "floating_comment_view");
     }
 
     /**
@@ -148,19 +150,22 @@ public final class AmoledBlack {
      * header and the scrolling list under it carry the gray.
      */
     public static void pinMenu(View sheet) {
-        built(sheet, Settings.BLACK_PIN_MENU, "pin menu", "modal_header", "modal_container");
+        built(sheet, Settings.BLACK_PIN_MENU, false, "pin menu", "modal_header", "modal_container");
     }
 
     /** Pinterest's ids are read by name each time a sheet is built, which is once per time it opens. */
-    private static void built(View sheet, BooleanSetting setting, String what, String... fills) {
+    private static void built(View sheet, BooleanSetting setting, boolean topBand, String what, String... fills) {
         try {
             if (sheet == null) return;
             int[] ids = new int[fills.length];
             for (int index = 0; index < fills.length; index++) ids[index] = id(sheet, fills[index]);
-            Sheet known = new Sheet(setting, ids);
-            if (sheets.put(sheet, known) == null) {
+            Sheet known = new Sheet(setting, topBand, ids);
+            Sheet before = sheets.put(sheet, known);
+            if (before == null) {
                 sheet.addOnLayoutChangeListener(REPAINT_SHEET);
                 sheet.addOnAttachStateChangeListener(LEAVING);
+            } else {
+                known.band = before.band;
             }
             paintSheet(sheet, known, UiHooks.enabled(FamilyNames.AMOLED_BLACK, setting) && night(sheet));
         } catch (Throwable failure) {
@@ -176,11 +181,33 @@ public final class AmoledBlack {
             if (background instanceof LayerDrawable) paint((LayerDrawable) background, black);
             else paint(fill, black);
         }
+        if (known.topBand) band(sheet, known, black);
         View root = sheet.getRootView();
         View strip = stripIn(root);
         if (strip == null) return;
         known.strip = new WeakReference<>(strip);
         paintStrip(strip, black || blackElsewhere(root, sheet));
+    }
+
+    /**
+     * The comments screen keeps the status bar's height as its top padding and draws nothing there,
+     * so the window's dark gray shows through above a black list. The band lives in the screen's
+     * overlay, sized to that padding on every layout pass, and goes when black isn't wanted or the
+     * screen gets a background of its own.
+     */
+    private static void band(View sheet, Sheet known, boolean black) {
+        int top = sheet.getPaddingTop();
+        if (!black || top <= 0 || sheet.getBackground() != null) {
+            if (known.band != null) sheet.getOverlay().remove(known.band);
+            known.band = null;
+            return;
+        }
+        if (known.band == null) {
+            known.band = new ColorDrawable(Color.BLACK);
+            sheet.getOverlay().add(known.band);
+        }
+        known.band.setBounds(0, 0, sheet.getWidth(), top);
+        known.band.invalidateSelf();
     }
 
     /**
@@ -311,12 +338,17 @@ public final class AmoledBlack {
     /** The switch that paints a sheet and the ids of the views that carry its gray, 0 for one this build has none of. */
     private static final class Sheet {
         final BooleanSetting setting;
+        /** Whether the band under the status bar turns black with the sheet. */
+        final boolean topBand;
         final int[] fills;
         /** The strip behind the gesture handle in the window the sheet was last laid out in. */
         WeakReference<View> strip;
+        /** The black band over the sheet's top padding while it's drawn, null otherwise. */
+        ColorDrawable band;
 
-        Sheet(BooleanSetting setting, int[] fills) {
+        Sheet(BooleanSetting setting, boolean topBand, int[] fills) {
             this.setting = setting;
+            this.topBand = topBand;
             this.fills = fills;
         }
     }
