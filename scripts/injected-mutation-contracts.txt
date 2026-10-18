@@ -33,7 +33,7 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 family|hideAds|Hide ads|feedAds,adViews,googleAds
 family|hideAiPins|Hide AI-labeled pins|feedAiPins
 family|hideShopping|Hide shopping and product pins|feedShopping
-family|filterFeed|Filter feed|feedVideoPins
+family|filterFeed|Filter feed|feedVideoPins,feedMutedWords
 family|disableAnalytics|Disable analytics|analyticsTasks,analyticsUploads
 family|stripLinkTracking|Strip link tracking|linkTracking,plainPinLinks
 family|hideAdvertisingId|Hide advertising ID|advertisingId,browserId
@@ -61,7 +61,7 @@ family|disableUpdateNag|Disable update nag|updateNag
 family|fixPushNotifications|Fix push notifications|firebaseCertificate
 
 mutation|settings|settings|Lcom/pinterest/ReleaseHiltApplication;|Lcom/pinterest/activity/PinterestActivity;|Lapp/hushpinterest/extension/pinterest/settings/SettingsEntry;|Lcom/pinterest/activityLibrary/activity/task/activity/MainActivity;
-mutation|feedAds,feedAiPins,feedShopping,feedVideoPins,boardPins|feed|Lapp/hushpinterest/extension/pinterest/ads/FeedFilter;->filter(Ljava/util/List;)Ljava/util/List;|, _items count:|PagedResponse(bookmark=|ModelListWithBookmark(models=
+mutation|feedAds,feedAiPins,feedShopping,feedVideoPins,feedMutedWords,boardPins|feed|Lapp/hushpinterest/extension/pinterest/ads/FeedFilter;->filter(Ljava/util/List;)Ljava/util/List;|, _items count:|PagedResponse(bookmark=|ModelListWithBookmark(models=
 mutation|adViews|views|Lapp/hushpinterest/extension/pinterest/ads/Ads;->adViewVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ads/Ads;->adViewMeasureSpec(I)I|Lcom/pinterest/featurelibrary/textads/TextAdView;,Lcom/pinterest/activity/pin/view/modules/LegacyPromotedCloseupActionButtonModule;,Lcom/pinterest/feature/pin/closeup/view/PromotedPinCloseupFloatingActionBarModule;,Lcom/pinterest/feature/board/detail/header/view/lego/BoardSponsoredCuratorView;
 mutation|googleAds|guard|Lapp/hushpinterest/extension/pinterest/ads/Ads;->skipGoogleAds()Z|googleAds
 mutation|analyticsTasks,analyticsUploads|analytics|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->blockTask(Ljava/lang/Object;)Z|Ljava/net/URL;->openConnection()Ljava/net/URLConnection;|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->openConnection(Ljava/net/URL;)Ljava/net/URLConnection;|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->blockUpload()Z|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->engageService(Ljava/lang/Object;)Ljava/lang/Object;

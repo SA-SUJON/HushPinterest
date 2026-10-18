@@ -306,8 +306,8 @@ Couldn't prepare this pin. Open it again, then retry.	No se pudo preparar este P
 %1$s (%2$s to %3$s)	%1$s (de %2$s a %3$s)
 Your choice is saved, but this build doesn't include the patch for it.	Tu elección está guardada, pero esta versión no incluye el parche para ella.
 Undoing import	Deshaciendo importación
-Import undone. Your earlier switches are back.	Importación deshecha. Se restauraron tus interruptores anteriores.
-Undo ended because a saved switch changed.	Ya no se puede deshacer porque cambió un interruptor guardado.
+Import undone. Your earlier settings are back.	Importación deshecha. Se restauró tu configuración anterior.
+Undo ended because a saved setting changed.	Ya no se puede deshacer porque cambió una configuración guardada.
 There's no import to undo.	No hay ninguna importación que deshacer.
 Couldn't undo the import. Your imported switches are unchanged.	No se pudo deshacer la importación. Tus interruptores importados no cambiaron.
 Couldn't undo the import or restore it. Check the switches here.	No se pudo deshacer ni restaurar la importación. Revisa los interruptores aquí.
@@ -564,3 +564,43 @@ English	Inglés
 # context: the same toast when any other number of switches didn't change
 %1$d changed. %2$d settings didn't. Reopen settings and try again.	Cambiados: %1$d. %2$d ajustes no cambiaron. Vuelve a abrir los ajustes e inténtalo.
 The app with the last pin list hasn't answered. Try later.	La app de la última lista de pines no responde. Inténtalo luego.
+# context: a Feed row under Hide video pins, from the Filter feed patch. A tap opens a box where the person types words and phrases, and pins whose title or description holds one leave the feed. Also the name of that part of the patch in the build report and in the settings import preview
+Muted words	Palabras silenciadas
+# context: the Muted words row's line while the list is empty
+Hides pins whose title or description has a word or phrase you add here. None yet.	Oculta los pines cuyo título o descripción tenga una palabra o frase que añadas aquí. Aún no hay ninguna.
+# context: the Muted words row's line when the list holds exactly one entry; %1$d is how many
+Hiding pins that mention %1$d word or phrase. Tap to change the list.	Ocultando pines que mencionan %1$d palabra o frase. Toca para cambiar la lista.
+# context: the same line for any other number of entries
+Hiding pins that mention any of %1$d words or phrases. Tap to change the list.	Ocultando pines que mencionan alguna de %1$d palabras o frases. Toca para cambiar la lista.
+# context: example shown in the empty Muted words box: two everyday words or phrases in this language, separated by a comma
+cake, wedding dress	pastel, vestido de novia
+# context: the message above the Muted words box; %1$d is how many entries the list holds at most, %2$d how many characters each can have
+Put each word or phrase on its own line or after a comma. Up to %1$d, each up to %2$d characters. Capitals don't matter, and only whole words count.	Escribe cada palabra o frase en su propia línea o después de una coma. Hasta %1$d, cada una de hasta %2$d caracteres. Las mayúsculas no importan, y solo cuentan las palabras completas.
+# context: button in the Muted words box that saves the list
+Save	Guardar
+# context: button in the Muted words box that empties the list at once
+Clear	Borrar
+Couldn't open the muted words. Try again.	No se pudieron abrir las palabras silenciadas. Inténtalo de nuevo.
+Couldn't save the muted words. Try again.	No se pudieron guardar las palabras silenciadas. Inténtalo de nuevo.
+# context: the toast after the muted words list was saved empty
+No muted words. Every pin shows again.	No hay palabras silenciadas. Todos los pines vuelven a mostrarse.
+# context: the start of the toast after the muted words list was saved, when it holds exactly one entry; %1$d is how many
+%1$d muted word saved.	%1$d palabra silenciada guardada.
+# context: the same for any other number
+%1$d muted words saved.	%1$d palabras silenciadas guardadas.
+# context: added to that toast when exactly one entry was left out for being too long; %1$d is how many, %2$d the most characters an entry can have
+%1$d was longer than %2$d characters, so it was left out.	%1$d tenía más de %2$d caracteres, así que se dejó fuera.
+# context: the same for any other number
+%1$d were longer than %2$d characters, so they were left out.	%1$d tenían más de %2$d caracteres, así que se dejaron fuera.
+# context: added to that toast when exactly one entry was left out because the list was full; %1$d is how many, %2$d how many entries the list holds
+%1$d more word didn't fit, since the list holds %2$d.	%1$d palabra más no cupo, porque la lista admite %2$d.
+# context: the same for any other number
+%1$d more words didn't fit, since the list holds %2$d.	%1$d palabras más no cupieron, porque la lista admite %2$d.
+# context: heading of the settings import preview when the file changes no switch but changes the muted words list
+Your muted words will change.	Tus palabras silenciadas cambiarán.
+# context: in the import preview line that reads like Muted words (none to 2 words): the list holds no words
+none	ninguna
+# context: in that preview line, how many words the list holds when it is exactly one; %1$d is the number
+%1$d word	%1$d palabra
+# context: the same for any other number
+%1$d words	%1$d palabras

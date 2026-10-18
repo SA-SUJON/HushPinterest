@@ -147,6 +147,8 @@
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/NativeSettingsItem.java",
         "patches/src/main/kotlin/app/morphe/patches/pinterest/misc/settings/NativeSettingsEntry.kt",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/HushDialogs.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/MutedWordsSetting.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/MutedWordsPreference.java",
         "patches/src/main/kotlin/app/morphe/patches/pinterest/actions/**"
       ],
       "origin": "original",

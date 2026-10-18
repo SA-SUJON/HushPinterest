@@ -32,6 +32,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -57,9 +59,10 @@ import app.hushpinterest.extension.shared.settings.SettingsJson;
  * <p>Only the switches in {@link #ALLOWLIST} go out or come in. Pause, safe mode, the debug
  * settings, the app language and the counters HushPinterest keeps for itself stay out, and so do
  * the log, the diagnostic data and anything about the person or the phone: a file is a format
- * name, a version number and one true or false per switch. An import applies what it read in one
- * preference commit. A file that is too large, isn't JSON, names something twice, holds a value of
- * the wrong type or comes from a newer version changes nothing.
+ * name, a version number, one true or false per switch and the lists in {@link #TEXTS}, each an
+ * array of strings. An import applies what it read in one preference commit. A file that is too
+ * large, isn't JSON, names something twice, holds a value of the wrong type or comes from a newer
+ * version changes nothing.
  * <p>The release check stays out of the file: it puts the phone online, so it's switched on
  * from the phone's own screen, never by a file.
  *
@@ -97,6 +100,14 @@ public final class SettingsBackup {
             Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SURVEY_PROMPTS,
             Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.DISABLE_UPDATE_NAG,
             Settings.FIX_PUSH_NOTIFICATIONS));
+
+    /**
+     * The lists a file carries beside the switches, in the same settings object, each as an array
+     * of strings. What a file holds is cleaned the way the list's own dialog cleans what's typed,
+     * so a file can't save a list the dialog couldn't. A file from before a list existed doesn't
+     * name it, and an import leaves that list as it is.
+     */
+    static final List<MutedWordsSetting> TEXTS = Collections.singletonList(Settings.MUTED_WORDS);
 
     /**
      * Bounds for the parser, well past anything this class writes, so a file built to be
@@ -154,31 +165,40 @@ public final class SettingsBackup {
         }
     }
 
-    /** What a file says: a value for each switch it names, and how many other names it holds. */
+    /** What a file says: a value for each switch and list it names, and how many other names it holds. */
     public static final class Snapshot {
         private static final String SWITCHES = "switches";
+        private static final String LISTS = "lists";
         private static final String UNKNOWN = "unknown";
 
         /** In {@link #ALLOWLIST} order, and only the switches the file named. */
         final Map<BooleanSetting, Boolean> values;
+        /** In {@link #TEXTS} order, cleaned, and only the lists the file named. */
+        final Map<MutedWordsSetting, String> texts;
         /** Names the file holds that aren't settings this build knows. They're left out. */
         final int unknown;
 
-        Snapshot(Map<BooleanSetting, Boolean> values, int unknown) {
-            if (unknown < 0 || !ALLOWLIST.containsAll(values.keySet()) || values.containsValue(null)) {
+        Snapshot(Map<BooleanSetting, Boolean> values, Map<MutedWordsSetting, String> texts, int unknown) {
+            if (unknown < 0 || !ALLOWLIST.containsAll(values.keySet()) || values.containsValue(null)
+                    || !TEXTS.containsAll(texts.keySet()) || texts.containsValue(null)) {
                 throw new IllegalArgumentException("Invalid settings snapshot");
             }
             Map<BooleanSetting, Boolean> ordered = new LinkedHashMap<>();
             for (BooleanSetting setting : ALLOWLIST) {
                 if (values.containsKey(setting)) ordered.put(setting, values.get(setting));
             }
+            Map<MutedWordsSetting, String> lists = new LinkedHashMap<>();
+            for (MutedWordsSetting setting : TEXTS) {
+                if (texts.containsKey(setting)) lists.put(setting, MutedWordsSetting.clean(texts.get(setting)).saved);
+            }
             this.values = Collections.unmodifiableMap(ordered);
+            this.texts = Collections.unmodifiableMap(lists);
             this.unknown = unknown;
         }
 
         /**
-         * The switches whose saved value this file changes. Saved, not what a paused Pinterest is
-         * answered: a file holds what the person chose.
+         * The switches and lists whose saved value this file changes, switches first. Saved, not
+         * what a paused Pinterest is answered: a file holds what the person chose.
          */
         Map<Setting<?>, Object> changes() {
             Map<Setting<?>, Object> changes = new LinkedHashMap<>();
@@ -187,12 +207,17 @@ public final class SettingsBackup {
                     changes.put(entry.getKey(), entry.getValue());
                 }
             }
+            for (Map.Entry<MutedWordsSetting, String> entry : texts.entrySet()) {
+                if (!entry.getValue().equals(entry.getKey().persistedValue())) {
+                    changes.put(entry.getKey(), entry.getValue());
+                }
+            }
             return changes;
         }
 
-        /** How many switches this file changes, the number the preview and the toast give. */
+        /** How many switches this file changes, the number the preview and the toast give. Lists aren't counted. */
         int switchChanges() {
-            return changes().size();
+            return switchesIn(changes());
         }
 
         /** For the settings page's saved state, so a preview outlives the page being rebuilt. */
@@ -201,15 +226,20 @@ public final class SettingsBackup {
             for (Map.Entry<BooleanSetting, Boolean> entry : values.entrySet()) {
                 switches.putBoolean(entry.getKey().key, entry.getValue());
             }
+            Bundle lists = new Bundle();
+            for (Map.Entry<MutedWordsSetting, String> entry : texts.entrySet()) {
+                lists.putString(entry.getKey().key, entry.getValue());
+            }
             Bundle state = new Bundle();
             state.putBundle(SWITCHES, switches);
+            state.putBundle(LISTS, lists);
             state.putInt(UNKNOWN, unknown);
             return state;
         }
 
         /**
-         * The snapshot a page saved, or null when there's none or it isn't one. Only switches on
-         * the list come back, whatever the bundle holds.
+         * The snapshot a page saved, or null when there's none or it isn't one. Only the switches
+         * and lists a file can carry come back, whatever the bundle holds.
          */
         @Nullable
         @SuppressWarnings("deprecation") // Bundle.get is how a value's type is checked below API 33.
@@ -229,7 +259,17 @@ public final class SettingsBackup {
                     if (!(value instanceof Boolean)) return null;
                     values.put(setting, (Boolean) value);
                 }
-                return new Snapshot(values, unknown);
+                // A page saved before lists were carried has none, which is a file that names none.
+                Object listState = state.get(LISTS);
+                if (listState != null && !(listState instanceof Bundle)) return null;
+                Map<MutedWordsSetting, String> texts = new LinkedHashMap<>();
+                for (MutedWordsSetting setting : TEXTS) {
+                    if (listState == null || !((Bundle) listState).containsKey(setting.key)) continue;
+                    Object value = ((Bundle) listState).get(setting.key);
+                    if (!(value instanceof String)) return null;
+                    texts.put(setting, (String) value);
+                }
+                return new Snapshot(values, texts, unknown);
             } catch (RuntimeException unreadable) {
                 // A saved Bundle may fail to unmarshal. Never apply the readable portion of it.
                 return null;
@@ -245,13 +285,14 @@ public final class SettingsBackup {
         final Snapshot before;
         final Snapshot after;
         final SharedPreferences store;
-        final Map<BooleanSetting, Long> savedRevisions = new LinkedHashMap<>();
+        final Map<Setting<?>, Long> savedRevisions = new LinkedHashMap<>();
 
         Undo(Snapshot before, Snapshot after) {
             this.before = before;
             this.after = after;
             store = Setting.preferences.preferences;
             for (BooleanSetting setting : ALLOWLIST) savedRevisions.put(setting, setting.savedWriteRevision());
+            for (MutedWordsSetting setting : TEXTS) savedRevisions.put(setting, setting.savedWriteRevision());
         }
     }
 
@@ -262,7 +303,18 @@ public final class SettingsBackup {
     private static Snapshot current() {
         Map<BooleanSetting, Boolean> values = new LinkedHashMap<>();
         for (BooleanSetting setting : ALLOWLIST) values.put(setting, setting.persistedValue());
-        return new Snapshot(values, 0);
+        Map<MutedWordsSetting, String> texts = new LinkedHashMap<>();
+        for (MutedWordsSetting setting : TEXTS) texts.put(setting, setting.persistedValue());
+        return new Snapshot(values, texts, 0);
+    }
+
+    /** How many of [changes] are switches: the number the preview and the toast give. */
+    static int switchesIn(Map<Setting<?>, Object> changes) {
+        int switches = 0;
+        for (Setting<?> setting : changes.keySet()) {
+            if (setting instanceof BooleanSetting) switches++;
+        }
+        return switches;
     }
 
     /** Later changes to excluded state, such as Pause or Debug, never invalidate this snapshot. */
@@ -288,6 +340,13 @@ public final class SettingsBackup {
                 if (setting.savedWriteRevision() != undo.savedRevisions.get(setting)) return false;
                 boolean stored = Setting.preferences.preferences.getBoolean(setting.key, setting.defaultValue);
                 if (stored != entry.getValue() || !entry.getValue().equals(setting.savedValue())) return false;
+            }
+            for (Map.Entry<MutedWordsSetting, String> entry : undo.after.texts.entrySet()) {
+                MutedWordsSetting setting = entry.getKey();
+                if (setting.savedWriteRevision() != undo.savedRevisions.get(setting)) return false;
+                if (!entry.getValue().equals(setting.persistedValue()) || !entry.getValue().equals(setting.savedValue())) {
+                    return false;
+                }
             }
             return true;
         } catch (RuntimeException unreadable) {
@@ -322,13 +381,16 @@ public final class SettingsBackup {
     }
 
     /**
-     * The file for the switches as they're saved now. Saved rather than what a paused Pinterest is
-     * answered, so exporting while paused keeps what the person chose.
+     * The file for the switches and lists as they're saved now. Saved rather than what a paused
+     * Pinterest is answered, so exporting while paused keeps what the person chose.
      */
     public static String create() throws JSONException {
         JSONObject switches = new JSONObject();
         for (BooleanSetting setting : ALLOWLIST) {
             switches.put(setting.key, setting.persistedValue().booleanValue());
+        }
+        for (MutedWordsSetting setting : TEXTS) {
+            switches.put(setting.key, new JSONArray(MutedWordsSetting.entries(setting.persistedValue())));
         }
         return new JSONObject()
                 .put(FORMAT_NAME, FORMAT)
@@ -413,10 +475,18 @@ public final class SettingsBackup {
         }
         Map<String, BooleanSetting> known = new HashMap<>();
         for (BooleanSetting setting : ALLOWLIST) known.put(setting.key, setting);
+        Map<String, MutedWordsSetting> lists = new HashMap<>();
+        for (MutedWordsSetting setting : TEXTS) lists.put(setting.key, setting);
         Map<BooleanSetting, Boolean> found = new HashMap<>();
+        Map<MutedWordsSetting, String> texts = new LinkedHashMap<>();
         JSONObject values = (JSONObject) settings;
         for (Iterator<String> names = values.keys(); names.hasNext(); ) {
             String name = names.next();
+            MutedWordsSetting list = lists.get(name);
+            if (list != null) {
+                texts.put(list, listFrom(values.opt(name), name));
+                continue;
+            }
             BooleanSetting setting = known.get(name);
             if (setting == null) {
                 // A name this build doesn't know, Pause and the debug settings included: left
@@ -435,14 +505,27 @@ public final class SettingsBackup {
             Boolean value = found.get(setting);
             if (value != null) ordered.put(setting, value);
         }
-        return new Snapshot(ordered, unknown);
+        return new Snapshot(ordered, texts, unknown);
+    }
+
+    /** A list as a file holds it, an array of strings, read back the way its dialog saves it. */
+    private static String listFrom(@Nullable Object value, String name) throws Rejected {
+        if (!(value instanceof JSONArray)) throw new Rejected(Reason.VALUE, "Not a list of words: " + name);
+        JSONArray array = (JSONArray) value;
+        List<String> entries = new ArrayList<>(array.length());
+        for (int i = 0; i < array.length(); i++) {
+            Object entry = array.opt(i);
+            if (!(entry instanceof String)) throw new Rejected(Reason.VALUE, "Not a list of words: " + name);
+            entries.add((String) entry);
+        }
+        return MutedWordsSetting.clean(String.join("\n", entries)).saved;
     }
 
     /**
-     * Writes the switches a file changes, all of them in one preference commit. A switch the file
-     * doesn't name is left as it is.
+     * Writes the switches and lists a file changes, all of them in one preference commit. A switch
+     * or list the file doesn't name is left as it is.
      *
-     * @return how many switches changed.
+     * @return how many switches changed. A changed list isn't counted.
      * @throws ApplyFailed when the commit failed. {@link Setting#saveAll} puts the switches
      *                     back, live and stored; {@link ApplyFailed#rolledBack} says whether that
      *                     worked for every one of them.
@@ -455,7 +538,7 @@ public final class SettingsBackup {
             write(changes);
             pendingUndo = new Undo(before, current());
             undoExpired = false;
-            return changes.size();
+            return switchesIn(changes);
         }
     }
 

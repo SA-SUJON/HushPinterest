@@ -42,6 +42,7 @@ public final class SettingsStatus {
 
     public static boolean filterFeed() { return false; }
     public static boolean feedVideoPins() { return false; }
+    public static boolean feedMutedWords() { return false; }
     public static boolean disableAnalytics() { return false; }
     public static boolean analyticsTasks() { return false; }
     public static boolean analyticsUploads() { return false; }

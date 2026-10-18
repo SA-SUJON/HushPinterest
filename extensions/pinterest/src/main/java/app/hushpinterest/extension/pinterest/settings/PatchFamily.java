@@ -151,6 +151,7 @@ public enum PatchFamily {
         FEED_AI_PINS(HIDE_AI_PINS, "feedAiPins", "AI-labeled pins in lists"),
         FEED_SHOPPING(HIDE_SHOPPING, "feedShopping", "Hide shopping and product pins"),
         FEED_VIDEO_PINS(FILTER_FEED, "feedVideoPins", "Hide video pins"),
+        FEED_MUTED_WORDS(FILTER_FEED, "feedMutedWords", "Muted words"),
         ANALYTICS_TASKS(DISABLE_ANALYTICS, "analyticsTasks", "Analytics launch tasks"),
         ANALYTICS_UPLOADS(DISABLE_ANALYTICS, "analyticsUploads", "Analytics uploads"),
         LINK_TRACKING(STRIP_LINK_TRACKING, "linkTracking", "Strip link tracking"),
@@ -387,12 +388,16 @@ public enum PatchFamily {
         }
         boolean anyOn = false;
         for (BooleanSetting setting : switches) anyOn |= setting.savedValue();
+        // Filter feed's list is on while it holds anything. How many, never the words themselves.
+        int muted = this == FILTER_FEED ? MutedWordsSetting.entries(Settings.MUTED_WORDS.savedValue()).size() : 0;
+        anyOn |= muted > 0;
         line.append(paused ? "disabled while paused (saved " : anyOn ? "on (" : "disabled by its switch (");
         for (int i = 0; i < switches.size(); i++) {
             if (i > 0) line.append(", ");
             BooleanSetting setting = switches.get(i);
             line.append(setting.key).append(setting.savedValue() ? "=on" : "=off");
         }
+        if (this == FILTER_FEED) line.append(", ").append(Settings.MUTED_WORDS.key).append('=').append(muted);
         line.append(')');
         String stays = effectiveStaysWhilePaused();
         if (stays != null) line.append("; stays in while paused: ").append(stays);

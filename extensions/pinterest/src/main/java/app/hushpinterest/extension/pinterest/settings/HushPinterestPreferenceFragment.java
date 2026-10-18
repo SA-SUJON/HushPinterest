@@ -297,6 +297,10 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(feed, context, build, PatchFamily.FILTER_FEED, Settings.HIDE_VIDEO_PINS,
                     L10n.t("Hide video pins"), L10n.t("Removes pins that play a video from your home feed, search, "
                         + "related pins and boards. Photos and GIFs stay."), SettingsIcons.BLOCK);
+            // A list rather than a switch, on Filter feed's hook: no row where that capability didn't go in.
+            if (build.contains(PatchFamily.FILTER_FEED) && PatchFamily.Capability.FEED_MUTED_WORDS.installed()) {
+                feed.addPreference(mark(new MutedWordsPreference(context), SettingsIcons.BLOCK));
+            }
         }
 
         if (!Collections.disjoint(build, PatchFamily.PRIVACY_PAGE)) {

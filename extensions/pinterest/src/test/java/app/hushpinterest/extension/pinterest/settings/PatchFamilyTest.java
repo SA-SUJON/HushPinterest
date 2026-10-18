@@ -347,6 +347,25 @@ public class PatchFamilyTest {
         assertEquals("Pause must keep patch-time coverage facts", coverageLines(running), coverageLines(paused));
     }
 
+    /** Filter feed is on while its list holds anything, and the report says how many words, never which. */
+    @Test
+    public void theReportCountsMutedWordsWithoutNamingThem() {
+        Set<PatchFamily> build = EnumSet.of(PatchFamily.FILTER_FEED);
+        PatchFamily.inBuildForTests = build;
+        try {
+            assertEquals("Filter feed: disabled by its switch (hushpinterest_hide_video_pins=off, "
+                    + "hushpinterest_muted_words=0)", PatchFamily.reportLines(build, false).get(0));
+            Settings.MUTED_WORDS.save("cake\nwedding dress");
+            String line = PatchFamily.reportLines(build, false).get(0);
+            assertEquals("Filter feed: on (hushpinterest_hide_video_pins=off, hushpinterest_muted_words=2)", line);
+            assertFalse(line, line.contains("cake") || line.contains("wedding"));
+            assertEquals("Filter feed: disabled while paused (saved hushpinterest_hide_video_pins=off, "
+                    + "hushpinterest_muted_words=2)", PatchFamily.reportLines(build, true).get(0));
+        } finally {
+            Settings.MUTED_WORDS.resetToDefault();
+        }
+    }
+
     @Test
     public void partialCoverageNamesEveryMissingTargetInTheReportWhileOffAndPaused() {
         Set<PatchFamily> build = EnumSet.of(PatchFamily.HIDE_ADS, PatchFamily.HIDE_AI_PINS);

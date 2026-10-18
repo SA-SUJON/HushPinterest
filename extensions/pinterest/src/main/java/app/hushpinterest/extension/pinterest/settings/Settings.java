@@ -66,6 +66,12 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_VIDEO_PINS =
             new BooleanSetting("hushpinterest_hide_video_pins", FALSE);
+    /**
+     * Filter feed's second capability: pins whose title, grid title or description holds one of
+     * these words or phrases leave the same lists. Empty to start, and empty while paused.
+     */
+    public static final MutedWordsSetting MUTED_WORDS =
+            new MutedWordsSetting("hushpinterest_muted_words");
     /** Its row asks for a restart after turning it off, so a change brings up the restart row. */
     public static final BooleanSetting DISABLE_ANALYTICS =
             new BooleanSetting("hushpinterest_disable_analytics", TRUE, true);

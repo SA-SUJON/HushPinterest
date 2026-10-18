@@ -41,6 +41,7 @@ import android.preference.Preference;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -139,6 +140,7 @@ public class SettingsBackupTest {
     @Before
     public void startClean() {
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.resetToDefault();
+        for (MutedWordsSetting setting : SettingsBackup.TEXTS) setting.resetToDefault();
         SettingsBackup.discardUndo();
         PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
         PatchFamily.capabilitiesForTests = null;
@@ -157,6 +159,7 @@ public class SettingsBackupTest {
         Utils.awaitBackgroundTasksForTests();
         ShadowLooper.idleMainLooper();
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.resetToDefault();
+        for (MutedWordsSetting setting : SettingsBackup.TEXTS) setting.resetToDefault();
         // The release check stays out of every file, so the list above doesn't reach it.
         Settings.CHECK_FOR_RELEASES.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
@@ -227,14 +230,16 @@ public class SettingsBackupTest {
         assertTrue("STAYS_OUT names a switch Settings no longer has", switches.containsAll(STAYS_OUT.keySet()));
         assertEquals("the list names a switch twice", SettingsBackup.ALLOWLIST.size(),
                 new HashSet<>(SettingsBackup.ALLOWLIST).size());
-        // A file carries true or false and nothing else. A setting in Settings that isn't a switch
-        // needs a format that can carry it before it can be decided on.
+        // A file carries true or false per switch and an array of strings per list in TEXTS, and
+        // nothing else. Muted words added the list format, so a setting that's neither still needs
+        // a format that can carry it before it can be decided on.
         List<String> notSwitches = new ArrayList<>();
         for (Setting<?> setting : declaredSettings(Settings.class)) {
-            if (!(setting instanceof BooleanSetting)) notSwitches.add(setting.key);
+            if (!(setting instanceof BooleanSetting) && !SettingsBackup.TEXTS.contains(setting)) notSwitches.add(setting.key);
         }
-        assertEquals("a setting in Settings isn't a switch, and a settings file has no format for it",
+        assertEquals("a setting in Settings isn't a switch or a list, and a settings file has no format for it",
                 Collections.emptyList(), notSwitches);
+        assertEquals(Collections.singletonList(Settings.MUTED_WORDS), SettingsBackup.TEXTS);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_AI_PINS, Settings.HIDE_AI_SELF_DESCRIBED,
                         Settings.HIDE_SHOPPING, Settings.HIDE_VIDEO_PINS, Settings.DISABLE_ANALYTICS, Settings.STRIP_LINK_TRACKING, Settings.PLAIN_PIN_LINKS,
                         Settings.HIDE_ADVERTISING_ID, Settings.DOWNLOAD_PINS, Settings.SAVE_IN_PINTEREST_FOLDER,
@@ -271,6 +276,7 @@ public class SettingsBackupTest {
     @Test
     public void aFileIsItsFormatItsVersionAndOneValuePerSwitch() throws Exception {
         Settings.HIDE_ADS.save(false);
+        Settings.MUTED_WORDS.save("cake, Wedding dress");
         Settings.CHECK_FOR_RELEASES.save(true);
         BaseSettings.PAUSED.save(true);
         BaseSettings.DEBUG.save(true);
@@ -287,7 +293,7 @@ public class SettingsBackupTest {
         assertEquals("hushpinterest-settings", root.get("format"));
         assertEquals(1, root.get("schema"));
         JSONObject switches = root.getJSONObject("settings");
-        assertEquals(keys(SettingsBackup.ALLOWLIST), names(switches));
+        assertEquals(fileKeys(), names(switches));
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) {
             // Saved, not what a paused Pinterest is answered: paused, every switch answers false.
             assertFalse(setting.get());
@@ -295,8 +301,11 @@ public class SettingsBackupTest {
         }
         assertEquals(false, switches.get(Settings.HIDE_ADS.key));
         assertEquals(true, switches.get(Settings.STRIP_LINK_TRACKING.key));
+        // The list too: paused it reads as empty, and the file still holds what was saved.
+        assertEquals("", Settings.MUTED_WORDS.get());
+        assertEquals("[\"cake\",\"Wedding dress\"]", switches.get(Settings.MUTED_WORDS.key).toString());
         for (Setting<?> setting : Setting.allLoadedSettings()) {
-            if (SettingsBackup.ALLOWLIST.contains(setting)) continue;
+            if (SettingsBackup.ALLOWLIST.contains(setting) || SettingsBackup.TEXTS.contains(setting)) continue;
             assertFalse(setting.key + " is in the file", text.contains(setting.key));
         }
         for (String leak : new String[]{"sentinel", "sessionid", "ds_user_id", "100012345678901", "secret-session",
@@ -319,7 +328,7 @@ public class SettingsBackupTest {
             assertFalse(written, written.contains(BaseSettings.HUSH_LANGUAGE.key));
             assertFalse(written, written.toLowerCase(java.util.Locale.ROOT).contains("language"));
             assertEquals(1, new JSONObject(written).get("schema"));
-            assertEquals(keys(SettingsBackup.ALLOWLIST), names(new JSONObject(written).getJSONObject("settings")));
+            assertEquals(fileKeys(), names(new JSONObject(written).getJSONObject("settings")));
 
             SettingsBackup.Snapshot old = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false,
                     Settings.STRIP_LINK_TRACKING, false));
@@ -564,7 +573,7 @@ public class SettingsBackupTest {
             settle();
             assertNull("Undo opened another confirmation", ShadowAlertDialog.getLatestAlertDialog());
             assertNull("Undo opened a picker", shadowOf(activity).getNextStartedActivityForResult());
-            assertEquals("Import undone. Your earlier switches are back.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Import undone. Your earlier settings are back.", ShadowToast.getTextOfLatestToast());
             assertTrue(Settings.HIDE_ADS.savedValue());
             assertTrue(((SwitchPreference) page.findPreference(Settings.HIDE_ADS.key)).isChecked());
             assertFalse(undo.isEnabled());
@@ -584,7 +593,7 @@ public class SettingsBackupTest {
             Settings.STRIP_LINK_TRACKING.save(false);
             settle();
             assertFalse(undo.isEnabled());
-            assertEquals("Undo ended because a saved switch changed.", undo.getSummary().toString());
+            assertEquals("Undo ended because a saved setting changed.", undo.getSummary().toString());
             assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
             assertFalse(Settings.HIDE_ADS.savedValue());
             assertFalse("Undo overwrote the later edit", Settings.STRIP_LINK_TRACKING.savedValue());
@@ -603,7 +612,7 @@ public class SettingsBackupTest {
             assertTrue(Settings.HIDE_ADS.save(false));
             settle();
             assertFalse(undo.isEnabled());
-            assertEquals("Undo ended because a saved switch changed.", undo.getSummary().toString());
+            assertEquals("Undo ended because a saved setting changed.", undo.getSummary().toString());
             assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
             assertFalse("Undo overwrote the final saved edit", Settings.HIDE_ADS.savedValue());
             assertEquals(false, store().get(Settings.HIDE_ADS.key));
@@ -943,7 +952,7 @@ public class SettingsBackupTest {
             assertEquals("kept-cache", store().get("release_cache"));
             assertEquals("kept-log", store().get("log_buffer"));
             JSONObject exported = new JSONObject(SettingsBackup.create()).getJSONObject("settings");
-            assertEquals(keys(SettingsBackup.ALLOWLIST), names(exported));
+            assertEquals(fileKeys(), names(exported));
             assertEquals(true, exported.get(Settings.HIDE_ADS.key));
         } finally {
             Setting.preferences.preferences.edit().remove("account_token").remove("signing_key")
@@ -1235,6 +1244,131 @@ public class SettingsBackupTest {
         assertEquals(1, SettingsBackup.apply(snapshot));
         assertFalse(Settings.HIDE_ADS.savedValue());
         assertFalse("a switch the file didn't name was reset", Settings.STRIP_LINK_TRACKING.savedValue());
+    }
+
+    // ---- Muted words in a file ----------------------------------------------------------------
+
+    /**
+     * Muted words go out as an array of entries and come back as one change beside the switches,
+     * undone with them. A file from before the list existed doesn't name it and leaves it alone.
+     */
+    @Test
+    public void theMutedWordsListRoundTripsAndAnOlderFileLeavesItAlone() throws Exception {
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_MUTED_WORDS);
+        Settings.MUTED_WORDS.save("cake\nwedding dress");
+        String written = SettingsBackup.create();
+        Settings.MUTED_WORDS.save("pie");
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(written);
+        assertEquals(0, snapshot.switchChanges());
+        assertEquals(1, snapshot.changes().size());
+        assertEquals("Your muted words will change.\n\nMuted words (1 word to 2 words)",
+                SettingsBackupPreference.previewMessage(snapshot));
+        assertEquals(0, SettingsBackup.apply(snapshot));
+        assertEquals("cake\nwedding dress", Settings.MUTED_WORDS.savedValue());
+        assertEquals(SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
+        assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+        assertEquals("pie", Settings.MUTED_WORDS.savedValue());
+
+        SettingsBackup.Snapshot old = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false));
+        assertEquals(Collections.emptyMap(), old.texts);
+        assertEquals(1, SettingsBackup.apply(old));
+        assertEquals("a file that doesn't name the list changed it", "pie", Settings.MUTED_WORDS.savedValue());
+    }
+
+    @Test
+    public void aFilesListIsCleanedTheWayTheDialogCleansWhatsTyped() throws Exception {
+        JSONArray typed = new JSONArray().put("  Cake ").put("cake").put("").put("wedding   dress, veil")
+                .put(repeat('x', MutedWordsSetting.MAX_LENGTH + 1));
+        for (int i = 0; i < MutedWordsSetting.MAX_ENTRIES; i++) typed.put("word" + i);
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.MUTED_WORDS, typed)));
+        List<String> saved = MutedWordsSetting.entries(Settings.MUTED_WORDS.savedValue());
+        assertEquals(MutedWordsSetting.MAX_ENTRIES, saved.size());
+        assertEquals(Arrays.asList("Cake", "wedding dress", "veil", "word0"), saved.subList(0, 4));
+        assertEquals("word46", saved.get(MutedWordsSetting.MAX_ENTRIES - 1));
+    }
+
+    @Test
+    public void aListThatIsNotAnArrayOfWordsIsRefused() throws Exception {
+        for (Object wrong : new Object[]{"cake", true, 3, JSONObject.NULL, new JSONObject().put("0", "cake"),
+                new JSONArray().put("cake").put(5), new JSONArray().put(new JSONArray().put("cake"))}) {
+            assertEquals(String.valueOf(wrong), SettingsBackup.Reason.VALUE,
+                    reasonFor(fileWith(Settings.HIDE_ADS, false, Settings.MUTED_WORDS, wrong)));
+        }
+        assertEquals("", Settings.MUTED_WORDS.savedValue());
+        assertTrue(Settings.HIDE_ADS.savedValue());
+    }
+
+    @Test
+    public void aLaterListEditExpiresUndoWithoutOverwritingIt() throws Exception {
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.MUTED_WORDS, new JSONArray().put("cake"))));
+        assertEquals(SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
+        Settings.MUTED_WORDS.save("pie");
+        assertEquals(SettingsBackup.UndoState.EXPIRED, SettingsBackup.undoState());
+        assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+        assertEquals("pie", Settings.MUTED_WORDS.savedValue());
+    }
+
+    @Test
+    public void thePreviewNamesTheListBesideTheSwitchesAndSaysWhenItsPatchIsMissing() throws Exception {
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS);
+        Settings.MUTED_WORDS.save("cake");
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false,
+                Settings.MUTED_WORDS, new JSONArray()));
+        assertEquals("1 switch will change.\n\nHide ads (On to Off)\n\nMuted words (1 word to none)\n"
+                + "Your choice is saved, but this build doesn't include the patch for it.",
+                SettingsBackupPreference.previewMessage(snapshot));
+        assertEquals(1, SettingsBackup.apply(snapshot));
+        assertEquals("", Settings.MUTED_WORDS.savedValue());
+    }
+
+    @Test
+    public void aFileThatOnlyChangesTheListOffersImport() throws Exception {
+        String file = fileWith(Settings.MUTED_WORDS, new JSONArray().put("cake"));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertTrue(String.valueOf(shadowOf(preview).getMessage()),
+                    String.valueOf(shadowOf(preview).getMessage()).startsWith("Your muted words will change."));
+            assertEquals("Import", String.valueOf(preview.getButton(AlertDialog.BUTTON_POSITIVE).getText()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("cake", Settings.MUTED_WORDS.savedValue());
+        }
+    }
+
+    @Test
+    public void aWaitingListImportSurvivesAsABundleAndAWrongTypeRejectsIt() throws Exception {
+        SettingsBackup.Snapshot read = SettingsBackup.parse(fileWith(Settings.MUTED_WORDS, new JSONArray().put("cake")));
+        // Through a Parcel, the way a saved page comes back after its process died.
+        SettingsBackup.Snapshot back = SettingsBackup.Snapshot.fromBundle(throughParcel(read.toBundle()));
+        assertNotNull(back);
+        assertEquals(Collections.singletonMap(Settings.MUTED_WORDS, "cake"), back.texts);
+        // A page saved before lists were carried holds none, which names none.
+        Bundle older = read.toBundle();
+        older.remove("lists");
+        SettingsBackup.Snapshot withoutLists = SettingsBackup.Snapshot.fromBundle(older);
+        assertNotNull(withoutLists);
+        assertEquals(Collections.emptyMap(), withoutLists.texts);
+        Bundle wrongList = read.toBundle();
+        wrongList.getBundle("lists").putStringArray(Settings.MUTED_WORDS.key, new String[]{"cake"});
+        assertNull(SettingsBackup.Snapshot.fromBundle(throughParcel(wrongList)));
+        Bundle wrongLists = read.toBundle();
+        wrongLists.putString("lists", "cake");
+        assertNull(SettingsBackup.Snapshot.fromBundle(wrongLists));
+    }
+
+    private static Bundle throughParcel(Bundle bundle) {
+        Parcel encoded = Parcel.obtain();
+        try {
+            encoded.writeBundle(bundle);
+            encoded.setDataPosition(0);
+            return encoded.readBundle(SettingsBackupTest.class.getClassLoader());
+        } finally {
+            encoded.recycle();
+        }
     }
 
     @Test
@@ -2020,11 +2154,11 @@ public class SettingsBackupTest {
         throw new AssertionError("read without a refusal");
     }
 
-    /** A file naming only these switches, as [setting, value] pairs. */
+    /** A file naming only these switches and lists, as [setting, value] pairs. */
     private static String fileWith(Object... pairs) throws Exception {
         JSONObject switches = new JSONObject();
         for (int index = 0; index < pairs.length; index += 2) {
-            switches.put(((BooleanSetting) pairs[index]).key, pairs[index + 1]);
+            switches.put(((Setting<?>) pairs[index]).key, pairs[index + 1]);
         }
         return new JSONObject().put("format", SettingsBackup.FORMAT).put("schema", SettingsBackup.SCHEMA)
                 .put("settings", switches).toString();
@@ -2048,6 +2182,13 @@ public class SettingsBackupTest {
     private static Set<String> keys(List<? extends Setting<?>> settings) {
         Set<String> keys = new TreeSet<>();
         for (Setting<?> setting : settings) keys.add(setting.key);
+        return keys;
+    }
+
+    /** Every name a file this build writes holds in its settings: the switches and the lists. */
+    private static Set<String> fileKeys() {
+        Set<String> keys = keys(SettingsBackup.ALLOWLIST);
+        keys.addAll(keys(SettingsBackup.TEXTS));
         return keys;
     }
 

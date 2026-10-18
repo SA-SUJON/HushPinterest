@@ -157,7 +157,8 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
 
     @Nullable private static SharedPreferences observedStore;
     private static final SharedPreferences.OnSharedPreferenceChangeListener undoListener = (store, key) -> {
-        if (key != null && SettingsBackup.ALLOWLIST.stream().noneMatch(setting -> setting.key.equals(key))) return;
+        if (key != null && SettingsBackup.ALLOWLIST.stream().noneMatch(setting -> setting.key.equals(key))
+                && SettingsBackup.TEXTS.stream().noneMatch(setting -> setting.key.equals(key))) return;
         Utils.runOnMainThread(() -> {
             // Review successful saved revisions after the write and any rollback finish.
             if (OWNER.get() == null) setRowsBusy(0, null);
@@ -388,11 +389,23 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
     static String previewMessage(SettingsBackup.Snapshot snapshot) {
         synchronized (Setting.class) {
             Map<Setting<?>, Object> changes = snapshot.changes();
-            int switches = changes.size();
-            StringBuilder message = new StringBuilder(switches == 0
+            int switches = SettingsBackup.switchesIn(changes);
+            StringBuilder message = new StringBuilder(switches > 0
+                    ? L10n.quantity(switches, "%1$d switch will change.", "%1$d switches will change.", switches)
+                    : changes.isEmpty()
                     ? L10n.t("Your switches already match that file, so nothing will change.")
-                    : L10n.quantity(switches, "%1$d switch will change.", "%1$d switches will change.", switches));
+                    : L10n.t("Your muted words will change."));
             for (Map.Entry<Setting<?>, Object> entry : changes.entrySet()) {
+                if (entry.getKey() instanceof MutedWordsSetting) {
+                    MutedWordsSetting list = (MutedWordsSetting) entry.getKey();
+                    message.append("\n\n").append(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Muted words"),
+                            listSize(list.persistedValue()), listSize((String) entry.getValue())));
+                    if (!PatchFamily.Capability.FEED_MUTED_WORDS.installed()) {
+                        message.append('\n').append(L10n.t("Your choice is saved, but this build doesn't include the "
+                            + "patch for it."));
+                    }
+                    continue;
+                }
                 BooleanSetting setting = (BooleanSetting) entry.getKey();
                 message.append("\n\n").append(L10n.f("%1$s (%2$s to %3$s)", switchName(setting),
                         switchValue(setting.persistedValue()), switchValue((Boolean) entry.getValue())));
@@ -413,6 +426,12 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
 
     private static String switchValue(boolean value) {
         return value ? L10n.t("On") : L10n.t("Off");
+    }
+
+    /** A saved list in the preview: how many words it holds. */
+    private static String listSize(String saved) {
+        int count = MutedWordsSetting.entries(saved).size();
+        return count == 0 ? L10n.t("none") : L10n.quantity(count, "%1$d word", "%1$d words", count);
     }
 
     static String switchName(BooleanSetting setting) {
@@ -480,12 +499,12 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             page.pendingImport = null;
             return;
         }
-        int switches = snapshot.switchChanges();
+        boolean unchanged = snapshot.changes().isEmpty();
         AlertDialog.Builder builder = new AlertDialog.Builder(HushPinterestPreferenceFragment.themed(activity))
                 .setTitle(L10n.t("Import settings"))
                 .setMessage(previewMessage(snapshot))
                 .setOnCancelListener(dialog -> answered(page));
-        if (switches == 0) {
+        if (unchanged) {
             builder.setPositiveButton(L10n.t("Close"), (dialog, which) -> answered(page));
         } else {
             builder.setPositiveButton(L10n.t("Import"), (dialog, which) -> {
@@ -608,8 +627,8 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             accepted = Utils.runOnBackgroundThread(() -> {
                 try {
                     switch (SettingsBackup.undo()) {
-                        case UNDONE: Utils.showToastLong(L10n.t("Import undone. Your earlier switches are back.")); break;
-                        case EXPIRED: Utils.showToastLong(L10n.t("Undo ended because a saved switch changed.")); break;
+                        case UNDONE: Utils.showToastLong(L10n.t("Import undone. Your earlier settings are back.")); break;
+                        case EXPIRED: Utils.showToastLong(L10n.t("Undo ended because a saved setting changed.")); break;
                         case NOTHING: Utils.showToastLong(L10n.t("There's no import to undo.")); break;
                     }
                 } catch (SettingsBackup.ApplyFailed failure) {
@@ -759,7 +778,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case AVAILABLE:
                 setSummary(L10n.t("Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo."));
                 break;
-            case EXPIRED: setSummary(L10n.t("Undo ended because a saved switch changed.")); break;
+            case EXPIRED: setSummary(L10n.t("Undo ended because a saved setting changed.")); break;
             case NONE: setSummary(restingSummary); break;
         }
     }

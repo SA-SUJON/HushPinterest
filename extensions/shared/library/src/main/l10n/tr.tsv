@@ -306,8 +306,8 @@ Couldn't prepare this pin. Open it again, then retry.	Bu Pin hazırlanamadı. Ye
 %1$s (%2$s to %3$s)	%1$s (%2$s → %3$s)
 Your choice is saved, but this build doesn't include the patch for it.	Seçimin kaydedildi ama bu sürüm onun yamasını içermiyor.
 Undoing import	İçe aktarma geri alınıyor
-Import undone. Your earlier switches are back.	İçe aktarma geri alındı. Önceki anahtar ayarlarınız geri geldi.
-Undo ended because a saved switch changed.	Kayıtlı bir anahtar değiştiği için geri alma sona erdi.
+Import undone. Your earlier settings are back.	İçe aktarma geri alındı. Önceki ayarlarınız geri geldi.
+Undo ended because a saved setting changed.	Kayıtlı bir ayar değiştiği için geri alma sona erdi.
 There's no import to undo.	Geri alınacak içe aktarma yok.
 Couldn't undo the import. Your imported switches are unchanged.	İçe aktarma geri alınamadı. İçe aktarılan anahtarlarınız değişmedi.
 Couldn't undo the import or restore it. Check the switches here.	İçe aktarma geri alınamadı ya da geri yüklenemedi. Anahtarları kontrol et.
@@ -564,3 +564,43 @@ English	İngilizce
 # context: the same toast when any other number of switches didn't change
 %1$d changed. %2$d settings didn't. Reopen settings and try again.	%1$d ayar değişti, %2$d ayar değişmedi. Ayarları yeniden açıp tekrar dene.
 The app with the last pin list hasn't answered. Try later.	Son pin listesini tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.
+# context: a Feed row under Hide video pins, from the Filter feed patch. A tap opens a box where the person types words and phrases, and pins whose title or description holds one leave the feed. Also the name of that part of the patch in the build report and in the settings import preview
+Muted words	Sessize alınan kelimeler
+# context: the Muted words row's line while the list is empty
+Hides pins whose title or description has a word or phrase you add here. None yet.	Başlığında ya da açıklamasında buraya eklediğin bir kelime veya ifade geçen pinleri gizler. Henüz yok.
+# context: the Muted words row's line when the list holds exactly one entry; %1$d is how many
+Hiding pins that mention %1$d word or phrase. Tap to change the list.	%1$d kelime veya ifade geçen pinler gizleniyor. Listeyi değiştirmek için dokun.
+# context: the same line for any other number of entries
+Hiding pins that mention any of %1$d words or phrases. Tap to change the list.	%1$d kelime veya ifadeden birinin geçtiği pinler gizleniyor. Listeyi değiştirmek için dokun.
+# context: example shown in the empty Muted words box: two everyday words or phrases in this language, separated by a comma
+cake, wedding dress	pasta, gelinlik
+# context: the message above the Muted words box; %1$d is how many entries the list holds at most, %2$d how many characters each can have
+Put each word or phrase on its own line or after a comma. Up to %1$d, each up to %2$d characters. Capitals don't matter, and only whole words count.	Her kelimeyi ya da ifadeyi ayrı bir satıra veya virgülden sonra yaz. En fazla %1$d tane, her biri en fazla %2$d karakter. Büyük küçük harf fark etmez ve yalnızca tam kelimeler sayılır.
+# context: button in the Muted words box that saves the list
+Save	Kaydet
+# context: button in the Muted words box that empties the list at once
+Clear	Temizle
+Couldn't open the muted words. Try again.	Sessize alınan kelimeler açılamadı. Tekrar dene.
+Couldn't save the muted words. Try again.	Sessize alınan kelimeler kaydedilemedi. Tekrar dene.
+# context: the toast after the muted words list was saved empty
+No muted words. Every pin shows again.	Sessize alınan kelime yok. Tüm pinler yeniden görünüyor.
+# context: the start of the toast after the muted words list was saved, when it holds exactly one entry; %1$d is how many
+%1$d muted word saved.	%1$d sessize alınan kelime kaydedildi.
+# context: the same for any other number
+%1$d muted words saved.	%1$d sessize alınan kelime kaydedildi.
+# context: added to that toast when exactly one entry was left out for being too long; %1$d is how many, %2$d the most characters an entry can have
+%1$d was longer than %2$d characters, so it was left out.	%1$d tanesi %2$d karakterden uzundu, bu yüzden dışarıda bırakıldı.
+# context: the same for any other number
+%1$d were longer than %2$d characters, so they were left out.	%1$d tanesi %2$d karakterden uzundu, bu yüzden dışarıda bırakıldı.
+# context: added to that toast when exactly one entry was left out because the list was full; %1$d is how many, %2$d how many entries the list holds
+%1$d more word didn't fit, since the list holds %2$d.	%1$d kelime daha sığmadı, çünkü liste %2$d tane alıyor.
+# context: the same for any other number
+%1$d more words didn't fit, since the list holds %2$d.	%1$d kelime daha sığmadı, çünkü liste %2$d tane alıyor.
+# context: heading of the settings import preview when the file changes no switch but changes the muted words list
+Your muted words will change.	Sessize aldığın kelimeler değişecek.
+# context: in the import preview line that reads like Muted words (none to 2 words): the list holds no words
+none	yok
+# context: in that preview line, how many words the list holds when it is exactly one; %1$d is the number
+%1$d word	%1$d kelime
+# context: the same for any other number
+%1$d words	%1$d kelime

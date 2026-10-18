@@ -19,15 +19,16 @@ private const val PATCH = "Filter feed"
 
 /**
  * Takes more out of the lists Hide ads works on, through the shared list hook ([feedListHookPatch]),
- * each kind of pin on its own switch. Today that's video pins: a pin marked `is_video`, one whose
- * `videos` list has an entry, or an idea pin whose `story_pin_data` runs for more than zero
- * seconds. The fields are read by JSON name at run time; a GIF is an image to Pinterest and stays.
+ * each kind of pin on its own switch. Video pins are a pin marked `is_video`, one whose `videos`
+ * list has an entry, or an idea pin whose `story_pin_data` runs for more than zero seconds. Muted
+ * words are a list of words and phrases matched whole against a pin's title, grid title and
+ * description. The fields are read by JSON name at run time; a GIF is an image to Pinterest and stays.
  */
 @Suppress("unused")
 val filterFeedPatch = bytecodePatch(
     name = PATCH,
-    description = "Lets you take video pins out of your home feed, search, related pins and boards. " +
-        "Photos and GIFs stay. Starts off. Turn it on in HushPinterest settings > Feed.",
+    description = "Lets you take video pins (photos and GIFs stay) and pins that mention words you mute out of your " +
+        "home feed, search, related pins and boards. Starts off. Set it up in HushPinterest settings > Feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch, pinterestExtensionPatch, feedListHookPatch)
@@ -36,8 +37,10 @@ val filterFeedPatch = bytecodePatch(
     execute {
         requireStatusMethod("filterFeed")
         requireStatusMethod("feedVideoPins")
+        requireStatusMethod("feedMutedWords")
         if (feedListHoldersHooked == 0) throw PatchException("$PATCH: no list holder was hooked")
         enableCapability("feedVideoPins")
+        enableCapability("feedMutedWords")
         enableStatus("filterFeed")
     }
 }
