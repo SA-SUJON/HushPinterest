@@ -2,7 +2,7 @@
 
 Every HushPinterest release, newest first.
 
-## Unreleased
+## 0.0.12 (2026-10-18)
 
 * **Pinterest:** The patches now target Pinterest 14.41.0, the newest stable release. 14.40.0 is no longer supported. So far APKMirror has 14.41.0 only as an arm64 bundle (`.apkm`) for Android 12L or newer, and Manager merges it before patching.
 * **Pinterest:** Download pin now shows in the full-screen pin menu some accounts get from the three dots on a pin, along with the other Hush rows, and Pinterest's own Download row in that menu gives way to it. Before, only the smaller pop-up menu had them.
