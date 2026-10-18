@@ -348,7 +348,7 @@ Add-PublishEvent 'verify-index'
         $targetCode = @($catalogTarget.versionCodes.PSObject.Properties.Value)[0]
         $factsForm = Join-Path $global:PublishContract.FactsRoot '.github/ISSUE_TEMPLATE/bug_report.yml'
         [IO.File]::WriteAllText($factsForm, (([IO.File]::ReadAllText($factsForm) -replace $oldTarget, "Pinterest $($catalogTarget.version)") -replace
-            ('(APKMirror universal APK, )' + [regex]::Escape($publishedTarget) + ' \(\d+\)'), "`${1}$($catalogTarget.version) ($targetCode)"))
+            ('(APKMirror [^,\r\n]+, )' + [regex]::Escape($publishedTarget) + ' \(\d+\)'), "`${1}$($catalogTarget.version) ($targetCode)"))
     }
     function Assert-RealFactsRefused([string]$Pattern, [switch]$SkipCount) {
         $problem = $null
