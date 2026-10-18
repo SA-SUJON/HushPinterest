@@ -24,8 +24,8 @@ body:
     id: variant
     attributes:
       label: Which Pinterest file did you patch?
-      description: Where it came from, such as APKMirror's universal APK, and its version code if you know it. Most bugs on a build that should work come from a different build of the same version.
-      placeholder: APKMirror universal APK, 14.40.0 (14408010)
+      description: Where it came from, such as APKMirror, whether it was one APK or a bundle (.apkm), and its version code if you know it. Most bugs on a build that should work come from a different build of the same version.
+      placeholder: APKMirror bundle (.apkm), 14.40.0 (14408010)
   - type: dropdown
     id: manager
     attributes:

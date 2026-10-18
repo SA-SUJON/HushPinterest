@@ -130,7 +130,7 @@ class SaveToastsFixtureTest {
                 androidToasts() > 0 || handsOver() > 0
 
             val readers = counted.keys.associateWith { name -> methods.filter { method -> method.fields().any { it.type == "I" && it.name == name } } }
-            if ("-14.40.0-" in build.name) {
+            if ("-14.41.0-" in build.name) {
                 for ((name, expected) in counted) {
                     val found = readers.getValue(name)
                     assertEquals("${build.name}: methods that read $name: ${found.map { it.key() }}", expected.first, found.size)
@@ -170,7 +170,7 @@ class SaveToastsFixtureTest {
                 .strings().filter { Regex("[a-z_]+").matches(it) }.toSet()
             assertEquals("the names the extension looks up", SAVE_TEXT_NAMES, runtime)
 
-            if ("-14.40.0-" in build.name) {
+            if ("-14.41.0-" in build.name) {
                 assertEquals("${build.name}: toasts handed their text $messageToasts", 2, messageToasts.size)
                 val taken = (showing + methods.filter { it.key() in calledHelpers }).distinctBy { it.key() }.map { method ->
                     context.mutableClassDefBy(method.definingClass).methods.single { it.key() == method.key() }

@@ -236,7 +236,7 @@ def manager_floor(root: Path) -> str:
 
 
 def android_floor(readme: str) -> str:
-    match = re.search(r"img\.shields\.io/badge/platform-Android%20(\d+)%2B", readme)
+    match = re.search(r"img\.shields\.io/badge/platform-Android%20(\d+L?)%2B", readme)
     if not match:
         fail("README has no platform badge saying which Android it needs.")
     return match.group(1)
@@ -299,8 +299,9 @@ def index(args) -> None:
     # [ \t] and not \s at the line ends: under MULTILINE \s* runs on through a blank line.
     form = swap(form, r"^([ \t]*placeholder:[ \t]*)HushPinterest \S+ on Pinterest \S+[ \t]*$",
                 rf"\g<1>HushPinterest {args.version} on Pinterest {target}", "bug report form")
-    # The file the reporter patched, when the form still offers one as an example.
-    form = re.sub(r"^([ \t]*placeholder:[ \t]*APKMirror universal APK, )\d+(?:\.\d+)+ \(\d+\)[ \t]*$",
+    # The file the reporter patched, when the form still offers one as an example. Whatever kind of
+    # file it names (a universal APK, a bundle) stays; only the version moves.
+    form = re.sub(r"^([ \t]*placeholder:[ \t]*APKMirror [^,\n]+, )\d+(?:\.\d+)+ \(\d+\)[ \t]*$",
                   rf"\g<1>{target} ({code})", form, count=1, flags=re.MULTILINE)
     write(bundle_path, json.dumps(bundle, indent=2, ensure_ascii=False) + "\n", bundle_newline)
     write(readme_path, readme, readme_newline)

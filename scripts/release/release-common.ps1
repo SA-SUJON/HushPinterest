@@ -329,8 +329,8 @@ function Get-DeclaredFixtures {
     <#
     .SYNOPSIS
         The vendor APK of every build patches-list.json declares, named as the pre-push gate names
-        them (pinterest-<version>-<code>.apk in HUSHPINTEREST_FIXTURE_DIR), or a throw naming the
-        ones missing.
+        them (pinterest-<version>-<code>.apk, or .apkm for a bundle, in HUSHPINTEREST_FIXTURE_DIR),
+        or a throw naming the ones missing.
     #>
     param([Parameter(Mandatory = $true)][string]$Root)
 
@@ -344,15 +344,17 @@ function Get-DeclaredFixtures {
     $missing = New-Object System.Collections.Generic.List[string]
     foreach ($version in @($target.PackageVersions)) {
         foreach ($code in @($target.PackageVersionCodes[$version] | Where-Object { $_ })) {
-            $file = Join-Path $directory "pinterest-$version-$code.apk"
-            if ((Test-Path -LiteralPath $file -PathType Leaf) -and (Get-Item -LiteralPath $file).Length -gt 0) {
-                $found.Add($file)
-            } else {
-                $missing.Add((Split-Path -Leaf $file))
-            }
+            # One universal APK, or APKMirror's bundle when that is all a build ships as.
+            $name = "pinterest-$version-$code.apk"
+            $file = @("$name", "${name}m" | ForEach-Object { Join-Path $directory $_ } |
+                Where-Object { (Test-Path -LiteralPath $_ -PathType Leaf) -and (Get-Item -LiteralPath $_).Length -gt 0 }) |
+                Select-Object -First 1
+            if ($file) { $found.Add($file) } else { $missing.Add($name) }
         }
     }
-    if ($missing.Count -gt 0) { throw "HUSHPINTEREST_FIXTURE_DIR has no $($missing -join ', '). Put the vendor APKs there first." }
+    if ($missing.Count -gt 0) {
+        throw "HUSHPINTEREST_FIXTURE_DIR has no $($missing -join ', ') (an .apkm bundle of the same name works too). Put the vendor APKs there first."
+    }
     if ($found.Count -eq 0) { throw 'patches-list.json declares no Pinterest build, so there is nothing to patch.' }
     return $found.ToArray()
 }

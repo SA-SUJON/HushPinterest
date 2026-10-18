@@ -120,6 +120,15 @@ try {
     Remove-Item -LiteralPath $retained -Force
     [IO.File]::WriteAllBytes($retained, [byte[]]@())
     Assert-HookFails '*pinterest-14.37.0-14378010.apk*'
+    # A build APKMirror ships only as a bundle is kept as its .apkm, and an empty one is still missing.
+    Remove-Item -LiteralPath $retained -Force
+    [IO.File]::WriteAllBytes("${retained}m", [byte[]]@())
+    Assert-HookFails '*pinterest-14.37.0-14378010.apk (an .apkm bundle of the same name works too)*'
+    Write-Fixture 'pinterest-14.37.0-14378010.apkm'
+    Invoke-FixtureHook
+    Assert-True (Test-Path -LiteralPath $marker) 'A declared build kept as its .apkm bundle never reached the build.'
+    Remove-Item -LiteralPath "${retained}m" -Force
+    $cases++
     Write-Fixture 'pinterest-14.37.0-14378010.apk'
     Invoke-FixtureHook
     $ran = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json

@@ -123,10 +123,14 @@ function Assert-PatchFixtures {
             if ($code -notmatch '^\d+$') {
                 throw "patches-list.json declares the invalid version code $code for $($target.PackageName) $version. Correct it, then push again."
             }
+            # One universal APK, or APKMirror's bundle when that is all a build ships as.
             $name = "pinterest-$version-$code.apk"
-            $file = Join-Path $directory $name
-            if (-not (Test-Path -LiteralPath $file -PathType Leaf) -or (Get-Item -LiteralPath $file).Length -eq 0) {
+            $file = @("$name", "${name}m" | ForEach-Object { Join-Path $directory $_ } |
+                Where-Object { (Test-Path -LiteralPath $_ -PathType Leaf) -and (Get-Item -LiteralPath $_).Length -gt 0 }) |
+                Select-Object -First 1
+            if (-not $file) {
                 $missing += $name
+                $file = Join-Path $directory $name
             }
             $declared += $file
             $count++
@@ -134,7 +138,7 @@ function Assert-PatchFixtures {
     }
     if ($missing.Count -gt 0) {
         throw ("HUSHPINTEREST_FIXTURE_DIR is missing retained $($target.PackageName) build(s): " +
-            ($missing -join ', ') + ". Restore those vendor APKs in $directory, then push again.")
+            ($missing -join ', ') + " (an .apkm bundle of the same name works too). Restore those vendor APKs in $directory, then push again.")
     }
     Write-Step "$count declared Pinterest fixture(s) found"
     # For a release push, which patches each of them (Invoke-ReleaseFixtureApply).

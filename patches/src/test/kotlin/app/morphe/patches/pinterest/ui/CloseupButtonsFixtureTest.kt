@@ -265,7 +265,7 @@ class CloseupButtonsFixtureTest {
     private companion object {
         const val FIND_VIEW_CALL = "Landroid/view/View;->findViewById(I)Landroid/view/View;"
         const val ICON_BUTTON = "Lcom/pinterest/gestalt/iconbutton/GestaltIconButton;"
-        const val LENS_BUILDER = "Lxt/d;"
+        const val LENS_BUILDER = "Lyt/d;"
         const val SET_ID_CALL = "Landroid/view/View;->setId(I)V"
     }
 }

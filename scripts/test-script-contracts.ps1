@@ -3122,6 +3122,20 @@ try {
                 '*did not pass verify-all-patches.ps1 with the bundle built from*' 'A release push went out with a fixture that failed verify-all-patches.ps1.'
             Remove-Item -LiteralPath $releaseFails -Force
 
+            # A build APKMirror ships only as a bundle sits in the folder as its .apkm.
+            $declaredHere | ForEach-Object { Move-Item -LiteralPath $_ -Destination "${_}m" }
+            try {
+                Remove-Item -LiteralPath $releaseLog -Force -ErrorAction SilentlyContinue
+                $env:HUSHPINTEREST_RELEASE_GATE = '1'
+                & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/pinterest/src/main/java/Any.java') 6> $null
+                $bundleVerifies = @(Get-Content -LiteralPath $releaseLog | Where-Object { $_ -like 'verify *' })
+                $expectedBundles = @($declaredHere | ForEach-Object { "verify apk=${_}m bundle=$releaseBundleHere keep=$releaseStore" })
+                Assert-True ((@($bundleVerifies | Sort-Object) -join "`n") -ceq (@($expectedBundles | Sort-Object) -join "`n")) `
+                    "A release push did not patch the declared builds held as .apkm bundles: $($bundleVerifies -join ' | ')"
+            } finally {
+                $declaredHere | ForEach-Object { Move-Item -LiteralPath "${_}m" -Destination $_ -ErrorAction SilentlyContinue }
+            }
+
             Remove-Item -LiteralPath $releaseLog -Force -ErrorAction SilentlyContinue
             & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/pinterest/src/main/java/Any.java') 6> $null
             $logged = @(Get-Content -LiteralPath $releaseLog)

@@ -41,25 +41,26 @@ internal object AppCompatibilities {
     const val PINTEREST_SIGNER_SHA256 = "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
 
     /** The newest Pinterest build every patch here was applied to and read against. */
-    const val PINTEREST_TARGET_VERSION = "14.40.0"
+    const val PINTEREST_TARGET_VERSION = "14.41.0"
 
     /**
-     * The version code of the universal [PINTEREST_TARGET_VERSION] APK. It carries every ABI, so
-     * the one code stands for arm64-v8a too.
+     * The version code of the [PINTEREST_TARGET_VERSION] build the fixtures were read from:
+     * APKMirror's arm64-v8a bundle for Android 12L and newer, the only build of it there so far.
      */
-    const val PINTEREST_TARGET_VERSION_CODE = 14408010
+    const val PINTEREST_TARGET_VERSION_CODE = 14418010
 
     /**
-     * Pinterest's own floor on this build, Android 10. Manager offers the patches only where the
-     * build itself installs.
+     * That bundle's own floor, Android 12L. Manager offers the patches only where the build itself
+     * installs. Earlier releases also came as a universal APK for Android 10, and when this one does,
+     * its floor and code replace these.
      */
-    const val PINTEREST_TARGET_MIN_SDK = 29
+    const val PINTEREST_TARGET_MIN_SDK = 32
 
     fun pinterest(): Array<Compatibility> = arrayOf(
         Compatibility(
             name = "Pinterest",
             packageName = PINTEREST_PACKAGE,
-            apkFileType = ApkFileType.APK,
+            apkFileType = ApkFileType.APKM,
             appIconColor = PINTEREST_COLOR,
             signatures = setOf(PINTEREST_SIGNER_SHA256),
             targets = listOf(

@@ -27,8 +27,8 @@ import org.junit.experimental.categories.Category
 @Category(FixtureTests::class)
 class NativeSettingsEntryFixtureTest {
     private val model = "Lcom/pinterest/feature/settings/menu/model/"
-    private val builder = "Lcom/pinterest/feature/settings/amazonstorefront/claim/w;"
-    private val click = "Lsq0/j;"
+    private val builder = "${model}b0;"
+    private val click = "Lln1/r;"
     private val types = setOf(builder, click) + listOf("m1", "z", "u1", "t1", "h1").map { "$model$it;" }
 
     private fun classes(build: java.io.File): List<ClassDef> {

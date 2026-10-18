@@ -32,8 +32,8 @@ import org.junit.experimental.categories.Category
  * code it was not told about as unsupported, so a wrong value here would warn every user who
  * downloaded the genuine release.
  *
- * Pinterest ships as one universal APK, not a split bundle, so a fixture here is read directly:
- * nothing to unzip a base APK out of first.
+ * A fixture is Pinterest's universal APK or APKMirror's bundle of splits. A bundle's base.apk
+ * carries the manifest and the same signer as every split, so that is the APK read here.
  */
 @Category(FixtureTests::class)
 class AppCompatibilitiesMatchFixturesTest {
@@ -48,8 +48,8 @@ class AppCompatibilitiesMatchFixturesTest {
         )
         val undeclared = mutableMapOf<String, Set<String>>()
         var checked = 0
-        for (fixture in Fixtures.apks()) {
-            val result = ApkVerifier.Builder(fixture).build().verify()
+        for (fixture in Fixtures.builds()) {
+            val result = ApkVerifier.Builder(Fixtures.baseApk(fixture)).build().verify()
             assertTrue("${fixture.name} does not verify: ${result.errors}", result.isVerified)
             // v3.1 rotation puts the newer key in its own block, for Android 13 and newer, so the
             // certificates of every v3 and v3.1 signer count beside the headline ones.
@@ -84,10 +84,10 @@ class AppCompatibilitiesMatchFixturesTest {
         for (target in targets) {
             val version = checkNotNull(target.version)
             val codes = checkNotNull(target.versionCodes) { "the $version target declares no version codes" }
-            val fixtures = Fixtures.files { it.extension == "apk" && it.name.startsWith("pinterest-$version-") }
+            val fixtures = Fixtures.builds().filter { it.name.startsWith("pinterest-$version-") }
             for (fixture in fixtures) {
                 // Each read walks the buffer to its end, so each one gets its own view.
-                val manifest = RandomAccessFile(fixture, "r").use { file ->
+                val manifest = RandomAccessFile(Fixtures.baseApk(fixture), "r").use { file ->
                     ApkUtils.getAndroidManifest(DataSources.asDataSource(file))
                 }
                 assertEquals(

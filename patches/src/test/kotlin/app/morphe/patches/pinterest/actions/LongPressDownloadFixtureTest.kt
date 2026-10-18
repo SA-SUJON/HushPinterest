@@ -81,9 +81,9 @@ class LongPressDownloadFixtureTest {
             assertEquals(build.name, "Z", found.springsDetached.type)
             // Pinned by hand, so a search that drifts to another boolean and object pair fails here
             // instead of agreeing with itself (DexDiff repeats the same search).
-            if (build.name.startsWith("pinterest-14.40.0-")) {
+            if (build.name.startsWith("pinterest-14.41.0-")) {
                 assertEquals(build.name, "Lcom/pinterest/ui/menu/SpringLinearLayout;->d:Z", "${found.springsDetached}")
-                assertEquals(build.name, "Lcom/pinterest/ui/menu/KotSpringLinearLayout;->g:Lh93/a2;", "${found.springDriver}")
+                assertEquals(build.name, "Lcom/pinterest/ui/menu/KotSpringLinearLayout;->g:Lca3/b2;", "${found.springDriver}")
             }
             assertEquals(build.name, listOf(CONTEXT_MENU_ITEM, "${found.springsDetached}", "${found.springDriver}"), stub("springsReattached"))
             assertEquals(build.name, listOf(Opcode.CHECK_CAST, Opcode.CONST_4, Opcode.IPUT_BOOLEAN, Opcode.IPUT_OBJECT, Opcode.RETURN_VOID),

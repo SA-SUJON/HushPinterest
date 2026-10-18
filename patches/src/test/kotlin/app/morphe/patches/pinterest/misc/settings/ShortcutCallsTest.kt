@@ -231,7 +231,7 @@ class ShortcutCallsTest {
         val versions = AppCompatibilities.pinterest().single().targets.mapNotNull { it.version }.toSet()
         val checked = mutableSetOf<String>()
         for (version in versions) {
-            for (bundle in Fixtures.files { it.name.startsWith("pinterest-") && it.extension == "apk" && it.name.contains("-$version-") }) {
+            for (bundle in Fixtures.builds().filter { it.name.contains("-$version-") }) {
                 val callers = mutableListOf<ClassDef>()
                 FixtureDex.forEach(bundle) { dex ->
                     if (dex.methodSection.none { it.definingClass == SHORTCUT_MANAGER && it.name in SHORTCUT_CALLS }) {

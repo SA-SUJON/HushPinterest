@@ -261,6 +261,24 @@ class ReleaseTextTest(unittest.TestCase):
         self.assertIn("      placeholder: APKMirror universal APK, 14.39.0 (14398020)\n", form)
         self.assertIn("      placeholder: Morphe Manager 1.34.0\n", form)
 
+    def test_index_keeps_the_kind_of_file_the_form_names(self):
+        # Some builds ship only as a bundle, so the form's example names one and keeps naming it.
+        self.put(".github/ISSUE_TEMPLATE/bug_report.yml", FORM.replace("APKMirror universal APK,", "APKMirror bundle (.apkm),"))
+        self.cut()
+        code, err = self.index()
+        self.assertEqual(code, 0, err)
+        form = self.text(".github/ISSUE_TEMPLATE/bug_report.yml")
+        self.assertIn("      placeholder: APKMirror bundle (.apkm), 14.39.0 (14398020)\n", form)
+
+    def test_index_reads_a_twelve_l_badge(self):
+        # Android 12L has no whole number of its own, and the badge says it the way people do.
+        self.put("README.md", README.replace("platform-Android%2010%2B", "platform-Android%2012L%2B"))
+        self.cut()
+        code, err = self.index()
+        self.assertEqual(code, 0, err)
+        description = json.loads(self.text("patches-bundle.json"))["description"]
+        self.assertIn("which needs Android 12L or newer.", description)
+
     def test_index_refuses_and_changes_nothing(self):
         self.cut()
         before = {name: self.text(name) for name in ("patches-bundle.json", "README.md", ".github/ISSUE_TEMPLATE/bug_report.yml")}

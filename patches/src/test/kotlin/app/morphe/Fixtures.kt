@@ -17,6 +17,7 @@ package app.morphe
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.reandroid.apk.ApkModule
 import java.io.File
+import java.util.zip.ZipFile
 import org.junit.Assert.fail
 import org.junit.Assume.assumeTrue
 
@@ -68,20 +69,42 @@ internal object Fixtures {
         return found
     }
 
-    /** Every Pinterest APK in the fixture folder: the files named `pinterest-*.apk`. */
-    fun apks(): List<File> = files { it.extension == "apk" && it.name.startsWith("pinterest-") }
+    /**
+     * What a Pinterest build is on disk: the universal APK with every density and ABI in one file,
+     * or APKMirror's .apkm bundle when a build ships only as splits.
+     */
+    private val BUILD_EXTENSIONS = setOf("apk", "apkm")
+
+    /** Every Pinterest build in the fixture folder: the files named `pinterest-*.apk` or `pinterest-*.apkm`. */
+    fun builds(): List<File> = files { it.extension in BUILD_EXTENSIONS && it.name.startsWith("pinterest-") }
 
     /**
-     * The Pinterest builds of every version the bundle declares: `pinterest-<version>-<code>.apk`, the
-     * universal APK with every density and ABI in one file. A declared version with none of them fails.
+     * The Pinterest builds of every version the bundle declares: `pinterest-<version>-<code>.apk` or
+     * `.apkm`. A declared version with none of them fails.
      */
     fun declaredBuilds(): List<File> =
         AppCompatibilities.pinterest().single().targets.mapNotNull { it.version }.distinct().flatMap { version ->
-            files { it.name.startsWith("pinterest-$version-") && it.extension == "apk" }
+            files { it.name.startsWith("pinterest-$version-") && it.extension in BUILD_EXTENSIONS }
         }
 
-    private val manifests = FixtureCache { apk ->
-        ApkModule.loadApkFile(apk).use { module ->
+    private val bases = FixtureCache { bundle ->
+        ZipFile(bundle).use { zip ->
+            val entry = zip.getEntry("base.apk") ?: error("${bundle.name} holds no base.apk")
+            File.createTempFile("${bundle.nameWithoutExtension}-", "-base.apk").apply {
+                deleteOnExit()
+                zip.getInputStream(entry).use { input -> outputStream().use(input::copyTo) }
+            }
+        }
+    }
+
+    /**
+     * The APK of [build] that carries its manifest, resource table and signature: the build itself,
+     * or the base.apk inside a bundle, copied out once per test JVM.
+     */
+    fun baseApk(build: File): File = if (build.extension == "apk") build else bases[build]
+
+    private val manifests = FixtureCache { build ->
+        ApkModule.loadApkFile(baseApk(build)).use { module ->
             val manifest = module.androidManifest
             // References in the manifest resolve against the APK's own resource table.
             manifest.setPackageBlock(module.tableBlock.pickOne())
@@ -90,11 +113,11 @@ internal object Fixtures {
     }
 
     /**
-     * The decoded manifest of [apk] as XML text, the way the resource patch reads it. Loading the
-     * resource table is the slow part, so it happens once per build and test JVM; each caller parses
-     * the text into a document of its own and can edit that freely.
+     * The decoded manifest of [build]'s [baseApk] as XML text, the way the resource patch reads it.
+     * Loading the resource table is the slow part, so it happens once per build and test JVM; each
+     * caller parses the text into a document of its own and can edit that freely.
      */
-    fun manifest(apk: File): String = manifests[apk]
+    fun manifest(build: File): String = manifests[build]
 }
 
 /**
