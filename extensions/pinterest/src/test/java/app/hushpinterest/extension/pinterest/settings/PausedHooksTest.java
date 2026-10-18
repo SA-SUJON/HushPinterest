@@ -341,6 +341,9 @@ public class PausedHooksTest {
                 () -> UiHooks.commentsVisibility(View.INVISIBLE) != View.INVISIBLE,
                 () -> UiHooks.commentsMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC,
                 () -> !UiHooks.commentsVisible(true)));
+        probes.put(Settings.HIDE_SUGGESTED_REPLIES, Arrays.asList(
+                () -> UiHooks.suggestedRepliesVisibility(View.INVISIBLE) != View.INVISIBLE,
+                () -> UiHooks.suggestedRepliesMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC));
         probes.put(Settings.HIDE_TOPIC_SUGGESTIONS, Arrays.asList(PausedHooksTest::hidesTopicRow, PausedHooksTest::foldsTopicRow));
         probes.put(Settings.QUIET_EMAIL_REMINDER, Collections.singletonList(UiHooks::quietEmailReminder));
         probes.put(Settings.HIDE_SURVEY_PROMPTS, Arrays.asList(UiHooks::hideSurveyPrompts, UiHooks::hideSponsoredPolls));

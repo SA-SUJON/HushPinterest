@@ -311,6 +311,20 @@ public final class UiHooks {
     }
 
     /**
+     * The row of suggested replies by the comment box. It has its own switch in the Hide comments
+     * family, so neither switch turns the other on. Pinterest 14.41.0 never sets the row's
+     * visibility, so the zero measure is what folds it and its scroller.
+     */
+    public static int suggestedRepliesVisibility(int requested) {
+        return enabled(FamilyNames.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES) ? View.GONE : requested;
+    }
+
+    public static int suggestedRepliesMeasureSpec(int requested) {
+        return enabled(FamilyNames.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES)
+                ? View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY) : requested;
+    }
+
+    /**
      * The topic rows HushPinterest hid, so it brings back only its own. Held weakly: a row Pinterest
      * lets go of leaves with it.
      */

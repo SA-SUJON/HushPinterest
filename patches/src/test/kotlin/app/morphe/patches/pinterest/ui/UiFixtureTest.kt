@@ -25,6 +25,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -64,6 +65,7 @@ class UiFixtureTest {
         "quietEmailReminder" to "emailReminder", "disableUpdateNag" to "updateNag",
         "amoledBlack" to "blackBottomBar", "amoledBlack" to "blackComments", "amoledBlack" to "blackPinMenu",
         "hideSearchHistory" to "recentSearchRows", "hideSearchHistory" to "recentSearchHeading",
+        "hideComments" to "suggestedReplies",
     )
 
     @Test fun `every interface family matches each supported vendor build without a warning`() {
@@ -92,6 +94,31 @@ class UiFixtureTest {
                     assertTrue("${build.name}: $type->$name has no extension hook",
                         own.calls().any { it.definingClass == UI_HOOKS })
                 }
+            }
+            // The suggested replies by the comment box fold through their own hooks, so Hide comments
+            // and Hide suggested replies never turn each other on.
+            for (type in listOf(COMMENT_PREVIEW) + commentsModules.map { it.type }) {
+                assertTrue("${build.name}: $type answers to the suggested replies switch", context.mutableClassDefBy(type).methods
+                    .none { method -> method.calls().any { it.definingClass == UI_HOOKS && it.name.startsWith("suggestedReplies") } })
+            }
+            val wasReplies = classes.single { it.type == COMMENTS_QUICK_REPLIES }
+            val replies = context.mutableClassDefBy(COMMENTS_QUICK_REPLIES)
+            assertEquals("${build.name}: the suggested replies row gained two overrides, nothing else",
+                wasReplies.methods.count() + 2, replies.methods.size)
+            for ((name, hooks) in listOf("setVisibility" to listOf("suggestedRepliesVisibility"),
+                    "onMeasure" to listOf("suggestedRepliesMeasureSpec", "suggestedRepliesMeasureSpec"))) {
+                val body = replies.methods.single { it.name == name }.instructions()
+                assertEquals("${build.name}: the suggested replies row's $name runs the hooks, then its superclass's",
+                    hooks.flatMap { listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT) } + listOf(Opcode.INVOKE_SUPER_RANGE, Opcode.RETURN_VOID),
+                    body.map { it.opcode })
+                assertEquals(build.name, hooks.map { "$UI_HOOKS->$it(I)I" },
+                    body.filter { it.opcode == Opcode.INVOKE_STATIC_RANGE }.map { (it as ReferenceInstruction).reference.toString() })
+                assertEquals("${build.name}: the suggested replies row still runs its superclass's $name", wasReplies.superclass,
+                    ((body[body.size - 2] as ReferenceInstruction).reference as MethodReference).definingClass)
+            }
+            for (method in replies.methods.filter { it.name != "setVisibility" && it.name != "onMeasure" }) {
+                assertTrue("${build.name}: the suggested replies row's ${method.name} changed",
+                    method.calls().none { it.definingClass == UI_HOOKS })
             }
             val closeups = classes.filter { owner ->
                 owner.methods.any { "unifiedCommentsModulePresenterFactory" in it.strings() } ||
@@ -368,6 +395,63 @@ class UiFixtureTest {
         assertTrue("the plain list holder is left alone", context.mutableClassDefBy(plain).methods.isEmpty())
     }
 
+    @Test fun `a suggested replies row the patch can't pin down leaves Hide comments in and its own switch out`() {
+        val classes = read(Fixtures.declaredBuilds().last())
+        val replies = classes.single { it.type == COMMENTS_QUICK_REPLIES }
+        fun copy(owner: ClassDef, superclass: String? = owner.superclass, methods: List<Method> = owner.methods.toList()) =
+            ImmutableClassDef(owner.type, owner.accessFlags, superclass, owner.interfaces, owner.sourceFile, owner.annotations,
+                owner.fields, methods)
+        val buildsChips: (Method) -> Boolean = { method ->
+            method.instructions().any {
+                it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == SMALL_PRIMARY_BUTTON
+            }
+        }
+        assertEquals("the row builds its chips in one method", 1, replies.methods.count(buildsChips))
+        val secondBuilder = ImmutableMethod(replies.type, "buildAgain", listOf(), "V", AccessFlags.PUBLIC.value, null, null,
+            ImmutableMethodImplementation(2, listOf(
+                ImmutableInstruction21c(Opcode.NEW_INSTANCE, 0, ImmutableTypeReference(SMALL_PRIMARY_BUTTON)),
+                ImmutableInstruction10x(Opcode.RETURN_VOID)), null, null))
+        // Each template read, pointed at a field of another name. Same size, so the branches and try ranges hold.
+        val untemplated = replace(replies, { true }) { body ->
+            body.map { instruction ->
+                val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                if (field == null || !field.name.startsWith("comment_templates_")) instruction
+                else ImmutableInstruction21c(instruction.opcode, (instruction as OneRegisterInstruction).registerA,
+                    ImmutableFieldReference(field.definingClass, "unrelated_" + field.name.removePrefix("comment_templates_"), field.type))
+            }
+        }
+        fun with(swap: ClassDef) = classes.map { if (it.type == swap.type) swap else it }
+        // Each case and the warning it has to give, so none passes on another check's account.
+        val cases = linkedMapOf(
+            "no suggested replies row" to (classes - replies to "no suggested replies row"),
+            "the row isn't a LinearLayout" to (with(copy(replies, superclass = "Landroid/widget/FrameLayout;")) to
+                "builds on Landroid/widget/FrameLayout;"),
+            "nothing builds the chips" to (with(copy(replies, methods = replies.methods.filterNot(buildsChips))) to
+                "the suggested replies chip builder: expected one exact target, found 0"),
+            "two methods build chips" to (with(copy(replies, methods = replies.methods + secondBuilder)) to
+                "the suggested replies chip builder: expected one exact target, found 2"),
+            "no comment template strings" to (with(untemplated) to "reads no comment_templates_ strings"),
+        )
+        for ((reason, case) in cases) {
+            val (input, message) = case
+            val context = PatchContexts.of(ExtensionDex.classes() + input)
+            val warnings = PatchLogCapture.warnings { hideCommentsPatch.execute(context) }
+            assertEquals("$reason: $warnings", 1, warnings.size)
+            assertTrue("$reason warned for another reason: $warnings", warnings.single().contains(message))
+            assertTrue("$reason: $warnings", warnings.single().endsWith("Hide suggested replies isn't in this build."))
+            if (input.any { it.type == COMMENTS_QUICK_REPLIES }) {
+                assertTrue("$reason left a hook in the suggested replies row", context.mutableClassDefBy(COMMENTS_QUICK_REPLIES).methods
+                    .none { method -> method.calls().any { it.definingClass == UI_HOOKS } })
+            }
+            assertTrue("$reason took Hide comments out with it", context.mutableClassDefBy(COMMENT_PREVIEW).methods.any { method ->
+                method.name == "onMeasure" && method.calls().any { it.definingClass == UI_HOOKS && it.name == "commentsMeasureSpec" }
+            })
+            assertFlag(context, "hideComments", true)
+            assertFlag(context, "comments", true)
+            assertFlag(context, "suggestedReplies", false)
+        }
+    }
+
     /** The view whose ArrayList the one method building the search page's recent-search cells reads. */
     private fun recentSearchBlockType(classes: List<ClassDef>) = classes.flatMap { it.methods }.single { it.buildsRecentSearchCell() }
         .fields().filter { it.type == ARRAY_LIST }.map { it.definingClass }.distinct().single()
@@ -391,8 +475,8 @@ class UiFixtureTest {
         val anchors = setOf("sg_android_new_screenshot_api_14", "BottomNavTabModel(type=",
             "BottomNavBar tab insertion out of range", "confirmEmailButton", "inAppUpdateManager",
             "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=")
-        val required = (SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW + COMMENT_PREVIEW + HEADER_BAR + BOTTOM_BAR + BLUR_VIEW + PIN_MENU +
-            "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;").toSet()
+        val required = (SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW + COMMENT_PREVIEW + COMMENTS_QUICK_REPLIES + HEADER_BAR + BOTTOM_BAR +
+            BLUR_VIEW + PIN_MENU + "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;").toSet()
         val found = mutableMapOf<String, ClassDef>()
         FixtureDex.forEach(build) { dex ->
             for (owner in dex.classes) {

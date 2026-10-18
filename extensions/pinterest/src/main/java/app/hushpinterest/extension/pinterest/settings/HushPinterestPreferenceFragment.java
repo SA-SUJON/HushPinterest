@@ -429,6 +429,14 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hide comments"),
                     L10n.t("Hides comments and comment previews under pins. It doesn't change who can comment. The "
                         + "change shows the next time the screen updates."), SettingsIcons.BLOCK);
+            // Its own hooks: a build where the suggested replies row wasn't found has no row for it, and
+            // Hide comments above it still works.
+            if (build.contains(PatchFamily.HIDE_COMMENTS) && PatchFamily.Capability.SUGGESTED_REPLIES.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.HIDE_SUGGESTED_REPLIES, L10n.t("Hide suggested replies"),
+                        L10n.t("Hides the row of suggested replies next to the comment box. You can still write and "
+                            + "post your own comment. The change shows the next time you open comments.")),
+                        SettingsIcons.BLOCK));
+            }
             patchToggle(ui, context, build, PatchFamily.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_TOPIC_SUGGESTIONS,
                     L10n.t("Hide topic suggestions"),
                     L10n.t("Hides the \"Ideas you might love\" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay."), SettingsIcons.BLOCK);

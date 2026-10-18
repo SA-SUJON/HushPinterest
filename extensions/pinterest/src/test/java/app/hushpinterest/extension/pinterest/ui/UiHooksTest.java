@@ -71,8 +71,8 @@ public class UiHooksTest {
             Settings.BLACK_BOTTOM_BAR, Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU,
             Settings.HIDE_CLOSEUP_BACK, Settings.HIDE_CLOSEUP_LENS,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST,
-            Settings.HIDE_COMMENTS, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SURVEY_PROMPTS,
-            Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.DISABLE_UPDATE_NAG
+            Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.QUIET_EMAIL_REMINDER,
+            Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.DISABLE_UPDATE_NAG
     }; }
 
     @After public void restore() {
@@ -102,6 +102,8 @@ public class UiHooksTest {
         assertEquals(312, UiHooks.recentSearchRowMeasureSpec(recent, 312));
         assertEquals(View.VISIBLE, UiHooks.commentsVisibility(View.VISIBLE));
         assertTrue(UiHooks.commentsVisible(true));
+        assertEquals(View.INVISIBLE, UiHooks.suggestedRepliesVisibility(View.INVISIBLE));
+        assertEquals(312, UiHooks.suggestedRepliesMeasureSpec(312));
     }
 
     @Test public void screenshotAndOptionalRemindersRestoreWhenPaused() {
@@ -436,6 +438,29 @@ public class UiHooksTest {
         assertEquals(spec, UiHooks.searchHistoryMeasureSpec(spec));
         assertEquals(spec, UiHooks.commentsMeasureSpec(spec));
         assertTrue(UiHooks.commentsVisible(true));
+    }
+
+    /** The suggested replies over the comment box fold on their own switch, and Hide comments never folds them. */
+    @Test public void suggestedRepliesFoldOnlyOnTheirOwnSwitch() {
+        int spec = View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.AT_MOST);
+        Settings.HIDE_COMMENTS.save(true);
+        assertEquals("Hide comments alone leaves the suggestions", View.VISIBLE, UiHooks.suggestedRepliesVisibility(View.VISIBLE));
+        assertEquals("Hide comments alone leaves the suggestions", spec, UiHooks.suggestedRepliesMeasureSpec(spec));
+        Settings.HIDE_COMMENTS.save(false);
+        Settings.HIDE_SUGGESTED_REPLIES.save(true);
+        assertEquals(View.GONE, UiHooks.suggestedRepliesVisibility(View.VISIBLE));
+        assertEquals(0, View.MeasureSpec.getSize(UiHooks.suggestedRepliesMeasureSpec(spec)));
+        assertEquals(View.MeasureSpec.EXACTLY, View.MeasureSpec.getMode(UiHooks.suggestedRepliesMeasureSpec(spec)));
+        assertEquals("the suggestions switch alone leaves comments", View.VISIBLE, UiHooks.commentsVisibility(View.VISIBLE));
+        assertEquals("the suggestions switch alone leaves comments", spec, UiHooks.commentsMeasureSpec(spec));
+        assertTrue("the suggestions switch alone leaves comments", UiHooks.commentsVisible(true));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals(View.INVISIBLE, UiHooks.suggestedRepliesVisibility(View.INVISIBLE));
+        assertEquals(spec, UiHooks.suggestedRepliesMeasureSpec(spec));
+        PauseForTests.resume();
+        Settings.HIDE_SUGGESTED_REPLIES.save(false);
+        assertEquals(View.VISIBLE, UiHooks.suggestedRepliesVisibility(View.VISIBLE));
+        assertEquals(spec, UiHooks.suggestedRepliesMeasureSpec(spec));
     }
 
     @Test public void navigationSwitchesHideOnlyTheirNamedTabsAndRestoreTheHostVisibility() {

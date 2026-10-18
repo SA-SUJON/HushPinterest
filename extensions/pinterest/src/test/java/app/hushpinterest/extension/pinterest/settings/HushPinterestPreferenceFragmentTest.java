@@ -334,6 +334,38 @@ public class HushPinterestPreferenceFragmentTest {
         }
     }
 
+    /**
+     * Hide suggested replies has its own hook, so its row shows only when that hook went in, right
+     * under Hide comments. Both start off.
+     */
+    @Test
+    public void suggestedRepliesShowsOnlyWhereItsHookWentIn() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Set<PatchFamily.Capability> withoutIt = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutIt.remove(PatchFamily.Capability.SUGGESTED_REPLIES);
+        PatchFamily.capabilitiesForTests = withoutIt;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            assertNull(page.findPreference(Settings.HIDE_SUGGESTED_REPLIES.key));
+            assertNotNull(page.findPreference(Settings.HIDE_COMMENTS.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            SwitchPreference row = (SwitchPreference) page.findPreference(Settings.HIDE_SUGGESTED_REPLIES.key);
+            assertNotNull(row);
+            assertEquals("Hide suggested replies", String.valueOf(row.getTitle()));
+            assertFalse("Hide suggested replies starts off", row.isChecked());
+            SwitchPreference comments = (SwitchPreference) page.findPreference(Settings.HIDE_COMMENTS.key);
+            assertFalse("Hide comments starts off", comments.isChecked());
+            assertFalse("Hide comments keeps its own summary in a complete build",
+                    String.valueOf(comments.getSummary()).contains("This build"));
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            assertEquals(indexOfKey(rows, Settings.HIDE_COMMENTS.key) + 1, indexOfKey(rows, Settings.HIDE_SUGGESTED_REPLIES.key));
+        }
+    }
+
     /** Black comments and Black pin menu each have their own hook, so each row shows only where its hook went in, under Black bottom bar. */
     @Test
     public void theBlackSheetRowsShowOnlyWhereTheirHooksWentIn() {

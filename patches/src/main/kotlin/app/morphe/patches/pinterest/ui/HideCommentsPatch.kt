@@ -7,22 +7,35 @@
 package app.morphe.patches.pinterest.ui
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
 import app.morphe.patches.pinterest.misc.extension.parameterRegister
+import app.morphe.patches.pinterest.misc.extension.patchLog
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 internal val COMMENT_MODULE_RESOURCES = listOf(
     setOf("pin_closeup_unified_comments_module", "unified_comments_module_container"),
     setOf("pin_closeup_new_comments_module", "new_comments_module_container"),
 )
 internal const val PIN_CLOSEUP_BASE_MODULE = "Lcom/pinterest/activity/pin/view/modules/PinCloseupBaseModule;"
+
+/** The row of suggested replies next to the comment box. Obfuscation leaves its name alone. */
+internal const val COMMENTS_QUICK_REPLIES = "Lcom/pinterest/activity/pin/view/unifiedcomments/CommentsQuickReplies;"
+
+/** The chip Pinterest builds each suggested reply as. */
+internal const val SMALL_PRIMARY_BUTTON = "Lcom/pinterest/gestalt/button/view/GestaltButton\$SmallPrimaryButton;"
+private const val LINEAR_LAYOUT = "Landroid/widget/LinearLayout;"
 
 internal fun ClassDef.commentResourceNames() = methods.flatMap { it.fields() }.map { it.name }.toSet()
 
@@ -33,12 +46,47 @@ internal fun ClassDef.isCommentsModule(): Boolean {
     return COMMENT_MODULE_RESOURCES.any { resources.containsAll(it) }
 }
 
+/** The first ancestor of [type] that isn't in the APK, which for a view is the Android class it builds on. */
+private fun BytecodePatchContext.firstOutsideAncestor(type: ClassDef): String? {
+    val visited = mutableSetOf<String>()
+    var ancestor = type.superclass
+    while (ancestor != null && visited.add(ancestor)) {
+        val owner = classDefByOrNull(ancestor) ?: return ancestor
+        ancestor = owner.superclass
+    }
+    return null
+}
+
+/**
+ * The row of suggested replies by the comment box, checked by type and shape rather than by any
+ * text it shows: a LinearLayout with one method that builds its GestaltButton chips, reading the
+ * comment_templates_ strings. Both layouts that hold it in 14.41.0 put it in a HorizontalScrollView
+ * sized to it, and nothing sets the row's visibility, so its zero measure is what folds the scroller too.
+ */
+internal fun BytecodePatchContext.suggestedReplies(): MutableClass {
+    val row = classDefByOrNull(COMMENTS_QUICK_REPLIES) ?: throw PatchException("no suggested replies row $COMMENTS_QUICK_REPLIES")
+    val base = firstOutsideAncestor(row)
+    if (base != LINEAR_LAYOUT) throw PatchException("the suggested replies row builds on $base, not $LINEAR_LAYOUT")
+    row.methods.filter { method ->
+        method.instructions().any {
+            it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == SMALL_PRIMARY_BUTTON
+        }
+    }.one("the suggested replies chip builder")
+    if (row.methods.none { method -> method.fields().any { it.name.startsWith("comment_templates_") && it.type == "I" } }) {
+        throw PatchException("the suggested replies row reads no comment_templates_ strings")
+    }
+    val view = mutableClassDefBy(COMMENTS_QUICK_REPLIES)
+    requireOverride(view, "setVisibility", listOf("I"))
+    requireOverride(view, "onMeasure", listOf("I", "I"))
+    return view
+}
+
 @Suppress("unused")
 val hideCommentsPatch = bytecodePatch(
     name = "Hide comments",
     description = "Collapses the comments and comment previews under pins. It doesn't change who can comment on " +
-        "your pins. Good for a quieter pin page. Starts off. Turn it on in HushPinterest settings > " +
-        "Interface.",
+        "your pins. Good for a quieter pin page. A separate switch hides the suggested replies next to the " +
+        "comment box. Both start off. Turn them on in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)
@@ -46,6 +94,7 @@ val hideCommentsPatch = bytecodePatch(
     execute {
         requireStatusMethod("hideComments")
         requireStatusMethod("comments")
+        requireStatusMethod("suggestedReplies")
         val modules = mutableListOf<ClassDef>()
         classDefForEach { if (it.isCommentsModule()) modules += it }
         val selected = COMMENT_MODULE_RESOURCES.map { resources ->
@@ -75,7 +124,16 @@ val hideCommentsPatch = bytecodePatch(
                 it.name == "<init>" && it.parameterTypes.firstOrNull()?.toString() == "Z" && it.implementation != null
             }.one("Comments zone constructor")
         }
+        // The suggested replies have their own switch, so a build where the row can't be pinned down
+        // still gets Hide comments, just without that second switch.
+        val replies = try {
+            suggestedReplies()
+        } catch (missing: PatchException) {
+            patchLog.warning("Hide comments: ${missing.message}. Hide suggested replies isn't in this build.")
+            null
+        }
         views.forEach { collapseView(it, "comments") }
+        replies?.let { collapseView(it, "suggestedReplies") }
         zone?.let {
             val visible = it.parameterRegister(0)
             it.addInstructions(0, """
@@ -84,6 +142,7 @@ val hideCommentsPatch = bytecodePatch(
             """)
         }
         enableCapability("comments")
+        if (replies != null) enableCapability("suggestedReplies")
         enableStatus("hideComments")
     }
 }
