@@ -67,21 +67,58 @@ public final class PinDownloads {
     /** Rewritten to call the menu presenter's own dismissal event through a generated bridge. */
     private static void dismissMenu(Object controller) {}
 
+    /** Rewritten to read the pin from the overflow sheet's menu data. */
+    private static Object sheetPin(Object sheet) { return null; }
+
+    /** Rewritten to return the list the overflow sheet adds its rows to. */
+    private static ViewGroup sheetView(Object sheet) { return null; }
+
+    private static View sheetOrigin(Object sheet) { return null; }
+
+    private static boolean sheetCloseup(Object sheet) { return true; }
+
+    /** Rewritten to call the sheet's own row factory with Pinterest's Download icon. */
+    private static View sheetRow(Object sheet, String title) { return null; }
+
+    /** Rewritten to call the method the sheet's presenter closes it with before each of its own actions. */
+    private static void dismissSheet(Object sheet) {}
+
     static boolean active() {
         return Utils.settingsReady() && PatchFamily.Capability.PIN_DOWNLOADS.installed() && Settings.DOWNLOAD_PINS.get();
     }
 
     public static void attach(Object controller) {
+        attach(controller, false);
+    }
+
+    /**
+     * The same rows for the full-screen overflow sheet a pin's closeup opens in place of the menu above
+     * when Pinterest's android_overflow_gestalt_sheet experiment is on (#2). Called as the sheet finishes
+     * building its rows.
+     */
+    public static void attachSheet(Object sheet) {
+        attach(sheet, true);
+    }
+
+    private static View row(Object controller, boolean sheet, ViewGroup layout, String title) {
+        return sheet ? sheetRow(controller, title) : menuRow(layout, title);
+    }
+
+    private static void dismiss(Object controller, boolean sheet) {
+        if (sheet) dismissSheet(controller); else dismissMenu(controller);
+    }
+
+    private static void attach(Object controller, boolean sheet) {
         HookStatus.invoked(FamilyNames.DOWNLOAD_PINS);
         if (!active()) return;
         try {
-            Object pin = menuPin(controller);
-            ViewGroup layout = menuView(controller);
+            Object pin = sheet ? sheetPin(controller) : menuPin(controller);
+            ViewGroup layout = sheet ? sheetView(controller) : menuView(controller);
             PinMedia.Resolution media = PinMedia.resolve(pin);
             if (layout == null || layout.findViewWithTag(ROW_TAG) != null || media == null) return;
             boolean supported = media.source != null;
             String title = supported ? L10n.t("Download pin") : L10n.t("Download unavailable");
-            View row = menuRow(layout, title);
+            View row = row(controller, sheet, layout, title);
             if (row == null) return;
             row.setTag(ROW_TAG);
             row.setFocusable(true);
@@ -95,42 +132,46 @@ public final class PinDownloads {
                 try {
                     if (start(pin, layout.getContext())) {
                         started.set(true);
-                        dismissMenu(controller);
+                        dismiss(controller, sheet);
                     }
                 } catch (Throwable failure) {
                     HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "dismiss download menu", failure);
                 }
             });
-            layout.addView(row, 0);
+            // The sheet opens with its own header rows, so its Hush rows take the native Download row's place.
+            int at = sheet ? nativeIndex(layout) : 0;
+            layout.addView(row, at);
             // For a video, Download pin saves the video and not a still image, so Pinterest's row stays.
             if (supported && !media.source.mime.startsWith("video/")) hideNativeDownload(layout);
-            ViewGroup grid = menuCloseup(controller) ? null : GridDownloads.grid(menuOrigin(controller), pin);
+            boolean closeup = sheet ? sheetCloseup(controller) : menuCloseup(controller);
+            ViewGroup grid = closeup ? null
+                : GridDownloads.grid(sheet ? sheetOrigin(controller) : menuOrigin(controller), pin);
             if (grid != null) {
                 String batchTitle = L10n.t("Download visible pins");
-                View batch = menuRow(layout, batchTitle);
+                View batch = row(controller, sheet, layout, batchTitle);
                 if (batch != null) {
                     batch.setFocusable(true);
                     batch.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
                     batch.setContentDescription(batchTitle);
                     batch.setOnClickListener(ignored -> {
-                        if (active() && GridDownloads.grid(grid, pin) == grid && GridDownloads.show(grid)) dismissMenu(controller);
+                        if (active() && GridDownloads.grid(grid, pin) == grid && GridDownloads.show(grid)) dismiss(controller, sheet);
                     });
-                    layout.addView(batch, 1);
+                    layout.addView(batch, at + 1);
                 }
             }
             if (supported) {
                 String detailsTitle = L10n.t("Media details");
-                View details = menuRow(layout, detailsTitle);
+                View details = row(controller, sheet, layout, detailsTitle);
                 if (details != null) {
                     details.setTag(DETAILS_TAG);
                     details.setFocusable(true);
                     details.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
                     details.setContentDescription(detailsTitle);
                     details.setOnClickListener(ignored -> { if (active()) showDetails(media); });
-                    layout.addView(details, 1);
+                    layout.addView(details, at + 1);
                 }
                 String copyTitle = L10n.t("Copy media link");
-                View copy = menuRow(layout, copyTitle);
+                View copy = row(controller, sheet, layout, copyTitle);
                 if (copy != null) {
                     copy.setTag(COPY_TAG);
                     copy.setFocusable(true);
@@ -138,12 +179,12 @@ public final class PinDownloads {
                     copy.setContentDescription(copyTitle);
                     copy.setOnClickListener(ignored -> {
                         try {
-                            if (copyLink(pin, layout.getContext())) dismissMenu(controller);
+                            if (copyLink(pin, layout.getContext())) dismiss(controller, sheet);
                         } catch (Throwable failure) {
                             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "dismiss copy menu", failure);
                         }
                     });
-                    layout.addView(copy, 1);
+                    layout.addView(copy, at + 1);
                 }
             }
             HookStatus.counted(FamilyNames.DOWNLOAD_PINS, supported ? "download row added to pin menu" : "download explanation added to pin menu");
@@ -170,6 +211,13 @@ public final class PinDownloads {
      * With Download pin saving an image, Pinterest's own Download image row repeats it (#2). GONE leaves
      * its model and click handler untouched.
      */
+    private static int nativeIndex(ViewGroup layout) {
+        for (int i = 0; i < layout.getChildCount(); i++) {
+            if (nativeDownloads.containsKey(layout.getChildAt(i))) return i;
+        }
+        return 0;
+    }
+
     private static void hideNativeDownload(ViewGroup layout) {
         for (int i = 0; i < layout.getChildCount(); i++) {
             View child = layout.getChildAt(i);

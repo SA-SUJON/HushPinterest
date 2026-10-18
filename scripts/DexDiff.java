@@ -3513,6 +3513,7 @@ public class DexDiff {
                     remove(init, at, at + 1);
                 }
             }
+            downloadSheet(downloads, menu);
             bridge(downloads + "->menuPin(Ljava/lang/Object;)Ljava/lang/Object;", PIN_MENU, "hushDownloadPin", "()Ljava/lang/Object;");
             bridge(downloads + "->menuView(Ljava/lang/Object;)Landroid/view/ViewGroup;", PIN_MENU, "hushDownloadMenu", "()Landroid/view/ViewGroup;");
             bridge(downloads + "->menuOrigin(Ljava/lang/Object;)Landroid/view/View;", PIN_MENU, "hushDownloadOrigin", "()Landroid/view/View;");
@@ -3848,6 +3849,126 @@ public class DexDiff {
             if (cast >= 0 && !AccessFlags.STATIC.isSet(m.getAccessFlags())) fail(key + " is no static stub");
             if (cast >= 0 && firstRegister(body.get(cast)) != parameter(m, 0)) fail(key + " casts something other than its input");
             return m;
+        }
+
+        /**
+         * The full-screen overflow sheet a pin closeup opens under android_overflow_gestalt_sheet (#2):
+         * one hand-over in front of each return of the method that builds its rows, one mark on its own
+         * Download image row, and six stubs bound to the sheet's menu data, row list, row factory and
+         * the presenter method that closes it. A build without the sheet expects none of it.
+         */
+        void downloadSheet(String downloads, ClassDef menu) {
+            ClassDef location = clean.classes.get("Lcom/pinterest/feature/GridActionsLocation$PIN_OVERFLOW_MENU_MODAL_FRAGMENT;");
+            if (location == null) return;
+            Set<String> named = new TreeSet<>();
+            for (Method init : location.getMethods()) if (init.getName().equals("<init>"))
+                for (Instruction i : instructions(init)) if (i.getOpcode() == Opcode.CONST_CLASS) named.add(String.valueOf(reference(i)));
+            ClassDef fragment = named.size() == 1 ? clean.classes.get(named.iterator().next()) : null;
+            if (fragment == null) { fail("download sheet location names no single fragment"); return; }
+            List<Method> builders = new ArrayList<>();
+            for (Method candidate : fragment.getMethods()) if (candidate.getName().equals("onViewCreated") && candidate.getImplementation() != null
+                    && descriptor(candidate).equals("(Landroid/view/View;Landroid/os/Bundle;)V")) builders.add(candidate);
+            Method builder = unique(builders, "download sheet row builder");
+            Method m = actual(builder);
+            if (builder == null || m == null) return;
+            int returns = 0;
+            for (Instruction i : instructions(builder)) if (i.getOpcode() == Opcode.RETURN_VOID) returns++;
+            List<Instruction> body = instructions(m);
+            for (int at : calls(m, downloads + "->attachSheet(Ljava/lang/Object;)V", returns)) {
+                if (at + 1 >= body.size() || body.get(at + 1).getOpcode() != Opcode.RETURN_VOID || !arguments(body.get(at)).equals(List.of(parameter(m, -1))))
+                    fail("download sheet hand-over at " + at + " is not the sheet itself in front of a return");
+                remove(m, at, at + 1);
+            }
+            List<Integer> marks = calls(m, downloads + "->nativeRow(Landroid/view/View;)V", 1);
+            if (marks.size() == 1) {
+                int at = marks.get(0);
+                boolean titled = false;
+                for (int i = Math.max(0, at - 9); i < at - 2; i++) if (reference(body.get(i)) instanceof FieldReference title
+                        && title.getName().equals("save_to_device")) titled = true;
+                if (at < 2 || body.get(at - 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT
+                        || !(reference(body.get(at - 2)) instanceof MethodReference factory)
+                        || !factory.getDefiningClass().equals(fragment.getType()) || !factory.getReturnType().equals("Landroid/widget/RelativeLayout;")
+                        || !arguments(body.get(at)).equals(List.of(firstRegister(body.get(at - 1)))) || !titled)
+                    fail("download sheet mark is not on the sheet's own Download image row");
+                remove(m, at, at + 1);
+            }
+            String type = fragment.getType();
+            String pinType = "";
+            if (menu != null) for (Field field : menu.getFields()) if (field.getName().equals("pin")) pinType = field.getType();
+            Map<String, String> reads = new LinkedHashMap<>();
+            reads.put("sheetPin(Ljava/lang/Object;)Ljava/lang/Object;", pinType);
+            reads.put("sheetOrigin(Ljava/lang/Object;)Landroid/view/View;", "Landroid/view/View;");
+            reads.put("sheetCloseup(Ljava/lang/Object;)Z", "Z");
+            for (Map.Entry<String, String> read : reads.entrySet()) {
+                Method stub = actual(downloads + "->" + read.getKey());
+                if (stub == null) continue;
+                List<Instruction> code = instructions(stub);
+                MethodReference getter = code.size() == 5 && reference(code.get(1)) instanceof MethodReference g ? g : null;
+                ClassDef data = getter == null ? null : clean.classes.get(getter.getReturnType());
+                boolean described = false;
+                if (data != null) for (Method method : data.getMethods()) if (method.getName().equals("toString"))
+                    for (Instruction i : instructions(method)) if (reference(i) instanceof StringReference text
+                            && text.getString().equals("PinOverflowMenuModalData(pin=")) described = true;
+                if (getter == null || !described) { fail("download sheet stub " + read.getKey() + " reads no menu data"); continue; }
+                bridge(downloads + "->" + read.getKey(), type, getter.getName(), "()" + getter.getReturnType());
+                FieldReference field = reference(code.get(3)) instanceof FieldReference f ? f : null;
+                boolean flag = read.getValue().equals("Z");
+                if (code.get(2).getOpcode() != Opcode.MOVE_RESULT_OBJECT || field == null || !field.getDefiningClass().equals(data.getType())
+                        || !field.getType().equals(read.getValue()) || code.get(3).getOpcode() != (flag ? Opcode.IGET_BOOLEAN : Opcode.IGET_OBJECT)
+                        || ((TwoRegisterInstruction) code.get(3)).getRegisterB() != firstRegister(code.get(2))
+                        || code.get(4).getOpcode() != (flag ? Opcode.RETURN : Opcode.RETURN_OBJECT) || firstRegister(code.get(4)) != firstRegister(code.get(3)))
+                    fail("download sheet stub " + read.getKey() + " reads the wrong menu data field");
+            }
+            Method list = actual(downloads + "->sheetView(Ljava/lang/Object;)Landroid/view/ViewGroup;");
+            if (list != null) {
+                List<Instruction> code = instructions(list);
+                if (code.size() != 4 || !(reference(code.get(1)) instanceof MethodReference getter)
+                        || !getter.getReturnType().equals("Landroid/widget/LinearLayout;") || !getter.getParameterTypes().isEmpty()
+                        || code.get(2).getOpcode() != Opcode.MOVE_RESULT_OBJECT || code.get(3).getOpcode() != Opcode.RETURN_OBJECT)
+                    fail("download sheet list stub returns no row list");
+                else bridge(downloads + "->sheetView(Ljava/lang/Object;)Landroid/view/ViewGroup;", type, getter.getName(), "()Landroid/widget/LinearLayout;");
+            }
+            Method row = actual(downloads + "->sheetRow(Ljava/lang/Object;Ljava/lang/String;)Landroid/view/View;");
+            if (row != null) {
+                List<Instruction> code = instructions(row);
+                MethodReference factory = code.size() == 5 && reference(code.get(2)) instanceof MethodReference f ? f : null;
+                List<String> types = factory == null ? List.of() : factory.getParameterTypes().stream().map(Object::toString).toList();
+                if (factory == null || code.get(0).getOpcode() != Opcode.CHECK_CAST || !type.equals(String.valueOf(reference(code.get(0))))
+                        || firstRegister(code.get(0)) != parameter(row, 0) || code.get(1).getOpcode() != Opcode.SGET_OBJECT
+                        || !(reference(code.get(1)) instanceof FieldReference icon) || !icon.getName().equals("DOWNLOAD")
+                        || !factory.getDefiningClass().equals(type) || !factory.getReturnType().equals("Landroid/widget/RelativeLayout;")
+                        || types.size() != 2 || !types.contains("Ljava/lang/String;") || !types.contains(icon.getType())
+                        || code.get(3).getOpcode() != Opcode.MOVE_RESULT_OBJECT || code.get(4).getOpcode() != Opcode.RETURN_OBJECT
+                        || firstRegister(code.get(3)) != firstRegister(code.get(4))) fail("download sheet row stub has no native row contract");
+                else {
+                    List<Integer> args = types.get(0).equals("Ljava/lang/String;") ? List.of(parameter(row, 0), parameter(row, 1), firstRegister(code.get(1)))
+                            : List.of(parameter(row, 0), firstRegister(code.get(1)), parameter(row, 1));
+                    if (!arguments(code.get(2)).equals(args)) fail("download sheet row factory receives the wrong icon or title");
+                    actual(factory.toString());
+                }
+            }
+            Method dismiss = actual(downloads + "->dismissSheet(Ljava/lang/Object;)V");
+            if (dismiss != null) {
+                List<Instruction> code = instructions(dismiss);
+                FieldReference held = code.size() == 5 && reference(code.get(1)) instanceof FieldReference f ? f : null;
+                MethodReference closer = held != null && reference(code.get(3)) instanceof MethodReference c ? c : null;
+                ClassDef presenter = held == null ? null : clean.classes.get(held.getType());
+                boolean closes = false;
+                if (presenter != null && closer != null) for (Method method : presenter.getMethods())
+                    if (method.getName().equals(closer.getName()) && descriptor(method).equals("()V") && AccessFlags.PUBLIC.isSet(method.getAccessFlags()))
+                        for (Instruction i : instructions(method)) if (i.getOpcode() == Opcode.CHECK_CAST && type.equals(String.valueOf(reference(i)))) closes = true;
+                if (closer == null || code.get(0).getOpcode() != Opcode.CHECK_CAST || !type.equals(String.valueOf(reference(code.get(0))))
+                        || firstRegister(code.get(0)) != parameter(dismiss, 0) || code.get(1).getOpcode() != Opcode.IGET_OBJECT
+                        || !held.getDefiningClass().equals(type) || ((TwoRegisterInstruction) code.get(1)).getRegisterB() != parameter(dismiss, 0)
+                        || code.get(2).getOpcode() != Opcode.IF_EQZ || firstRegister(code.get(2)) != firstRegister(code.get(1))
+                        || !closer.getDefiningClass().equals(held.getType()) || !arguments(code.get(3)).equals(List.of(firstRegister(code.get(1))))
+                        || code.get(4).getOpcode() != Opcode.RETURN_VOID || !closes) fail("download sheet dismissal no longer reaches the presenter method that closes it");
+                else {
+                    Layout layout = new Layout(dismiss.getImplementation());
+                    if (layout.addresses.get(2) + ((OffsetInstruction) code.get(2)).getCodeOffset() != layout.addresses.get(4))
+                        fail("download sheet dismissal lost its absent-presenter fallback");
+                }
+            }
         }
 
         void bridge(String key, String type, String name, String shape) {

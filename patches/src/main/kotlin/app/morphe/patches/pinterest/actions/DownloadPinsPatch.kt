@@ -8,6 +8,7 @@ package app.morphe.patches.pinterest.actions
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
@@ -21,16 +22,21 @@ import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.extension.requireThisIntact
 import app.morphe.patches.pinterest.misc.extension.writeStub
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
+import app.morphe.patches.pinterest.ui.instructions
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.Field
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.w3c.dom.Element
 
@@ -187,10 +193,12 @@ val downloadPinsPatch = bytecodePatch(
         if (mutableClassDefBy(DOWNLOADS).methods.count { it.name == "nativeRow" && AccessFlags.STATIC.isSet(it.accessFlags) } != 1) {
             throw PatchException("$PATCH: missing extension hook nativeRow")
         }
+        val sheet = pinSheet(pin)?.let { sheetHooks(it, icon) }
         val bridgeNames = listOf("hushDownloadPin", "hushDownloadMenu", "hushDownloadOrigin", "hushDownloadCloseup", "hushDismissDownload")
         if (menu.methods.any { it.name in bridgeNames }) throw PatchException("$PATCH: download bridges already exist")
         // Resolve every host dependency and verify all stubs before changing host code.
-        for (name in listOf("menuPin", "menuView", "menuRow", "menuOrigin", "menuCloseup", "cellPin", "dismissMenu")) {
+        for (name in listOf("menuPin", "menuView", "menuRow", "menuOrigin", "menuCloseup", "cellPin", "dismissMenu",
+            "sheetPin", "sheetView", "sheetOrigin", "sheetCloseup", "sheetRow", "dismissSheet", "attachSheet")) {
             if (mutableClassDefBy(DOWNLOADS).methods.count { it.name == name && AccessFlags.STATIC.isSet(it.accessFlags) } != 1) {
                 throw PatchException("$PATCH: missing extension stub $name")
             }
@@ -278,7 +286,131 @@ val downloadPinsPatch = bytecodePatch(
         layoutInit.addInstructions(nativeAt,
             "invoke-static/range { v$nativeRegister .. v$nativeRegister }, $DOWNLOADS->nativeRow(Landroid/view/View;)V")
         create.addInstructions(assignment + 1, "invoke-static/range { p0 .. p0 }, $DOWNLOADS->attach(Ljava/lang/Object;)V")
+        sheet?.let { installSheet(it) }
         enableCapability("pinDownloads")
         enableStatus("downloadPins")
     }
+}
+
+/** The sheet's own Download row factory, its native Download image row, and how its presenter closes it. */
+private class SheetHooks(
+    val sheet: PinSheet,
+    val row: Method,
+    val icon: String,
+    val download: String,
+    val presenter: Field,
+    val dismiss: Method,
+    val nativeAt: Int,
+    val nativeRegister: Int,
+    val returns: List<Int>,
+)
+
+/**
+ * Finds what the sheet's hooks need, without changing anything. [icon] is the menu's own icon type,
+ * which the sheet's rows share.
+ */
+private fun BytecodePatchContext.sheetHooks(sheet: PinSheet, icon: String): SheetHooks {
+    fun fail(why: String): Nothing = throw PatchException("$PATCH: the pin overflow sheet $why")
+    val fragment = sheet.fragment
+    val download = classDefBy(icon).fields.single { it.name == "DOWNLOAD" && it.type == icon }.name
+    val row = fragment.methods.singleOrNull { method ->
+        val types = method.parameterTypes.map(CharSequence::toString)
+        method.returnType == "Landroid/widget/RelativeLayout;" && AccessFlags.PUBLIC.isSet(method.accessFlags) &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) && types.sorted() == listOf(icon, "Ljava/lang/String;").sorted()
+    } ?: fail("has no single row factory taking a title and an icon")
+    // The presenter closes the sheet before each of its own actions: the one public no-argument method
+    // that reaches the sheet through its view, called most from the presenter's other methods.
+    val presenters = fragment.fields.mapNotNull { field ->
+        if (!field.type.startsWith("L") || AccessFlags.STATIC.isSet(field.accessFlags)) return@mapNotNull null
+        val presenter = classDefByOrNull(field.type) ?: return@mapNotNull null
+        val closers = presenter.methods.filter { method ->
+            method.returnType == "V" && method.parameterTypes.isEmpty() && AccessFlags.PUBLIC.isSet(method.accessFlags) &&
+                !AccessFlags.STATIC.isSet(method.accessFlags) && method.instructions().any {
+                    it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as TypeReference).type == fragment.type
+                }
+        }.map { closer ->
+            closer to presenter.methods.sumOf { caller ->
+                caller.instructions().count { instruction ->
+                    val called = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    instruction.opcode == Opcode.INVOKE_VIRTUAL && called?.definingClass == presenter.type &&
+                        called.name == closer.name && called.parameterTypes.isEmpty() && called.returnType == "V"
+                }
+            }
+        }.filter { it.second >= 3 }.sortedByDescending { it.second }
+        val (closer, calls) = closers.firstOrNull() ?: return@mapNotNull null
+        if (closers.getOrNull(1)?.second == calls) return@mapNotNull null
+        field to closer
+    }
+    val (presenter, dismiss) = presenters.singleOrNull() ?: fail("has ${presenters.size} presenters that close it")
+    if (!AccessFlags.PUBLIC.isSet(presenter.accessFlags)) fail("keeps its presenter private")
+    // Pinterest's own Download image row: the title id goes into the sheet's static row factory.
+    val built = sheet.build.instructions()
+    val natives = built.withIndex().mapNotNull { (index, instruction) ->
+        val title = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+        if (instruction.opcode != Opcode.SGET || title?.name != NATIVE_DOWNLOAD_TITLE || title.type != "I") return@mapNotNull null
+        val id = (instruction as OneRegisterInstruction).registerA
+        val call = (index + 1 until minOf(index + 8, built.size)).firstOrNull { next ->
+            val candidate = built[next]
+            val factory = (candidate as? ReferenceInstruction)?.reference as? MethodReference
+            candidate.opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) &&
+                factory?.definingClass == fragment.type && factory.returnType == "Landroid/widget/RelativeLayout;" &&
+                factory.parameterTypes.getOrNull(0)?.toString() == fragment.type &&
+                factory.parameterTypes.getOrNull(1)?.toString() == "I" &&
+                when (candidate) {
+                    is FiveRegisterInstruction -> candidate.registerD == id
+                    is RegisterRangeInstruction -> candidate.startRegister + 1 == id
+                    else -> false
+                }
+        } ?: return@mapNotNull null
+        val result = built.getOrNull(call + 1)
+        if (result?.opcode != Opcode.MOVE_RESULT_OBJECT) return@mapNotNull null
+        call + 2 to (result as OneRegisterInstruction).registerA
+    }
+    val (nativeAt, nativeRegister) = natives.singleOrNull() ?: fail("has ${natives.size} native Download image rows")
+    // The rows are all in once the method returns, from wherever it returns.
+    val returns = built.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
+    if (returns.isEmpty()) fail("never finishes building its rows")
+    sheet.build.requireThisIntact(PATCH, returns)
+    return SheetHooks(sheet, row, icon, download, presenter, dismiss, nativeAt, nativeRegister, returns)
+}
+
+/** Writes the sheet's stubs, marks its native Download image row and hands the built sheet to the extension. */
+private fun BytecodePatchContext.installSheet(hooks: SheetHooks) = with(hooks) {
+    val fragment = sheet.fragment.type
+    fun read(name: String, field: FieldReference, load: String, give: String) = writeStub(DOWNLOADS, name, 2, """
+        check-cast p0, $fragment
+        invoke-virtual { p0 }, $fragment->${sheet.data.name}()${sheet.data.returnType}
+        move-result-object v0
+        $load v0, v0, ${field.definingClass}->${field.name}:${field.type}
+        $give v0
+    """)
+    read("sheetPin", sheet.pin, "iget-object", "return-object")
+    read("sheetOrigin", sheet.origin, "iget-object", "return-object")
+    read("sheetCloseup", sheet.closeup, "iget-boolean", "return")
+    writeStub(DOWNLOADS, "sheetView", 2, """
+        check-cast p0, $fragment
+        invoke-virtual { p0 }, $fragment->${sheet.list.name}()${sheet.list.returnType}
+        move-result-object v0
+        return-object v0
+    """)
+    val arguments = if (row.parameterTypes.first().toString() == "Ljava/lang/String;") "p0, p1, v0" else "p0, v0, p1"
+    writeStub(DOWNLOADS, "sheetRow", 3, """
+        check-cast p0, $fragment
+        sget-object v0, $icon->$download:$icon
+        invoke-virtual { $arguments }, $fragment->${row.name}(${row.parameterTypes.joinToString("")})${row.returnType}
+        move-result-object v0
+        return-object v0
+    """)
+    writeStub(DOWNLOADS, "dismissSheet", 2, """
+        check-cast p0, $fragment
+        iget-object v0, p0, $fragment->${presenter.name}:${presenter.type}
+        if-eqz v0, :hush_dismissed
+        invoke-virtual { v0 }, ${presenter.type}->${dismiss.name}()V
+        :hush_dismissed
+        return-void
+    """)
+    // Highest first, so each index still points at the instruction it was found at.
+    val hooks = returns.map { it to "invoke-static/range { p0 .. p0 }, $DOWNLOADS->attachSheet(Ljava/lang/Object;)V" } +
+        (nativeAt to "invoke-static/range { v$nativeRegister .. v$nativeRegister }, $DOWNLOADS->nativeRow(Landroid/view/View;)V")
+    hooks.sortedByDescending { it.first }.forEach { (at, code) -> sheet.build.addInstructionsAtControlFlowLabel(at, code) }
 }

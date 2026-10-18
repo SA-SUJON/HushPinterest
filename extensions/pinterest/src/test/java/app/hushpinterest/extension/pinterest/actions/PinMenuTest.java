@@ -536,6 +536,35 @@ public class PinMenuTest {
         PinDownloads.nativeRow(null);
     }
 
+    // #2: the full-screen overflow sheet opens with header rows of its own and closes through its presenter.
+    @Test public void theOverflowSheetGetsTheRowsWhereItsOwnDownloadRowWasAndClosesItself() throws Exception {
+        Host sheet = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
+                "url", "https://i.pinimg.com/originals/source.jpg"))));
+        TextView header = new TextView(activity);
+        header.setText("See more like this");
+        sheet.layout.addView(header);
+        View replaced = nativeDownload(sheet);
+        TextView share = new TextView(activity);
+        share.setText("Share");
+        sheet.layout.addView(share);
+        PinDownloads.attachSheet(sheet);
+        assertEquals(View.GONE, replaced.getVisibility());
+        assertSame(header, sheet.layout.getChildAt(0));
+        assertEquals("Download pin", ((TextView) sheet.layout.getChildAt(1)).getText());
+        assertSame(share, sheet.layout.getChildAt(sheet.layout.getChildCount() - 1));
+        int rows = sheet.layout.getChildCount();
+        PinDownloads.attachSheet(sheet);
+        assertEquals("a second return from the same build adds nothing", rows, sheet.layout.getChildCount());
+
+        assertTrue(sheet.layout.findViewWithTag(PinDownloads.ROW_TAG).performClick());
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(1, sheet.sheetDismissed);
+        assertEquals(0, sheet.dismissed);
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        assertEquals(1, Shadows.shadowOf(manager).getRequestCount());
+    }
+
     @Test public void aSecondTapWhileTheMenuClosesDoesntQueueThePinAgain() throws Exception {
         Host host = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
                 "url", "https://i.pinimg.com/originals/source.jpg"))));
@@ -582,6 +611,7 @@ public class PinMenuTest {
         final Object pin;
         final ViewGroup layout;
         int dismissed;
+        int sheetDismissed;
         Host(Object pin, ViewGroup layout) { this.pin = pin; this.layout = layout; }
     }
 
@@ -595,5 +625,13 @@ public class PinMenuTest {
             return row;
         }
         @Implementation protected static void dismissMenu(Object controller) { ((Host) controller).dismissed++; }
+        @Implementation protected static Object sheetPin(Object sheet) { return ((Host) sheet).pin; }
+        @Implementation protected static ViewGroup sheetView(Object sheet) { return ((Host) sheet).layout; }
+        @Implementation protected static View sheetRow(Object sheet, String title) {
+            TextView row = new TextView(((Host) sheet).layout.getContext());
+            row.setText(title);
+            return row;
+        }
+        @Implementation protected static void dismissSheet(Object sheet) { ((Host) sheet).sheetDismissed++; }
     }
 }

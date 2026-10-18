@@ -132,6 +132,65 @@ class PinActionsFixtureTest {
         }
     }
 
+    // #2: with android_overflow_gestalt_sheet on, a closeup's overflow button opens this sheet instead of the menu above.
+    @Test
+    fun `the overflow sheet a closeup opens gets the download rows and marks its own Download row in each declared build`() {
+        val downloads = "$EXTENSION_PACKAGE/actions/PinDownloads;"
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = (read(build) + sheetClasses(build)).associateBy { it.type }.values.toList()
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            downloadPinsPatch.execute(context)
+            val type = sheetType(classes.single { it.type == PIN_SHEET_LOCATION })
+            fun built(method: Method) = method.name == "onViewCreated" && method.implementation != null
+            val before = classes.single { it.type == type }.methods.single(::built)
+            val after = context.mutableClassDefBy(type).methods.single(::built)
+            val code = after.implementation!!.instructions.toList()
+            val hooks = code.indices.filter {
+                (code[it] as? ReferenceInstruction)?.reference?.toString() == "$downloads->attachSheet(Ljava/lang/Object;)V"
+            }
+            assertEquals("${build.name} one hand-over per return", before.implementation!!.instructions.count { it.opcode == Opcode.RETURN_VOID }, hooks.size)
+            val self = after.implementation!!.registerCount - 3
+            val flow = app.morphe.util.ControlFlow.of(after)
+            for (hook in hooks) {
+                assertEquals("${build.name} hand-over at $hook passes the sheet", self, (code[hook] as RegisterRangeInstruction).startRegister)
+                assertEquals("${build.name} hand-over at $hook sits on a return", Opcode.RETURN_VOID, code[hook + 1].opcode)
+                assertEquals("${build.name} every path to the return at ${hook + 1} runs the hand-over", listOf(hook),
+                    flow.normal.indices.filter { hook + 1 in flow.normal[it] })
+            }
+            val marks = code.indices.filter {
+                (code[it] as? ReferenceInstruction)?.reference?.toString() == "$downloads->nativeRow(Landroid/view/View;)V"
+            }
+            assertEquals("${build.name} the sheet's Download image row is marked once", 1, marks.size)
+            val mark = marks.single()
+            assertEquals(Opcode.MOVE_RESULT_OBJECT, code[mark - 1].opcode)
+            assertEquals("${build.name} mark passes the row register", (code[mark - 1] as OneRegisterInstruction).registerA,
+                (code[mark] as RegisterRangeInstruction).startRegister)
+            val factory = (code[mark - 2] as ReferenceInstruction).reference as MethodReference
+            assertEquals(type, factory.definingClass)
+            assertEquals("Landroid/widget/RelativeLayout;", factory.returnType)
+            assertTrue("${build.name} marked row is the Download image title",
+                references(code.subList(maxOf(0, mark - 9), mark - 2)).any { it.endsWith("->$NATIVE_DOWNLOAD_TITLE:I") })
+            // Take the hooks back out and the sheet's own code is what it was. A jump the hooks pushed
+            // out of a short goto's reach is assembled as a wider goto.
+            val gotos = setOf(Opcode.GOTO_16, Opcode.GOTO_32)
+            fun shape(method: Method, removed: Set<Int>) = method.implementation!!.instructions.withIndex()
+                .filter { (index, instruction) -> index !in removed && instruction.opcode != Opcode.NOP }
+                .map { (_, instruction) -> (if (instruction.opcode in gotos) Opcode.GOTO else instruction.opcode) to
+                    (instruction as? ReferenceInstruction)?.reference?.toString() }
+            assertEquals("${build.name} the sheet's own rows survive", shape(before, emptySet()), shape(after, (hooks + mark).toSet()))
+            val stubs = context.mutableClassDefBy(downloads)
+            fun stub(name: String) = references(stubs.methods.single { it.name == name }.implementation!!.instructions.toList())
+            val pin = classes.single { it.type == PIN_MENU }.fields.single { it.name == "pin" }.type
+            assertTrue("${build.name} sheet pin", stub("sheetPin").any { it.endsWith(":$pin") })
+            assertTrue("${build.name} sheet origin", stub("sheetOrigin").any { it.endsWith(":Landroid/view/View;") })
+            assertTrue("${build.name} sheet closeup", stub("sheetCloseup").any { it.endsWith(":Z") })
+            assertTrue("${build.name} sheet list", stub("sheetView").any { it.startsWith("$type->") && it.endsWith(")Landroid/widget/LinearLayout;") })
+            assertTrue("${build.name} sheet Download icon", stub("sheetRow").any { "->DOWNLOAD:" in it })
+            assertTrue("${build.name} sheet row factory", stub("sheetRow").any { it.startsWith("$type->") && it.endsWith(")Landroid/widget/RelativeLayout;") })
+            assertTrue("${build.name} sheet presenter dismissal", stub("dismissSheet").any { !it.startsWith("$type->") && it.endsWith("()V") })
+        }
+    }
+
     @Test
     fun `closeup share closes through the close-screen method its own fragment inherits in each declared build`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -407,6 +466,20 @@ class PinActionsFixtureTest {
             .flatMap { it.parameterTypes }.map { it.toString() }.filter { it.startsWith('L') && it != "Ljava/lang/String;" } }.toSet()
         wanted += FixtureDex.classes(build, icons)
         return wanted.values.toList()
+    }
+
+    private fun sheetType(location: ClassDef): String = location.methods.flatMap { method ->
+        method.implementation?.instructions?.filter { it.opcode == Opcode.CONST_CLASS }
+            ?.map { ((it as ReferenceInstruction).reference as TypeReference).type }.orEmpty()
+    }.distinct().single()
+
+    /** The overflow sheet's location, its fragment, and every class the fragment holds or hands out. */
+    private fun sheetClasses(build: File): List<ClassDef> {
+        val location = FixtureDex.classes(build, setOf(PIN_SHEET_LOCATION)).values.single()
+        val fragment = FixtureDex.classes(build, setOf(sheetType(location))).values.single()
+        val held = (fragment.fields.map { it.type } + fragment.methods.filter { it.parameterTypes.isEmpty() }.map { it.returnType })
+            .filter { it.startsWith("L") }.toSet()
+        return listOf(location, fragment) + FixtureDex.classes(build, held).values
     }
 
     private fun assertFlag(context: BytecodePatchContext, name: String, expected: Int) {
