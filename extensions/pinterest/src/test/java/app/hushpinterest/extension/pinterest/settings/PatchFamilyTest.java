@@ -322,7 +322,8 @@ public class PatchFamilyTest {
         List<String> running = PatchFamily.reportLines(build, false);
         assertEquals(Arrays.asList(
                 "Hide ads: on (hushpinterest_hide_ads=on)",
-                "Hide AI-labeled pins: disabled by its switch (hushpinterest_hide_ai_pins=off)"),
+                "Hide AI-labeled pins: disabled by its switch (hushpinterest_hide_ai_pins=off, "
+                        + "hushpinterest_hide_ai_self_described=off)"),
                 running.subList(0, 2));
         assertEquals(Arrays.asList(
                 "Hide ads coverage: promoted pins in lists, ad-only views, Google ad SDK start",
@@ -341,8 +342,8 @@ public class PatchFamilyTest {
         List<String> paused = PatchFamily.reportLines(build, true);
         assertEquals("Hide ads: disabled while paused (saved hushpinterest_hide_ads=on); stays in while paused: "
                 + "the sponsored panel override set when you patched", paused.get(0));
-        assertEquals("Hide AI-labeled pins: disabled while paused (saved hushpinterest_hide_ai_pins=off)",
-                paused.get(1));
+        assertEquals("Hide AI-labeled pins: disabled while paused (saved hushpinterest_hide_ai_pins=off, "
+                + "hushpinterest_hide_ai_self_described=off)", paused.get(1));
         assertEquals("Pause must keep patch-time coverage facts", coverageLines(running), coverageLines(paused));
     }
 

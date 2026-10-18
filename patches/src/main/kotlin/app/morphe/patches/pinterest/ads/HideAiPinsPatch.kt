@@ -28,13 +28,17 @@ private const val PATCH = "Hide AI-labeled pins"
  * `digital_media_source_type` (an enum of AI kinds) as an AI pin; its old `ai_disclosures` readers
  * have no callers left. 14.39.0 read `ai_disclosures` for 1 (AI modified) and 2 (synthetic
  * performer). The extension takes any of the three.
+ *
+ * Hide pins that say they're AI is a second switch on the same hook: it also takes an unlabeled pin
+ * whose own title or description uses one of a few AI art phrases, or whose site only hosts AI images.
  */
 @Suppress("unused")
 val hideAiPinsPatch = bytecodePatch(
     name = PATCH,
     description = "Removes pins that Pinterest labels as made or changed with AI from your home feed, search, " +
-        "related pins and boards. AI images without the label still show. Starts off. Turn it on in " +
-        "HushPinterest settings > Feed.",
+        "related pins and boards. A second switch also takes unlabeled pins whose title or description calls " +
+        "them AI art, or that come from an AI image site. Other AI images still show. Both start off. Turn " +
+        "them on in HushPinterest settings > Feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch, pinterestExtensionPatch, feedListHookPatch)

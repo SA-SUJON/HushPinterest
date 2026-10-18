@@ -51,6 +51,12 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_AI_PINS =
             new BooleanSetting("hushpinterest_hide_ai_pins", FALSE);
+    /**
+     * Pins Pinterest doesn't label that say they're AI in their own words or come from an AI image
+     * site leave the same lists, on Hide AI-labeled pins' hook but its own switch. Off to start.
+     */
+    public static final BooleanSetting HIDE_AI_SELF_DESCRIBED =
+            new BooleanSetting("hushpinterest_hide_ai_self_described", FALSE);
 
     public static final BooleanSetting HIDE_SHOPPING =
             new BooleanSetting("hushpinterest_hide_shopping", FALSE);

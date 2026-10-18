@@ -88,7 +88,7 @@ final class ModuleItems {
                 if (kept == null) continue;
                 field.set(module, kept);
                 // Counted once the module holds the shorter list, so a list that couldn't be replaced counts nothing.
-                for (String family : taken) HookStatus.counted(family, removal(family));
+                for (String family : taken) HookStatus.counted(FeedFilter.owner(family), removal(family));
                 if (kept.isEmpty() && emptied == null) emptied = taken.get(0);
             } catch (Throwable t) {
                 HookStatus.threw(owner, "module filter", t);

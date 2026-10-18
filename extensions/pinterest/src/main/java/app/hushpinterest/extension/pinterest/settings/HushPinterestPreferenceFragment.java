@@ -283,6 +283,13 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                         PatchFamily.HIDE_AI_PINS.coverageSummary(L10n.t("Removes pins that Pinterest labels as made "
                             + "or changed with AI from your home feed, search, related pins and boards. "
                             + "AI images without the label still show."))), SettingsIcons.BLOCK));
+                // Its own switch on the same list hook, so a build where that hook didn't go in has no row for it.
+                if (PatchFamily.Capability.FEED_AI_PINS.installed()) {
+                    feed.addPreference(mark(toggle(context, Settings.HIDE_AI_SELF_DESCRIBED, L10n.t("Hide pins that say they're AI"),
+                            L10n.t("Removes pins without the label whose title or description calls them AI art, "
+                                + "or that come from an AI image site. It goes by their words, so some still show.")),
+                            SettingsIcons.BLOCK));
+                }
             }
             patchToggle(feed, context, build, PatchFamily.HIDE_SHOPPING, Settings.HIDE_SHOPPING,
                     L10n.t("Hide shopping and product pins"), L10n.t("Hides product pins, shopping stories, featured "

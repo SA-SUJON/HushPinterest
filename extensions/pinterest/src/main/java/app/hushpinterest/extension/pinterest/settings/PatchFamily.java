@@ -48,7 +48,7 @@ public enum PatchFamily {
     HIDE_ADS(FamilyNames.HIDE_ADS, "hideAds", null,
             Settings.HIDE_ADS),
     HIDE_AI_PINS(FamilyNames.HIDE_AI_PINS, "hideAiPins", null,
-            Settings.HIDE_AI_PINS),
+            Settings.HIDE_AI_PINS, Settings.HIDE_AI_SELF_DESCRIBED),
     HIDE_SHOPPING(FamilyNames.HIDE_SHOPPING, "hideShopping", null, Settings.HIDE_SHOPPING),
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics",
             "Firebase and Google Analytics collection is turned off", Settings.DISABLE_ANALYTICS),

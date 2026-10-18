@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.PatchFamilyForTests;
 import app.hushpinterest.extension.pinterest.settings.Settings;
@@ -55,7 +56,7 @@ public class FeedFilterTest {
         String value();
     }
 
-    /** Shaped like Pinterest's pin: boxed flags, a promotion id, an ad payload and the AI labels. */
+    /** Shaped like Pinterest's pin: boxed flags, a promotion id, an ad payload, the AI labels and its own words. */
     static final class Pin {
         @Json("id") String id;
         @Json("is_promoted") Boolean promoted;
@@ -65,10 +66,39 @@ public class FeedFilterTest {
         @Json("ai_disclosures") List<Integer> aiDisclosures;
         @Json("digital_media_source_type") SourceType sourceType;
         @Json("digital_media_source_type_label") String sourceLabel;
+        @Json("title") String title;
+        @Json("grid_title") String gridTitle;
+        @Json("description") String description;
+        @Json("domain") String domain;
 
         Pin(String id) {
             this.id = id;
         }
+
+        @Override public String toString() {
+            return id;
+        }
+    }
+
+    /** 14.41.0's board (n1): a name and description like a pin's words, but no grid title. */
+    static final class Board {
+        @Json("id") String id = "board";
+        @Json("name") String name = "AI art";
+        @Json("title") String title = "Midjourney favorites";
+        @Json("description") String description = "My #aiart, made with AI";
+
+        @Override public String toString() {
+            return id;
+        }
+    }
+
+    /** A pin whose words came back as something other than text. */
+    static final class OddPin {
+        @Json("id") String id = "odd";
+        @Json("title") Object title = 42;
+        @Json("grid_title") Object gridTitle = Arrays.asList("ai art");
+        @Json("description") Object description = new Object();
+        @Json("domain") Object domain = 7;
 
         @Override public String toString() {
             return id;
@@ -232,6 +262,7 @@ public class FeedFilterTest {
         PauseForTests.resume();
         Settings.HIDE_ADS.resetToDefault();
         Settings.HIDE_AI_PINS.resetToDefault();
+        Settings.HIDE_AI_SELF_DESCRIBED.resetToDefault();
         Settings.HIDE_SHOPPING.resetToDefault();
         ModelFields.clearForTests();
         ModuleItems.clearForTests();
@@ -300,6 +331,131 @@ public class FeedFilterTest {
         assertTrue(report(), report().contains("AI-labeled pin removed"));
         Settings.HIDE_AI_PINS.save(false);
         assertSame(page, FeedFilter.filter(page));
+    }
+
+    private static Pin worded(String id, String title, String gridTitle, String description, String domain) {
+        Pin pin = new Pin(id);
+        pin.title = title;
+        pin.gridTitle = gridTitle;
+        pin.description = description;
+        pin.domain = domain;
+        return pin;
+    }
+
+    /** The report's line for [family], or "" when it has none. */
+    private static String line(String family) {
+        for (String line : HookStatus.report()) {
+            if (line.startsWith(family + ":")) return line;
+        }
+        return "";
+    }
+
+    /**
+     * The second switch takes a pin Pinterest doesn't mark when its own words or site say it's AI,
+     * one case per kind of phrase, and Hide AI-labeled pins counts it apart from the labeled ones.
+     */
+    @Test
+    public void aPinThatSaysItIsAiGoesWithTheSecondSwitchAndCountsApart() {
+        Settings.HIDE_ADS.save(false);
+        Settings.HIDE_AI_SELF_DESCRIBED.save(true);
+        List<Object> page = new ArrayList<>(Arrays.asList(plain,
+                worded("phrase", "minime567 AI Art | PixAI", null, null, null),
+                worded("hyphen", null, "AI-Generated portrait", null, null),
+                labeled,
+                worded("hashtag", null, null, "sunset vibes#AIart #digital", null),
+                worded("spaced", null, null, "AI  generated\nwallpaper", null),
+                worded("madeWith", "Made with AI", null, null, null),
+                worded("tool", null, "Midjourney v6 prompt", null, null),
+                worded("dalle", null, null, "dall-e 3, upscaled", null),
+                worded("site", "minime567", null, null, "pixai.art"),
+                worded("subdomain", null, null, null, "WWW.Civitai.com"),
+                ideas));
+        assertEquals("[plain, labeled, ideas]", FeedFilter.filter(page).toString());
+        String ai = line(FamilyNames.HIDE_AI_PINS);
+        assertTrue(report(), ai.contains("self-described AI pin removed 9"));
+        assertFalse(report(), ai.contains("AI-labeled pin removed"));
+        assertEquals(report(), "", line(AiPins.SELF_DESCRIBED));
+    }
+
+    /**
+     * Words that only look like the list stay: a name, Portuguese "aí" written both ways, a phrase
+     * inside a longer word, retail AI product names, a bare "AI", an ordinary caption, sites that only
+     * end or start like a listed one, and a board, which has no grid title.
+     */
+    @Test
+    public void wordsThatOnlyLookLikeTheListStay() {
+        Settings.HIDE_ADS.save(false);
+        Settings.HIDE_AI_SELF_DESCRIBED.save(true);
+        List<Object> page = new ArrayList<>(Arrays.asList(
+                worded("weiwei", "Ai Weiwei installation", null, null, null),
+                worded("portuguese", null, null, "Vem aí art festival", null),
+                worded("combining", null, "Vem aí art festival", null, null),
+                worded("inside", "Thai artist sketchbook", "AI artist portfolio", "#aiartwork", null),
+                worded("retail", "Galaxy AI phone case", null, "AI-powered robot vacuum", null),
+                worded("bare", "AI", null, "ai", null),
+                worded("caption", "A cozy reading nook", null, "Soft light and a good book", "example.com"),
+                worded("lookalike", null, null, null, "notpixai.art"),
+                worded("prefix", null, null, null, "pixai.art.example.com"),
+                new Board(), plain, ideas));
+        assertSame(page, FeedFilter.filter(page));
+        assertFalse(report(), report().contains("self-described"));
+    }
+
+    @Test
+    public void aPinWhoseWordsArentTextStays() {
+        Settings.HIDE_AI_SELF_DESCRIBED.save(true);
+        List<Object> page = new ArrayList<>(Arrays.asList(new OddPin(), plain, emptyLabels));
+        assertSame(page, FeedFilter.filter(page));
+    }
+
+    /**
+     * With both switches on, a pin with Pinterest's label counts as labeled even when its words say
+     * AI too, and what the words take out of a module counts apart, a module they leave empty included.
+     */
+    @Test
+    public void withBothSwitchesTheLabelComesFirstAndModulesCountApart() {
+        Settings.HIDE_ADS.save(false);
+        Settings.HIDE_AI_PINS.save(true);
+        Settings.HIDE_AI_SELF_DESCRIBED.save(true);
+        Pin both = worded("both", "AI art", null, null, null);
+        both.sourceLabel = "AI modified";
+        Module module = new Module("module", plain, worded("inModule", null, null, "#aigenerated", null));
+        Module emptied = new Module("emptied", worded("only", null, null, null, "openart.ai"));
+        assertEquals("[module, ideas]", FeedFilter.filter(new ArrayList<>(Arrays.asList(both, module, emptied, ideas))).toString());
+        assertEquals("[plain]", module.objects.toString());
+        String ai = line(FamilyNames.HIDE_AI_PINS);
+        assertTrue(report(), ai.contains("AI-labeled pin removed 1"));
+        assertTrue(report(), ai.contains("self-described AI pin removed from a module 2"));
+        assertTrue(report(), ai.contains("module left empty removed 1"));
+        assertFalse(report(), ai.contains("self-described AI pin removed 1"));
+        assertEquals(report(), "", line(AiPins.SELF_DESCRIBED));
+    }
+
+    @Test
+    public void theSecondSwitchOffPausedOrWithoutItsHookKeepsEveryPin() {
+        Settings.HIDE_ADS.save(false);
+        List<Object> page = new ArrayList<>(Arrays.asList(plain, worded("says", "AI art", null, null, null), ideas));
+        assertSame(page, FeedFilter.filter(page));
+        Settings.HIDE_AI_SELF_DESCRIBED.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertSame(page, FeedFilter.filter(page));
+        PauseForTests.resume();
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.FEED_ADS));
+        assertSame(page, FeedFilter.filter(page));
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.FEED_AI_PINS));
+        assertEquals("[plain, ideas]", FeedFilter.filter(page).toString());
+    }
+
+    /** The matcher Muted words will share: case, spaces and Turkish İ read alike, accents never folded. */
+    @Test
+    public void theMatcherReadsCaseSpacesAndTurkishIButNeverFoldsAccents() {
+        for (String phrase : AiPins.PHRASES) assertEquals(phrase, PinWords.normalize(phrase));
+        assertEquals("istanbul ai art", PinWords.normalize("  İSTANBUL\tAI  Art "));
+        assertTrue(PinWords.contains(PinWords.normalize("İstanbul"), "istanbul"));
+        assertTrue(PinWords.contains("ai art", "ai art"));
+        assertFalse(PinWords.contains("aí art", "ai art"));
+        assertFalse(PinWords.contains("ai art́", "ai art"));
+        assertFalse(PinWords.contains("ai art", ""));
     }
 
     /** Debug logging's line for a kept pin names its AI labels next to its ad fields, with the codes. */

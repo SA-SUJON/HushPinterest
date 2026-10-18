@@ -419,6 +419,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
         switch (setting.key) {
             case "hushpinterest_hide_ads": return L10n.t("Hide ads");
             case "hushpinterest_hide_ai_pins": return L10n.t("Hide AI-labeled pins");
+            case "hushpinterest_hide_ai_self_described": return L10n.t("Hide pins that say they're AI");
             case "hushpinterest_hide_shopping": return L10n.t("Hide shopping and product pins");
             case "hushpinterest_disable_analytics": return L10n.t("Disable analytics");
             case "hushpinterest_strip_link_tracking": return L10n.t("Strip link tracking");

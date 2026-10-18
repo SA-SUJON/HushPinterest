@@ -130,6 +130,7 @@ public class PausedHooksTest {
         @Json("is_promoted") Boolean promoted;
         @Json("ai_disclosures") List<Integer> aiDisclosures;
         @Json("is_shoppable") Boolean shoppable;
+        @Json("grid_title") String gridTitle;
     }
 
     /** One hook with its switch on: true when it changed what Pinterest would have done. */
@@ -243,6 +244,12 @@ public class PausedHooksTest {
             ProbePin labeled = new ProbePin();
             labeled.aiDisclosures = Collections.singletonList(1);
             return filtersOut(labeled);
+        }));
+        // A pin whose own title says it's AI art leaves the page.
+        probes.put(Settings.HIDE_AI_SELF_DESCRIBED, Collections.singletonList(() -> {
+            ProbePin says = new ProbePin();
+            says.gridTitle = "AI art";
+            return filtersOut(says);
         }));
         probes.put(Settings.HIDE_SHOPPING, Collections.singletonList(() -> {
             ProbePin product = new ProbePin();

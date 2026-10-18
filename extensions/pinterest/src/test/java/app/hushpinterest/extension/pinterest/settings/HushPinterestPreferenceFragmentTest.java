@@ -335,6 +335,35 @@ public class HushPinterestPreferenceFragmentTest {
     }
 
     /**
+     * Hide pins that say they're AI rides Hide AI-labeled pins' list hook, so its row shows only when
+     * that hook went in, right under Hide AI-labeled pins. It starts off.
+     */
+    @Test
+    public void aiWordsShowsOnlyWhereTheListHookWentIn() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Set<PatchFamily.Capability> withoutIt = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutIt.remove(PatchFamily.Capability.FEED_AI_PINS);
+        PatchFamily.capabilitiesForTests = withoutIt;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            assertNull(page.findPreference(Settings.HIDE_AI_SELF_DESCRIBED.key));
+            assertNotNull(page.findPreference(Settings.HIDE_AI_PINS.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            SwitchPreference row = (SwitchPreference) page.findPreference(Settings.HIDE_AI_SELF_DESCRIBED.key);
+            assertNotNull(row);
+            assertEquals("Hide pins that say they're AI", String.valueOf(row.getTitle()));
+            assertTrue(String.valueOf(row.getSummary()), String.valueOf(row.getSummary()).contains("some still show"));
+            assertFalse("Hide pins that say they're AI starts off", row.isChecked());
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            assertEquals(indexOfKey(rows, Settings.HIDE_AI_PINS.key) + 1, indexOfKey(rows, Settings.HIDE_AI_SELF_DESCRIBED.key));
+        }
+    }
+
+    /**
      * Hide suggested replies has its own hook, so its row shows only when that hook went in, right
      * under Hide comments. Both start off.
      */

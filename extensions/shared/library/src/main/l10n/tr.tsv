@@ -154,6 +154,9 @@ Android sends pinterest.com and pin.it links to a patched Pinterest only after y
 Feed	Akış
 Hide AI-labeled pins	Yapay zeka etiketli pinleri gizle
 Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.	Pinterest'in yapay zekayla üretilmiş veya değiştirilmiş olarak etiketlediği pinleri ana akışından, aramadan, ilgili pinlerden ve panolardan kaldırır. Etiketsiz yapay zeka görselleri görünmeye devam eder.
+# context: a Feed switch right under Hide AI-labeled pins. It removes pins Pinterest doesn't label as AI when their own title or description says they're AI art, or when they come from a website that only hosts AI images. It has its own switch.
+Hide pins that say they're AI	Yapay zeka olduğunu söyleyen pinleri gizle
+Removes pins without the label whose title or description calls them AI art, or that come from an AI image site. It goes by their words, so some still show.	Etiketi olmayan ama başlığı veya açıklaması kendini yapay zeka sanatı olarak tanıtan ya da bir yapay zeka görsel sitesinden gelen pinleri kaldırır. Kelimelerine göre karar verir, bu yüzden bazıları yine görünür.
 Promoted and AI-labeled pins	Reklamlı ve yapay zeka etiketli pinler
 Promoted pins	Reklamlı pinler
 Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Reklamlı pinleri ana akışından, aramadan, ilgili pinlerden ve panolardan kaldırır; yalnızca reklam içeren panelleri gizler.

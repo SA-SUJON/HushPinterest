@@ -154,6 +154,9 @@ Android sends pinterest.com and pin.it links to a patched Pinterest only after y
 Feed	Feed
 Hide AI-labeled pins	Sembunyikan pin berlabel AI
 Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.	Menghapus pin yang diberi label Pinterest sebagai buatan atau hasil ubahan AI dari feed beranda, pencarian, pin terkait, dan papan Anda. Gambar AI tanpa label tetap muncul.
+# context: a Feed switch right under Hide AI-labeled pins. It removes pins Pinterest doesn't label as AI when their own title or description says they're AI art, or when they come from a website that only hosts AI images. It has its own switch.
+Hide pins that say they're AI	Sembunyikan pin yang menyebut dirinya AI
+Removes pins without the label whose title or description calls them AI art, or that come from an AI image site. It goes by their words, so some still show.	Menghapus pin tanpa label yang judul atau deskripsinya menyebutnya seni AI, atau yang berasal dari situs gambar AI. Ini berpatokan pada kata-katanya, jadi sebagian masih muncul.
 Promoted and AI-labeled pins	Pin promosi dan pin berlabel AI
 Promoted pins	Pin promosi
 Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Menghapus pin promosi dari beranda, pencarian, pin terkait, dan papan Anda, serta menyembunyikan panel yang hanya berisi iklan.

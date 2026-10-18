@@ -260,7 +260,7 @@
     },
     {
       "name": "Hide AI-labeled pins",
-      "description": "Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show. Starts off. Turn it on in HushPinterest settings > Feed.",
+      "description": "Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. A second switch also takes unlabeled pins whose title or description calls them AI art, or that come from an AI image site. Other AI images still show. Both start off. Turn them on in HushPinterest settings > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [

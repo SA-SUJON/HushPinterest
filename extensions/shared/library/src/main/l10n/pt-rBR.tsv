@@ -151,6 +151,9 @@ Android sends pinterest.com and pin.it links to a patched Pinterest only after y
 Feed	Feed
 Hide AI-labeled pins	Ocultar pins com selo de IA
 Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.	Remove do seu feed inicial, da busca, dos pins relacionados e das pastas os pins que o Pinterest marca como criados ou alterados com IA. Imagens de IA sem essa marca continuam aparecendo.
+# context: a Feed switch right under Hide AI-labeled pins. It removes pins Pinterest doesn't label as AI when their own title or description says they're AI art, or when they come from a website that only hosts AI images. It has its own switch.
+Hide pins that say they're AI	Ocultar pins que dizem ser IA
+Removes pins without the label whose title or description calls them AI art, or that come from an AI image site. It goes by their words, so some still show.	Remove pins sem o selo cujo título ou descrição os chama de arte com IA, ou que vêm de um site de imagens de IA. Ele se guia pelas palavras deles, então alguns ainda aparecem.
 Promoted and AI-labeled pins	Pins promovidos e com selo de IA
 Promoted pins	Pins promovidos
 Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Remove os pins promovidos do seu feed inicial, da busca, dos pins relacionados e das pastas, e esconde os painéis que só têm anúncios.

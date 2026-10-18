@@ -47,15 +47,17 @@ public final class FeedFilter {
         if (shopping) HookStatus.invoked(FamilyNames.HIDE_SHOPPING);
         if (items == null || items.isEmpty()) return items;
         ads = ads && Ads.active();
+        // Hide pins that say they're AI rides the same hook as Hide AI-labeled pins, on its own switch.
+        boolean aiWords = ai && AiPins.wordsActive();
         ai = ai && AiPins.active();
         shopping = shopping && Shopping.active();
-        if (!ads && !ai && !shopping) {
+        if (!ads && !ai && !aiWords && !shopping) {
             BoardDownloads.record(items);
             return items;
         }
-        boolean hideAds = ads, hideAi = ai, hideShopping = shopping;
-        ModuleItems.Verdict verdict = model -> family(model, hideAds, hideAi, hideShopping);
-        String owner = ads ? FamilyNames.HIDE_ADS : ai ? FamilyNames.HIDE_AI_PINS : FamilyNames.HIDE_SHOPPING;
+        boolean hideAds = ads, hideAi = ai, hideAiWords = aiWords, hideShopping = shopping;
+        ModuleItems.Verdict verdict = model -> family(model, hideAds, hideAi, hideAiWords, hideShopping);
+        String owner = ads ? FamilyNames.HIDE_ADS : ai || aiWords ? FamilyNames.HIDE_AI_PINS : FamilyNames.HIDE_SHOPPING;
         boolean debug = debugLogging();
         List<?> shown;
         // What the loop takes out, counted only once the whole list went through: a list that fails
@@ -106,7 +108,7 @@ public final class FeedFilter {
                 String marks = ModuleItems.markers(item);
                 if (!marks.isEmpty()) Logger.printDebug(() -> "Kept " + item.getClass().getSimpleName() + marks);
             }
-            if (count != null) removed.add(new String[]{family, count});
+            if (count != null) removed.add(new String[]{owner(family), count});
             return family;
         } catch (Throwable t) {
             HookStatus.threw(owner, "item filter", t);
@@ -123,16 +125,26 @@ public final class FeedFilter {
         }
     }
 
-    /** The first switch on that takes [item] out, in the order ads, AI, shopping, or null to keep it. */
-    private static String family(Object item, boolean ads, boolean ai, boolean shopping) {
+    /**
+     * The first switch on that takes [item] out, in the order ads, AI label, AI words, shopping, or
+     * null to keep it. A pin that says it's AI is named {@link AiPins#SELF_DESCRIBED}, counted apart.
+     */
+    private static String family(Object item, boolean ads, boolean ai, boolean aiWords, boolean shopping) {
         return ads && Ads.isAd(item) ? FamilyNames.HIDE_ADS
                 : ai && AiPins.isLabeled(item) ? FamilyNames.HIDE_AI_PINS
+                : aiWords && AiPins.saysItIsAi(item) ? AiPins.SELF_DESCRIBED
                 : shopping && Shopping.isShopping(item) ? FamilyNames.HIDE_SHOPPING : null;
+    }
+
+    /** The family whose report counts a removal [family] names. */
+    static String owner(String family) {
+        return AiPins.SELF_DESCRIBED.equals(family) ? FamilyNames.HIDE_AI_PINS : family;
     }
 
     /** What a removal by [family] is counted as. English, for the report. */
     static String removal(String family) {
         return family.equals(FamilyNames.HIDE_ADS) ? "promoted pin removed"
-                : family.equals(FamilyNames.HIDE_AI_PINS) ? "AI-labeled pin removed" : "shopping placement removed";
+                : family.equals(FamilyNames.HIDE_AI_PINS) ? "AI-labeled pin removed"
+                : family.equals(AiPins.SELF_DESCRIBED) ? "self-described AI pin removed" : "shopping placement removed";
     }
 }
