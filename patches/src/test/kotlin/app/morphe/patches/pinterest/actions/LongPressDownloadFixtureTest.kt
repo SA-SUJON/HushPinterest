@@ -47,10 +47,13 @@ class LongPressDownloadFixtureTest {
             val classes = read(build)
             val context = PatchContexts.of(ExtensionDex.classes() + classes)
             val found = context.longPressMenu()
+            val ids = context.menuButtonIds()
+            assertNotNull("${build.name} button ids", ids)
             val original = found.show.implementation!!
             longPressDownloadPatch.execute(context)
             assertFlag(context, "longPressDownload", 1)
             assertFlag(context, "longPressMenu", 1)
+            assertFlag(context, "longPressChoices", 1)
 
             val show = context.mutableClassDefBy(CONTEXT_MENU).methods.single { it.signature() == found.show.signature() }
             val body = show.implementation!!.instructions.toList()
@@ -94,6 +97,21 @@ class LongPressDownloadFixtureTest {
             assertTrue(build.name, "${found.strings}->download:I" in item)
             assertTrue(build.name, item.any { it.startsWith("${found.factory.definingClass}->${found.factory.name}(") })
             assertTrue(build.name, item.any { it.startsWith("${found.styler.definingClass}->${found.styler.name}(") })
+            // The button's id field and the three ids it's compared with, pinned by hand on 14.41.0
+            // so a search that drifts to another int field fails here.
+            if (build.name.startsWith("pinterest-14.41.0-")) {
+                assertEquals(build.name, "Lrn0/e;", ids!!.owner)
+                assertEquals(build.name, "j", ids.field)
+                assertTrue(build.name, ids.closeup)
+            }
+            val kinds = extension.methods.single { it.name == "buttonKind" }
+            val idField = "$CONTEXT_MENU_ITEM->${ids!!.field}:I"
+            assertEquals(build.name, listOf(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET),
+                kinds.implementation!!.instructions.take(4).map { it.opcode })
+            val compared = listOf(SAVE_ID, SEND_ID, SEARCH_ID) + listOfNotNull(CLOSEUP_SEARCH_ID.takeIf { ids.closeup })
+            assertEquals(build.name, listOf(CONTEXT_MENU_ITEM, CONTEXT_MENU_ITEM, idField) + compared.map { "${ids.owner}->$it:I" },
+                references(kinds))
+            println("${build.name}: button ids ${ids.owner}, id field $idField")
             // Every member a stub names is declared where it says, so none of them fails to link at run time.
             for (name in LONG_PRESS_STUBS) {
                 for (target in extension.methods.single { it.name == name }.implementation!!.instructions.mapNotNull {
@@ -139,6 +157,32 @@ class LongPressDownloadFixtureTest {
                     "styler ${found.styler.definingClass}->${found.styler.name}, strings ${found.strings}, touch ${touch.definingClass}",
             )
         }
+    }
+
+    @Test
+    fun `ids without Save leave the hide switches out and still add Download`() {
+        val classes = read(Fixtures.declaredBuilds().first()).map { owner ->
+            if (owner.staticFields.none { it.name == SEARCH_ID }) owner
+            else ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile, owner.annotations,
+                owner.fields.filterNot { it.name == SAVE_ID }, owner.methods)
+        }
+        val context = PatchContexts.of(ExtensionDex.classes() + classes)
+        assertNull(context.menuButtonIds())
+        fun kinds() = render(context.mutableClassDefBy(LONG_PRESS).methods.single { it.name == "buttonKind" }.implementation!!.instructions.toList())
+        val before = kinds()
+        longPressDownloadPatch.execute(context)
+        assertFlag(context, "longPressMenu", 1)
+        assertFlag(context, "longPressChoices", 0)
+        assertEquals(before, kinds())
+    }
+
+    @Test
+    fun `a missing choices status stub refuses before any edit`() {
+        refuses(extension = { classes ->
+            classes.map { owner ->
+                if (owner.type != SETTINGS_STATUS) owner else owner.withMethods(owner.methods.filterNot { it.name == "longPressChoices" })
+            }
+        }) { it }
     }
 
     @Test
@@ -242,7 +286,10 @@ class LongPressDownloadFixtureTest {
                 .filter { it.startsWith("L") && !it.startsWith("Ljava/") && !it.startsWith("Landroid/") }
             val icons = wanted.values.flatMap { it.methods }.filter { it.name == "<init>" && it.parameterTypes.size == 4 }
                 .map { it.parameterTypes[0].toString() }
-            wanted += FixtureDex.classes(build, (events + icons + pin).toSet() - wanted.keys)
+            // The ids class the menu's hover test reads the Search image button's id from.
+            val ids = menu.methods.flatMap { it.implementation?.instructions?.toList().orEmpty() }.filter { it.opcode == Opcode.SGET }
+                .map { (it as ReferenceInstruction).reference as FieldReference }.filter { it.name == SEARCH_ID }.map { it.definingClass }
+            wanted += FixtureDex.classes(build, (events + icons + pin + ids).toSet() - wanted.keys)
             wanted += FixtureDex.classes(build, wanted.getValue(pin).interfaces.toSet() - wanted.keys)
             // The button's own superclasses, where its detached mark and spring driver live.
             var parent = wanted.getValue(CONTEXT_MENU_ITEM).superclass

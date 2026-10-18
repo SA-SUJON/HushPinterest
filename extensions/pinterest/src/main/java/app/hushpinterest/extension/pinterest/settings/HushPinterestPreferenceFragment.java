@@ -394,6 +394,19 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Long-press download"), L10n.t("Adds Download to a grid pin's long-press menu. Slide onto it "
                         + "and release. Needs Download pins on."),
                     SettingsIcons.DOWNLOADS);
+            // Their own hook: a build where the buttons' ids weren't found has no rows for them, and
+            // Long-press download still works.
+            if (build.contains(PatchFamily.LONG_PRESS_DOWNLOAD) && PatchFamily.Capability.LONG_PRESS_CHOICES.installed()) {
+                actions.addPreference(mark(longPressChoice(context, Settings.LONG_PRESS_HIDE_SAVE,
+                        L10n.t("Hide Save in the long-press menu"), L10n.t("Takes Pinterest's Save button out of a grid "
+                            + "pin's long-press menu. Saving from the pin itself still works.")), SettingsIcons.BLOCK));
+                actions.addPreference(mark(longPressChoice(context, Settings.LONG_PRESS_HIDE_SEND,
+                        L10n.t("Hide Send in the long-press menu"), L10n.t("Takes Pinterest's Send button out of a grid "
+                            + "pin's long-press menu. Sharing from the pin itself still works.")), SettingsIcons.BLOCK));
+                actions.addPreference(mark(longPressChoice(context, Settings.LONG_PRESS_HIDE_SEARCH,
+                        L10n.t("Hide Search image in the long-press menu"), L10n.t("Takes Pinterest's Search image button "
+                            + "out of a grid pin's long-press menu. The lens on a pin you open still searches.")), SettingsIcons.BLOCK));
+            }
             patchToggle(actions, context, build, PatchFamily.SYSTEM_SHARE, Settings.SYSTEM_SHARE,
                     L10n.t("System share sheet"), L10n.t("Sharing a pin link opens Android's own share menu."), SettingsIcons.EXPORT);
         }
@@ -1234,6 +1247,27 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         preference.setTitle(title);
         preference.setSummary(summary);
         return preference;
+    }
+
+    /**
+     * A switch for one of Pinterest's long-press buttons. Turning on the last of the three while
+     * Long-press download is off would leave a menu with nothing in it, which keeps Pinterest's
+     * whole menu instead, so a toast says so then.
+     */
+    static SwitchPreference longPressChoice(Context context, BooleanSetting setting, String title, String summary) {
+        SwitchPreference row = toggle(context, setting, title, summary);
+        row.setOnPreferenceChangeListener((changed, value) -> {
+            if (Boolean.TRUE.equals(value) && !Settings.LONG_PRESS_DOWNLOAD.savedValue()) {
+                boolean rest = true;
+                for (BooleanSetting other : new BooleanSetting[]{Settings.LONG_PRESS_HIDE_SAVE, Settings.LONG_PRESS_HIDE_SEND,
+                        Settings.LONG_PRESS_HIDE_SEARCH}) {
+                    if (other != setting && !other.savedValue()) rest = false;
+                }
+                if (rest) Utils.showToastLong(L10n.t("With nothing left in it, the menu keeps Pinterest's buttons."));
+            }
+            return true;
+        });
+        return row;
     }
 
     private static Preference mark(Preference row, String icon) {

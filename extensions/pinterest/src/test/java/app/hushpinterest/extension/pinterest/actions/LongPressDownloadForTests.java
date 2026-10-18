@@ -6,8 +6,6 @@
  */
 package app.hushpinterest.extension.pinterest.actions;
 
-import android.view.View;
-
 import org.robolectric.RuntimeEnvironment;
 
 import java.util.ArrayList;
@@ -18,13 +16,27 @@ import java.util.Map;
 public final class LongPressDownloadForTests {
     private LongPressDownloadForTests() {}
 
+    /** The buttons a hide switch takes out, as {@link #hidesButton} names them. */
+    public static final int SAVE = LongPressDownload.SAVE, SEND = LongPressDownload.SEND, SEARCH = LongPressDownload.SEARCH;
+
     /** True when a long-pressed pin's menu got the Download button. */
     public static boolean addsDownloadButton() {
         LongPressDownloadTest.Menu menu = new LongPressDownloadTest.Menu(RuntimeEnvironment.getApplication());
         List<Object> buttons = new ArrayList<>();
-        buttons.add(new View(menu.getContext()));
+        buttons.add(new LongPressDownloadTest.Button(menu.getContext()));
         menu.layout(buttons);
         menu.show(new LongPressDownloadTest.Event(Map.of("id", "123456")));
         return menu.items.size() != 2;
+    }
+
+    /** True when a long-pressed pin's menu of Save, Send and Search image lost the one of [kind]. */
+    public static boolean hidesButton(int kind) {
+        LongPressDownloadTest.Menu menu = new LongPressDownloadTest.Menu(RuntimeEnvironment.getApplication());
+        List<Object> buttons = new ArrayList<>();
+        for (int each : new int[]{SAVE, SEND, SEARCH}) buttons.add(new LongPressDownloadTest.Button(menu.getContext(), each));
+        menu.layout(buttons);
+        Object button = buttons.get(kind - SAVE);
+        menu.show(new LongPressDownloadTest.Event(Map.of("id", "123456")));
+        return !menu.items.contains(button);
     }
 }

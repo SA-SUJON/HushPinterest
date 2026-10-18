@@ -277,7 +277,8 @@ public class DexDiff {
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
             Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
-            Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1), Map.entry("postedDate", 1));
+            Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1), Map.entry("postedDate", 1),
+            Map.entry("longPressChoices", 1));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3871,6 +3872,96 @@ public class DexDiff {
         }
 
         /** An extension stub the patch filled: these opcodes, naming these references, its input cast first. */
+        static final String LONG_PRESS_MENU = "Lcom/pinterest/ui/menu/ContextMenuView;", LONG_PRESS_ITEM = "Lcom/pinterest/ui/menu/ContextMenuItemView;",
+                LONG_PRESS_SAVE = "context_save", LONG_PRESS_SEND = "context_share", LONG_PRESS_SEARCH = "context_visual_search",
+                LONG_PRESS_CLOSEUP_SEARCH = "context_closeup_visual_search";
+
+        /**
+         * The long-press hide switches (#11): buttonKind tells Save, Send and Search image apart by the
+         * id a button's builder writes into it, compared with the ids the menu's hover test reads. Found
+         * the way the patch finds them. A build without a public hover test keeps the stub's plain
+         * "other" answer and the switches stay out.
+         */
+        void longPressChoices(Contract c) {
+            String key = c.strings.get(0);
+            ClassDef menu = clean.classes.get(LONG_PRESS_MENU), item = clean.classes.get(LONG_PRESS_ITEM);
+            Set<String> idClasses = new TreeSet<>(), fields = new TreeSet<>();
+            if (menu != null) for (Method m : menu.getMethods()) {
+                List<Instruction> body = instructions(m);
+                if (body.stream().noneMatch(i -> readsSearchId(i))) continue;
+                for (Instruction i : body) if (reference(i) instanceof FieldReference f) {
+                    if (readsSearchId(i)) idClasses.add(f.getDefiningClass());
+                    if (i.getOpcode() == Opcode.IGET && f.getDefiningClass().equals(LONG_PRESS_ITEM) && f.getType().equals("I")) fields.add(f.getName());
+                }
+            }
+            String owner = idClasses.size() == 1 ? idClasses.iterator().next() : null, field = fields.size() == 1 ? fields.iterator().next() : null;
+            ClassDef ids = owner == null ? null : clean.classes.get(owner);
+            boolean resolved = field != null && ids != null && item != null && AccessFlags.PUBLIC.isSet(item.getAccessFlags())
+                    && AccessFlags.PUBLIC.isSet(ids.getAccessFlags()) && publicId(ids, LONG_PRESS_SAVE) && publicId(ids, LONG_PRESS_SEND)
+                    && publicId(ids, LONG_PRESS_SEARCH);
+            if (resolved) {
+                boolean held = false;
+                for (Field f : item.getFields()) held |= f.getName().equals(field) && f.getType().equals("I")
+                        && AccessFlags.PUBLIC.isSet(f.getAccessFlags()) && !AccessFlags.STATIC.isSet(f.getAccessFlags());
+                resolved = held;
+            }
+            if (!resolved) {
+                Method plain = stub(key, List.of(Opcode.CONST_4, Opcode.RETURN), Arrays.asList(null, null));
+                if (plain != null && ((NarrowLiteralInstruction) instructions(plain).get(0)).getNarrowLiteral() != 0)
+                    fail(key + " answers something other than \"other\" with no hover test to bind it to");
+                capability(c.callee, false);
+                return;
+            }
+
+            List<String> checked = new ArrayList<>(List.of(LONG_PRESS_SAVE, LONG_PRESS_SEND, LONG_PRESS_SEARCH));
+            if (publicId(ids, LONG_PRESS_CLOSEUP_SEARCH)) checked.add(LONG_PRESS_CLOSEUP_SEARCH);
+            List<Opcode> opcodes = new ArrayList<>(List.of(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET));
+            List<String> references = new ArrayList<>(Arrays.asList(LONG_PRESS_ITEM, null, LONG_PRESS_ITEM, LONG_PRESS_ITEM + "->" + field + ":I"));
+            for (String id : checked) {
+                opcodes.addAll(List.of(Opcode.SGET, Opcode.IF_EQ));
+                references.addAll(Arrays.asList(owner + "->" + id + ":I", null));
+            }
+            for (int kind = 0; kind < 4; kind++) {
+                opcodes.addAll(List.of(Opcode.CONST_4, Opcode.RETURN));
+                references.addAll(Arrays.asList(null, null));
+            }
+            Method m = stub(key, opcodes, references);
+            if (m != null) {
+                List<Instruction> body = instructions(m);
+                Layout code = new Layout(m.getImplementation());
+                int input = parameter(m, 0), kept = firstRegister(body.get(3)), other = 4 + 2 * checked.size();
+                // The button itself is tested, cast and read, and a non-button lands on "other".
+                boolean bound = AccessFlags.STATIC.isSet(m.getAccessFlags()) && ((TwoRegisterInstruction) body.get(0)).getRegisterB() == input
+                        && firstRegister(body.get(1)) == firstRegister(body.get(0)) && firstRegister(body.get(2)) == input
+                        && ((TwoRegisterInstruction) body.get(3)).getRegisterB() == input
+                        && code.addresses.get(1) + ((OffsetInstruction) body.get(1)).getCodeOffset() == code.addresses.get(other);
+                // Each id is compared with the button's own and jumps to its answer: Save, Send, then
+                // Search image for both search ids.
+                for (int n = 0; n < checked.size(); n++) {
+                    int at = 4 + 2 * n, answer = other + 2 * Math.min(n + 1, 3);
+                    TwoRegisterInstruction test = (TwoRegisterInstruction) body.get(at + 1);
+                    bound &= firstRegister(body.get(at)) != kept && test.getRegisterA() == kept && test.getRegisterB() == firstRegister(body.get(at))
+                            && code.addresses.get(at + 1) + ((OffsetInstruction) body.get(at + 1)).getCodeOffset() == code.addresses.get(answer);
+                }
+                for (int kind = 0; kind < 4; kind++) {
+                    int at = other + 2 * kind;
+                    bound &= ((NarrowLiteralInstruction) body.get(at)).getNarrowLiteral() == kind && firstRegister(body.get(at + 1)) == firstRegister(body.get(at));
+                }
+                if (!bound) { fail(key + " doesn't answer Save, Send and Search image from the button's own id"); resolved = false; }
+            } else resolved = false;
+            capability(c.callee, resolved);
+        }
+
+        static boolean readsSearchId(Instruction i) {
+            return i.getOpcode() == Opcode.SGET && reference(i) instanceof FieldReference f && f.getName().equals(LONG_PRESS_SEARCH) && f.getType().equals("I");
+        }
+
+        static boolean publicId(ClassDef ids, String name) {
+            for (Field f : ids.getFields()) if (f.getName().equals(name) && f.getType().equals("I") && AccessFlags.PUBLIC.isSet(f.getAccessFlags())
+                    && AccessFlags.STATIC.isSet(f.getAccessFlags())) return true;
+            return false;
+        }
+
         Method stub(String key, List<Opcode> opcodes, List<String> references) {
             Method m = actual(key);
             if (m == null) return null;
@@ -5910,6 +6001,7 @@ public class DexDiff {
                     case "menu": menu(c); break;
                     case "downloads": downloads(c); break;
                     case "longPress": longPress(c); break;
+                    case "longPressChoices": longPressChoices(c); break;
                     case "comments": comments(c); break;
                     case "links": links(c); break;
                     case "analytics": analytics(c); break;

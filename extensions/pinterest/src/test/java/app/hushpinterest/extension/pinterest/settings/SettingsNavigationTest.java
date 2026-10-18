@@ -1252,6 +1252,9 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_PIN_MENU_PIN_BOOST.key, "Promote pin", "pin menus you open from now on", "already open won't change");
         summaryContains(Settings.COPY_IMAGE.key, "full-size picture on the clipboard", "Needs Download pins on", "Videos don't get the row");
         summaryContains(Settings.SHARE_IMAGE.key, "full-size picture itself, not a link", "Android's share menu", "Needs Download pins on", "Videos don't get the row");
+        summaryContains(Settings.LONG_PRESS_HIDE_SAVE.key, "Pinterest's Save button", "long-press menu", "Saving from the pin itself still works");
+        summaryContains(Settings.LONG_PRESS_HIDE_SEND.key, "Pinterest's Send button", "long-press menu", "Sharing from the pin itself still works");
+        summaryContains(Settings.LONG_PRESS_HIDE_SEARCH.key, "Pinterest's Search image button", "long-press menu", "The lens on a pin you open still searches");
         summaryContains(Settings.HIDE_COMMENTS.key, "comments and comment previews under pins", "next time the screen updates", "doesn't change who can comment");
         summaryContains(Settings.HIDE_SUGGESTED_REPLIES.key, "suggested replies next to the comment box", "write and post your own comment", "next time you open comments");
         summaryContains(Settings.HIDE_TOPIC_SUGGESTIONS.key, "\"Ideas you might love\" row of topic bubbles under pins", "next time Pinterest shows it", "Comments and related pins stay");

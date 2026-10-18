@@ -65,6 +65,7 @@ public final class SettingsStatus {
     public static boolean boardPins() { return false; }
     public static boolean longPressDownload() { return false; }
     public static boolean longPressMenu() { return false; }
+    public static boolean longPressChoices() { return false; }
     public static boolean externalBrowser() { return false; }
     public static boolean visitLinks() { return false; }
     public static boolean systemShare() { return false; }

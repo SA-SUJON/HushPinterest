@@ -111,6 +111,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_download_board", FALSE);
     public static final BooleanSetting LONG_PRESS_DOWNLOAD =
             new BooleanSetting("hushpinterest_long_press_download", FALSE);
+    /** Pinterest's own long-press buttons, each taken out of the menu by its switch. All start off. */
+    public static final BooleanSetting LONG_PRESS_HIDE_SAVE =
+            new BooleanSetting("hushpinterest_long_press_hide_save", FALSE);
+    public static final BooleanSetting LONG_PRESS_HIDE_SEND =
+            new BooleanSetting("hushpinterest_long_press_hide_send", FALSE);
+    public static final BooleanSetting LONG_PRESS_HIDE_SEARCH =
+            new BooleanSetting("hushpinterest_long_press_hide_search", FALSE);
     public static final BooleanSetting EXTERNAL_BROWSER =
             new BooleanSetting("hushpinterest_external_browser", FALSE);
     public static final BooleanSetting SYSTEM_SHARE =

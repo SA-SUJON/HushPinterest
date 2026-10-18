@@ -60,7 +60,18 @@ internal const val BUTTON_STYLE_COLOR = "themed_sema_color_icon_inverse"
 internal const val DOWNLOAD_LABEL = "download"
 internal const val MENU_LABEL = "contextmenu_share"
 
-internal val LONG_PRESS_STUBS = listOf("eventPin", "menuModel", "modelId", "menuItems", "layoutItems", "springsReattached", "downloadItem")
+internal val LONG_PRESS_STUBS = listOf("eventPin", "menuModel", "modelId", "menuItems", "layoutItems", "springsReattached", "downloadItem",
+    "buttonKind")
+
+/**
+ * The ids Pinterest's builders give the Save, Send and Search image buttons, all in one ids class.
+ * The menu's hover test reads the Search image one, and the closeup variant of Search image has
+ * its own id where a build has it.
+ */
+internal const val SAVE_ID = "context_save"
+internal const val SEND_ID = "context_share"
+internal const val SEARCH_ID = "context_visual_search"
+internal const val CLOSEUP_SEARCH_ID = "context_closeup_visual_search"
 
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
 private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
@@ -295,6 +306,43 @@ internal fun BytecodePatchContext.longPressMenu(): LongPressMenu {
         springsDetached, springDriver)
 }
 
+/**
+ * Where a menu button keeps the id its builder gave it, and the class of the ids it's compared with.
+ *
+ * @property owner the ids class the menu's hover test reads [SEARCH_ID] from
+ * @property field the one int field of a button that hover test reads to compare with it
+ * @property closeup whether the ids class has [CLOSEUP_SEARCH_ID] too
+ */
+internal class MenuButtonIds(val owner: String, val field: String, val closeup: Boolean)
+
+private fun Method.fieldReads(opcode: Opcode) = instructionList().filter { it.opcode == opcode }
+    .map { (it as ReferenceInstruction).reference as FieldReference }
+
+/**
+ * The button ids, found from the menu's hover test: the menu methods that read [SEARCH_ID] from one
+ * ids class, and the single int field of a button they read to compare it with. Null when this
+ * build has no such test or any of it isn't public, and then the hide switches stay out while the
+ * Download button still goes in.
+ */
+internal fun BytecodePatchContext.menuButtonIds(): MenuButtonIds? {
+    val menu = classDefByOrNull(CONTEXT_MENU) ?: return null
+    fun FieldReference.searchId() = name == SEARCH_ID && type == "I"
+    val tests = menu.methods.filter { method -> method.fieldReads(Opcode.SGET).any { it.searchId() } }
+    val owner = tests.flatMap { it.fieldReads(Opcode.SGET) }.filter { it.searchId() }.map { it.definingClass }.distinct().singleOrNull()
+        ?: return null
+    val field = tests.flatMap { it.fieldReads(Opcode.IGET) }.filter { it.definingClass == CONTEXT_MENU_ITEM && it.type == "I" }
+        .map { it.name }.distinct().singleOrNull() ?: return null
+    val item = classDefByOrNull(CONTEXT_MENU_ITEM)
+    if (!isPublic(item) || item!!.fields.none { it.name == field && it.type == "I" && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+            !AccessFlags.STATIC.isSet(it.accessFlags) }) return null
+    val ids = classDefByOrNull(owner)
+    if (!isPublic(ids)) return null
+    fun has(name: String) = ids!!.fields.any { it.name == name && it.type == "I" && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+        AccessFlags.STATIC.isSet(it.accessFlags) }
+    if (!has(SAVE_ID) || !has(SEND_ID) || !has(SEARCH_ID)) return null
+    return MenuButtonIds(owner, field, has(CLOSEUP_SEARCH_ID))
+}
+
 private fun Instruction.namedRegistersOf(): List<Int> = when (this) {
     is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
     is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
@@ -306,8 +354,9 @@ private fun Instruction.namedRegistersOf(): List<Int> = when (this) {
 val longPressDownloadPatch = bytecodePatch(
     name = PATCH,
     description = "Adds a Download button to the round menu you get when you long-press a pin in a grid, so you can " +
-        "save a pin without opening it. Slide onto the button and let go. Needs Download pins on too. Starts off. " +
-        "Turn it on in HushPinterest settings > Pin actions.",
+        "save a pin without opening it. Slide onto the button and let go. Needs Download pins on too. Three more " +
+        "switches take Pinterest's Save, Send or Search image button out of that menu. All start off. " +
+        "Turn them on in HushPinterest settings > Pin actions.",
 ) {
     category("Downloads")
     dependsOn(settingsPatch, pinterestExtensionPatch, downloadPinsPatch)
@@ -316,6 +365,7 @@ val longPressDownloadPatch = bytecodePatch(
     execute {
         requireStatusMethod("longPressDownload")
         requireStatusMethod("longPressMenu")
+        requireStatusMethod("longPressChoices")
         val found = longPressMenu()
         val extension = mutableClassDefBy(LONG_PRESS)
         for (name in LONG_PRESS_STUBS + "show") {
@@ -387,9 +437,45 @@ val longPressDownloadPatch = bytecodePatch(
             invoke-static { v0 }, ${found.styler.definingClass}->${found.styler.name}($CONTEXT_MENU_ITEM)V
             return-object v0
         """)
+        // Save, Send and Search image by the id each builder writes into the button, the one the
+        // hover test compares. Download and the buttons built without an id keep the -1 the
+        // button starts with, so they answer 0 and stay.
+        val ids = menuButtonIds()
+        if (ids != null) {
+            val closeup = if (!ids.closeup) "" else """
+                sget v1, ${ids.owner}->$CLOSEUP_SEARCH_ID:I
+                if-eq v0, v1, :search
+            """
+            writeStub(LONG_PRESS, "buttonKind", 3, """
+                instance-of v0, p0, $CONTEXT_MENU_ITEM
+                if-eqz v0, :other
+                check-cast p0, $CONTEXT_MENU_ITEM
+                iget v0, p0, $CONTEXT_MENU_ITEM->${ids.field}:I
+                sget v1, ${ids.owner}->$SAVE_ID:I
+                if-eq v0, v1, :save
+                sget v1, ${ids.owner}->$SEND_ID:I
+                if-eq v0, v1, :send
+                sget v1, ${ids.owner}->$SEARCH_ID:I
+                if-eq v0, v1, :search
+                $closeup
+                :other
+                const/4 v0, 0x0
+                return v0
+                :save
+                const/4 v0, 0x1
+                return v0
+                :send
+                const/4 v0, 0x2
+                return v0
+                :search
+                const/4 v0, 0x3
+                return v0
+            """)
+        }
         // The menu and its event, both untouched at the method's first instruction.
         show.addInstructions(0, "invoke-static/range { p0 .. p1 }, $LONG_PRESS_HOOK")
         enableCapability("longPressMenu")
+        if (ids != null) enableCapability("longPressChoices")
         enableStatus("longPressDownload")
     }
 }

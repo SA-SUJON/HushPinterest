@@ -52,6 +52,7 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.shadows.ShadowToast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -476,6 +477,77 @@ public class HushPinterestPreferenceFragmentTest {
             List<Preference> rows = new ArrayList<>();
             collect(page.getPreferenceScreen(), rows);
             assertEquals(indexOfKey(rows, Settings.COPY_IMAGE.key) + 1, indexOfKey(rows, Settings.SHARE_IMAGE.key));
+        }
+    }
+
+    /** A method, not a field, so Settings loads after the rule has given it a context. */
+    private static BooleanSetting[] longPressHides() {
+        return new BooleanSetting[] {Settings.LONG_PRESS_HIDE_SAVE, Settings.LONG_PRESS_HIDE_SEND, Settings.LONG_PRESS_HIDE_SEARCH};
+    }
+
+    /** The long-press hide switches sit right under Long-press download, start off, and show only where their hook went in. */
+    @Test
+    public void longPressHideSwitchesShowUnderLongPressDownloadOnlyWhereTheirHookWentIn() {
+        String[] titles = {"Hide Save in the long-press menu", "Hide Send in the long-press menu", "Hide Search image in the long-press menu"};
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Set<PatchFamily.Capability> withoutIt = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutIt.remove(PatchFamily.Capability.LONG_PRESS_CHOICES);
+        PatchFamily.capabilitiesForTests = withoutIt;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            for (BooleanSetting hide : longPressHides()) assertNull(page.findPreference(hide.key));
+            assertNotNull(page.findPreference(Settings.LONG_PRESS_DOWNLOAD.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            for (int n = 0; n < longPressHides().length; n++) {
+                SwitchPreference row = (SwitchPreference) page.findPreference(longPressHides()[n].key);
+                assertNotNull(row);
+                assertEquals(titles[n], String.valueOf(row.getTitle()));
+                assertFalse(titles[n] + " starts off", row.isChecked());
+                assertEquals(indexOfKey(rows, Settings.LONG_PRESS_DOWNLOAD.key) + 1 + n, indexOfKey(rows, longPressHides()[n].key));
+            }
+        }
+    }
+
+    /**
+     * Turning on the last hide switch while Long-press download is off would leave a menu with
+     * nothing in it, so a toast says Pinterest's menu stays. Any other time there's no toast.
+     */
+    @Test
+    public void hidingEveryLongPressButtonWithDownloadOffSaysTheMenuStays() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            SwitchPreference search = (SwitchPreference) pageOf(controller).findPreference(Settings.LONG_PRESS_HIDE_SEARCH.key);
+            Preference.OnPreferenceChangeListener flip = search.getOnPreferenceChangeListener();
+            Settings.LONG_PRESS_HIDE_SAVE.save(true);
+            Settings.LONG_PRESS_HIDE_SEND.save(true);
+            Settings.LONG_PRESS_DOWNLOAD.save(true);
+            assertTrue(flip.onPreferenceChange(search, true));
+            ShadowLooper.idleMainLooper();
+            assertNull("Download is still in the menu", ShadowToast.getTextOfLatestToast());
+
+            Settings.LONG_PRESS_DOWNLOAD.save(false);
+            Settings.LONG_PRESS_HIDE_SEND.save(false);
+            assertTrue(flip.onPreferenceChange(search, true));
+            ShadowLooper.idleMainLooper();
+            assertNull("Send is still in the menu", ShadowToast.getTextOfLatestToast());
+
+            Settings.LONG_PRESS_HIDE_SEND.save(true);
+            assertTrue(flip.onPreferenceChange(search, false));
+            ShadowLooper.idleMainLooper();
+            assertNull("turning one off leaves its button", ShadowToast.getTextOfLatestToast());
+
+            assertTrue(flip.onPreferenceChange(search, true));
+            ShadowLooper.idleMainLooper();
+            assertEquals("With nothing left in it, the menu keeps Pinterest's buttons.", ShadowToast.getTextOfLatestToast());
+        } finally {
+            for (BooleanSetting hide : longPressHides()) hide.resetToDefault();
+            Settings.LONG_PRESS_DOWNLOAD.resetToDefault();
         }
     }
 

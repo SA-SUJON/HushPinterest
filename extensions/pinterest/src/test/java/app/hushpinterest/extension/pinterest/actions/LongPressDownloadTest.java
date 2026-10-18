@@ -39,6 +39,7 @@ import app.hushpinterest.extension.pinterest.settings.PatchFamilyForTests;
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.SettingsContextRule;
 import app.hushpinterest.extension.shared.Utils;
+import app.hushpinterest.extension.shared.settings.BooleanSetting;
 import app.hushpinterest.extension.shared.settings.HushPinterestPause;
 import app.hushpinterest.extension.shared.settings.PauseForTests;
 
@@ -50,6 +51,13 @@ import app.hushpinterest.extension.shared.settings.PauseForTests;
 @Config(sdk = 30, shadows = LongPressDownloadTest.NativeMenu.class)
 public class LongPressDownloadTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+    /**
+     * The hide switches, in the order of the buttons they take out: Save, Send, Search image. A
+     * method, not a field, so Settings loads after the rule has given it a context.
+     */
+    private static BooleanSetting[] hides() {
+        return new BooleanSetting[] {Settings.LONG_PRESS_HIDE_SAVE, Settings.LONG_PRESS_HIDE_SEND, Settings.LONG_PRESS_HIDE_SEARCH};
+    }
     private Activity activity;
 
     @Before public void prepare() {
@@ -57,12 +65,14 @@ public class LongPressDownloadTest {
         activity = Robolectric.buildActivity(Activity.class).setup().get();
         Utils.setActivity(activity);
         PauseForTests.resume();
-        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS, PatchFamily.Capability.LONG_PRESS_MENU));
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS, PatchFamily.Capability.LONG_PRESS_MENU,
+                PatchFamily.Capability.LONG_PRESS_CHOICES));
         Settings.DOWNLOAD_PINS.save(true);
         Settings.LONG_PRESS_DOWNLOAD.save(true);
     }
 
     @After public void reset() {
+        for (BooleanSetting hide : hides()) hide.save(false);
         Settings.LONG_PRESS_DOWNLOAD.save(false);
         Settings.DOWNLOAD_PINS.save(false);
         PatchFamilyForTests.capabilities(null);
@@ -149,6 +159,84 @@ public class LongPressDownloadTest {
         }
     }
 
+    /** Each hide switch takes out its own button only, and the buttons that stay get their springs back. */
+    @Test public void eachHideSwitchTakesOutOnlyItsOwnButton() {
+        for (int hidden = 0; hidden < hides().length; hidden++) {
+            hides()[hidden].save(true);
+            Menu menu = menu(3);
+            List<Object> pinterest = new ArrayList<>(menu.items.subList(1, 4));
+            List<Object> kept = new ArrayList<>(pinterest);
+            kept.remove(hidden);
+            menu.show(new Event(pin("7")));
+            assertEquals(hides()[hidden].key, 4, menu.items.size());
+            assertEquals(kept, menu.items.subList(1, 3));
+            assertEquals(LongPressDownload.ITEM_TAG, ((View) menu.items.get(3)).getTag());
+            assertNull(((View) pinterest.get(hidden)).getParent());
+            assertEquals(kept, NativeMenu.reattached);
+            reset();
+            prepare();
+        }
+    }
+
+    /** The hide switches don't need Download: with it off, the menu is Pinterest's minus what's hidden. */
+    @Test public void withDownloadOffTheHideSwitchesStillWork() {
+        Settings.LONG_PRESS_DOWNLOAD.save(false);
+        Settings.LONG_PRESS_HIDE_SEND.save(true);
+        Menu menu = menu(3);
+        List<Object> pinterest = new ArrayList<>(menu.items.subList(1, 4));
+        menu.show(new Event(pin("7")));
+        assertEquals(List.of(pinterest.get(0), pinterest.get(2)), menu.items.subList(1, 3));
+        assertEquals(3, menu.items.size());
+        assertEquals(2, menu.layouts);
+    }
+
+    /** With every button hidden, Download alone fills the menu, and with Download off too, nothing changes. */
+    @Test public void aMenuIsNeverLeftEmpty() {
+        for (BooleanSetting hide : hides()) hide.save(true);
+        Menu menu = menu(3);
+        menu.show(new Event(pin("7")));
+        assertEquals(2, menu.items.size());
+        assertEquals(LongPressDownload.ITEM_TAG, ((View) menu.items.get(1)).getTag());
+
+        Settings.LONG_PRESS_DOWNLOAD.save(false);
+        menu = menu(3);
+        List<Object> before = new ArrayList<>(menu.items);
+        menu.show(new Event(pin("7")));
+        assertUntouched(menu, before);
+    }
+
+    /** Buttons that aren't Save, Send or Search image stay whatever is switched on. */
+    @Test public void otherButtonsAreNeverHidden() {
+        Settings.LONG_PRESS_DOWNLOAD.save(false);
+        for (BooleanSetting hide : hides()) hide.save(true);
+        Menu menu = new Menu(activity);
+        activity.setContentView(menu);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        Button save = new Button(activity, LongPressDownload.SAVE), other = new Button(activity, LongPressDownload.OTHER);
+        menu.layout(List.of(save, other));
+        menu.show(new Event(pin("7")));
+        assertEquals(List.of(other), menu.items.subList(1, menu.items.size()));
+    }
+
+    /** Off, paused, or on a build whose button ids weren't found, the hide switches leave the menu alone. */
+    @Test public void withoutTheirHookOrPausedTheHideSwitchesHideNothing() {
+        Runnable[] offs = {
+                () -> PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS, PatchFamily.Capability.LONG_PRESS_MENU)),
+                () -> PauseForTests.pause(HushPinterestPause.Reason.SWITCH),
+        };
+        for (Runnable off : offs) {
+            Settings.LONG_PRESS_DOWNLOAD.save(false);
+            for (BooleanSetting hide : hides()) hide.save(true);
+            off.run();
+            Menu menu = menu(3);
+            List<Object> before = new ArrayList<>(menu.items);
+            menu.show(new Event(pin("7")));
+            assertUntouched(menu, before);
+            reset();
+            prepare();
+        }
+    }
+
     @Test public void aReleaseAfterTheMenuMovedOnOrClosedSavesNothing() throws Exception {
         Menu menu = menu(2);
         menu.show(new Event(pin("7")));
@@ -172,22 +260,34 @@ public class LongPressDownloadTest {
         assertTrue(NativeMenu.reattached.isEmpty());
     }
 
-    /** A menu on screen, so its buttons attach and detach the way the real ones do. */
+    /**
+     * A menu on screen, so its buttons attach and detach the way the real ones do. Its buttons are
+     * Save, Send and Search image in that order, the way Pinterest lays out a pin's, then others.
+     */
     private Menu menu(int buttons) {
         Menu menu = new Menu(activity);
         activity.setContentView(menu);
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         List<Object> pinterest = new ArrayList<>();
-        for (int i = 0; i < buttons; i++) pinterest.add(new Button(activity));
+        for (int i = 0; i < buttons; i++) pinterest.add(new Button(activity, i < 3 ? LongPressDownload.SAVE + i : LongPressDownload.OTHER));
         menu.layout(pinterest);
         return menu;
     }
 
-    /** One of Pinterest's buttons: leaving the window marks its springs detached, and nothing clears it. */
+    /**
+     * One of Pinterest's buttons, with the kind its builder's id makes it: leaving the window marks
+     * its springs detached, and nothing clears it.
+     */
     static final class Button extends View {
+        final int kind;
         boolean springsDetached;
 
-        Button(Context context) { super(context); }
+        Button(Context context) { this(context, LongPressDownload.OTHER); }
+
+        Button(Context context, int kind) {
+            super(context);
+            this.kind = kind;
+        }
 
         @Override protected void onDetachedFromWindow() {
             super.onDetachedFromWindow();
@@ -261,5 +361,8 @@ public class LongPressDownloadTest {
             reattached.add(button);
         }
         @Implementation protected static View downloadItem(Context context) { return new View(context); }
+        @Implementation protected static int buttonKind(Object button) {
+            return button instanceof Button ? ((Button) button).kind : LongPressDownload.OTHER;
+        }
     }
 }

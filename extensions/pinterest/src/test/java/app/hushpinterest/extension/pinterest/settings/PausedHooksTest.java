@@ -321,6 +321,9 @@ public class PausedHooksTest {
         probes.put(Settings.SHARE_IMAGE, Collections.singletonList(() -> offersImageRow("ShareImage")));
         probes.put(Settings.DOWNLOAD_BOARD, Collections.singletonList(() -> BoardDownloads.record(Collections.singletonList(BOARD_PIN))));
         probes.put(Settings.LONG_PRESS_DOWNLOAD, Collections.singletonList(PausedHooksTest::addsLongPressDownload));
+        probes.put(Settings.LONG_PRESS_HIDE_SAVE, Collections.singletonList(() -> LongPressDownloadForTests.hidesButton(LongPressDownloadForTests.SAVE)));
+        probes.put(Settings.LONG_PRESS_HIDE_SEND, Collections.singletonList(() -> LongPressDownloadForTests.hidesButton(LongPressDownloadForTests.SEND)));
+        probes.put(Settings.LONG_PRESS_HIDE_SEARCH, Collections.singletonList(() -> LongPressDownloadForTests.hidesButton(LongPressDownloadForTests.SEARCH)));
         probes.put(Settings.EXTERNAL_BROWSER, Collections.singletonList(() -> withActivity(activity -> {
             ResolveInfo browser = new ResolveInfo();
             browser.activityInfo = new ActivityInfo();
