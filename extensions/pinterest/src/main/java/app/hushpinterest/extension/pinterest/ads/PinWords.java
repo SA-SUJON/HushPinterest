@@ -119,6 +119,8 @@ public final class PinWords {
      */
     private static boolean joinsWords(int codePoint) {
         if (!Character.isLetterOrDigit(codePoint) && !isMark(codePoint)) return false;
+        // The long vowel mark ending many Japanese loanwords ("コーヒー") is a common-script letter.
+        if (codePoint == 0x30FC || codePoint == 0xFF70) return false;
         switch (Character.UnicodeScript.of(codePoint)) {
             case HAN: case HIRAGANA: case KATAKANA: case THAI: case LAO: case KHMER: case MYANMAR:
                 return false;

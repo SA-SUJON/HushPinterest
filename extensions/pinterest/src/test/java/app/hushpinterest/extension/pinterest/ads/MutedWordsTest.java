@@ -204,6 +204,11 @@ public class MutedWordsTest {
         Settings.MUTED_WORDS.save("เค");
         List<Object> marked = new ArrayList<>(Arrays.asList(titled("thai", "สูตรเค้กวันเกิด")));
         assertEquals("[thai]", FeedFilter.filter(marked).toString());
+
+        // A word ending in the long vowel mark ー is still Japanese, so the 2 after it doesn't join it.
+        Settings.MUTED_WORDS.save("コーヒー");
+        List<Object> counted = new ArrayList<>(Arrays.asList(titled("coffee", "コーヒー2杯の淹れ方"), titled("tea", "紅茶")));
+        assertEquals("[tea]", FeedFilter.filter(counted).toString());
     }
 
     @Test
