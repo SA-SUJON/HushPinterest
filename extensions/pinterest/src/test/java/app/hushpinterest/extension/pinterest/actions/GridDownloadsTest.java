@@ -14,6 +14,7 @@ import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Looper;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Checkable;
 import android.widget.CheckedTextView;
 import android.widget.ImageView;
@@ -147,7 +148,10 @@ public class GridDownloadsTest {
 
         assertTrue(choices.performItemClick(choices.getChildAt(0), 0, choices.getItemIdAtPosition(0)));
         assertTrue(choices.isItemChecked(0));
-        assertTrue(picker.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        // These pictures are on example.invalid, not Pinterest's media hosts, so none can be saved.
+        assertFalse("a chosen pin with nothing that can be saved has nothing to queue",
+                picker.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        assertTrue("it can still go in a list", picker.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
         assertTrue(choices.performItemClick(choices.getChildAt(0), 0, choices.getItemIdAtPosition(0)));
         assertEquals(0, choices.getCheckedItemCount());
         assertFalse("clearing the last choice must disable Queue selected",
@@ -378,6 +382,49 @@ public class GridDownloadsTest {
         List<DownloadLedger.Job> history = new DownloadLedger(activity).reconcile();
         assertEquals(List.of("3", "1"), history.stream().map(job -> job.pinId).toList());
         assertEquals(DownloadLedger.State.UNSUPPORTED, history.get(0).state);
+    }
+
+    /**
+     * Queue selected waits for a chosen pin with media that can be saved, whichever filter is
+     * showing, while Save list takes any chosen pin. A tap that reaches Queue anyway queues nothing.
+     */
+    @Test public void queueWaitsForAChosenPinWithMediaThatCanBeSaved() throws Exception {
+        View origin = cell(video("1", "hls/1.m3u8"), 0);
+        cell(Map.of("id", "2", "images", Map.of()), 100);
+        cell(pin("3"), 200);
+        AlertDialog picker = choose(origin);
+        ListView list = picker.getListView();
+        List<RadioButton> filters = filters(picker);
+        Button queue = picker.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button save = picker.getButton(AlertDialog.BUTTON_NEUTRAL);
+
+        list.performItemClick(list.getChildAt(0), 0, list.getItemIdAtPosition(0));
+        list.performItemClick(list.getChildAt(1), 1, list.getItemIdAtPosition(1));
+        assertEquals("Selected: 2 (unsupported: 2)", count(picker).getText().toString());
+        assertFalse("a streamed-only video and a pin with no media can't be queued", queue.isEnabled());
+        assertTrue("both can still go in a list", save.isEnabled());
+
+        filters.get(1).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(row(list, 1), row(list, 1).contains(pinLine("3")));
+        assertFalse(queue.isEnabled());
+        list.performItemClick(list.getChildAt(1), 1, list.getItemIdAtPosition(1));
+        assertTrue("one pin that can be saved is enough", queue.isEnabled());
+        filters.get(2).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue("a pin chosen under Images still counts under Videos", queue.isEnabled());
+        filters.get(1).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        list.performItemClick(list.getChildAt(1), 1, list.getItemIdAtPosition(1));
+        assertFalse(list.isItemChecked(1));
+        assertFalse(queue.isEnabled());
+        assertTrue(save.isEnabled());
+
+        assertTrue(queue.callOnClick());
+        settle();
+        assertFalse(GridDownloads.running());
+        assertEquals(0, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+        assertTrue("nothing reached Download history", new DownloadLedger(activity).reconcile().isEmpty());
     }
 
     @Test public void aFilterWithNoPinsCantBeChosen() {

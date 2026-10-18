@@ -258,6 +258,49 @@ public class BoardDownloadsTest {
         assertEquals("nothing queued", 2, Shadows.shadowOf(manager).getRequestCount());
     }
 
+    /** A kind whose new pins are all streamed-only keeps Queue pins off, Save list on, and a tap that gets there queues nothing. */
+    @Test public void aKindWithNothingThatCanBeSavedKeepsQueueOff() throws Exception {
+        List<Object> pins = page("77", 100, 1);
+        pins.add(video("102", "hls/102.m3u8", "77"));
+        pins.add(video("103", "hls/103.m3u8", "77"));
+        AlertDialog choice = openChooser(pins);
+        android.widget.ListView kinds = choice.getListView();
+        assertEquals("Videos (2)\nUnsupported: 2", kinds.getAdapter().getItem(2).toString());
+        assertTrue("the image under All can be saved", choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+
+        kinds.performItemClick(kinds.getChildAt(2), 2, 2);
+        assertFalse(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        assertTrue(choice.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
+        kinds.performItemClick(kinds.getChildAt(1), 1, 1);
+        assertTrue(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        kinds.performItemClick(kinds.getChildAt(2), 2, 2);
+        assertFalse(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+
+        assertTrue(choice.getButton(AlertDialog.BUTTON_POSITIVE).callOnClick());
+        settle();
+        assertSame("no batch started", choice, ShadowAlertDialog.getLatestAlertDialog());
+        assertFalse(GridDownloads.running());
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        assertEquals(0, Shadows.shadowOf(manager).getRequestCount());
+        assertTrue(new DownloadLedger(activity).reconcile().isEmpty());
+    }
+
+    /** A board of only streamed-only videos opens with Queue pins off and Save list on. */
+    @Test public void aBoardOfOnlyStreamedVideosOpensWithQueueOff() throws Exception {
+        List<Object> pins = new ArrayList<>();
+        pins.add(video("102", "hls/102.m3u8", "77"));
+        pins.add(video("103", "hls/103.m3u8", "77"));
+        AlertDialog choice = openChooser(pins);
+        assertEquals("All (2)\nUnsupported: 2", choice.getListView().getAdapter().getItem(0).toString());
+        assertFalse(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        assertTrue(choice.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
+        assertTrue(choice.getButton(AlertDialog.BUTTON_POSITIVE).callOnClick());
+        settle();
+        assertSame("no batch started", choice, ShadowAlertDialog.getLatestAlertDialog());
+        assertEquals(0, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+        assertTrue(new DownloadLedger(activity).reconcile().isEmpty());
+    }
+
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Config(qualifiers = "en-rUS-w390dp-h844dp-night-xhdpi")
     public void theBoardExplanationKeepsTheChoicesAndActionsReachableAtTwiceTheTextSize() throws Exception {

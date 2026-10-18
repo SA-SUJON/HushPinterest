@@ -361,7 +361,7 @@ public final class BoardDownloads {
     /**
      * Asks whether to queue every new pin, or only the images or only the videos, with how many
      * of each can't be saved. All is chosen to begin with, which is what the board saved before
-     * there was a choice. With nothing new, Queue pins starts off and Save list still works.
+     * there was a choice. With nothing new that can be saved, Queue pins starts off and Save list still works.
      */
     private static void offer(Activity activity, String board, List<Object> pins, Set<String> history) {
         try {
@@ -370,6 +370,8 @@ public final class BoardDownloads {
             int known = split(pins, history, GridDownloads.Filter.ALL, fresh);
             GridDownloads.Filter[] filters = GridDownloads.Filter.values();
             int[] counts = new int[filters.length];
+            // New pins of each kind whose media can be saved: Queue pins waits for one.
+            int[] queueable = new int[filters.length];
             CharSequence[] names = new CharSequence[filters.length];
             for (GridDownloads.Filter filter : filters) {
                 int unsupported = 0;
@@ -379,6 +381,7 @@ public final class BoardDownloads {
                     counts[filter.ordinal()]++;
                     if (media == null || media.source == null) unsupported++;
                 }
+                queueable[filter.ordinal()] = counts[filter.ordinal()] - unsupported;
                 names[filter.ordinal()] = filter.label(counts[filter.ordinal()]) + "\n" + L10n.f("Unsupported: %d", unsupported);
             }
             AlertDialog.Builder builder = HushDialogs.builder(activity);
@@ -417,11 +420,14 @@ public final class BoardDownloads {
                     .setCustomTitle(guidance)
                     .setSingleChoiceItems(names, chosen[0], (dialog, which) -> {
                         chosen[0] = which;
-                        ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(counts[which] > 0);
+                        ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(queueable[which] > 0);
                         ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_NEUTRAL)
                                 .setEnabled(!listed(board, filters[which]).isEmpty());
                     })
-                    .setPositiveButton(L10n.t("Queue pins"), (dialog, which) -> confirm(activity, board, filters[chosen[0]]))
+                    // Off while no new pin of the kind can be saved, and a tap that gets here anyway queues nothing.
+                    .setPositiveButton(L10n.t("Queue pins"), (dialog, which) -> {
+                        if (queueable[chosen[0]] > 0) confirm(activity, board, filters[chosen[0]]);
+                    })
                     // The list has every loaded pin of the kind, Download history's too: it's a list, not a download.
                     .setNeutralButton(L10n.t("Save list"),
                             (dialog, which) -> PinManifest.choose(activity, listed(board, filters[chosen[0]]), true))
@@ -431,7 +437,7 @@ public final class BoardDownloads {
             HushDialogs.paintControls(header);
             HushDialogs.paintTitle(title);
             picker.show();
-            picker.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(counts[chosen[0]] > 0);
+            picker.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(queueable[chosen[0]] > 0);
             HushDialogs.paint(picker);
         } catch (Throwable failure) {
             failed(failure);

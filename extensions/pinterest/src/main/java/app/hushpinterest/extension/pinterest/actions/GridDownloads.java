@@ -173,8 +173,8 @@ final class GridDownloads {
                     .setCustomTitle(controls)
                     .setAdapter(choices, null)
                     .setPositiveButton(L10n.t("Queue selected"), (dialog, which) -> {
-                        List<Object> chosen = choices.chosen();
-                        if (!chosen.isEmpty()) queue(activity, chosen, L10n.t("Download visible pins"), null, 0, true);
+                        // Off while nothing chosen can be saved, and a tap that gets here anyway queues nothing.
+                        if (choices.queueable()) queue(activity, choices.chosen(), L10n.t("Download visible pins"), null, 0, true);
                     })
                     .setNeutralButton(L10n.t("Save list"),
                             (dialog, which) -> PinManifest.choose(activity, PinManifest.entries(choices.chosen()), false))
@@ -183,10 +183,11 @@ final class GridDownloads {
             list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
             Runnable counted = () -> {
                 count.setText(L10n.f("Selected: %1$d (unsupported: %2$d)", choices.selected(false), choices.selected(true)));
-                for (int action : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEUTRAL}) {
-                    Button button = picker.getButton(action);
-                    if (button != null) button.setEnabled(choices.selected(false) > 0);
-                }
+                // A list has room for pins that can't be saved, so only Queue waits for one that can.
+                Button queue = picker.getButton(AlertDialog.BUTTON_POSITIVE);
+                if (queue != null) queue.setEnabled(choices.queueable());
+                Button save = picker.getButton(AlertDialog.BUTTON_NEUTRAL);
+                if (save != null) save.setEnabled(choices.selected(false) > 0);
             };
             list.setOnItemClickListener((parent, view, position, id) -> {
                 choices.select(position, list.isItemChecked(position));
@@ -393,6 +394,14 @@ final class GridDownloads {
 
         boolean selected(int position) {
             return shown.get(position).selected;
+        }
+
+        /** True when a chosen pin, whatever the filter shows, still names its row's pin and has media that can be saved. */
+        boolean queueable() {
+            for (Choice choice : all) {
+                if (choice.selected && choice.supported && choice.id.equals(PinMedia.id(choice.pin))) return true;
+            }
+            return false;
         }
 
         void select(int position, boolean selected) {
