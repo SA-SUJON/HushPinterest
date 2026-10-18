@@ -15,6 +15,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.PersistableBundle;
 import android.text.format.Formatter;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,8 +26,10 @@ import androidx.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
@@ -372,6 +375,10 @@ public final class PinDownloads {
         return start(pin, context, null);
     }
 
+    /** Marks a Media link clip with the copy that made it, so the same text copied again isn't ours. */
+    private static final String CLIP_OWNER = "app.hushpinterest.media_link";
+    private static final AtomicReference<String> latestCopy = new AtomicReference<>();
+
     /**
      * Copies the address of the media the Download row would save, read from the pin again: a
      * supplied original or MP4, or for a stand-in size the original the media host has behind it,
@@ -386,35 +393,65 @@ public final class PinDownloads {
                 Utils.showToastLong(refusalMessage(media.refusal));
                 return false;
             }
-            if (!PinMedia.standIn(media)) return copy(context, media.source.url);
+            String owner = UUID.randomUUID().toString();
+            latestCopy.set(owner);
+            copy(context, media.source.url, owner);
+            if (!PinMedia.standIn(media)) return true;
             PinMedia.Source standIn = media.source;
-            // The lookup asks the network, so the menu closes now and the copy follows it. The app's
-            // context, so the pin screen isn't held while the lookup waits.
+            // The stand-in is copied now, so a slow or failed lookup still leaves a working link. The
+            // original replaces it only while this copy is the latest and the clipboard still holds
+            // it. The app's context, so the pin screen isn't held while the lookup waits.
             Context app = context.getApplicationContext();
-            boolean queued = Utils.runOnBackgroundThread(() -> {
+            Utils.runOnBackgroundThread(() -> {
                 PinMedia.Source chosen = OriginalLookup.find(standIn);
+                if (chosen.url.equals(standIn.url)) return;
                 Utils.runOnMainThread(() -> {
                     try {
-                        if (active()) copy(app, chosen.url);
+                        if (active() && owner.equals(latestCopy.get()) && holds(app, standIn.url, owner)) {
+                            set(app, chosen.url, owner);
+                            HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "copied media link made original");
+                        }
                     } catch (Throwable failure) {
-                        copyFailed(failure);
+                        HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "copy original media link", failure);
                     }
                 });
             });
-            return queued || copy(context, standIn.url);
+            return true;
         } catch (Throwable failure) {
             copyFailed(failure);
             return false;
         }
     }
 
-    private static boolean copy(Context context, String url) {
-        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-        clipboard.setPrimaryClip(ClipData.newPlainText(L10n.t("Media link"), url));
+    private static void copy(Context context, String url, String owner) {
+        set(context, url, owner);
         HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "media link copied");
         // Android 13 and newer show their own confirmation for every copy.
         if (Build.VERSION.SDK_INT < 33) Utils.showToastShort(L10n.t("Media link copied."));
-        return true;
+    }
+
+    private static void set(Context context, String url, String owner) {
+        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText(L10n.t("Media link"), url);
+        PersistableBundle extras = new PersistableBundle();
+        extras.putString(CLIP_OWNER, owner);
+        clip.getDescription().setExtras(extras);
+        clipboard.setPrimaryClip(clip);
+    }
+
+    /** Whether the clipboard still holds exactly the clip [owner] copied. A read Android refuses says no. */
+    private static boolean holds(Context context, String url, String owner) {
+        try {
+            ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData current = clipboard == null ? null : clipboard.getPrimaryClip();
+            if (current == null || current.getItemCount() != 1) return false;
+            PersistableBundle extras = current.getDescription().getExtras();
+            CharSequence text = current.getItemAt(0).getText();
+            return extras != null && owner.equals(extras.getString(CLIP_OWNER))
+                    && text != null && url.equals(text.toString());
+        } catch (RuntimeException refused) {
+            return false;
+        }
     }
 
     private static void copyFailed(Throwable failure) {

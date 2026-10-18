@@ -11,9 +11,11 @@ import static org.junit.Assert.*;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Looper;
 import android.text.format.Formatter;
 import android.view.View;
@@ -37,9 +39,13 @@ import org.robolectric.annotation.Implements;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowToast;
 
+import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import app.hushpinterest.extension.pinterest.NativeDialogCapture;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
@@ -163,6 +169,125 @@ public class PinMenuTest {
             Utils.awaitBackgroundTasksForTests();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertEquals(MediaHostForTests.STAND_IN, String.valueOf(clipboard().getPrimaryClip().getItemAt(0).getText()));
+        }
+        assertNoDownload();
+    }
+
+    @Test public void copyMediaLinkCopiesTheStandInAtOnceAndUpgradesItsOwnUnchangedClip() throws Exception {
+        Host host = host(standInPin("123", MediaHostForTests.STAND_IN));
+        PinDownloads.attach(host);
+        CountDownLatch gate = new CountDownLatch(1);
+        try (MediaHostForTests media = MediaHostForTests.install()) {
+            media.answer(MediaHostForTests.ORIGINALS + ".png", 200, "image/png");
+            hold(media, Map.of(MediaHostForTests.ORIGINALS, gate));
+            try {
+                assertTrue(host.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
+                assertEquals(1, host.dismissed);
+                assertEquals("the stand-in waited on the lookup", MediaHostForTests.STAND_IN, copied());
+            } finally {
+                gate.countDown();
+            }
+            settle();
+            assertEquals(MediaHostForTests.ORIGINALS + ".png", copied());
+            assertEquals("Media link", String.valueOf(clipboard().getPrimaryClip().getDescription().getLabel()));
+        }
+    }
+
+    @Test public void aLateOriginalNeverReplacesAClipCopiedWhileItWasLookedUp() throws Exception {
+        Host host = host(standInPin("123", MediaHostForTests.STAND_IN));
+        PinDownloads.attach(host);
+        ClipData[] newer = {
+                ClipData.newPlainText("note", "something copied in the meantime"),
+                // The same address copied again from somewhere else belongs to that copy, not this one.
+                ClipData.newPlainText("Media link", MediaHostForTests.STAND_IN),
+                ClipData.newRawUri("image", Uri.parse("content://media/external/images/media/7")),
+        };
+        try (MediaHostForTests media = MediaHostForTests.install()) {
+            media.answer(MediaHostForTests.ORIGINALS + ".png", 200, "image/png");
+            for (ClipData clip : newer) {
+                CountDownLatch gate = new CountDownLatch(1);
+                hold(media, Map.of(MediaHostForTests.ORIGINALS, gate));
+                try {
+                    assertTrue(host.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
+                    clipboard().setPrimaryClip(clip);
+                } finally {
+                    gate.countDown();
+                }
+                settle();
+                assertSame(clip.getDescription().getLabel().toString(), clip, clipboard().getPrimaryClip());
+            }
+        }
+    }
+
+    @Test public void aLateOriginalIsDroppedWhenTheClipboardCantBeReadOrDownloadsStop() throws Exception {
+        Host host = host(standInPin("123", MediaHostForTests.STAND_IN));
+        PinDownloads.attach(host);
+        Map<String, Runnable> interruptions = new LinkedHashMap<>();
+        // Android hands an app it won't let read the clipboard no clip at all.
+        interruptions.put("unreadable", () -> clipboard().clearPrimaryClip());
+        interruptions.put("off", () -> Settings.DOWNLOAD_PINS.save(false));
+        interruptions.put("paused", () -> PauseForTests.pause(HushPinterestPause.Reason.SWITCH));
+        try (MediaHostForTests media = MediaHostForTests.install()) {
+            media.answer(MediaHostForTests.ORIGINALS + ".png", 200, "image/png");
+            for (Map.Entry<String, Runnable> interruption : interruptions.entrySet()) {
+                Settings.DOWNLOAD_PINS.save(true);
+                PauseForTests.resume();
+                CountDownLatch gate = new CountDownLatch(1);
+                hold(media, Map.of(MediaHostForTests.ORIGINALS, gate));
+                try {
+                    assertTrue(interruption.getKey(), host.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
+                    interruption.getValue().run();
+                } finally {
+                    gate.countDown();
+                }
+                settle();
+                if (interruption.getKey().equals("unreadable")) assertFalse(clipboard().hasPrimaryClip());
+                else assertEquals(interruption.getKey(), MediaHostForTests.STAND_IN, copied());
+            }
+        }
+    }
+
+    @Test public void aLaterCopyKeepsTheClipboardFromAnEarlierLookup() throws Exception {
+        String otherStandIn = "https://i.pinimg.com/736x/1f/2e/3d/1f2e3d4c5b6a79881f2e3d4c5b6a7988.jpg";
+        String otherOriginals = "https://i.pinimg.com/originals/1f/2e/3d/1f2e3d4c5b6a79881f2e3d4c5b6a7988";
+        Host first = host(standInPin("123", MediaHostForTests.STAND_IN));
+        Host second = host(standInPin("124", otherStandIn));
+        Host supplied = host(Map.of("id", "125", "images", Map.of("orig", Map.of(
+                "url", "https://i.pinimg.com/originals/source.png", "width", 3000, "height", 2000))));
+        PinDownloads.attach(first);
+        PinDownloads.attach(second);
+        PinDownloads.attach(supplied);
+        try (MediaHostForTests media = MediaHostForTests.install()) {
+            media.answer(MediaHostForTests.ORIGINALS + ".png", 200, "image/png");
+            media.answer(otherOriginals + ".png", 200, "image/png");
+
+            // The second request's original lands first, then the first request's answer comes late.
+            CountDownLatch firstGate = new CountDownLatch(1), secondGate = new CountDownLatch(1);
+            hold(media, Map.of(MediaHostForTests.ORIGINALS, firstGate, otherOriginals, secondGate));
+            try {
+                assertTrue(first.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
+                assertTrue(second.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
+                assertEquals(otherStandIn, copied());
+                secondGate.countDown();
+                awaitCopied(otherOriginals + ".png");
+            } finally {
+                firstGate.countDown();
+                secondGate.countDown();
+            }
+            settle();
+            assertEquals(otherOriginals + ".png", copied());
+
+            // A supplied original copied while a lookup waits stays copied.
+            firstGate = new CountDownLatch(1);
+            hold(media, Map.of(MediaHostForTests.ORIGINALS, firstGate));
+            try {
+                assertTrue(first.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
+                assertTrue(supplied.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
+            } finally {
+                firstGate.countDown();
+            }
+            settle();
+            assertEquals("https://i.pinimg.com/originals/source.png", copied());
         }
         assertNoDownload();
     }
@@ -592,6 +717,46 @@ public class PinMenuTest {
 
     private ClipboardManager clipboard() {
         return (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+    }
+
+    private String copied() {
+        return String.valueOf(clipboard().getPrimaryClip().getItemAt(0).getText());
+    }
+
+    private static Map<String, Object> standInPin(String id, String url) {
+        return Map.of("id", id, "images", Map.of("736x", Map.of("url", url)));
+    }
+
+    /** Holds each media host question under a gate's address until that gate opens, then answers from [media]. */
+    private static void hold(MediaHostForTests media, Map<String, CountDownLatch> gates) {
+        OriginalLookup.connection = uri -> {
+            for (Map.Entry<String, CountDownLatch> gate : gates.entrySet()) {
+                if (!uri.toString().startsWith(gate.getKey())) continue;
+                try {
+                    if (!gate.getValue().await(5, TimeUnit.SECONDS)) throw new IOException("gate never opened");
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("interrupted at the gate");
+                }
+            }
+            return media.open(uri);
+        };
+    }
+
+    private static void settle() throws Exception {
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+    }
+
+    /** Runs main-thread posts until the clipboard holds [url], while other lookups stay held. */
+    private void awaitCopied(String url) throws InterruptedException {
+        long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < until) {
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            if (url.equals(copied())) return;
+            Thread.sleep(10);
+        }
+        fail("the clipboard never got " + url);
     }
 
     private String details() {
