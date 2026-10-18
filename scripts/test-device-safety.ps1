@@ -56,7 +56,7 @@ try {
     $saved = Get-Content -LiteralPath $lease.Path -Raw | ConvertFrom-Json
     Assert-Safety ($saved.serial -eq 'emulator-5998' -and $saved.project -eq 'HushPinterest' -and
         $saved.chatIdentity -eq 'safety-test' -and $saved.ownershipToken -and
-        [DateTimeOffset]::Parse($saved.expiresUtc) -gt [DateTimeOffset]::UtcNow) 'Incomplete lease identity.'
+        (ConvertTo-HushLeaseTime $saved.expiresUtc) -gt [DateTimeOffset]::UtcNow) 'Incomplete lease identity.'
     # Other lease readers in the device pool take a +00:00 time as expired, so every saved time ends in Z.
     $zTimes = { param($Text) $Text -match '"acquiredUtc":"[^"]+Z"' -and $Text -match '"expiresUtc":"[^"]+Z"' }
     Assert-Safety (& $zTimes ([IO.File]::ReadAllText($lease.Path))) 'A new lease saved a time without Z.'
@@ -99,13 +99,19 @@ try {
     Exit-HushDeviceLease $lease
     Assert-Safety (-not (Test-Path -LiteralPath $lease.Path)) 'Owned lease was not released.'
 
-    $saved.expiresUtc = [DateTimeOffset]::UtcNow.AddMinutes(-2).ToString('o')
-    $saved | ConvertTo-Json | Set-Content -LiteralPath $lease.Path
-    $oldBytes = [IO.File]::ReadAllText($lease.Path)
-    Assert-Refusal { Enter-HushDeviceLease -Adb fake -Serial emulator-5998 -Project HushPinterest `
-        -ChatIdentity safety-test -LeaseDirectory $work -AdbInvoker $fake.Invoker } '*expired*'
-    Assert-Safety ([IO.File]::ReadAllText($lease.Path) -eq $oldBytes) 'An expired lease was overwritten.'
-    Remove-Item -LiteralPath $lease.Path
+    # Both forms a lease file holds: the Z time written now, which ConvertFrom-Json returns as a Utc
+    # DateTime, and the +00:00 time older writers left. Off UTC, a Z time read as local clock time
+    # looked hours from expiry.
+    $twoMinutesAgo = [DateTimeOffset]::UtcNow.AddMinutes(-2)
+    foreach ($expired in @($twoMinutesAgo.UtcDateTime.ToString('o'), $twoMinutesAgo.ToString('o'))) {
+        $saved.expiresUtc = $expired
+        $saved | ConvertTo-Json | Set-Content -LiteralPath $lease.Path
+        $oldBytes = [IO.File]::ReadAllText($lease.Path)
+        Assert-Refusal { Enter-HushDeviceLease -Adb fake -Serial emulator-5998 -Project HushPinterest `
+            -ChatIdentity safety-test -LeaseDirectory $work -AdbInvoker $fake.Invoker } '*expired*'
+        Assert-Safety ([IO.File]::ReadAllText($lease.Path) -eq $oldBytes) "An expired lease ($expired) was overwritten."
+        Remove-Item -LiteralPath $lease.Path
+    }
     $wrongIdentity = New-SafetyAdb -IdentitySerial other
     Assert-Refusal { Enter-HushDeviceLease -Adb fake -Serial emulator-5998 -Project HushPinterest `
         -ChatIdentity safety-test -LeaseDirectory $work -AdbInvoker $wrongIdentity.Invoker } '*identity*'
