@@ -150,11 +150,13 @@ if ($indexed) {
         if ($LASTEXITCODE -ne 0) { throw "gh couldn't read the description of $Repository." }
         $updated = $current -replace 'HushPinterest v\d+\.\d+\.\d+', "HushPinterest $tag" `
             -replace '(?<![\d.])\d+ patches\b', "$($facts.Groups[1].Value) patches" `
-            -replace 'Pinterest \d+(?:\.\d+)+', "Pinterest $($facts.Groups[2].Value)"
+            -creplace '(?<![A-Za-z])Pinterest \d+(?:\.\d+)+', "Pinterest $($facts.Groups[2].Value)"
         if ($updated -cne $current) {
             Invoke-ReleaseNative 'gh repo edit' { & gh repo edit $Repository --description $updated }
             $previousDescription = $current
             Write-ReleaseStep "the GitHub description reads: $updated"
+        } elseif (-not (Test-RepoDescriptionNamesFacts -Description $current)) {
+            Write-ReleaseStep 'the GitHub description names no version, count or build, so it stays as written'
         }
         Copy-Item -LiteralPath (Join-Path $assets "release-receipt-$Version.json") -Destination (Join-Path $Root "release-receipt-$Version.json") -Force
         Invoke-ReleaseNative 'The published release check' {

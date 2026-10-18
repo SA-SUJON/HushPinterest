@@ -1940,7 +1940,11 @@ try {
             @{ Name = 'a stale count beside the catalog''s'; Pattern = "*names 97 and $indexCount patches, and it has to name one count*"
                 Edit = { param($text) ([regex]'(?<!\d)\d+ patches\b').Replace($text, '97 patches', 1) } },
             @{ Name = 'another build beside the target'; Pattern = "*names Pinterest $factsTarget and Pinterest 9.9.9.9.9, and it has to name one build*"
-                Edit = { param($text) $at = $text.LastIndexOf("Pinterest $factsTarget")
+                # The last one above the What's new list, which a published description goes on
+                # with and the check doesn't read as facts: a bullet there may name the target too.
+                Edit = { param($text) $cut = $text.IndexOf('\n\n### ')
+                    if ($cut -lt 0) { $cut = $text.Length }
+                    $at = $text.Substring(0, $cut).LastIndexOf("Pinterest $factsTarget")
                     $text.Substring(0, $at) + 'Pinterest 9.9.9.9.9' + $text.Substring($at + "Pinterest $factsTarget".Length) } })) {
         Set-FactsFile 'patches-bundle.json' $case.Edit
         try {
@@ -1950,6 +1954,26 @@ try {
         } finally {
             Reset-FactsFile 'patches-bundle.json'
         }
+    }
+
+    # The release's Pinterest bullets follow the facts under ### What's new, for Morphe Manager to
+    # list, and a bullet there may name an older build or another count. The facts are read up to
+    # the first ### line, on both paths.
+    Set-FactsFile 'patches-bundle.json' {
+        param($text) $text -replace '("description":\s*"(?:[^"\\]|\\.)*)"',
+            '$1\n\n### What''s new\n\n* **Pinterest:** Builds before Pinterest 9.9.9 kept 3 patches."'
+    }
+    try {
+        Assert-True ((Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw | ConvertFrom-Json).description -match
+            '(?m)^### What''s new$') 'The description edit added no ### heading, so the What''s new case would prove nothing.'
+        try {
+            Invoke-Facts
+            & $factsScript -Root $factsRoot -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipUrlCheck 6> $null
+        } catch {
+            throw "The release facts check read a What's new bullet under the description's facts as one: $($_.Exception.Message)"
+        }
+    } finally {
+        Reset-FactsFile 'patches-bundle.json'
     }
 
     # The same number in the README, which is the other half of the same promise.
@@ -3970,6 +3994,18 @@ try {
         Assert-UrlReachable -Uri ([Uri]'https://github.com/example/patches.mpp') -Description 'test bundle URL' `
             -FailureHint 'hint' 6> $null
     }
+    # A repository description with no version, count or build in it, and one naming each.
+    Assert-True (-not (Test-RepoDescriptionNamesFacts -Description 'HushPinterest Morphe patches for Pinterest. Hides promoted pins.')) `
+        'A description naming no version, count or build was read as naming one.'
+    foreach ($named in @('HushPinterest v0.0.11.', 'HushPinterest, 29 patches.', 'Patches for Pinterest 14.41.0.')) {
+        Assert-True (Test-RepoDescriptionNamesFacts -Description $named) "A description naming a fact was read as naming none: $named"
+    }
+    # The project's own name ends in Pinterest, and a number after it isn't a Pinterest build. Nor
+    # is a lower-case one, which the release facts check wouldn't read either. An emptied
+    # description names nothing.
+    foreach ($plain in @('HushPinterest 2 hides promoted pins.', 'patches for pinterest 14.41.0', '')) {
+        Assert-True (-not (Test-RepoDescriptionNamesFacts -Description $plain)) "A description naming no fact the check reads was read as naming one: '$plain'"
+    }
 } finally {
     $env:HUSHPINTEREST_DESKTOP_JAR = $savedJar
     $env:HUSHPINTEREST_WORKDIR = $savedWork
@@ -5684,6 +5720,7 @@ try {
         }
         function gh {
             $global:LASTEXITCODE = 0
+            if ($null -ne $ghDescription) { return $ghDescription }
             "HushPinterest v${indexVersionHere}: $($releaseNames.Count) patches for Pinterest $($releaseTarget.PackageVersion)."
         }
     }
@@ -5738,6 +5775,33 @@ try {
         # The receipt the release hosts, held to SHA256SUMS.txt and to the receipt checked here.
         Assert-True ($said -like "*the hosted release-receipt-$releaseVersionHere.json is the receipt checked here, as SHA256SUMS.txt lists it*") `
             "The index push did not hold the hosted receipt to the one it checked: $said"
+        # The repository description is read only when the run may use the network, which the stand-ins
+        # answer here. A description naming no version, count or build has nothing to go stale and
+        # passes as written (the Hush repos dropped theirs on 2026-10-18). One naming any of them
+        # still has to name all three, as this release has them.
+        $describedRun = $publishedRun.Clone()
+        $describedRun.Remove('SkipUrlCheck')
+        try {
+            $said = Invoke-IndexPushCheck $describedRun
+            Assert-True ($said -like "*the GitHub description of * names v$indexVersionHere, $($releaseNames.Count) patches and Pinterest $($releaseTarget.PackageVersion)*") `
+                "The index push did not hold the GitHub description to the release: $said"
+            $ghDescription = 'HushPinterest Morphe patches for Pinterest. Hides promoted pins, AI-labeled pins, and much more.'
+            $said = Invoke-IndexPushCheck $describedRun
+            Assert-True ($said -like '*the GitHub description of * names no version, patch count or Pinterest build*') `
+                "A description naming no version, count or build was not passed as written: $said"
+            # A cleared description reads back empty, and that names nothing either.
+            $ghDescription = ''
+            $said = Invoke-IndexPushCheck $describedRun
+            Assert-True ($said -like '*the GitHub description of * names no version, patch count or Pinterest build*') `
+                "A cleared description was not passed as naming nothing: $said"
+            foreach ($named in @('HushPinterest Morphe patches for Pinterest 14.0.0.', 'HushPinterest, 3 patches.', 'HushPinterest v0.0.1.')) {
+                $ghDescription = $named
+                Assert-Throws { Invoke-IndexPushCheck $describedRun } '*The GitHub description of * does not say*' `
+                    "A description naming a stale fact passed: $named"
+            }
+        } finally {
+            $ghDescription = $null
+        }
         # And each way it can fail: SHA256SUMS.txt not listing it, listing another hash, or the
         # release hosting another receipt, one cut again after the upload. That one differs in its
         # last byte alone, and the push stops all the same.

@@ -455,6 +455,20 @@ function Assert-UrlReachable {
     Write-Host ("[release] ${Description} answers 200: " + $Uri)
 }
 
+function Test-RepoDescriptionNamesFacts {
+    <#
+    .SYNOPSIS
+        Whether the repository description names a release version, a patch count or a Pinterest
+        build. One that names none of them has nothing a release can leave stale, so a release
+        neither holds it to the catalog nor rewrites it.
+    #>
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Description)
+    # Matched with case, the way the release facts check reads them, and the build has to follow
+    # Pinterest itself, not the end of HushPinterest.
+    return ($Description -cmatch '\bv\d+\.\d+\.\d+\b' -or $Description -cmatch '(?<![\d.])\d+ patches\b' -or
+        $Description -cmatch '(?<![A-Za-z])Pinterest\s+\d+(?:\.\d+)+(?!\d)')
+}
+
 function Find-MachineNames {
     <#
     .SYNOPSIS

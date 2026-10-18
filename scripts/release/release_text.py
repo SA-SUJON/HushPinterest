@@ -14,7 +14,9 @@ A release section of the CHANGELOG may only hold "* **Pinterest:** " and "* **To
 bullets, one line each: Morphe Manager's reader shows Pinterest lines as the update, skips
 Tooling lines, and refuses anything else. The notes carry every bullet of the section, Pinterest
 ones under "What's new" and Tooling ones under "Behind the scenes", between the intro and the
-tail written by hand for that release.
+tail written by hand for that release. The index's bundle description is the release facts, then
+the section's Pinterest bullets under "### What's new", which Morphe Manager shows for the release
+a phone was patched with.
 """
 
 import argparse
@@ -256,7 +258,7 @@ def index(args) -> None:
         fail(f"--created {args.created} isn't YYYY-MM-DDTHH:MM:SS (the release's publishedAt, in UTC).")
     if args.runtime <= 0 or args.patch <= 0:
         fail("The runtime and patch test counts come from the release gate's results and can't be zero.")
-    released_section(root, args.version)
+    bullets = released_section(root, args.version)
     count, target, code = catalog_facts(root, args.version)
     floor = manager_floor(root)
     readme_path = root / "README.md"
@@ -265,12 +267,14 @@ def index(args) -> None:
     summary = read(Path(args.summary))[0].strip()
     if not summary:
         fail("The summary is the release's own sentence or two for Morphe Manager, and it can't be empty.")
+    if re.search(r"^### ", summary, re.MULTILINE):
+        fail("The summary has a ### line, and the release's changes go there.")
     # The release facts check reads every "N patches" and every "Pinterest <build>" in the
     # description, and each has to name this release's.
     for other in re.findall(r"(?<![\d.])(\d+) patches\b", summary):
         if int(other) != count:
             fail(f"The summary says {other} patches, and this release has {count}.")
-    for other in re.findall(r"Pinterest\s+(\d+(?:\.\d+)+)(?!\d)", summary):
+    for other in re.findall(r"(?<![A-Za-z])Pinterest\s+(\d+(?:\.\d+)+)(?!\d)", summary):
         if other != target:
             fail(f"The summary names Pinterest {other}, and this release targets {target}.")
     description = (
@@ -282,6 +286,13 @@ def index(args) -> None:
     )
     if any(dash in description for dash in DASHES):
         fail("The summary has an em or en dash.")
+    # Morphe Manager shows this description, not the CHANGELOG, for the release a phone was
+    # patched with, and reads a ### heading with * **Scope:** bullets under it as its list of
+    # changes. So the section's Pinterest bullets follow the facts word for word, the way Manager
+    # shows them for every older release. They come after the facts checks above, which read the
+    # prose alone: a bullet may name an older build or another patch count, and
+    # validate-release-facts.ps1 reads the description only above its first ### line for that reason.
+    description += "\n\n### What's new\n\n" + "\n".join(b.line for b in bullets if b.scope == "Pinterest")
     bundle_path = root / "patches-bundle.json"
     bundle_text, bundle_newline = read(bundle_path)
     bundle = json.loads(bundle_text)

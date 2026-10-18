@@ -244,15 +244,21 @@ class ReleaseTextTest(unittest.TestCase):
         self.assertEqual(bundle["download_url"],
                          "https://github.com/SysAdminDoc/HushPinterest/releases/download/v0.0.7/patches-0.0.7.mpp")
         description = bundle["description"]
-        # What validate-release-facts.ps1 reads out of it.
-        self.assertTrue(description.startswith("HushPinterest v0.0.7: 3 patches for Pinterest 14.39.0, which needs Android 10"))
-        self.assertEqual(set(re.findall(r"(?<![\d.])(\d+) patches\b", description)), {"3"})
-        self.assertGreaterEqual(len(re.findall(r"(?<![\d.])3 patches\b", description)), 2)
-        self.assertEqual(set(re.findall(r"Pinterest\s+(\d+(?:\.\d+)+)(?!\d)", description)), {"14.39.0"})
-        self.assertGreaterEqual(description.count("Pinterest 14.39.0"), 2)
-        self.assertIn("705 runtime tests passed", description)
-        self.assertIn("All 186 patch tests passed", description)
-        self.assertIn("Needs Morphe Manager 1.34.0 or newer", description)
+        # What validate-release-facts.ps1 reads out of it: the text above the first ### line.
+        facts, changes = description.split("\n\n### ", 1)
+        self.assertTrue(facts.startswith("HushPinterest v0.0.7: 3 patches for Pinterest 14.39.0, which needs Android 10"))
+        self.assertEqual(set(re.findall(r"(?<![\d.])(\d+) patches\b", facts)), {"3"})
+        self.assertGreaterEqual(len(re.findall(r"(?<![\d.])3 patches\b", facts)), 2)
+        self.assertEqual(set(re.findall(r"Pinterest\s+(\d+(?:\.\d+)+)(?!\d)", facts)), {"14.39.0"})
+        self.assertGreaterEqual(facts.count("Pinterest 14.39.0"), 2)
+        self.assertIn("705 runtime tests passed", facts)
+        self.assertIn("All 186 patch tests passed", facts)
+        self.assertIn("Needs Morphe Manager 1.34.0 or newer", facts)
+        # Then what Manager lists for the release a phone is on: every Pinterest bullet, word for
+        # word, and no Tooling one.
+        self.assertEqual(changes, "What's new\n\n"
+                                  "* **Pinterest:** Hide ads now covers the shopping row.\n"
+                                  "* **Pinterest:** Download board saves more pins.")
         readme = self.text("README.md")
         self.assertIn("The latest release is [v0.0.7](https://github.com/SysAdminDoc/HushPinterest/releases/tag/v0.0.7), "
                       "with 3 patches. Add this repo to Morphe Manager.", readme)
@@ -279,6 +285,25 @@ class ReleaseTextTest(unittest.TestCase):
         description = json.loads(self.text("patches-bundle.json"))["description"]
         self.assertIn("which needs Android 12L or newer.", description)
 
+    def test_index_takes_a_number_after_the_project_name_as_no_build(self):
+        # HushPinterest ends in Pinterest, and the release facts check doesn't read a number after
+        # it as a Pinterest build either.
+        self.cut()
+        code, err = self.index(summary="HushPinterest 2 hides more of the feed.")
+        self.assertEqual(code, 0, err)
+        self.assertIn("HushPinterest 2 hides more of the feed.", json.loads(self.text("patches-bundle.json"))["description"])
+
+    def test_index_reads_the_facts_from_the_prose_and_not_the_changes(self):
+        # A bullet may name an older build or another count, and Manager shows it as written.
+        self.put("CHANGELOG.md", CHANGELOG.replace("Download board saves more pins.",
+                                                   "Download board saves more pins, as on Pinterest 14.38.0 with 90 patches."))
+        self.cut()
+        code, err = self.index()
+        self.assertEqual(code, 0, err)
+        facts, changes = json.loads(self.text("patches-bundle.json"))["description"].split("\n\n### ", 1)
+        self.assertNotIn("14.38.0", facts)
+        self.assertIn("* **Pinterest:** Download board saves more pins, as on Pinterest 14.38.0 with 90 patches.", changes)
+
     def test_index_refuses_and_changes_nothing(self):
         self.cut()
         before = {name: self.text(name) for name in ("patches-bundle.json", "README.md", ".github/ISSUE_TEMPLATE/bug_report.yml")}
@@ -286,6 +311,7 @@ class ReleaseTextTest(unittest.TestCase):
             (lambda: self.index(summary="It brings 4 patches."), "says 4 patches"),
             (lambda: self.index(summary="Also tested on Pinterest 14.38.0."), "names Pinterest 14.38.0"),
             (lambda: self.index(summary="Faster \u2014 and smaller."), "em or en dash"),
+            (lambda: self.index(summary="Faster.\n\n### Also\n\n* **Pinterest:** More."), "has a ### line"),
             (lambda: self.index(runtime=0), "can't be zero"),
         ]
         for action, expected in cases:
