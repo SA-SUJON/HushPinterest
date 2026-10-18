@@ -57,6 +57,9 @@ try {
     Assert-Safety ($saved.serial -eq 'emulator-5998' -and $saved.project -eq 'HushPinterest' -and
         $saved.chatIdentity -eq 'safety-test' -and $saved.ownershipToken -and
         [DateTimeOffset]::Parse($saved.expiresUtc) -gt [DateTimeOffset]::UtcNow) 'Incomplete lease identity.'
+    # Other lease readers in the device pool take a +00:00 time as expired, so every saved time ends in Z.
+    $zTimes = { param($Text) $Text -match '"acquiredUtc":"[^"]+Z"' -and $Text -match '"expiresUtc":"[^"]+Z"' }
+    Assert-Safety (& $zTimes ([IO.File]::ReadAllText($lease.Path))) 'A new lease saved a time without Z.'
     $beforeBusy = $fake.State.Calls.Count
     Assert-Refusal { Enter-HushDeviceLease -Adb fake -Serial emulator-5998 -Project other `
         -ChatIdentity other -LeaseDirectory $work -AdbInvoker $fake.Invoker } '*leased*'
@@ -92,6 +95,7 @@ try {
     Renew-HushDeviceLease $lease
     $afterRenew = Get-Content -LiteralPath $lease.Path -Raw | ConvertFrom-Json
     Assert-Safety ($afterRenew.ownershipToken -eq $saved.ownershipToken) 'Renew replaced ownership.'
+    Assert-Safety ([IO.File]::ReadAllText($lease.Path) -match '"expiresUtc":"[^"]+Z"') 'Renew saved an expiry without Z.'
     Exit-HushDeviceLease $lease
     Assert-Safety (-not (Test-Path -LiteralPath $lease.Path)) 'Owned lease was not released.'
 

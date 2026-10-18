@@ -58,7 +58,8 @@ function Renew-HushDeviceLease {
         if ([DateTimeOffset]::Parse($record.expiresUtc) -le [DateTimeOffset]::UtcNow) {
             throw 'Device lease expired. Confirm the previous test stopped before reclaiming it.'
         }
-        $record.expiresUtc = [DateTimeOffset]::UtcNow.AddMinutes($Lease.Minutes).ToString('o')
+        # A Z time: other lease readers in the device pool take +00:00 as expired.
+        $record.expiresUtc = [DateTimeOffset]::UtcNow.AddMinutes($Lease.Minutes).UtcDateTime.ToString('o')
         Write-HushLeaseRecord $stream $record
     } finally { $stream.Dispose() }
 }
@@ -177,7 +178,7 @@ function Enter-HushDeviceLease {
         try {
             Write-HushLeaseRecord $stream ([pscustomobject]@{ schemaVersion = 1; serial = $Serial;
                 project = $Project; chatIdentity = $ChatIdentity; ownershipToken = $LeaseToken;
-                acquiredUtc = [DateTimeOffset]::UtcNow.ToString('o'); expiresUtc = [DateTimeOffset]::UtcNow.AddMinutes($Minutes).ToString('o');
+                acquiredUtc = [DateTimeOffset]::UtcNow.UtcDateTime.ToString('o'); expiresUtc = [DateTimeOffset]::UtcNow.AddMinutes($Minutes).UtcDateTime.ToString('o');
                 purpose = 'Guarded development install or device test'; processId = $PID })
             $owned = $true
         } finally { $stream.Dispose() }
