@@ -624,3 +624,6 @@ That image is too big to share.	Gambar itu terlalu besar untuk dibagikan.
 Getting the image took too long. Try again.	Mengambil gambar terlalu lama. Coba lagi.
 Still getting the last image ready.	Gambar terakhir masih disiapkan.
 Couldn't share the image. Check your connection and try again.	Tidak bisa membagikan gambar. Periksa koneksi lalu coba lagi.
+# context: a Feed switch under Muted words, from the Keep Home feed patch. When it's on, the Home feed doesn't load new pins by itself when the person comes back to the app or to the Home tab, so the pins they were looking at stay put. Pulling down on Home still loads new ones. The title is also the patch's name in the build report and in the settings import preview
+Keep Home feed	Pertahankan beranda
+Home keeps the pins you were looking at when you come back to Pinterest or to the Home tab. Pull down on Home to load new pins.	Beranda tetap menampilkan pin yang sedang Anda lihat saat Anda kembali ke Pinterest atau ke tab Beranda. Tarik ke bawah di Beranda untuk memuat pin baru.

@@ -624,3 +624,6 @@ That image is too big to share.	Bu görsel paylaşılamayacak kadar büyük.
 Getting the image took too long. Try again.	Görseli almak çok uzun sürdü. Tekrar dene.
 Still getting the last image ready.	Son görsel hâlâ hazırlanıyor.
 Couldn't share the image. Check your connection and try again.	Görsel paylaşılamadı. Bağlantını kontrol edip tekrar dene.
+# context: a Feed switch under Muted words, from the Keep Home feed patch. When it's on, the Home feed doesn't load new pins by itself when the person comes back to the app or to the Home tab, so the pins they were looking at stay put. Pulling down on Home still loads new ones. The title is also the patch's name in the build report and in the settings import preview
+Keep Home feed	Ana akışı koru
+Home keeps the pins you were looking at when you come back to Pinterest or to the Home tab. Pull down on Home to load new pins.	Pinterest'e ya da Ana Sayfa sekmesine döndüğünde ana akışın baktığın pinleri korur. Yeni pinler yüklemek için Ana Sayfa'da aşağı çek.

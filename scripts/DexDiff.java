@@ -2344,6 +2344,8 @@ public class DexDiff {
         static final String PIN_MENU = "Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;";
         static final String TOAST_CONTAINER = "Lcom/pinterest/gestalt/toast/PinterestToastContainer;";
         static final String TOAST_VIEW = "Lcom/pinterest/gestalt/toast/BaseGestaltToast;";
+        static final String HOME_FEED_FRAGMENT = "Lcom/pinterest/feature/home/mainfeed/HomeFeedFragment;";
+        static final long HOME_AWAY_MS = 300_000L;
         static final Set<String> SAVE_TOAST_STRINGS = Set.of("saved_to", "saved_onto_board_bold", "pinned", "pinned_multiple", "pinned_multiple_to_board",
                 "multi_board_save_saved_to_profile", "saved_onto_board", "saved_to_board_section", "saved_multiple_to_board_section", "pin_saved");
         static final String TOAST_MAKE = "Landroid/widget/Toast;->makeText";
@@ -2918,6 +2920,24 @@ public class DexDiff {
                             && descriptor((MethodReference) reference(i)).equals("(" + TOAST_CONTAINER + ")" + TOAST_VIEW))) targets.add(m);
                 }
                 if (targets.size() == 1) whole = saveToastStub(targets.get(0).getParameterTypes().get(0).toString());
+            } else if (selector.equals("homeResume") || selector.equals("homeRefresh")) {
+                // The Home return check: the (J)V that compares time away with five minutes and
+                // calls the static refresh with a map and a default-argument mask. Its refresh is
+                // the second guarded method.
+                List<Method> resumes = new ArrayList<>();
+                ClassDef home = clean.classes.get(HOME_FEED_FRAGMENT);
+                if (home != null) for (Method m : home.getMethods()) {
+                    if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !descriptor(m).equals("(J)V")) continue;
+                    if (instructions(m).stream().anyMatch(i -> i instanceof WideLiteralInstruction
+                            && ((WideLiteralInstruction) i).getWideLiteral() == HOME_AWAY_MS) && !homeRefreshCalls(m).isEmpty()) resumes.add(m);
+                }
+                if (selector.equals("homeResume")) targets.addAll(resumes);
+                else if (resumes.size() == 1) {
+                    Set<String> calls = homeRefreshCalls(resumes.get(0));
+                    Method refresh = calls.size() == 1 ? clean.methods.get(calls.iterator().next()) : null;
+                    if (refresh == null) fail("Home return check no longer calls one refresh in this build");
+                    else targets.add(refresh);
+                }
             } else { fail("unknown guard selector " + selector); return false; }
             Method original = unique(targets, c.callee);
             Method m = actual(original);
@@ -2926,6 +2946,8 @@ public class DexDiff {
                 int prep = 0;
                 if (selector.equals("visit")) args = List.of(parameter(m, 0), parameter(m, 1));
                 if (selector.equals("saveToast")) args = List.of(parameter(m, 0));
+                if (selector.equals("homeResume")) args = List.of(parameter(m, 0), parameter(m, 0) + 1);
+                if (selector.equals("homeRefresh")) args = List.of(parameter(m, 1), parameter(m, 2));
                 if (selector.equals("share")) {
                     args = List.of(0, 1); prep = 2;
                     List<Instruction> body = instructions(m);
@@ -2946,6 +2968,17 @@ public class DexDiff {
                 guard(m, hook, before, args, prep, selector.equals("email"), selector.equals("update"));
             }
             return original != null && whole;
+        }
+
+        /** The static Home refresh calls in [m]: the fragment's owner, a pin map and a default-argument mask. */
+        Set<String> homeRefreshCalls(Method m) {
+            Set<String> out = new TreeSet<>();
+            for (Instruction i : instructions(m)) if ((i.getOpcode() == Opcode.INVOKE_STATIC || i.getOpcode() == Opcode.INVOKE_STATIC_RANGE)
+                    && reference(i) instanceof MethodReference) {
+                MethodReference r = (MethodReference) reference(i);
+                if (descriptor(r).equals("(" + r.getDefiningClass() + "Ljava/util/HashMap;I)V")) out.add(r.toString());
+            }
+            return out;
         }
 
         /**

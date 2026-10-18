@@ -72,6 +72,9 @@ public class Settings extends BaseSettings {
      */
     public static final MutedWordsSetting MUTED_WORDS =
             new MutedWordsSetting("hushpinterest_muted_words");
+    /** Home keeps its pins when you come back to it. Pull-to-refresh still loads new ones. Off to start. */
+    public static final BooleanSetting KEEP_HOME_FEED =
+            new BooleanSetting("hushpinterest_keep_home_feed", FALSE);
     /** Its row asks for a restart after turning it off, so a change brings up the restart row. */
     public static final BooleanSetting DISABLE_ANALYTICS =
             new BooleanSetting("hushpinterest_disable_analytics", TRUE, true);

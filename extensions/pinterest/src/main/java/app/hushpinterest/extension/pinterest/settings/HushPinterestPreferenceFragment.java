@@ -305,6 +305,9 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             if (build.contains(PatchFamily.FILTER_FEED) && PatchFamily.Capability.FEED_MUTED_WORDS.installed()) {
                 feed.addPreference(mark(new MutedWordsPreference(context), SettingsIcons.BLOCK));
             }
+            patchToggle(feed, context, build, PatchFamily.KEEP_HOME_FEED, Settings.KEEP_HOME_FEED,
+                    L10n.t("Keep Home feed"), L10n.t("Home keeps the pins you were looking at when you come back to "
+                        + "Pinterest or to the Home tab. Pull down on Home to load new pins."), SettingsIcons.BLOCK);
         }
 
         if (!Collections.disjoint(build, PatchFamily.PRIVACY_PAGE)) {

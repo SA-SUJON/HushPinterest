@@ -90,6 +90,7 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_AI_PINS, "Hide AI-labeled pins");
         ROW_TITLES.put(PatchFamily.HIDE_SHOPPING, "Hide shopping and product pins");
         ROW_TITLES.put(PatchFamily.FILTER_FEED, "Hide video pins");
+        ROW_TITLES.put(PatchFamily.KEEP_HOME_FEED, "Keep Home feed");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Disable analytics");
         ROW_TITLES.put(PatchFamily.STRIP_LINK_TRACKING, "Strip link tracking");
         ROW_TITLES.put(PatchFamily.HIDE_ADVERTISING_ID, "Hide advertising ID");

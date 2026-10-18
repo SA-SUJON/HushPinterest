@@ -241,7 +241,7 @@ public class SettingsBackupTest {
                 Collections.emptyList(), notSwitches);
         assertEquals(Collections.singletonList(Settings.MUTED_WORDS), SettingsBackup.TEXTS);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_AI_PINS, Settings.HIDE_AI_SELF_DESCRIBED,
-                        Settings.HIDE_SHOPPING, Settings.HIDE_VIDEO_PINS, Settings.DISABLE_ANALYTICS, Settings.STRIP_LINK_TRACKING, Settings.PLAIN_PIN_LINKS,
+                        Settings.HIDE_SHOPPING, Settings.HIDE_VIDEO_PINS, Settings.KEEP_HOME_FEED, Settings.DISABLE_ANALYTICS, Settings.STRIP_LINK_TRACKING, Settings.PLAIN_PIN_LINKS,
                         Settings.HIDE_ADVERTISING_ID, Settings.DOWNLOAD_PINS, Settings.SAVE_IN_PINTEREST_FOLDER,
                         Settings.DOWNLOAD_UNMETERED_ONLY, Settings.DOWNLOAD_NO_ROAMING, Settings.COPY_IMAGE, Settings.SHARE_IMAGE, Settings.DOWNLOAD_BOARD, Settings.LONG_PRESS_DOWNLOAD,
                         Settings.EXTERNAL_BROWSER, Settings.SYSTEM_SHARE,
@@ -280,7 +280,8 @@ public class SettingsBackupTest {
         Settings.CHECK_FOR_RELEASES.save(true);
         BaseSettings.PAUSED.save(true);
         BaseSettings.DEBUG.save(true);
-        BaseSettings.DEBUG_LOG_FILTERS.save("feed");
+        // A word no key holds: "feed" is in hushpinterest_keep_home_feed.
+        BaseSettings.DEBUG_LOG_FILTERS.save("lighthouse");
         PauseForTests.pause(HushPinterestPause.Reason.CRASH_LOOP);
         String cookie = "sessionid=100012345678901%3Asecret-session; ds_user_id=100012345678901";
         LogBufferManager.appendToLogBuffer("sentinel line " + cookie);
@@ -309,7 +310,7 @@ public class SettingsBackupTest {
             assertFalse(setting.key + " is in the file", text.contains(setting.key));
         }
         for (String leak : new String[]{"sentinel", "sessionid", "ds_user_id", "100012345678901", "secret-session",
-                app.getPackageName(), FamilyNames.HIDE_ADS, "feed"}) {
+                app.getPackageName(), FamilyNames.HIDE_ADS, "lighthouse"}) {
             assertFalse("the file carries " + leak + ":\n" + text, text.contains(leak));
         }
     }

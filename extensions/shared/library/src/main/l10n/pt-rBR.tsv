@@ -621,3 +621,6 @@ That image is too big to share.	Essa imagem é grande demais para compartilhar.
 Getting the image took too long. Try again.	Obter a imagem demorou demais. Tente de novo.
 Still getting the last image ready.	A última imagem ainda está sendo preparada.
 Couldn't share the image. Check your connection and try again.	Imagem não compartilhada. Verifique a conexão e tente de novo.
+# context: a Feed switch under Muted words, from the Keep Home feed patch. When it's on, the Home feed doesn't load new pins by itself when the person comes back to the app or to the Home tab, so the pins they were looking at stay put. Pulling down on Home still loads new ones. The title is also the patch's name in the build report and in the settings import preview
+Keep Home feed	Manter o feed inicial
+Home keeps the pins you were looking at when you come back to Pinterest or to the Home tab. Pull down on Home to load new pins.	O feed inicial mantém os pins que você estava vendo quando você volta ao Pinterest ou à aba Início. Puxe para baixo no Início para carregar pins novos.
