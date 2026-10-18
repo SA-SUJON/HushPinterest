@@ -155,14 +155,70 @@ public final class PinManifest {
         // In an address that parses, '?' and '#' only start a query or fragment, empty ones included.
         if (uri == null || link.indexOf('?') >= 0 || link.indexOf('#') >= 0) return null;
         String path = uri.getRawPath();
-        // A path parameter such as ;jsessionid= carries a session.
-        if (path != null && path.contains(";")) return null;
+        // A path parameter such as ;jsessionid= carries a session, and some sites decode %3B into one.
+        if (path != null && hidesPathParameter(path)) return null;
         String host = uri.getHost().toLowerCase(Locale.ROOT).replaceFirst("\\.$", "");
         if (host.startsWith("[") || !host.contains(".") || NUMERIC_HOST.matcher(host).matches()
                 || LOCAL_HOST.matcher(host).matches()) return null;
         // Pinterest's media addresses are files, not sources, and they can stop working.
         if (PinMedia.mediaUri("https://" + host + "/") != null) return null;
         return link;
+    }
+
+    /** How many times a path is decoded looking for a ';'. One still encoded after that could be hiding one. */
+    private static final int DECODE_PASSES = 3;
+
+    /**
+     * True when [path] has a ';', or decodes into one within {@link #DECODE_PASSES} passes, as
+     * %3B, %253B or %25253B do. A path still encoded after the last pass, or with an escape that
+     * doesn't decode, counts as hiding one too. Encoded spaces and letters (%20, %C3%A9) aren't.
+     */
+    static boolean hidesPathParameter(String path) {
+        for (int pass = 0; ; pass++) {
+            if (path.indexOf(';') >= 0) return true;
+            if (path.indexOf('%') < 0) return false;
+            if (pass == DECODE_PASSES) return true;
+            path = decodedOnce(path);
+            if (path == null) return true;
+        }
+    }
+
+    /**
+     * [path] with each %XX turned into its byte as one char, enough to find an ASCII ';' or '%'.
+     * Null on a broken escape, or on the start of an overlong UTF-8 form, which some servers
+     * still read as the ASCII character it spells out.
+     */
+    private static String decodedOnce(String path) {
+        StringBuilder out = new StringBuilder(path.length());
+        int previous = -1;
+        for (int i = 0; i < path.length(); i++) {
+            char c = path.charAt(i);
+            if (c != '%') {
+                out.append(c);
+                previous = -1;
+                continue;
+            }
+            int high = i + 2 < path.length() ? hex(path.charAt(i + 1)) : -1;
+            int low = high >= 0 ? hex(path.charAt(i + 2)) : -1;
+            if (low < 0) return null;
+            int value = high * 16 + low;
+            if (overlong(previous, value)) return null;
+            out.append((char) value);
+            previous = value;
+            i += 2;
+        }
+        return out.toString();
+    }
+
+    /** Whether escaped bytes [lead] then [next] open an overlong UTF-8 form, one too long for what it spells. */
+    private static boolean overlong(int lead, int next) {
+        if (next < 0x80 || next > 0xBF) return false;
+        return lead == 0xC0 || lead == 0xC1 || (lead == 0xE0 && next < 0xA0) || (lead == 0xF0 && next < 0x90);
+    }
+
+    /** [c]'s value as an ASCII hex digit, either case, or -1. */
+    private static int hex(char c) {
+        return c < 128 ? Character.digit(c, 16) : -1;
     }
 
     /** The list as JSON, made at [now] from [entries]. [board] says whether they're a board's loaded pins. */

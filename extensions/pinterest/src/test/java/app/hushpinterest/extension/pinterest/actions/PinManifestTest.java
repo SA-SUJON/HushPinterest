@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -190,6 +191,45 @@ public class PinManifestTest {
                 " https://example.com/a", "https://exa mple.com/"}) {
             assertNull(link, PinManifest.sourceLink(link));
         }
+    }
+
+    /** A ';' written as %3B, in either case or encoded again, is still a session parameter to a site that decodes it. */
+    @Test public void anEncodedSessionParameterIsLeftOutButOrdinaryEncodingIsKept() throws Exception {
+        for (String link : new String[]{"https://example.com/rye%20bread", "https://example.com/caf%C3%A9/cr%c3%a8me",
+                "https://example.com/a%2Fb", "https://example.com/r%C3%A9sum%C3%A9-2026",
+                // Three- and four-byte forms that aren't overlong, and Latin-1 bytes on their own.
+                "https://example.com/%E0%A4%B9i", "https://example.com/smile%F0%9F%98%80", "https://example.com/voil%E0%20%C0"}) {
+            assertEquals(link, PinManifest.sourceLink(link));
+        }
+        for (String link : new String[]{
+                "https://example.com/a%3Bjsessionid=ABC123", "https://example.com/a%3bjsessionid=ABC123",
+                "https://example.com/%3B", "https://example.com/a%253Bjsessionid=ABC123", "https://example.com/a%25253bsid=1",
+                // Mixed: %25 and %33 decode to "%3", which with the B after them decodes to ';'.
+                "https://example.com/a%25%33Bsid=1",
+                // Still encoded after three passes, so it could be hiding one further down.
+                "https://example.com/a%2525253Bsid=1",
+                // Overlong UTF-8 spellings of ';', which some servers still read as one.
+                "https://example.com/a%C0%BBsid=1", "https://example.com/a%E0%80%BBsid=1", "https://example.com/a%F0%80%80%BBsid=1",
+                // An escape that doesn't decode, as written or once decoded.
+                "https://example.com/a%3", "https://example.com/50%25-off"}) {
+            assertNull(link, PinManifest.sourceLink(link));
+        }
+
+        List<PinManifest.Entry> entries = PinManifest.entries(List.of(
+                pin("7", "Rye bread", "https://example.com/rye%3Bjsessionid=ABC123"),
+                pin("8", "Crème", "https://example.com/cr%C3%A8me")));
+        JSONArray pins = new JSONObject(PinManifest.json(entries, false, 0)).getJSONArray("pins");
+        assertEquals("7", pins.getJSONObject(0).getString("id"));
+        assertEquals("Rye bread", pins.getJSONObject(0).getString("title"));
+        assertEquals("https://www.pinterest.com/pin/7/", pins.getJSONObject(0).getString("url"));
+        assertTrue(pins.getJSONObject(0).isNull("source_link"));
+        assertEquals("omitted", pins.getJSONObject(0).getString("source_link_status"));
+        assertEquals("https://example.com/cr%C3%A8me", pins.getJSONObject(1).getString("source_link"));
+        String html = PinManifest.bookmarks(entries, false, 0);
+        assertTrue(html.contains("https://www.pinterest.com/pin/7/"));
+        assertTrue(html.contains("Rye bread"));
+        assertFalse("an omitted link got in", html.toLowerCase(Locale.ROOT).contains("jsessionid"));
+        assertTrue(html.contains("https://example.com/cr%C3%A8me"));
     }
 
     @Test public void eachPinSaysWhetherItsLinkIsIncludedMissingOrOmitted() {
