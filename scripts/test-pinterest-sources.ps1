@@ -82,10 +82,10 @@ foreach ($package in Get-SourcePackages) {
 # an adopted provenance rule.
 $browz = @($entries | Where-Object { $_.id -eq 'browzomje' })[0]
 Assert-True ($browz.branches[0].name -eq 'main' -and $browz.branches[0].commit -eq '5fa5c61905db70f1120b8e371cb855621a40a417' -and
-    @($browz.branches | Where-Object { $_.name -eq 'dev' -and $_.commit -eq '1808c6f62217d38a61f1918ff46e57c4f853da3a' }).Count -eq 1 -and
+    @($browz.branches | Where-Object { $_.name -eq 'dev' -and $_.commit -eq 'b4773c6ea007843928564f8d6bf7a17dfdeba1fb' }).Count -eq 1 -and
     $browz.patchCounts.'com.pinterest' -eq 31 -and $browz.targetVersions.'com.pinterest' -contains '14.39.0' -and
-    @($browz.features).Count -eq 24 -and $browz.disposition -eq 'candidate') `
-    'browzomje must keep its pinned main and dev commits and its 31 Pinterest patches, as a candidate and not an adopted source.'
+    @($browz.features).Count -eq 25 -and $browz.features -contains 'Keep Home feed (dev)' -and $browz.disposition -eq 'candidate') `
+    'browzomje must keep its pinned main and dev commits, its 31 Pinterest patches on main and its dev-only Keep Home feed, as a candidate and not an adopted source.'
 $oyasumi = @($entries | Where-Object { $_.id -eq 'oyasumi' })[0]
 Assert-True ($oyasumi.branches.Count -eq 1 -and $oyasumi.branches[0].name -eq 'dev' -and
     $oyasumi.branches[0].commit -eq '1875509177dca5fa4181cce5614202547a2dea6d' -and $oyasumi.patchCounts.'com.pinterest' -eq 13 -and
@@ -109,9 +109,25 @@ Assert-True ($stale.Count -eq 2 -and @($stale | Where-Object { $_.disposition -n
     'binarymend and satanmerde have no usable anchors and must stay rejected.'
 $sabopura = @($entries | Where-Object { $_.id -eq 'sabopura' })[0]
 Assert-True ($sabopura.upstream -eq 'https://github.com/binarymend/morphe-patches' -and $sabopura.lineage -eq 'sabopura' -and
-    $sabopura.branches[0].commit -eq 'a45010d991dde3628b41b337658dc6b1aca5489d' -and $sabopura.patchCounts.'com.pinterest' -eq 3 -and
+    $sabopura.branches[0].commit -eq '28c3f2d8736f520bdd721d08aa3f1cf7b4a29c48' -and $sabopura.patchCounts.'com.pinterest' -eq 3 -and
+    $sabopura.targetVersions.'com.pinterest' -contains '14.40.0' -and $sabopura.reason -like '*declaration, not proof*' -and
     $sabopura.license.sha256 -eq '230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809' -and $sabopura.disposition -eq 'candidate') `
-    'sabopura must keep its reviewed commit, its CRLF GPL-3.0 hash and its Binarymend upstream, as a candidate.'
+    'sabopura must keep its reviewed commit, its declared-only 14.40.0, its CRLF GPL-3.0 hash and its Binarymend upstream, as a candidate.'
+# Two sources the 2026-10-18 audit found. Both declare builds nobody here has run, and neither is adopted.
+$quest = @($entries | Where-Object { $_.id -eq 'quest' })[0]
+Assert-True ($quest.repository -ceq 'https://github.com/archivesteak/Quest' -and
+    @($quest.branches | Where-Object { $_.commit -eq '64a9275fb2f27062d7fc2a170200cd73f6afc888' }).Count -eq 2 -and
+    $quest.patchCounts.'com.pinterest' -eq 6 -and @($quest.targetVersions.'com.pinterest').Count -eq 1 -and
+    $quest.targetVersions.'com.pinterest'[0] -eq '14.39.0' -and $quest.reason -like '*archivesteak/pinterest-patches*' -and
+    $quest.license.sha256 -eq '3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986' -and $quest.disposition -eq 'candidate') `
+    'Quest must keep its reviewed main and dev commit, its six 14.39.0 patches and its old name, as a candidate.'
+$wagg = @($entries | Where-Object { $_.id -eq 'wagg13patch' })[0]
+Assert-True ($wagg.repository -ceq 'https://github.com/WaggBR/Wagg13Patch_Morphe' -and
+    @($wagg.branches | Where-Object { $_.name -eq 'main' -and $_.commit -eq '99062638dc4dde907b93f428daf18a43cf4a1634' }).Count -eq 1 -and
+    $wagg.patchCounts.'com.pinterest' -eq 1 -and $wagg.targetVersions.'com.pinterest' -contains '14.40.0' -and
+    $wagg.reason -like '*obfuscated classes per version*' -and
+    $wagg.license.sha256 -eq '230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809' -and $wagg.disposition -eq 'candidate') `
+    'Wagg13Patch must keep its reviewed commit, its one per-version patch and its CRLF GPL-3.0 hash, as a candidate.'
 $nagramRepository = 'https://github.com/authorisation/xterest'
 $nagram = @($ledger.outOfScope | Where-Object { $_.repository -eq $nagramRepository })[0]
 Assert-True ($nagram.reference.kind -eq 'historical' -and $nagram.reference.branch -eq 'main' -and
