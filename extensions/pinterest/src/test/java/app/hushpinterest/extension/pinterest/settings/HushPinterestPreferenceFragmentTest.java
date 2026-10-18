@@ -640,6 +640,37 @@ public class HushPinterestPreferenceFragmentTest {
         }
     }
 
+    /**
+     * The row to Pinterest's own Gen AI interests sits under the AI switches, comes only with Hide
+     * AI-labeled pins, and opens that page in this Pinterest, never a browser.
+     */
+    @Test
+    public void pinterestsOwnAiSettingFollowsTheAiSwitchesAndOpensInPinterest() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            int row = indexOfKey(rows, "action_pinterest_ai_setting");
+            assertEquals(indexOfKey(rows, Settings.HIDE_AI_SELF_DESCRIBED.key) + 1, row);
+            Preference link = rows.get(row);
+            assertTrue(String.valueOf(link.getSummary()), String.valueOf(link.getSummary()).contains("neither one catches every AI pin"));
+
+            link.getOnPreferenceClickListener().onPreferenceClick(link);
+            android.content.Intent opened = Shadows.shadowOf(controller.get()).getNextStartedActivity();
+            assertNotNull("the row opened nothing", opened);
+            assertEquals(android.content.Intent.ACTION_VIEW, opened.getAction());
+            assertEquals("https://www.pinterest.com/homefeed/edit/gen_ai_topics", String.valueOf(opened.getData()));
+            assertEquals(controller.get().getPackageName(), opened.getPackage());
+        }
+
+        PatchFamily.inBuildForTests = EnumSet.complementOf(EnumSet.of(PatchFamily.HIDE_AI_PINS));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertEquals(-1, indexOfKey(rowsOf(controller), "action_pinterest_ai_setting"));
+        }
+    }
+
     private static int indexOfKey(List<Preference> rows, String key) {
         for (int i = 0; i < rows.size(); i++) {
             if (key.equals(rows.get(i).getKey())) return i;

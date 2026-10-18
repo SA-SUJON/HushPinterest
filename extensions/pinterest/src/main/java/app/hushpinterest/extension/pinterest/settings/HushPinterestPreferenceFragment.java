@@ -94,6 +94,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
     /** Where Support HushPinterest goes: the maintainer's Ko-fi page. ExtensionHostsTest reads the link. */
     static final String SUPPORT_URL = "https://ko-fi.com/X8K126YVER";
     static final String SUPPORT_ADDRESS = SUPPORT_URL.substring(SUPPORT_URL.indexOf("://") + 3);
+    /** Pinterest's Gen AI interests page: `homefeed/edit/gen_ai_topics` opens the tuner on that tab (14.41.0). */
+    static final String GEN_AI_INTERESTS_URL = "https://www.pinterest.com/homefeed/edit/gen_ai_topics";
     /** The key of Support HushPinterest, the settings home page's last row. It stores nothing. */
     static final String SUPPORT = "action_support_hushpinterest";
     /** The English of the row listing what Pause can't reach, and its key in {@link L10n}. */
@@ -290,6 +292,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                                 + "or that come from an AI image site. It goes by their words, so some still show.")),
                             SettingsIcons.BLOCK));
                 }
+                // Pinterest's Gen AI interests cut AI pins where they're picked, before any list reaches the hook.
+                feed.addPreference(mark(pinterestAiSetting(context), SettingsIcons.OPENING));
             }
             patchToggle(feed, context, build, PatchFamily.HIDE_SHOPPING, Settings.HIDE_SHOPPING,
                     L10n.t("Hide shopping and product pins"), L10n.t("Hides product pins, shopping stories, featured "
@@ -814,6 +818,39 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
      */
     private void sayCheckResult(@Nullable String result) {
         if (getParentFragment() instanceof SettingsDialog) ((SettingsDialog) getParentFragment()).showCheckResult(result);
+    }
+
+    /**
+     * Opens Pinterest's own Gen AI interests page, the tab of Refine your recommendations that 14.41.0's
+     * link handler opens for this address. The link goes to Pinterest itself, never a browser, and these
+     * settings close behind it, since the page opens under them.
+     */
+    private Preference pinterestAiSetting(Context context) {
+        Row row = new Row(context);
+        row.setKey("action_pinterest_ai_setting");
+        row.setTitle(L10n.t("Pinterest's own AI setting"));
+        row.setSummary(L10n.t("Pinterest can show you fewer AI pins among the ones it picks for you. It works "
+                + "alongside the switches above, and neither one catches every AI pin. Tap to open it."));
+        row.setPersistent(false);
+        row.setOnPreferenceClickListener(ignored -> {
+            Activity activity = getActivity();
+            try {
+                if (activity == null) throw new ActivityNotFoundException("no activity");
+                activity.startActivity(genAiInterests(context));
+            } catch (ActivityNotFoundException | SecurityException missing) {
+                Logger.printInfo(() -> "Pinterest didn't open its Gen AI interests page: " + missing.getClass().getSimpleName());
+                Utils.showToastLong(L10n.t("Pinterest couldn't open that page."));
+                return true;
+            }
+            if (getParentFragment() instanceof SettingsDialog) ((SettingsDialog) getParentFragment()).closeForPinterest();
+            return true;
+        });
+        return row;
+    }
+
+    /** The view of [GEN_AI_INTERESTS_URL] that only this Pinterest takes. */
+    static Intent genAiInterests(Context context) {
+        return new Intent(Intent.ACTION_VIEW, Uri.parse(GEN_AI_INTERESTS_URL)).setPackage(context.getPackageName());
     }
 
     /** Fixed project pages. Neither a release's body nor its html_url can choose the destination. */

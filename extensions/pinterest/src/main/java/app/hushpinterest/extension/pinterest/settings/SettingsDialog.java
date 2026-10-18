@@ -342,6 +342,12 @@ public final class SettingsDialog extends DialogFragment {
         setLiveText(restartStatus, title);
     }
 
+    /** Closes the screen for a Pinterest page a row just opened, as the back arrow would, so it isn't reopened. */
+    void closeForPinterest() {
+        SettingsEntry.onClosedByUser();
+        dismissAllowingStateLoss();
+    }
+
     /** What a tapped Check now found, and null as the next one starts. */
     void showCheckResult(@Nullable CharSequence result) {
         setLiveText(checkStatus, result);
