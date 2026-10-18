@@ -114,7 +114,11 @@ Every patch but Spoof signature for Google sign-in is in Manager's default selec
 
 - **Can't find the settings.** Open Pinterest's settings and tap **HushPinterest**, or long-press the Pinterest logo at the top of your home feed or the app icon. If the entries are missing, refresh the source in Manager and patch again.
 - **A switch does nothing.** Check that **Pause** is off, then reopen the screen you're looking at. Pin menu changes show on the next menu you open.
-- **Android won't install the patched app.** It can't replace stock Pinterest, so uninstall that first. Later updates of your patched copy need the same signing key.
+- **Android won't install the patched app.** Where you're installing it tells you which case it is.
+  - Over stock Pinterest it fails, since a patched copy can't replace the stock app. Uninstall stock Pinterest first.
+  - Over your own patched copy, it fails when the new build was signed with a different key, usually after reinstalling Manager or moving to a new phone. Restore your old key under **Settings > System > Import & export > Signing key** in Manager and patch again, or uninstall the patched copy first (its settings go with it). Back that key up once and every later update installs over the top.
+  - If Android says it isn't allowed to install unknown apps from this source, it's asking once for whichever app opened the APK. Tap **Settings** on that prompt and allow Morphe Manager, or the file manager you used.
+  - For any other message, open an issue with the exact wording plus your phone model and Android version.
 - **Manager rejects the APK, or a patch fails.** Use Pinterest 14.41.0, version code 14418010, unmodified. Each patch finds its code by what it does in that build, and Pinterest renames almost everything between releases, so a patch that can't find its spot stops instead of patching the wrong place.
 - **Google sign-in fails.** Use your email and a Pinterest password. See [Signing in](#signing-in).
 

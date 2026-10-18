@@ -16,6 +16,7 @@ Every HushPinterest release, newest first.
 * **Pinterest:** Hide comments has a second switch, Hide suggested replies, for the row of ready-made replies like "Yum!" and "Came out great!" next to the comment box. You can still write your own comment. It starts off, and the two switches don't turn each other on. (#14)
 * **Tooling:** The pre-push and release checks take a declared build kept as APKMirror's `.apkm` bundle, since that's the only way 14.41.0 ships. The bug report form's example names a bundle too, and the release step keeps whatever kind of file the form names.
 * **Tooling:** The release gate's advisory check works in Windows PowerShell 5.1 again. Since 0.0.11, any failed OSV request stopped it there with an "Unable to find type" error. A dropped connection or a busy server now gets asked again in 5.1, the way it already did in PowerShell 7.
+* **Tooling:** The README's Help now goes through why Android might refuse the install. It says where Manager keeps its signing key, so an update that won't go over your patched copy can be fixed without losing your settings. It also covers stock Pinterest and the unknown apps prompt.
 * **Tooling:** The script tests now clean up after themselves. The pre-push cases remove the worktree the hook builds in, and a passing host reference run deletes its report folder. Each run used to leave both in the temp directory.
 
 ## 0.0.11 (2026-10-14)
