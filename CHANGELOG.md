@@ -19,6 +19,7 @@ Every HushPinterest release, newest first.
 * **Tooling:** The release gate's advisory check works in Windows PowerShell 5.1 again. Since 0.0.11, any failed OSV request stopped it there with an "Unable to find type" error. A dropped connection or a busy server now gets asked again in 5.1, the way it already did in PowerShell 7.
 * **Tooling:** The README's Help now goes through why Android might refuse the install. It says where Manager keeps its signing key, so an update that won't go over your patched copy can be fixed without losing your settings. It also covers stock Pinterest and the unknown apps prompt.
 * **Tooling:** The release check and the publish step leave a GitHub description alone when it names no version, patch count or Pinterest build, since there's nothing in it to go stale. One that names any of them still has to match the release. The next release would have stopped on the shorter description the repository uses now.
+* **Tooling:** The source census reads Jman's bundle registry again. On October 14 the registry took down the files the audit read and now serves the same list from its own site, so every audit since stopped on a missing file. It reads all of the site's pages, not only the first hundred releases.
 * **Tooling:** The script tests now clean up after themselves. The pre-push cases remove the worktree the hook builds in, and a passing host reference run deletes its report folder. Each run used to leave both in the temp directory.
 
 ## 0.0.11 (2026-10-14)

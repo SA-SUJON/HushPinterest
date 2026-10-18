@@ -466,10 +466,12 @@ Invoke-Source 'Morphe Patch Tracker' {
 }
 
 Invoke-Source 'Jman''s bundle index' {
-    # The index moved from patch-bundles/ to config/ and database/ in October 2026. config/sources.json
-    # names each repository it follows, the database manifest names the current snapshot, and that
-    # snapshot's app-bundles.json lists every bundle's packages. A Pinterest bundle's own detail
-    # file carries its download address, which names the repository behind it.
+    # config/sources.json names each repository the index follows. Its Git database went on
+    # 2026-10-14 for an API (https://patch-bundles.api.jmancentral.com/api.json), where
+    # /apps/<package>/bundles lists every release of every source for that app, a hundred at a
+    # time, with is_latest on each source's current ones and the download address, which names
+    # the repository behind it. Its release=latest filter answers fewer than is_latest marks, so
+    # every page is read.
     $root = 'https://raw.githubusercontent.com/Jman-Github/Patch-Bundle-Registry/bundles'
     $bundleSources = Get-SourceJson -Uri "$root/config/sources.json" -What 'Jman''s sources.json'
     $listed['jman-bundles'] = $false
@@ -477,26 +479,34 @@ Invoke-Source 'Jman''s bundle index' {
         $key = ConvertTo-SourceKey ([string](Get-SourceProperty $property.Value 'patches'))
         if ($key -and $key -eq $selfKey) { $listed['jman-bundles'] = $true }
     }
-    $snapshot = [string](Get-SourceJson -Uri "$root/database/manifest.json" -What 'Jman''s database manifest').snapshot
-    if ($snapshot -notmatch '^snapshots/[0-9a-f]+$') { throw "Jman's database manifest names no snapshot it can be read from: '$snapshot'." }
     $seen = @{}
-    foreach ($bundle in (Get-JsonItems (Get-SourceJson -Uri "$root/database/$snapshot/app-bundles.json" -What 'Jman''s app-bundles.json'))) {
-        if ($bundle.is_latest -ne $true) { continue }
-        $apps = @(Get-JsonItems $bundle.packages | Where-Object { $packages -contains $_ })
-        if ($apps.Count -eq 0) { continue }
-        $detailFile = [string]$bundle.detail_file
-        if ($detailFile -notmatch '^bundles/[0-9a-f]+\.json$') { throw "Jman's app-bundles.json gives bundle $($bundle.id) no detail file it can be read from." }
-        $detail = Get-SourceJson -Uri "$root/database/$snapshot/$detailFile" -What "Jman's bundle $($bundle.id)"
-        $address = [string]$detail.download_url
-        $repository = if ($address -match '^(https://[^/]+/.+?)/(-/)?releases/') { $Matches[1] } else { $null }
-        $key = ConvertTo-SourceKey $repository
-        if (-not $key) {
-            Add-Finding -Kind 'index-unresolved' -Repository $null `
-                -Detail "Jman's index lists a Pinterest bundle ($($detail.version)) whose download address names no repository: $address" -Evidence $null
-            continue
+    foreach ($package in $packages) {
+        # The next page starts after the rows this one answered, which can be fewer than asked for.
+        for ($offset = 0; ; $offset += $rows.Count) {
+            if ($offset -ge 5000) { throw "Jman's $package bundles run past 5000 rows, more than this audit reads." }
+            $page = Get-SourceJson -What "Jman's $package bundles" `
+                -Uri "https://patch-bundles.api.jmancentral.com/apps/$([Uri]::EscapeDataString($package))/bundles?limit=100&offset=$offset"
+            if ($null -eq $page.PSObject.Properties['total'] -or "$($page.total)" -notmatch '^\d+$') {
+                throw "Jman's $package bundles at offset $offset gave no total, so there's no telling whether every page was read."
+            }
+            $rows = @(Get-JsonItems $page.data)
+            foreach ($bundle in $rows) {
+                if ($bundle.is_latest -ne $true) { continue }
+                $apps = @(Get-JsonItems $bundle.packages | Where-Object { $packages -contains $_ })
+                if ($apps.Count -eq 0) { continue }
+                $address = [string]$bundle.download_url
+                $repository = if ($address -match '^(https://[^/]+/.+?)/(-/)?releases/') { $Matches[1] } else { $null }
+                $key = ConvertTo-SourceKey $repository
+                if (-not $key) {
+                    Add-Finding -Kind 'index-unresolved' -Repository $null `
+                        -Detail "Jman's index lists a Pinterest bundle ($($bundle.version)) whose download address names no repository: $address" -Evidence $null
+                    continue
+                }
+                Add-Candidate -Key $key -Source 'Jman''s bundle index' -Packages $apps
+                $seen[$key] = $true
+            }
+            if ($rows.Count -eq 0 -or $offset + $rows.Count -ge [int]$page.total) { break }
         }
-        Add-Candidate -Key $key -Source 'Jman''s bundle index' -Packages $apps
-        $seen[$key] = $true
     }
     "$($seen.Count) Pinterest bundles; HushPinterest " + $(if ($listed['jman-bundles']) { 'listed' } else { 'not listed' })
 }

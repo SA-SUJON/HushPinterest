@@ -560,18 +560,22 @@ function New-FakeAnswers {
             'alpha:stable' = @{ repo_url = 'https://github.com/fixture-owner/alpha-patches'; apps = @(@{ package = 'com.pinterest'; patches = @(@{ name = 'Hide ads' }) }) }
         } | ConvertTo-Json -Depth 8) }
         jmanSources = @{ Status = 200; Content = '{"alpha-stable":{"patches":"https://api.github.com/repos/fixture-owner/alpha-patches"},"gamma-stable":{"patches":"https://gitlab.com/api/v4/projects/fixture-group%2Fgamma-patches"}}' }
-        jmanManifest = @{ Status = 200; Content = '{"schema_version":1,"snapshot":"snapshots/0abc"}' }
-        # Alpha's and gamma's current bundles name Pinterest; alpha's older one and a bundle for
-        # another app stay out, the way Jman's snapshot lists every release of every source.
-        jmanAppBundles = @{ Status = 200; Content = ('[{"id":"a1","is_latest":true,"packages":["com.pinterest"],"detail_file":"bundles/a1.json"},' +
-            '{"id":"a0","is_latest":false,"packages":["com.pinterest"],"detail_file":"bundles/a0.json"},' +
-            '{"id":"c1","is_latest":true,"packages":["com.example","com.pinterest"],"detail_file":"bundles/c1.json"},' +
-            '{"id":"e1","is_latest":true,"packages":["com.example"],"detail_file":"bundles/e1.json"}]') }
-        jmanDetails = @{
-            a1 = @{ Status = 200; Content = '{"version":"v1.0.0","download_url":"https://github.com/fixture-owner/alpha-patches/releases/download/v1.0.0/patches-1.0.0.mpp"}' }
-            c1 = @{ Status = 200; Content = '{"version":"v2.0.0","download_url":"https://gitlab.com/fixture-group/gamma-patches/-/releases/v2.0.0/downloads/patches.mpp"}' }
-            d1 = @{ Status = 200; Content = '{"version":"v0.1.0","download_url":"https://files.example.net/delta/patches-0.1.0.mpp"}' }
-        }
+        # Every release of every source, the way Jman's API pages them: a hundred old ones first, so
+        # alpha's and gamma's current bundles are on the second page. A retired source's last bundle,
+        # which no stand-in answers for, and a bundle for another app stay out.
+        jmanRows = New-Object System.Collections.Generic.List[object] (, [object[]]@(
+            @(1..100 | ForEach-Object { [ordered]@{ id = "o$_"; is_latest = $false; packages = @('com.pinterest'); version = "v0.0.$_"
+                download_url = "https://github.com/fixture-owner/alpha-patches/releases/download/v0.0.$_/patches-0.0.$_.mpp" } }) +
+            [ordered]@{ id = 'a1'; is_latest = $true; packages = @('com.pinterest'); version = 'v1.0.0'
+                download_url = 'https://github.com/fixture-owner/alpha-patches/releases/download/v1.0.0/patches-1.0.0.mpp' },
+            [ordered]@{ id = 'a0'; is_latest = $false; packages = @('com.pinterest'); version = 'v0.9.0'
+                download_url = 'https://github.com/fixture-owner/retired-patches/releases/download/v0.9.0/patches-0.9.0.mpp' },
+            [ordered]@{ id = 'c1'; is_latest = $true; packages = @('com.example', 'com.pinterest'); version = 'v2.0.0'
+                download_url = 'https://gitlab.com/fixture-group/gamma-patches/-/releases/v2.0.0/downloads/patches.mpp' },
+            [ordered]@{ id = 'e1'; is_latest = $true; packages = @('com.example'); version = 'v3.0.0'
+                download_url = 'https://github.com/fixture-owner/epsilon-patches/releases/download/v3.0.0/patches-3.0.0.mpp' }))
+        jmanPageSize = 100
+        jmanTotal = $true
         archive = @{ Status = 200; Content = '{"name":"patches-list.json"}' }
         searchHits = @(
             @{ repository = @{ full_name = 'fixture-owner/alpha-patches' }; path = 'patches/Alpha.kt'; sha = $blobKnown }
@@ -625,9 +629,14 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
             '^https://raw\.githubusercontent\.com/nvbangg/awesome-morphe/main/data/hashes\.json$' { $answer = $a.awesome; break }
             '^https://raw\.githubusercontent\.com/drnx64/morphe-track-patches/main/data/bundles\.json$' { $answer = $a.tracker; break }
             '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/config/sources\.json$' { $answer = $a.jmanSources; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/database/manifest\.json$' { $answer = $a.jmanManifest; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/database/snapshots/0abc/app-bundles\.json$' { $answer = $a.jmanAppBundles; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/database/snapshots/0abc/bundles/([a-z0-9]+)\.json$' { $answer = $a.jmanDetails[$Matches[1]]; break }
+            '^https://patch-bundles\.api\.jmancentral\.com/apps/com\.pinterest/bundles\?limit=100&offset=(\d+)$' {
+                $offset = [int]$Matches[1]
+                $rows = @($a.jmanRows | Select-Object -Skip $offset -First $a.jmanPageSize)
+                $page = [ordered]@{ data = $rows; total = $a.jmanRows.Count; limit = $a.jmanPageSize; offset = $offset }
+                if (-not $a.jmanTotal) { $page.Remove('total') }
+                $answer = @{ Status = 200; Content = ($page | ConvertTo-Json -Depth 6) }
+                break
+            }
             '^https://api\.github\.com/repos/rushiforai/morphe-archive/contents/examplepatches/SysAdminDoc/HushPinterest/patches-list\.json$' { $answer = $a.archive; break }
             '^https://api\.github\.com/search/code\?q=([^&]+)&per_page=100&page=1$' {
                 $query = [Uri]::UnescapeDataString($Matches[1])
@@ -733,7 +742,13 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
         "The copy of the alpha lineage's file was not collapsed into it: $($clean.Report.notes -join ' | ')"
     Assert-True (@($clean.Report.lineages | Where-Object { $_.lineage -eq 'alpha' })[0].mirrors -contains 'https://github.com/clone/alpha-clone') `
         'The collapsed copy was not listed under its lineage.'
-    $leaked = @($fakeForge.Requests | Where-Object { $_.Authorization -and $_.Uri -notlike 'https://api.github.com/*' })
+    # Jman's API pages every release a hundred at a time, and the current ones were on the second page.
+    Assert-True ($clean.Said -like "*Jman's bundle index: 2 Pinterest bundles*" -and
+        @($fakeForge.Requests | Where-Object { $_.Uri -like 'https://patch-bundles.api.jmancentral.com/*&offset=100' }).Count -eq 1) `
+        "Jman's second page was not read, or its current Pinterest bundles were not counted: $($clean.Said)"
+    Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like '*retired-patches*' }).Count -eq 0 -and $clean.ReportText.IndexOf('retired-patches') -lt 0) `
+        "A Jman bundle that isn't its source's latest was read as a source."
+    $leaked =@($fakeForge.Requests | Where-Object { $_.Authorization -and $_.Uri -notlike 'https://api.github.com/*' })
     Assert-True ($leaked.Count -eq 0) "The GitHub token went to another host: $($leaked[0].Uri)"
     Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like 'https://api.github.com/*' -and $_.Authorization -ne "Bearer $fakeToken" }).Count -eq 0) `
         'A GitHub API request went out without the token.'
@@ -904,9 +919,25 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
     Assert-Drift 'license-added' '*beta-module*now has a licence (MIT*' 'An unlicensed source that gained a licence'
     $fakeForge.Answers = New-FakeAnswers
 
-    $fakeForge.Answers.jmanAppBundles.Content = $fakeForge.Answers.jmanAppBundles.Content.TrimEnd(']') +
-        ',{"id":"d1","is_latest":true,"packages":["com.pinterest"],"detail_file":"bundles/d1.json"}]'
+    $fakeForge.Answers.jmanRows.Add([ordered]@{ id = 'd1'; is_latest = $true; packages = @('com.pinterest'); version = 'v0.1.0'
+        download_url = 'https://files.example.net/delta/patches-0.1.0.mpp' })
     Assert-Drift 'index-unresolved' "*Jman's index lists a Pinterest bundle (v0.1.0) whose download address names no repository*" 'A Jman bundle no repository stands behind'
+    $fakeForge.Answers = New-FakeAnswers
+
+    # An API that answers fewer rows than asked for has each page read from where the last one
+    # ended, and one that gives no total can't say when the pages end.
+    $fakeForge.Answers.jmanPageSize = 40
+    $short = Invoke-Audit
+    $jmanOffsets = @($fakeForge.Requests | Where-Object { $_.Uri -like 'https://patch-bundles.api.jmancentral.com/*' } |
+        ForEach-Object { [int]($_.Uri -replace '^.*&offset=', '') })
+    Assert-True ($short.ExitCode -eq 0 -and $short.Said -like "*Jman's bundle index: 2 Pinterest bundles*" -and
+        ($jmanOffsets -join ',') -eq '0,40,80') `
+        "Jman's pages of 40 were not each read from where the last one ended (offsets $($jmanOffsets -join ',')): $($short.Said)"
+    Reset-FixtureLedger
+    $fakeForge.Answers = New-FakeAnswers
+
+    $fakeForge.Answers.jmanTotal = $false
+    Assert-Drift 'source-failed' "*Jman's bundle index could not be read*gave no total*" 'A Jman page with no total'
     $fakeForge.Answers = New-FakeAnswers
 
     # The tracker's keys can differ only in case, which ConvertFrom-Json alone refuses.
