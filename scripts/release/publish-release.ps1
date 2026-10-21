@@ -5,7 +5,9 @@
 .DESCRIPTION
     The last release stage, which release.ps1 -Stage publish runs. It starts from the pushed
     prepare commit and the assets -Stage build signed. A retry also accepts its unchanged index
-    followed by corrective release-check commits, and goes in this order:
+    followed by corrective release-check commits. Before anything reaches GitHub, -Walk has to
+    name the walk-receipt.json of a whole-app walk of the signed bundle on a release phone or an
+    emulator (walk-receipt.ps1). Then it goes in this order:
 
       1. The notes: every bullet of the released CHANGELOG section, between -Intro and -Tail.
       2. gh release create vX.Y.Z at the prepare commit with the five assets. GitHub's tag is
@@ -22,7 +24,7 @@
 
 .EXAMPLE
     scripts/release/publish-release.ps1 -Version 0.0.7 -Intro intro.txt -Tail tail.txt -Summary summary.txt `
-        -TrustedFingerprint <hex> -TrustedPublicKeyPath <key.asc>
+        -TrustedFingerprint <hex> -TrustedPublicKeyPath <key.asc> -Walk <walk folder>/walk-receipt.json
 #>
 [CmdletBinding()]
 param(
@@ -36,11 +38,14 @@ param(
     [string]$TrustedFingerprint,
     [string]$TrustedPublicKeyPath,
     [string]$Gpg = 'gpg',
+    # The walk-receipt.json a whole-app walk of this exact bundle left.
+    [string]$Walk,
     [string]$Repository = 'SysAdminDoc/HushPinterest'
 )
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'release-common.ps1')
+. (Join-Path (Split-Path -Parent $PSScriptRoot) 'walk-receipt.ps1')
 $Root = Resolve-ReleaseRoot $Root
 Import-ReleaseEnvironment
 $tag = "v$Version"
@@ -75,6 +80,14 @@ $signing = Get-SigningInputs -Fingerprint $TrustedFingerprint -PublicKey $Truste
 $built = Test-ReleaseAssets -Root $Root -Version $Version -Commit $source -TrustedPublicKeyPath $signing.PublicKey `
     -TrustedFingerprint $signing.Fingerprint -Gpg $Gpg
 if ($built -ne $true) { throw "The assets aren't ready: $built. Run release.ps1 -Stage build first." }
+# Nothing goes public until the whole app has been walked with this exact bundle.
+if (-not $Walk) { throw '-Walk names the walk-receipt.json a whole-app walk of this bundle left on a release phone or an emulator.' }
+$walked = Test-WalkReceipt -Path $Walk -BundlePath (Join-Path $assets "patches-$Version.mpp")
+if (-not $walked.Valid) {
+    throw ("The whole-app walk doesn't back patches-$Version.mpp, so nothing was published: $($walked.Reason). " +
+        'Patch an APK from this bundle, walk the whole app on a release phone or an emulator, and pass its walk-receipt.json as -Walk.')
+}
+Write-ReleaseStep "walked on $($walked.Receipt.device): $($walked.Receipt.screens) screens, no crash"
 $remote = Get-RemoteMain $Root
 if ($state.Chain -cnotcontains $remote) {
     throw "origin's main is at $remote, outside the prepared release and its publication recovery chain."

@@ -3,6 +3,7 @@
 param()
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'verify-published-index.ps1')
+. (Join-Path $PSScriptRoot 'walk-receipt.ps1')
 
 function Assert-IndexContract([bool]$Condition, [string]$Message) {
     if (-not $Condition) { throw $Message }
@@ -166,11 +167,11 @@ function Save-PublishCommit([string]$Subject) {
     Invoke-PublishGit @('commit', '--quiet', '-m', $Subject) | Out-Null
     return Invoke-PublishGit @('rev-parse', 'HEAD')
 }
-function Invoke-PublishCase {
+function Invoke-PublishCase([string]$Walk = (Join-Path $global:PublishContract.Root 'build/walk-receipt.json')) {
     Set-PublishFile 'build/events.txt' ''
     $problem = $null
     try {
-        & $publisher -Root $global:PublishContract.Root -Version '0.0.7' `
+        & $publisher -Root $global:PublishContract.Root -Version '0.0.7' -Walk $Walk `
             -TrustedFingerprint ('A' * 40) -TrustedPublicKeyPath (Join-Path $global:PublishContract.Root 'build/pinned-key.asc')
     } catch { $problem = $_.Exception.Message }
     return [pscustomobject]@{ Problem = $problem; Events = @(Get-Content -LiteralPath (Join-Path $global:PublishContract.Root 'build/events.txt')) }
@@ -188,7 +189,7 @@ try {
     Invoke-PublishGit @('config', '--local', 'core.autocrlf', 'true') | Out-Null
     Invoke-PublishGit @('init', '--bare', '--quiet') -Bare | Out-Null
     Invoke-PublishGit @('remote', 'add', 'origin', $global:PublishContract.Origin) | Out-Null
-    foreach ($name in @('common.ps1', 'release/release-common.ps1', 'release/publish-release.ps1', 'release/release.ps1')) {
+    foreach ($name in @('common.ps1', 'walk-receipt.ps1', 'release/release-common.ps1', 'release/publish-release.ps1', 'release/release.ps1')) {
         Set-PublishFile "scripts/$name" ([IO.File]::ReadAllText((Join-Path $PSScriptRoot $name)))
     }
     $publisher = Join-Path $global:PublishContract.Root 'scripts/release/publish-release.ps1'
@@ -242,6 +243,16 @@ Add-PublishEvent 'verify-index'
     $assets = Join-Path $global:PublishContract.Root 'build/release-assets/0.0.7'
     Set-PublishFile 'build/release-assets/0.0.7/patches-0.0.7.mpp' 'the original signed bundle'
     Set-PublishFile 'build/release-assets/0.0.7/patches-0.0.7.cdx.json' '{}'
+    # The whole-app walk of that bundle, written the way the walk writes it. -Change bends one field.
+    $walkPath = Join-Path $global:PublishContract.Root 'build/walk-receipt.json'
+    function Write-PublishWalk([hashtable]$Change = @{}) {
+        $walk = New-WalkReceipt -Result PASS -Full $true -Serial 'TESTPHONE01' -Device 'SM-S908U1' -AppVersion '14.41.0' `
+            -BundleSha256 (Get-FileHash -LiteralPath (Join-Path $assets 'patches-0.0.7.mpp')).Hash -InstalledApkSha256 ('4' * 64) `
+            -Started '2026-10-21T16:00:00Z' -Finished '2026-10-21T16:30:00Z' -Screens 40 -Crashes 0
+        foreach ($key in $Change.Keys) { $walk[$key] = $Change[$key] }
+        Set-PublishFile 'build/walk-receipt.json' ($walk | ConvertTo-Json -Depth 4)
+    }
+    Write-PublishWalk
     $receipt = @{ release = @{ version = '0.0.7'; tag = 'v0.0.7'; commit = $prepared }
         bundle = @{ file = 'patches-0.0.7.mpp'; sha256 = (Get-FileHash -LiteralPath (Join-Path $assets 'patches-0.0.7.mpp')).Hash } }
     $receiptText = $receipt | ConvertTo-Json -Depth 4
@@ -359,6 +370,31 @@ Add-PublishEvent 'verify-index'
         Assert-IndexContract ($problem -like $Pattern) "The real release-facts check expected [$Pattern], got [$problem]."
     }
     Assert-RealFactsRefused '*No runtime test results found*'
+
+    # No walk, or one that doesn't back this bundle, stops publish before it asks GitHub anything.
+    function Assert-WalkRefused($Result, [string]$Pattern) {
+        Assert-IndexContract ($Result.Problem -like $Pattern -and @($Result.Events | Where-Object { $_ }).Count -eq 0) `
+            "Expected the walk refusal [$Pattern] before any GitHub step, got [$($Result.Problem)]; $($Result.Events -join ',')."
+    }
+    Assert-WalkRefused (Invoke-PublishCase -Walk '') '*-Walk names the walk-receipt.json*'
+    Assert-WalkRefused (Invoke-PublishCase -Walk (Join-Path $global:PublishContract.Root 'build/no-walk.json')) "*there's no walk receipt at*"
+    foreach ($badWalk in @(
+            @(@{ result = 'FAIL' }, '*the walk ended FAIL, not PASS*'),
+            @(@{ result = 'PARTIAL'; full = $false }, '*the walk ended PARTIAL, not PASS*'),
+            @(@{ full = $false }, '*was not the whole app*'),
+            @(@{ screens = 0 }, "*doesn't say it opened any screen*"),
+            @(@{ crashes = 1 }, '*recorded a Pinterest crash*'),
+            @(@{ device = 'Pixel 9' }, "*Pixel 9 isn't one of the release walk phones*"),
+            @(@{ device = 'Pixel 9'; emulator = $true }, "*Pixel 9 isn't one of the release walk phones*"),
+            @(@{ bundleSha256 = ('5' * 64) }, '*patched with bundle*and this one is*'),
+            @(@{ schema = 2 }, "*isn't schema 1*"))) {
+        Write-PublishWalk $badWalk[0]
+        Assert-WalkRefused (Invoke-PublishCase) $badWalk[1]
+    }
+    Set-PublishFile 'build/walk-receipt.json' 'not json'
+    Assert-WalkRefused (Invoke-PublishCase) "*walk receipt doesn't read as JSON*"
+    # An emulator walks for a release as well as either phone.
+    Write-PublishWalk @{ serial = 'emulator-5554'; device = 'sdk_gphone64_x86_64'; emulator = $true }
 
     $global:PublishContract.FailPush = $true
     $failed = Invoke-PublishCase

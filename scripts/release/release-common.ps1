@@ -153,7 +153,8 @@ function Get-PublishReleaseState {
     # These files can repair a failed publication check without changing the built release.
     $correctionFiles = @('scripts/test-script-contracts.ps1', 'scripts/test-published-index.ps1',
         'scripts/pre-push.ps1', 'scripts/validate-release-facts.ps1', 'scripts/verify-published-index.ps1',
-        'scripts/release/release-common.ps1', 'scripts/release/publish-release.ps1', 'scripts/release/release.ps1', 'CHANGELOG.md')
+        'scripts/release/release-common.ps1', 'scripts/release/publish-release.ps1', 'scripts/release/release.ps1',
+        'scripts/walk-receipt.ps1', 'CHANGELOG.md')
     $descendants = @(Get-ReleaseGitText -Root $Root -Arguments @('rev-list', '--parents', "$index..$head") |
         ForEach-Object { $_ -split "`n" } | Where-Object { $_ })
     $chain = @($source, $index)

@@ -2,6 +2,10 @@
 
 Every HushPinterest release, newest first.
 
+## Unreleased
+
+* **Tooling:** A release can't go public until the whole app has been walked with that exact bundle on a release phone or an emulator. The publish stage now takes the walk's receipt as `-Walk` and stops before GitHub or the index if the walk wasn't a full pass, saw a Pinterest crash, ran on some other device, or patched with a different bundle.
+
 ## 0.0.12 (2026-10-18)
 
 * **Pinterest:** The patches now target Pinterest 14.41.0, the newest stable release. 14.40.0 is no longer supported. So far APKMirror has 14.41.0 only as an arm64 bundle (`.apkm`) for Android 12L or newer, and Manager merges it before patching.
