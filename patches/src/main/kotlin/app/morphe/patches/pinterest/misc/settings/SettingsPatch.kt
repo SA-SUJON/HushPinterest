@@ -121,6 +121,8 @@ internal val settingsManifestPatch = resourcePatch {
             alias.appendChild(filter)
             application.appendChild(alias)
         }
+        // Patcher 2.0 decodes only the files a patch asks for.
+        decode("res/values/strings.xml")
         document("res/values/strings.xml").use { document ->
             val strings = document.getElementsByTagName("string")
             if ((0 until strings.length).any { (strings.item(it) as Element).getAttribute("name") == NATIVE_SETTINGS_TITLE }) {

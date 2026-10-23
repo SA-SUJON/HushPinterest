@@ -227,6 +227,23 @@ try {
         -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $target.PackageVersion
     Assert-True $reportValidation.Valid `
         "A complete result with a declared dependency was rejected: $($reportValidation.Reason)"
+    # morphe-desktop 1.19.0 names the list stepResults. Its passing steps count, and a failed one
+    # is still refused, so the 1.19 shape is read and not just tolerated.
+    foreach ($stepOk in @($true, $false)) {
+        $renamed = $dependencyReport.PSObject.Copy()
+        $renamed.PSObject.Properties.Remove('patchingSteps')
+        $renamed | Add-Member -NotePropertyName stepResults -NotePropertyValue @(
+            [pscustomobject]@{ success = $true }, [pscustomobject]@{ success = $stepOk })
+        $renamedValidation = Test-PatchingReport -Report $renamed -ExpectedNames $allNames `
+            -AllowedDependencyNames $allDependencies -OutputPath $reportApk `
+            -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $target.PackageVersion
+        if ($stepOk) {
+            Assert-True $renamedValidation.Valid "A 1.19 result with passing stepResults was rejected: $($renamedValidation.Reason)"
+        } else {
+            Assert-True (-not $renamedValidation.Valid -and $renamedValidation.Reason -ceq 'a patching step failed or is missing') `
+                "A 1.19 result with a failed step in stepResults was not turned down: $($renamedValidation.Reason)"
+        }
+    }
 
     # The old replacement expectations contradicted account preservation. Exercise refusal
     # before device mutation, signer checks and ownership instead of expecting uninstalls.
