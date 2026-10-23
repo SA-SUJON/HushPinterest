@@ -8,6 +8,7 @@ Every HushPinterest release, newest first.
 * **Pinterest:** The patches are now built on Morphe patcher 2.0.0, so you'll need Morphe Manager 2.0.0 or newer to apply them. Older Manager builds can't load the bundle.
 * **Tooling:** A release can't go public until the whole app has been walked with that exact bundle on a release phone or an emulator. The publish stage now takes the walk's receipt as `-Walk` and stops before GitHub or the index if the walk wasn't a full pass, saw a Pinterest crash, ran on some other device, or patched with a different bundle.
 * **Tooling:** A device lease another session happens to be reading no longer stops a run partway. The check waits a moment and tries again, and a lease that stays locked still stops it.
+* **Tooling:** New `scripts/walk-app.ps1` patches Pinterest from the release bundle and installs it on a leased phone or emulator. Then it opens the home feed, the patched screens and every Hush settings page, and writes the receipt publish asks for. Only a full walk with no Pinterest crash earns a PASS.
 
 ## 0.0.12 (2026-10-18)
 
