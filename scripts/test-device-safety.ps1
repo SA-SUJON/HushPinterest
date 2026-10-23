@@ -92,6 +92,23 @@ try {
     Assert-Safety (Test-Path -LiteralPath $lease.Path) 'Wrong profile released the caller lease.'
     $saved.PSObject.Properties.Remove('expectedIdentity')
     $saved | ConvertTo-Json | Set-Content -LiteralPath $lease.Path
+    # Another session waiting for the phone can be reading the lease at the moment a call checks
+    # it. The first retry's wait lets that reader go and the renew goes through; a reader that
+    # never lets go still stops it.
+    $script:briefReader = [IO.File]::Open($lease.Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+    $briefReadStopped = $false
+    try {
+        & {
+            function Start-Sleep { if ($script:briefReader) { $script:briefReader.Dispose(); $script:briefReader = $null } }
+            Renew-HushDeviceLease $lease
+        }
+    } catch { $briefReadStopped = $true }
+    finally { if ($script:briefReader) { $script:briefReader.Dispose(); $script:briefReader = $null } }
+    Assert-Safety (-not $briefReadStopped) 'A lease another process read for a moment stopped the renew.'
+    $heldReader = [IO.File]::Open($lease.Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+    try {
+        Assert-Refusal { & { function Start-Sleep { }; Renew-HushDeviceLease $lease } } '*being used by another process*'
+    } finally { $heldReader.Dispose() }
     Renew-HushDeviceLease $lease
     $afterRenew = Get-Content -LiteralPath $lease.Path -Raw | ConvertFrom-Json
     Assert-Safety ($afterRenew.ownershipToken -eq $saved.ownershipToken) 'Renew replaced ownership.'

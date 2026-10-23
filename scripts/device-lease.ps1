@@ -45,6 +45,22 @@ function Read-HushLeaseRecord($Stream) {
     return $record
 }
 
+function Open-HushLeaseFile {
+    param([Parameter(Mandatory)][string]$LeasePath, [Parameter(Mandatory)][IO.FileAccess]$Access)
+    # Ownership checks and renewal hold the lease under an exclusive handle. Another session
+    # waiting for the phone may be reading the same file at that moment, so a sharing violation
+    # (32 or 33) is retried for a few seconds. A missing lease, any other error, or a lock that
+    # outlasts the retries still stops the run.
+    foreach ($delay in @(100, 250, 500, 1000, 2000, 0)) {
+        try {
+            return [IO.File]::Open($LeasePath, [IO.FileMode]::Open, $Access, [IO.FileShare]::None)
+        } catch [IO.IOException] {
+            if (($_.Exception.GetBaseException().HResult -band 0xFFFF) -notin 32, 33 -or $delay -eq 0) { throw }
+            Start-Sleep -Milliseconds $delay
+        }
+    }
+}
+
 function Write-HushLeaseRecord($Stream, $Record) {
     $bytes = [Text.Encoding]::UTF8.GetBytes(($Record | ConvertTo-Json -Compress))
     $Stream.Position = 0
@@ -55,7 +71,7 @@ function Write-HushLeaseRecord($Stream, $Record) {
 
 function Renew-HushDeviceLease {
     param([Parameter(Mandatory)]$Lease)
-    $stream = [IO.File]::Open($Lease.Path, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+    $stream = Open-HushLeaseFile $Lease.Path ReadWrite
     try {
         $record = Read-HushLeaseRecord $stream
         if ($record.serial -ne $Lease.Serial -or $record.project -ne $Lease.Project -or
@@ -75,7 +91,7 @@ function Exit-HushDeviceLease {
     param($Lease)
     if (-not $Lease -or -not $Lease.Owned) { return }
     if (-not (Test-Path -LiteralPath $Lease.Path)) { throw 'Owned device lease disappeared.' }
-    $stream = [IO.File]::Open($Lease.Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::None)
+    $stream = Open-HushLeaseFile $Lease.Path Read
     try {
         $record = Read-HushLeaseRecord $stream
         if ($record.ownershipToken -cne $Lease.Token -or $record.serial -ne $Lease.Serial) {
@@ -116,7 +132,7 @@ function Confirm-HushLeasedDevice {
     param([string]$Adb, $Lease, [scriptblock]$Invoker, $Identity)
     Renew-HushDeviceLease $Lease
     if (-not $Identity) { $Identity = Get-HushDeviceIdentity -Adb $Adb -Serial $Lease.Serial -AdbInvoker $Invoker }
-    $stream = [IO.File]::Open($Lease.Path, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+    $stream = Open-HushLeaseFile $Lease.Path ReadWrite
     try {
         $record = Read-HushLeaseRecord $stream
         if ($record.serial -cne $Lease.Serial -or $record.project -cne $Lease.Project -or
@@ -163,7 +179,7 @@ function Enter-HushDeviceLease {
     $path = Join-Path $directory "$Serial.json"
     $owned = $false
     if ($LeaseToken) {
-        $stream = [IO.File]::Open($path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::None)
+        $stream = Open-HushLeaseFile $path Read
         try { $record = Read-HushLeaseRecord $stream } finally { $stream.Dispose() }
         if ($record.serial -cne $Serial -or $record.project -cne $Project -or
             $record.ownershipToken -cne $LeaseToken -or ($ChatIdentity -and $record.chatIdentity -cne $ChatIdentity)) {
