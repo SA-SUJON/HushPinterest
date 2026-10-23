@@ -2,7 +2,7 @@
 
 Every HushPinterest release, newest first.
 
-## Unreleased
+## 0.0.13 (2026-10-23)
 
 * **Pinterest:** New GmsCore support patch, for phones that run microG-RE instead of Google Play services. Pinterest's Google sign-in and push notifications go through microG-RE, so Continue with Google opens microG-RE's sign-in. Before, it asked Play services and the account got turned down. It's left out of the default selection since without microG-RE those requests have nowhere to go. Pick it in Expert mode and Spoof signature for Google sign-in comes along with it. (#15)
 * **Pinterest:** The patches are now built on Morphe patcher 2.0.0, so you'll need Morphe Manager 2.0.0 or newer to apply them. Older Manager builds can't load the bundle.
