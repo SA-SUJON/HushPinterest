@@ -37,8 +37,20 @@ final class PushReadiness implements LogBufferManager.ReportSection {
     static final PushReadiness REPORT = new PushReadiness();
     private static final String MESSAGING = "com.google.firebase.MESSAGING_EVENT";
     private static final String RECEIVE = "com.google.android.c2dm.intent.RECEIVE";
+    private static final String GMS_CORE = "app.revanced.android.gms";
+    private static final String GMS_CORE_RECEIVE = "app.revanced.android.c2dm.intent.RECEIVE";
+
+    /** Overrides the GmsCore support flag for tests. Null reads the flag injected when patching. */
+    @Nullable
+    static volatile Boolean gmsCoreForTests;
 
     private PushReadiness() { }
+
+    /** Whether this build sends push and Google sign-in to microG-RE, which renames the receive action. */
+    static boolean gmsCore() {
+        Boolean forced = gmsCoreForTests;
+        return forced != null ? forced : SettingsStatus.gmsCoreSupport();
+    }
 
     @Override public String title() { return "PUSH READINESS"; }
 
@@ -58,20 +70,33 @@ final class PushReadiness implements LogBufferManager.ReportSection {
         lines.add("notification_permission: " + permission);
         Boolean allowed = notificationsEnabled(context);
         String notifications = allowed == null ? "unknown" : allowed ? "enabled" : "disabled";
+        boolean gmsCore = gmsCore();
         String delegate = "unknown";
         NotificationManager manager = context.getSystemService(NotificationManager.class);
         if (manager != null) {
             try {
                 String name = manager.getNotificationDelegate();
                 delegate = name == null ? "none (delegation is optional)"
-                        : "com.google.android.gms".equals(name) ? name : "other package (redacted)";
+                        : "com.google.android.gms".equals(name) || GMS_CORE.equals(name) ? name : "other package (redacted)";
             } catch (RuntimeException unavailable) {
                 // Do not include exception messages, which can contain private context.
             }
         }
         lines.add("notifications: " + notifications);
         lines.add("notification_delegate: " + delegate);
-        for (String action : new String[]{MESSAGING, RECEIVE}) {
+        if (gmsCore) {
+            String microG = "unknown";
+            try {
+                context.getPackageManager().getPackageInfo(GMS_CORE, 0);
+                microG = "installed";
+            } catch (PackageManager.NameNotFoundException missing) {
+                microG = "missing";
+            } catch (RuntimeException unavailable) {
+                // Keep the other checks when Android cannot answer this query.
+            }
+            lines.add("microg_re: " + microG);
+        }
+        for (String action : new String[]{MESSAGING, gmsCore ? GMS_CORE_RECEIVE : RECEIVE}) {
             boolean services = MESSAGING.equals(action);
             String status = "unknown";
             try {

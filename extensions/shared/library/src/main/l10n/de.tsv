@@ -188,8 +188,11 @@ Remove ad tracking permissions	Werbe-Tracking-Berechtigungen entfernen
 Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Pinterest kann die Werbe-ID-Berechtigung von Google und die Werbedienste von Android nicht mehr nutzen. Das wurde beim Patchen festgelegt. Patche erneut ohne diesen Patch, um sie zurückzubekommen.
 Pinterest's access to the ad ID and Android's ad services is removed	Pinterests Zugriff auf die Werbe-ID und die Werbedienste von Android ist entfernt
 Spoof signature for Google sign-in	Signatur für Google-Anmeldung vortäuschen
-Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.	Hilft bei der Google-Anmeldung nur mit microG-RE oder XSpoofSignatures. Die normalen Google Play-Dienste ignorieren es. Beim Patchen festgelegt. Patche erneut ohne diesen Patch, um es zu entfernen.
+Helps Google sign-in with XSpoofSignatures, or with microG-RE when GmsCore support is patched in too. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.	Hilft bei der Google-Anmeldung mit XSpoofSignatures oder mit microG-RE, wenn GmsCore support auch eingepatcht ist. Die normalen Google Play-Dienste ignorieren es. Beim Patchen festgelegt. Patche erneut ohne diesen Patch, um es zu entfernen.
 Pinterest's original signature is added to the app	Die originale Signatur von Pinterest wurde der App hinzugefügt
+GmsCore support	GmsCore-Unterstützung
+Google sign-in and push notifications go through microG-RE instead of Google Play services, so microG-RE has to stay installed. Set when patching. Patch again without it to go back.	Google-Anmeldung und Push-Benachrichtigungen laufen über microG-RE statt über die Google Play-Dienste, deshalb muss microG-RE installiert bleiben. Beim Patchen festgelegt. Patche erneut ohne diesen Patch, um zurückzuwechseln.
+Google sign-in and push notifications go through microG-RE	Google-Anmeldung und Push-Benachrichtigungen laufen über microG-RE
 Download pins	Pins herunterladen
 Open links in your browser	Links im Browser öffnen
 Opens a pin's Visit link and profile websites in your browser.	Öffnet den Besuchen-Link eines Pins und Profil-Websites in deinem Browser.

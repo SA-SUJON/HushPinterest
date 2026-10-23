@@ -137,7 +137,7 @@ The 32 source catalog entries are grouped here by the code that owns them:
 | Patch area | Patch names | Main source |
 |---|---|---|
 | Feed and ads | Hide ads; Hide AI-labeled pins; Hide shopping and product pins; Filter feed; Keep Home feed | `patches/.../ads/`; runtime filters in `extensions/pinterest/.../ads/` |
-| Privacy | Disable analytics; Strip link tracking; Hide advertising ID; Remove ad tracking permissions; Spoof signature for Google sign-in | `patches/.../privacy/`; runtime hooks in `extensions/pinterest/.../privacy/` |
+| Privacy | Disable analytics; Strip link tracking; Hide advertising ID; Remove ad tracking permissions; Spoof signature for Google sign-in; GmsCore support | `patches/.../privacy/`; runtime hooks in `extensions/pinterest/.../privacy/` |
 | Pin actions | Download pins; Download board; Long-press download; Open links in your browser; System share sheet | `patches/.../actions/`; runtime transfer and routing under `extensions/pinterest/.../actions/` |
 | Interface | AMOLED black; Filter pin menu; Hide closeup buttons; Hide comments; Hide header buttons; Hide navigation buttons; Hide save toasts; Hide search history; Hide survey prompts; Hide topic suggestions; No screenshot share menu; Original-quality images; Quiet email reminders; Disable update nag; Show posted date | `patches/.../ui/`; runtime UI controls under `extensions/pinterest/.../ui/` |
 | Notifications | Fix push notifications | `patches/.../notifications/`; the certificate answer in `extensions/pinterest/.../notifications/` and the readiness report in `extensions/pinterest/.../settings/PushReadiness.java` |

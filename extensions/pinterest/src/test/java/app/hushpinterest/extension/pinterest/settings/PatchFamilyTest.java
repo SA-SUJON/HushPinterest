@@ -173,10 +173,11 @@ public class PatchFamilyTest {
         assertEquals(permanent, PatchFamily.DISABLE_ANALYTICS.staysWhilePaused);
         assertTrue(PatchFamily.DISABLE_ANALYTICS.switches.contains(Settings.DISABLE_ANALYTICS));
         assertEquals(summary, PatchFamily.staysWhilePausedSummary(build));
-        // Every other family but the two manifest-only ones, which have patch-time edits of their own.
+        // Every other family but the three patch-time-only ones, which have edits of their own.
         Set<PatchFamily> everyOther = EnumSet.allOf(PatchFamily.class);
         everyOther.remove(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS);
         everyOther.remove(PatchFamily.SPOOF_SIGNATURE);
+        everyOther.remove(PatchFamily.GMS_CORE_SUPPORT);
         assertEquals(summary, PatchFamily.staysWhilePausedSummary(everyOther));
         Set<PatchFamily> withoutAnalytics = EnumSet.copyOf(everyOther);
         withoutAnalytics.remove(PatchFamily.DISABLE_ANALYTICS);
@@ -224,7 +225,8 @@ public class PatchFamilyTest {
                 + "). They were set when you patched, so Pause can't turn them off. To rule one out, patch "
                 + "again and leave out the patch in parentheses after it.";
         assertEquals(both, PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.DISABLE_ANALYTICS, family)));
-        assertEquals(both, PatchFamily.staysWhilePausedSummary(EnumSet.complementOf(EnumSet.of(PatchFamily.SPOOF_SIGNATURE))));
+        assertEquals(both, PatchFamily.staysWhilePausedSummary(EnumSet.complementOf(
+                EnumSet.of(PatchFamily.SPOOF_SIGNATURE, PatchFamily.GMS_CORE_SUPPORT))));
 
         String line = "Remove ad tracking permissions: no switch, stays in while paused: " + permanent;
         assertEquals(Collections.singletonList(line), PatchFamily.reportLines(build, false).subList(0, 1));
@@ -259,7 +261,8 @@ public class PatchFamilyTest {
                 "Firebase and Google Analytics collection is turned off (" + L10n.isolate("Disable analytics") + ")",
                 "Pinterest's access to the ad ID and Android's ad services is removed ("
                         + L10n.isolate("Remove ad tracking permissions") + ")",
-                permanent + " (" + L10n.isolate("Spoof signature for Google sign-in") + ")"))
+                permanent + " (" + L10n.isolate("Spoof signature for Google sign-in") + ")",
+                "Google sign-in and push notifications go through microG-RE (" + L10n.isolate("GmsCore support") + ")"))
                 + ". They were set when you patched, so Pause can't turn them off. To rule one out, patch "
                 + "again and leave out the patch in parentheses after it.";
         assertEquals(all, PatchFamily.staysWhilePausedSummary(EnumSet.allOf(PatchFamily.class)));
@@ -270,6 +273,28 @@ public class PatchFamilyTest {
         assertEquals(line, PatchFamily.reportLines(build, true).get(0));
         assertFalse(PatchFamily.reportLines(EnumSet.allOf(PatchFamily.class), true).stream()
                 .anyMatch(text -> text.startsWith("Spoof signature for Google sign-in coverage")));
+    }
+
+    /** The GmsCore reroute is set when patching too: no switch, named in the stays row and the report. */
+    @Test
+    public void gmsCoreRerouteIsDisclosedWithNoSwitch() {
+        PatchFamily family = PatchFamily.GMS_CORE_SUPPORT;
+        String permanent = "Google sign-in and push notifications go through microG-RE";
+        assertEquals("GmsCore support", family.patchName);
+        assertEquals("gmsCoreSupport", family.statusMethod);
+        assertEquals(permanent, family.staysWhilePaused);
+        assertTrue("no switch can turn it off", family.switches.isEmpty());
+        assertTrue("it has no separately recorded targets", family.expectedCapabilities().isEmpty());
+        assertTrue("the Privacy page draws it", PatchFamily.PRIVACY_PAGE.contains(family));
+
+        Set<PatchFamily> build = EnumSet.of(family);
+        assertEquals(permanent + " (" + L10n.isolate("GmsCore support")
+                + "). It was set when you patched, so Pause can't turn it off. To rule it out, patch again "
+                + "and leave out that patch.", PatchFamily.staysWhilePausedSummary(build));
+        String line = "GmsCore support: no switch, stays in while paused: " + permanent;
+        assertEquals(Collections.singletonList(line), PatchFamily.reportLines(build, false).subList(0, 1));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals(line, PatchFamily.reportLines(build, true).get(0));
     }
 
     /** Synthetic exceptions keep singular and plural disclosure wording covered. */
@@ -388,9 +413,9 @@ public class PatchFamilyTest {
 
     /**
      * A paused export marks the Hook status lines of the families a switch runs, and only those.
-     * registerDiagnostics() exempts a family with no switch, today Remove ad tracking permissions
-     * and Spoof signature for Google sign-in: a pause changes nothing for either, so their lines
-     * stay unmarked.
+     * registerDiagnostics() exempts a family with no switch, today Remove ad tracking permissions,
+     * Spoof signature for Google sign-in and GmsCore support: a pause changes nothing for any of
+     * them, so their lines stay unmarked.
      */
     @Test
     public void aPausedExportMarksEveryFamilyASwitchRuns() {
@@ -406,7 +431,8 @@ public class PatchFamilyTest {
             assertTrue(String.join("\n", lines),
                     lines.contains(family.patchName + ": invoked 1, 0 found, 0 missing" + mark));
         }
-        assertEquals(EnumSet.of(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS, PatchFamily.SPOOF_SIGNATURE), unswitched);
+        assertEquals(EnumSet.of(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS, PatchFamily.SPOOF_SIGNATURE,
+                PatchFamily.GMS_CORE_SUPPORT), unswitched);
     }
 
     /** The section goes through the redactor like every other one, and has to come out whole. */

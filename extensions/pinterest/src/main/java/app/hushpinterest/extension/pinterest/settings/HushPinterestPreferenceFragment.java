@@ -345,8 +345,16 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             }
             if (build.contains(PatchFamily.SPOOF_SIGNATURE)) {
                 privacy.addPreference(mark(info(context, L10n.t("Spoof signature for Google sign-in"),
-                        L10n.t("Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services "
-                            + "ignores it. Set when patching. Patch again without it to remove it.")),
+                        L10n.t("Helps Google sign-in with XSpoofSignatures, or with microG-RE when GmsCore support is "
+                            + "patched in too. Stock Google Play services ignores it. Set when patching. Patch again "
+                            + "without it to remove it.")),
+                        SettingsIcons.ABOUT));
+            }
+            if (build.contains(PatchFamily.GMS_CORE_SUPPORT)) {
+                privacy.addPreference(mark(info(context, L10n.t("GmsCore support"),
+                        L10n.t("Google sign-in and push notifications go through microG-RE instead of Google Play "
+                            + "services, so microG-RE has to stay installed. Set when patching. Patch again without it "
+                            + "to go back.")),
                         SettingsIcons.ABOUT));
             }
         }

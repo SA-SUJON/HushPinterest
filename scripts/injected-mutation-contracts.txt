@@ -40,6 +40,7 @@ family|stripLinkTracking|Strip link tracking|linkTracking,plainPinLinks
 family|hideAdvertisingId|Hide advertising ID|advertisingId,browserId
 family|removeAdTrackingPermissions|Remove ad tracking permissions|
 family|spoofSignature|Spoof signature for Google sign-in|
+family|gmsCoreSupport|GmsCore support|
 family|downloadPins|Download pins|pinDownloads,copyImage,shareImage
 family|downloadBoard|Download board|boardMenu,boardPins
 family|longPressDownload|Long-press download|longPressMenu,longPressChoices

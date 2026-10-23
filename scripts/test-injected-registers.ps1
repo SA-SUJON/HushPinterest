@@ -627,10 +627,11 @@ try {
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
     $families = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('family|') } |
         ForEach-Object { $values = $_ -split '\|'; [pscustomobject]@{ Flag = $values[1]; Name = $values[2]; Caps = @($values[3] -split ',' | Where-Object { $_ }) } })
-    Assert-True ($families.Count -eq 31) 'Every one of the 31 installed families needs a compiled contract.'
-    # A manifest-only family declares no capability and is the only kind that may.
+    Assert-True ($families.Count -eq 32) 'Every one of the 32 installed families needs a compiled contract.'
+    # A family with no switch declares no capability and is the only kind that may: two change only
+    # the manifest, and GmsCore support's renamed strings call nothing of the extension's.
     $manifestOnly = @($families | Where-Object { $_.Caps.Count -eq 0 } | ForEach-Object { $_.Flag })
-    Assert-True (($manifestOnly -join ',') -ceq 'removeAdTrackingPermissions,spoofSignature') "Only Remove ad tracking permissions and Spoof signature for Google sign-in change no bytecode, not: $($manifestOnly -join ', ')"
+    Assert-True (($manifestOnly -join ',') -ceq 'removeAdTrackingPermissions,spoofSignature,gmsCoreSupport') "Only Remove ad tracking permissions, Spoof signature for Google sign-in and GmsCore support have no switch, not: $($manifestOnly -join ', ')"
     $declaredFlags = @($families | ForEach-Object { $_.Flag; $_.Caps } | Sort-Object)
     $statusSource = Join-Path $Root 'extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsStatus.java'
     $sourceFlags = @([regex]::Matches([IO.File]::ReadAllText($statusSource), 'public static boolean ([A-Za-z0-9]+)\(\)') |
@@ -689,6 +690,9 @@ try {
         'feature-browser-id-changed-original' = $false
         'feature-browser-id-false-capability' = $false
         'feature-browser-id-bad-stub' = $false
+        'feature-browser-id-gmscore-renamed' = $true
+        'feature-browser-id-gmscore-unselected' = $false
+        'feature-browser-id-gmscore-other-package' = $false
         'feature-feed-ads' = $true
         'feature-feed-ai' = $true
         'feature-feed-shopping' = $true
@@ -815,6 +819,8 @@ try {
             'feature-browser-id-changed-original' { 'beyond its validated mutations' }
             'feature-browser-id-false-capability' { 'browserId flag is false, clean target requires true' }
             'feature-browser-id-bad-stub' { 'where the clean APK has' }
+            'feature-browser-id-gmscore-unselected' { 'beyond its validated mutations' }
+            'feature-browser-id-gmscore-other-package' { 'beyond its validated mutations' }
         }
         if ($browserIdReason) {
             Assert-True ($text.Contains($browserIdReason)) "The Block Store fixture $name wasn't refused for its own fault ($browserIdReason).`n$text"

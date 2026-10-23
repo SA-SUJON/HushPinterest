@@ -132,6 +132,30 @@ public class PushReadinessTest {
         assertFalse(report, report.contains("account123"));
     }
 
+    @Test public void withGmsCoreSupportTheReceiverListensForMicroGsActionAndMicroGIsChecked() throws Exception {
+        ShadowPackageManager pm = Shadows.shadowOf(context.getPackageManager());
+        pm.addReceiverIfNotPresent(receiver).enabled = true;
+        pm.addIntentFilterForReceiver(receiver, new IntentFilter("app.revanced.android.c2dm.intent.RECEIVE"));
+        context.getSystemService(NotificationManager.class).setNotificationDelegate("app.revanced.android.gms");
+        PushReadiness.gmsCoreForTests = true;
+        String report = String.join("\n", PushReadiness.REPORT.lines());
+        assertTrue(report, report.contains("messaging_receivers: present, enabled=1, disabled=0"));
+        assertTrue(report, report.contains("notification_delegate: app.revanced.android.gms"));
+        assertTrue(report, report.contains("microg_re: missing"));
+
+        PackageInfo microG = new PackageInfo();
+        microG.packageName = "app.revanced.android.gms";
+        pm.installPackage(microG);
+        report = String.join("\n", PushReadiness.REPORT.lines());
+        assertTrue(report, report.contains("microg_re: installed"));
+
+        // A stock build listens for Google's action, so microG's alone counts as missing there.
+        PushReadiness.gmsCoreForTests = false;
+        report = String.join("\n", PushReadiness.REPORT.lines());
+        assertTrue(report, report.contains("messaging_receivers: missing"));
+        assertFalse(report, report.contains("microg_re"));
+    }
+
     // ---- The Android notification settings row --------------------------------------------------
 
     private static final String KEY = HushPinterestPreferenceFragment.NOTIFICATION_SETTINGS;
@@ -145,6 +169,7 @@ public class PushReadinessTest {
     @After public void restore() {
         if (controller != null) controller.close();
         PatchFamily.inBuildForTests = null;
+        PushReadiness.gmsCoreForTests = null;
         Settings.FIX_PUSH_NOTIFICATIONS.resetToDefault();
         ShadowToast.reset();
     }

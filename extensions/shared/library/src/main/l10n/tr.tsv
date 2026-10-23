@@ -188,8 +188,11 @@ Remove ad tracking permissions	Reklam izleme izinlerini kaldır
 Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Pinterest artık Google'ın reklam kimliği iznini veya Android'in reklam hizmetlerini kullanamaz. Bu, yamalarken ayarlandı. Geri getirmek için bu yama olmadan yeniden yamala.
 Pinterest's access to the ad ID and Android's ad services is removed	Pinterest'in reklam kimliğine ve Android reklam hizmetlerine erişimi kaldırıldı
 Spoof signature for Google sign-in	Google ile oturum açma için imzayı taklit et
-Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.	Google ile girişe yalnızca microG-RE veya XSpoofSignatures ile yardımcı olur. Normal Google Play hizmetleri bunu yok sayar. Yamalarken ayarlanır. Kaldırmak için bu yama olmadan yeniden yamala.
+Helps Google sign-in with XSpoofSignatures, or with microG-RE when GmsCore support is patched in too. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.	Google ile girişe XSpoofSignatures ile ya da GmsCore support da yamalandığında microG-RE ile yardımcı olur. Normal Google Play hizmetleri bunu yok sayar. Yamalarken ayarlanır. Kaldırmak için bu yama olmadan yeniden yamala.
 Pinterest's original signature is added to the app	Pinterest'in orijinal imzası uygulamaya eklendi
+GmsCore support	GmsCore desteği
+Google sign-in and push notifications go through microG-RE instead of Google Play services, so microG-RE has to stay installed. Set when patching. Patch again without it to go back.	Google ile giriş ve anlık bildirimler Google Play hizmetleri yerine microG-RE üzerinden geçer, bu yüzden microG-RE yüklü kalmalı. Yamalarken ayarlanır. Geri dönmek için bu yama olmadan yeniden yamala.
+Google sign-in and push notifications go through microG-RE	Google ile giriş ve anlık bildirimler microG-RE üzerinden geçer
 Download pins	Pinleri indir
 Open links in your browser	Bağlantıları tarayıcında aç
 Opens a pin's Visit link and profile websites in your browser.	Bir pinin Ziyaret et bağlantısını ve profil web sitelerini tarayıcında açar.

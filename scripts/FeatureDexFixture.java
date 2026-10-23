@@ -591,6 +591,9 @@ public final class FeatureDexFixture {
             save.add(new ImmutableInstruction21t(variant.equals("save-bad-fallback") ? Opcode.IF_NEZ : Opcode.IF_EQZ, 0, 3));
             save.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
         }
+        // A Play services name, which GmsCore support renames inside this hooked method too.
+        save.add(literal(variant.startsWith("gmscore-other") ? "app.revanced.android.gsf"
+                : variant.startsWith("gmscore-") ? "app.revanced.android.gms" : "com.google.android.gms", 0));
         save.addAll(record("StoreBytesData;"));
         if (variant.equals("changed-original")) save.set(save.size() - 2, new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference(OBJECT)));
         ImmutableMethodReference delete = ref(STORE, "delete", OBJECT, LIST, CONTINUATION);
@@ -857,12 +860,15 @@ public final class FeatureDexFixture {
         browserId(browserClean, "clean");
         write(root, "feature-browser-id-clean", browserClean, false);
         for (String variant : List.of("good", "missing", "misrouted", "bad-fallback", "save-missing", "save-bad-fallback",
-                "changed-original", "false-capability", "bad-stub")) {
+                "changed-original", "false-capability", "bad-stub", "gmscore-renamed", "gmscore-unselected", "gmscore-other-package")) {
             reset(); enable("hideAdvertisingId");
             if (variant.equals("false-capability")) FLAGS.put("browserId", false);
+            boolean gmsCore = variant.equals("gmscore-renamed") || variant.equals("gmscore-other-package");
+            if (gmsCore) enable("gmsCoreSupport");
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             browserId(classes, variant);
-            write(root, "feature-browser-id-" + variant, classes, true, "hideAdvertisingId");
+            write(root, "feature-browser-id-" + variant, classes, true,
+                    gmsCore ? new String[]{"hideAdvertisingId", "gmsCoreSupport"} : new String[]{"hideAdvertisingId"});
         }
         reset();
         write(root, "feature-status-copy", new LinkedHashMap<>(Map.of(STATUS, settings.get(STATUS))), false);

@@ -63,6 +63,9 @@ public enum PatchFamily {
     /** Signature spoofing metadata added to the manifest when patching: no switch either. */
     SPOOF_SIGNATURE(FamilyNames.SPOOF_SIGNATURE, "spoofSignature",
             "Pinterest's original signature is added to the app"),
+    /** Google sign-in and push sent to microG-RE when patching: no switch, nothing to pause. */
+    GMS_CORE_SUPPORT(FamilyNames.GMS_CORE_SUPPORT, "gmsCoreSupport",
+            "Google sign-in and push notifications go through microG-RE"),
     DOWNLOAD_PINS(FamilyNames.DOWNLOAD_PINS, "downloadPins", null, Settings.DOWNLOAD_PINS, Settings.SAVE_IN_PINTEREST_FOLDER,
             Settings.DOWNLOAD_UNMETERED_ONLY, Settings.DOWNLOAD_NO_ROAMING, Settings.COPY_IMAGE, Settings.SHARE_IMAGE),
     DOWNLOAD_BOARD(FamilyNames.DOWNLOAD_BOARD, "downloadBoard", null, Settings.DOWNLOAD_BOARD),
@@ -138,7 +141,7 @@ public enum PatchFamily {
     static final Set<PatchFamily> FEED_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_AI_PINS, HIDE_SHOPPING,
             FILTER_FEED, KEEP_HOME_FEED));
     static final Set<PatchFamily> PRIVACY_PAGE = Collections.unmodifiableSet(EnumSet.of(DISABLE_ANALYTICS, STRIP_LINK_TRACKING,
-            HIDE_ADVERTISING_ID, REMOVE_AD_TRACKING_PERMISSIONS, SPOOF_SIGNATURE));
+            HIDE_ADVERTISING_ID, REMOVE_AD_TRACKING_PERMISSIONS, SPOOF_SIGNATURE, GMS_CORE_SUPPORT));
     static final Set<PatchFamily> ACTIONS_PAGE = Collections.unmodifiableSet(EnumSet.of(DOWNLOAD_PINS, DOWNLOAD_BOARD,
             LONG_PRESS_DOWNLOAD, SYSTEM_SHARE));
     static final Set<PatchFamily> INTERFACE_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SCREENSHOT_SHARE,

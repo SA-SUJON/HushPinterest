@@ -179,6 +179,19 @@
       "license": "GPL-3.0-only",
       "changes": "Adapted from HushTelegram's Firebase push repair: the certificate header hook, its startup wait and its request scoping, with Pinterest's package and certificate, Pinterest's two Firebase Installations callers, and HushPinterest's settings and status flags. Telegram's local status readers and push answer hook were left out.",
       "commit": "df79f7d3131060bd0ba391085b0926cb107c33bf"
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/GmsCoreSupportPatch.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/MorpheApp/morphe-patches",
+      "via": [
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Adapted from Morphe's shared GmsCore support: its permission, action and authority lists, with the identity credentials, App set ID, SMS retriever and ads actions microG-RE 7.2.2 serves only under app.revanced added. Pinterest's own shapes in place of the YouTube fingerprints: Play services' availability check found by its strings, and androidx Credential Manager's framework provider answering unavailable so Android 14 and later fall back to the rerouted Play services path. Every check runs before any edit, and the manifest change is limited to Firebase messaging's c2dm names and a package query. Morphe's checks for an installed GmsCore and its battery optimization prompt were left out.",
+      "commit": "e72fe6eb324d5499449f85897f001624f4e9a7c7"
     }
   ]
 }

@@ -5924,6 +5924,7 @@ public class DexDiff {
                 Instruction i = e == null ? layout.instructions.get(at) : e.replacements.getOrDefault(at, layout.instructions.get(at));
                 if (i.getOpcode() == Opcode.NOP) continue;
                 String text = render(i).replace("const-string/jumbo", "const-string");
+                if (e != null) text = gmsCoreOriginal(i, text);
                 if (i instanceof OffsetInstruction) {
                     String raw = String.format("%+d", ((OffsetInstruction) i).getCodeOffset());
                     int target = layout.addresses.get(at) + ((OffsetInstruction) i).getCodeOffset();
@@ -5943,6 +5944,23 @@ public class DexDiff {
                 out.add(text);
             }
             return out;
+        }
+
+        /**
+         * GmsCore support renames Play services strings in every method, hooked ones included
+         * (Firebase's token request is one Fix push notifications hooks). Installed, its
+         * app.revanced text reads as the com.google text it replaced, so only that exact swap
+         * passes and any other changed string still fails.
+         */
+        String gmsCoreOriginal(Instruction i, String text) {
+            if (!flag("gmsCoreSupport") || !(i instanceof ReferenceInstruction)) return text;
+            Reference r = ((ReferenceInstruction) i).getReference();
+            if (!(r instanceof StringReference)) return text;
+            String s = ((StringReference) r).getString();
+            String was = null;
+            for (String scheme : List.of("", "content://"))
+                if (s.startsWith(scheme + "app.revanced")) was = scheme + "com.google" + s.substring((scheme + "app.revanced").length());
+            return was == null ? text : text.replace(", " + s + " |maxreg=", ", " + was + " |maxreg=");
         }
 
         Integer originalTarget(Method m, Layout layout, FeatureEdits e, Map<Integer, Integer> positions, int target) {

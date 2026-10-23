@@ -23,6 +23,8 @@ class DefaultSelectionPolicyTest {
         "Spoof signature for Google sign-in" to "It writes Pinterest's original signing certificate into the " +
             "manifest when you patch, with no switch, and only microG-RE or the XSpoofSignatures module reads " +
             "it, so it's a sign-in workaround to pick on purpose.",
+        "GmsCore support" to "It sends Google sign-in and push notifications to microG-RE when you patch, with " +
+            "no switch, so on a phone without microG-RE both stop working. Only microG-RE users should pick it.",
     )
 
     private fun shippedPatches() = run {

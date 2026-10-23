@@ -41,7 +41,9 @@ function Fixture-Facts([string[]]$features = @(), [string]$build = '14.39.0',
         [ValidateSet('Absent', 'Resource', 'True', 'False')][string]$flag = 'Absent', [switch]$NoQueries,
         [switch]$NoConsentDefaults, [switch]$NoAdServices, [switch]$WithSignature) {
     $code = '14398020'
-    $lines = [System.Collections.Generic.List[string]]::new()
+    # GmsCore support moves Firebase messaging's c2dm names to microG-RE's.
+    $c2dm = if ($features -contains 'gmscore') { 'app.revanced.android.c2dm' } else { 'com.google.android.c2dm' }
+    $lines =[System.Collections.Generic.List[string]]::new()
     $lines.AddRange([string[]]@(
         'N: android=http://schemas.android.com/apk/res/android (line=1)',
         '  E: manifest (line=1)',
@@ -52,20 +54,24 @@ function Fixture-Facts([string[]]$features = @(), [string]$build = '14.39.0',
         '        A: http://schemas.android.com/apk/res/android:minSdkVersion=29',
         '    A: platformBuildVersionCode=36',
         '      E: uses-permission (line=3)',
-        '        A: http://schemas.android.com/apk/res/android:name="android.permission.INTERNET"'))
+        '        A: http://schemas.android.com/apk/res/android:name="android.permission.INTERNET"',
+        '      E: uses-permission (line=3)',
+        "        A: http://schemas.android.com/apk/res/android:name=`"$c2dm.permission.RECEIVE`""))
     if (-not $NoAdServices -and $features -notcontains 'adtracking') {
         foreach ($permission in $adPermissions) {
             $lines.AddRange([string[]]@('      E: uses-permission (line=3)',
                 "        A: http://schemas.android.com/apk/res/android:name=`"$permission`""))
         }
     }
-    if (-not $NoQueries -or $features -contains 'browser') {
+    if (-not $NoQueries -or $features -contains 'browser' -or $features -contains 'gmscore') {
         $lines.Add('      E: queries (line=4)')
         if (-not $NoQueries) { $lines.AddRange([string[]]@('        E: package (line=5)',
             '          A: http://schemas.android.com/apk/res/android:name="vendor.browser"')) }
         if ($features -contains 'browser') {
             $lines.AddRange([string[]](Browser-Lines 'http')); $lines.AddRange([string[]](Browser-Lines 'https'))
         }
+        if ($features -contains 'gmscore') { $lines.AddRange([string[]]@('        E: package (line=5)',
+            '          A: http://schemas.android.com/apk/res/android:name="app.revanced.android.gms"')) }
     }
     if (-not $NoQueries) {
         $lines.AddRange([string[]]@('      E: queries (line=6)', '        E: provider (line=7)',
@@ -92,7 +98,7 @@ function Fixture-Facts([string[]]$features = @(), [string]$build = '14.39.0',
         $lines.AddRange([string[]](Metadata-Lines 'firebase_performance_collection_deactivated' 'true'))
         $lines.AddRange([string[]](Metadata-Lines 'google_analytics_adid_collection_enabled' 'false'))
     }
-    if ($features -contains 'signature' -or $WithSignature) {
+    if ($features -contains 'signature' -or $features -contains 'gmscore' -or $WithSignature) {
         foreach ($name in $signatureMetadata.Keys) {
             $value = $signatureMetadata[$name]
             $lines.AddRange([string[]]@('        E: meta-data (line=21)',
@@ -126,7 +132,10 @@ function Fixture-Facts([string[]]$features = @(), [string]$build = '14.39.0',
         '        E: receiver (line=28)',
         '          A: http://schemas.android.com/apk/res/android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"',
         '          A: http://schemas.android.com/apk/res/android:exported=true',
-        '          A: http://schemas.android.com/apk/res/android:permission="com.google.android.c2dm.permission.SEND"',
+        "          A: http://schemas.android.com/apk/res/android:permission=`"$c2dm.permission.SEND`"",
+        '          E: intent-filter (line=29)',
+        '            E: action (line=29)',
+        "              A: http://schemas.android.com/apk/res/android:name=`"$c2dm.intent.RECEIVE`"",
         '        E: activity (line=29)',
         '          A: http://schemas.android.com/apk/res/android:name=".AccountAuth"',
         '          A: http://schemas.android.com/apk/res/android:exported=false',
@@ -162,6 +171,7 @@ function Fixture-Facts([string[]]$features = @(), [string]$build = '14.39.0',
 
 $settings = 'HushPinterest settings'; $analytics = 'Disable analytics'; $browser = 'Open links in your browser'
 $adTracking = 'Remove ad tracking permissions'; $signature = 'Spoof signature for Google sign-in'
+$gmsCore = 'GmsCore support'
 $all = @($settings, $analytics, $browser, $adTracking, $signature)
 $allowlist = Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt'
 function Check-Manifest($stock, $patched, [string[]]$names) {
@@ -178,7 +188,7 @@ Assert-Manifest ((@($signatureTemplates | Sort-Object -CaseSensitive) -join "`n"
     "The allowlist approves other signature metadata than the patch writes: $($signatureTemplates -join '; ')"
 foreach ($build in @('14.39.0')) {
     $stock = Fixture-Facts -build $build
-    Assert-Manifest ($stock.components.Count -eq 6 -and $stock.metadata.Count -eq 6 -and $stock.intentFilters.Count -eq 2) `
+    Assert-Manifest ($stock.components.Count -eq 6 -and $stock.metadata.Count -eq 6 -and $stock.intentFilters.Count -eq 3) `
         'The parser lost a nonexported component or nested declaration.'
     Assert-Manifest ($stock.queries.Count -eq 4) 'The parser lost a vendor query block.'
     Assert-Manifest (($stock.components -join '') -like '*com.pinterest.AccountProvider*') 'Relative component names were not qualified.'
@@ -190,7 +200,10 @@ foreach ($build in @('14.39.0')) {
             @{ label = 'analytics-excluded'; names = @($settings, $browser, $adTracking); features = @('settings', 'browser', 'adtracking') },
             @{ label = 'analytics-only'; names = @($analytics, $settings); features = @('settings', 'analytics') },
             @{ label = 'ad-tracking-only'; names = @($adTracking, $settings); features = @('settings', 'adtracking') },
-            @{ label = 'signature-only'; names = @($signature, $settings); features = @('settings', 'signature') })) {
+            @{ label = 'signature-only'; names = @($signature, $settings); features = @('settings', 'signature') },
+            @{ label = 'gmscore-only'; names = @($gmsCore, $settings); features = @('settings', 'gmscore') },
+            @{ label = 'gmscore-and-signature'; names = @($gmsCore, $signature, $settings); features = @('settings', 'signature', 'gmscore') },
+            @{ label = 'everything'; names = @($all + $gmsCore); features = @('settings', 'analytics', 'browser', 'adtracking', 'signature', 'gmscore') })) {
         $check = Check-Manifest $stock (Fixture-Facts -build $build -features $scenario.features) $scenario.names
         Assert-Manifest $check.Valid "$build $($scenario.label): $($check.Reason)"
     }
@@ -252,6 +265,44 @@ foreach ($case in @(
     $refused = Check-Manifest $stock $case.Patched $case.Names
     Assert-Manifest (-not $refused.Valid) "The manifest check accepted $($case.Label)."
 }
+
+# GmsCore support moves Firebase messaging's c2dm permission, the permission its receiver asks of a
+# sender and the action it listens for to microG-RE's names, puts microG-RE's package in the first
+# query block and brings the signature metadata. Partial, doubled or unselected, it's refused.
+$gmsPatched = Fixture-Facts -features @('settings', 'gmscore')
+$gms = Check-Manifest $stock $gmsPatched @($settings, $gmsCore)
+Assert-Manifest ($gms.Valid -and $gms.Entries.Count -eq 12) "GmsCore support's delta isn't 9 entries beside settings: $($gms.Reason) $($gms.Entries -join '; ')"
+Assert-Manifest (@($gms.Entries | Where-Object { $_ -clike '*-added *com.google.android.c2dm.*' }).Count -eq 0) 'GmsCore support added a Google c2dm name.'
+$freshQueries = Check-Manifest (Fixture-Facts -NoQueries) (Fixture-Facts -NoQueries -features @('settings', 'gmscore')) @($settings, $gmsCore)
+Assert-Manifest ($freshQueries.Valid -and @($freshQueries.Delta.queriesAdded).Count -eq 2) "A new query block for microG-RE was refused: $($freshQueries.Reason)"
+$gmsBrowser = Check-Manifest (Fixture-Facts -NoQueries) (Fixture-Facts -NoQueries -features @('settings', 'browser', 'gmscore')) @($settings, $browser, $gmsCore)
+Assert-Manifest $gmsBrowser.Valid "Browser and GmsCore support couldn't share one new query block: $($gmsBrowser.Reason)"
+$gmsPackageQuery = @($gms.Delta.queriesAdded | Where-Object { $_ -clike '*"app.revanced.android.gms"*' })[0]
+$gmsRefusals = [ordered]@{ 'no c2dm move' = (Fixture-Facts -features @('settings', 'signature')) }
+$bad = Copy-Manifest $gmsPatched; $bad.queries = @($bad.queries | Where-Object { $_ -cne $gmsPackageQuery })
+$gmsRefusals['no microG-RE query'] = $bad
+$bad = Copy-Manifest $gmsPatched; $bad.queries += ($gmsPackageQuery -creplace '"owner":"queries#0"', '"owner":"queries#1"')
+$gmsRefusals['microG-RE queried twice'] = $bad
+$bad = Copy-Manifest $gmsPatched; $bad.components = @($bad.components | ForEach-Object { $_ -creplace 'app\.revanced\.android\.c2dm\.', 'com.google.android.c2dm.' })
+$gmsRefusals['a receiver still guarded by Google'] = $bad
+$bad = Copy-Manifest $gmsPatched; $bad.intentFilters = @($bad.intentFilters | ForEach-Object { $_ -creplace 'app\.revanced\.android\.c2dm\.', 'com.google.android.c2dm.' })
+$gmsRefusals["a receiver still listening for Google's action"] = $bad
+$bad = Copy-Manifest $gmsPatched; $bad.permissions += 'com.google.android.c2dm.permission.RECEIVE'
+$gmsRefusals['both receive permissions'] = $bad
+$bad = Copy-Manifest $gmsPatched; $bad.metadata = @($bad.metadata | Where-Object { $_ -cnotlike '*SPOOFED_PACKAGE_SIGNATURE*' })
+$gmsRefusals['no spoofed signature for microG-RE'] = $bad
+foreach ($pair in $gmsRefusals.GetEnumerator()) {
+    Assert-Manifest (-not (Check-Manifest $stock $pair.Value @($settings, $gmsCore)).Valid) "GmsCore support accepted $($pair.Key)."
+}
+Assert-Manifest (-not (Check-Manifest $stock $gmsPatched @($settings, $signature)).Valid) 'A microG-RE reroute passed without GmsCore support selected.'
+$gmsAlone = Check-Manifest $stock (Fixture-Facts -features @('gmscore')) @($gmsCore)
+Assert-Manifest (-not $gmsAlone.Valid -and $gmsAlone.Reason -like '*settings dependency*') "$gmsCore passed without its settings dependency."
+$named = Copy-Manifest $stock; $named.queries += $gmsPackageQuery
+$alreadyNamed = Check-Manifest $named $gmsPatched @($settings, $gmsCore)
+Assert-Manifest (-not $alreadyNamed.Valid -and $alreadyNamed.Reason -like '*already names microG-RE*') "A stock manifest already naming microG-RE was accepted: $($alreadyNamed.Reason)"
+$noReceive = Copy-Manifest $stock; $noReceive.permissions = @($noReceive.permissions | Where-Object { $_ -cnotlike '*.c2dm.*' })
+$withoutReceive = Check-Manifest $noReceive $gmsPatched @($settings, $gmsCore)
+Assert-Manifest (-not $withoutReceive.Valid -and $withoutReceive.Reason -like '*permission.RECEIVE*') "GmsCore support passed on a stock without Firebase messaging's permission: $($withoutReceive.Reason)"
 
 # Matching browser intents in a later vendor block are retained without adding duplicate intents.
 $existing = Copy-Manifest $stock

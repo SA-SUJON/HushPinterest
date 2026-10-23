@@ -188,8 +188,11 @@ Remove ad tracking permissions	Hapus izin pelacakan iklan
 Pinterest can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Pinterest tidak lagi bisa memakai izin ID iklan Google atau layanan iklan Android. Ini diatur saat Anda menambal. Tambal ulang tanpanya untuk mengembalikannya.
 Pinterest's access to the ad ID and Android's ad services is removed	akses Pinterest ke ID iklan dan layanan iklan Android dihapus
 Spoof signature for Google sign-in	Palsukan tanda tangan untuk login Google
-Helps Google sign-in only with microG-RE or XSpoofSignatures. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.	Membantu masuk dengan Google hanya dengan microG-RE atau XSpoofSignatures. Google Play services biasa mengabaikannya. Diatur saat menambal. Tambal ulang tanpanya untuk menghapusnya.
+Helps Google sign-in with XSpoofSignatures, or with microG-RE when GmsCore support is patched in too. Stock Google Play services ignores it. Set when patching. Patch again without it to remove it.	Membantu masuk dengan Google dengan XSpoofSignatures, atau dengan microG-RE jika GmsCore support juga ditambalkan. Google Play services biasa mengabaikannya. Diatur saat menambal. Tambal ulang tanpanya untuk menghapusnya.
 Pinterest's original signature is added to the app	Tanda tangan asli Pinterest ditambahkan ke aplikasi
+GmsCore support	Dukungan GmsCore
+Google sign-in and push notifications go through microG-RE instead of Google Play services, so microG-RE has to stay installed. Set when patching. Patch again without it to go back.	Masuk dengan Google dan notifikasi push melewati microG-RE, bukan Google Play services, jadi microG-RE harus tetap terpasang. Diatur saat menambal. Tambal ulang tanpanya untuk kembali.
+Google sign-in and push notifications go through microG-RE	Masuk dengan Google dan notifikasi push melewati microG-RE
 Download pins	Unduh Pin
 Open links in your browser	Buka tautan di browser Anda
 Opens a pin's Visit link and profile websites in your browser.	Membuka tautan Kunjungi sebuah Pin dan situs web profil di browser Anda.

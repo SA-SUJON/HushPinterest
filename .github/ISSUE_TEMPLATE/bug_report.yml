@@ -66,7 +66,7 @@ body:
     id: selected_patches
     attributes:
       label: Which patches were in your build?
-      description: Every patch but Spoof signature for Google sign-in is selected by default. That one is only in your build if you picked it in Expert mode.
+      description: Every patch but GmsCore support and Spoof signature for Google sign-in is selected by default. Those two are only in your build if you picked them in Expert mode.
       multiple: true
       options:
         - AMOLED black
@@ -77,6 +77,7 @@ body:
         - Filter feed
         - Filter pin menu
         - Fix push notifications
+        - GmsCore support
         - Hide AI-labeled pins
         - Hide ads
         - Hide advertising ID
